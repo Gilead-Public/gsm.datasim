@@ -4,20 +4,18 @@ test_that("domain registry exposes required schema for migrated domains", {
   expect_true("Raw_AE" %in% names(registry))
   expect_true("Raw_LB" %in% names(registry))
 
-  expected_fields <- sort(c("dataset", "package", "workflow_path", "required_inputs", "count_fn", "args_builder", "generate_fn"))
+  expected_fields <- sort(c("dataset", "required_inputs", "count_fn", "generate_fn"))
 
   ae_entry <- registry$Raw_AE
   expect_equal(sort(names(ae_entry)), expected_fields)
   expect_equal(ae_entry$dataset, "Raw_AE")
   expect_true(is.function(ae_entry$count_fn))
-  expect_true(is.function(ae_entry$args_builder))
   expect_true(is.function(ae_entry$generate_fn))
 
   lb_entry <- registry$Raw_LB
   expect_equal(sort(names(lb_entry)), expected_fields)
   expect_equal(lb_entry$dataset, "Raw_LB")
   expect_true(is.function(lb_entry$count_fn))
-  expect_true(is.function(lb_entry$args_builder))
   expect_true(is.function(lb_entry$generate_fn))
 })
 

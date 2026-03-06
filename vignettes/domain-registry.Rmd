@@ -101,7 +101,7 @@ lb_config <- registry$Raw_LB
 # - Supports longitudinal data patterns
 
 print(lb_config$count_fn)
-print(lb_config$args_builder)
+print(lb_config$generate_fn)
 ```
 
 ## Available Domains
@@ -319,27 +319,21 @@ add_custom_domain_to_registry <- function() {
   # Add custom domain
   current_registry$Raw_CUSTOM <- list(
     dataset = "Raw_CUSTOM",
-    package = "gsm.mapping",  # or your custom package
-    workflow_path = "workflow/1_mappings",
     required_inputs = c("data", "combined_specs", "n", "start_date"),
     count_fn = function(counts, snapshot_idx) {
       # Custom count logic
-      counts$participant_count[snapshot_idx] * 2  # 2 records per participant
+      counts$subject_count[snapshot_idx] * 2  # 2 records per participant
     },
-    args_builder = function(context) {
-      list(
-        context$data,
-        context$combined_specs, 
-        n = context$n,
-        startDate = context$start_date,
-        custom_param = "custom_value"
-      )
-    },
-    generate_fn = function(args) {
-      # This would call your custom generation function
-      # do.call(Raw_CUSTOM, args)
-      warning("Raw_CUSTOM function not implemented")
-      return(data.frame())
+    generate_fn = function(context) {
+      # All generation logic lives here — no separate Raw_CUSTOM() function needed.
+      # Access everything through `context`:
+      #   context$data           — current snapshot data (Raw_SUBJ, Raw_SITE, …)
+      #   context$previous_data  — previous snapshot
+      #   context$combined_specs — field specs from CombineSpecs()
+      #   context$n              — target record count this snapshot
+      #   context$start_date / context$end_date
+      warning("Raw_CUSTOM generate_fn not implemented")
+      data.frame()
     }
   )
   
@@ -425,8 +419,8 @@ validate_domain_registry <- function(registry = NULL) {
     validation_results[[domain_name]] <- list(
       missing_fields = missing_fields,
       package_available = package_available,
-      has_count_fn = !is.null(domain_config$count_fn),
-      has_args_builder = !is.null(domain_config$args_builder)
+      has_count_fn    = !is.null(domain_config$count_fn),
+      has_generate_fn = !is.null(domain_config$generate_fn)
     )
   }
   
