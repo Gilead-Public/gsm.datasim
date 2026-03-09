@@ -1,3 +1,10 @@
+# gsm.datasim v1.1.3
+
+This patch release makes the following updates:
+
+- Added `strStartDate` to `generate_rawdata_for_single_study()` and `raw_data_generator()` to allow arbitrary snapshot start dates.
+- Added `db_lock_dt` generation in `Raw_STUDY` based on the snapshot global max date.
+
 # gsm.datasim v1.1.2
 This release resolves a bug involving duplicate records in the randomization domain.
 

@@ -1,6 +1,6 @@
 Package: gsm.datasim
 Title: Synthetic Test Data Generator
-Version: 1.1.2
+Version: 1.1.3
 Authors@R: c(
     person("Roman", "Rogoza", email = "roman.rogoza@atorusresearch.com", role = c("aut", "cre")),
     person("Laura", "Maxwell", email = "laura.maxwell@atorusresearch.com", role = c("aut")),
@@ -12,7 +12,7 @@ Imports:
     dplyr, 
     glue,
     gsm.core (>= 1.1.2),
-    gsm.mapping (>= 1.1.0),
+    gsm.mapping (>= 1.1.2),
     logger,
     lubridate,
     magrittr,
