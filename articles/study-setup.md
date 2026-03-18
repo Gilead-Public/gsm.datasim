@@ -401,7 +401,7 @@ study <- create_longitudinal_study(
 )
 
 # Check data for each snapshot
-for (i in 1:length(study$raw_data)) {
+for (i in seq_along(study$raw_data)) {
   snapshot_name <- names(study$raw_data)[i]
   snapshot_data <- study$raw_data[[i]]
   
@@ -459,10 +459,10 @@ directory:
 
     <output_dir>/<study_id>/
       <snapshot_date>/
-        raw/          # Raw_*.csv
-        mapped/       # Mapped_*.csv  (present when analytics ran)
-        analytics/    # <metric>_<table>.csv  (present when analytics ran)
-        reporting/    # Reporting_*.csv  (present when reporting ran)
+        raw/          # Raw_*.parquet
+        mapped/       # Mapped_*.parquet  (present when analytics ran)
+        analytics/    # <metric>_<table>.parquet  (present when analytics ran)
+        reporting/    # Reporting_*.parquet  (present when reporting ran)
 
 Folders are only created when the corresponding data exists for a
 snapshot.
@@ -506,11 +506,12 @@ study_path <- export_study_data(
 )
 ```
 
-### Preserving Non-CSV Objects
+### Preserving Non-Parquet Objects
 
 The analytics pipeline stores workflow lists, summaries, and other
-objects that cannot be flattened to CSV. Set `save_rds = TRUE` to write
-a companion `analytics_full.rds` file per snapshot:
+objects that cannot be written as flat Parquet tables. Set
+`save_rds = TRUE` to write a companion `analytics_full.rds` file per
+snapshot:
 
 ``` r
 study_path <- export_study_data(
@@ -529,18 +530,18 @@ names(analytics_snap)  # $results, $mapped, $lWorkflow, $summary
 ### Inspecting the Exported Files
 
 ``` r
-# List all CSV files written across all snapshots
-all_csvs <- list.files(study_path, pattern = "\\.csv$", recursive = TRUE)
-cat(length(all_csvs), "CSV files written\n")
+# List all Parquet files written across all snapshots
+all_parquet <- list.files(study_path, pattern = "\\.parquet$", recursive = TRUE)
+cat(length(all_parquet), "Parquet files written\n")
 
 # Raw data lives in <snapshot>/raw/
-raw_csvs <- all_csvs[grepl("/raw/", all_csvs)]
-cat("Raw CSVs:", paste(basename(raw_csvs), collapse = ", "), "\n")
+raw_parquet <- all_parquet[grepl("/raw/", all_parquet)]
+cat("Raw Parquet files:", paste(basename(raw_parquet), collapse = ", "), "\n")
 
 # Read a specific snapshot's adverse event data back in
 snap_date <- names(study$raw_data)[1]
-ae_path   <- file.path(study_path, snap_date, "raw", "Raw_AE.csv")
-ae_df     <- read.csv(ae_path)
+ae_path   <- file.path(study_path, snap_date, "raw", "Raw_AE.parquet")
+ae_df     <- as.data.frame(arrow::read_parquet(ae_path))
 nrow(ae_df)
 ```
 
