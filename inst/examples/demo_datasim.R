@@ -212,10 +212,10 @@ summarize_longitudinal_study(study_obj)
 #
 #   <output_dir>/<study_id>/
 #     <snapshot_date>/
-#       raw/          ← Raw_*.csv
-#       mapped/       ← Mapped_*.csv     (when analytics ran)
-#       analytics/    ← <metric>_<table>.csv  (when analytics ran)
-#       reporting/    ← Reporting_*.csv  (when reporting ran)
+#       raw/          ← Raw_*.parquet
+#       mapped/       ← Mapped_*.parquet     (when analytics ran)
+#       analytics/    ← <metric>_<table>.parquet  (when analytics ran)
+#       reporting/    ← Reporting_*.parquet  (when reporting ran)
 #
 # Folders are only created when the data actually exists.
 
@@ -235,13 +235,13 @@ cat("Folders created:\n")
 closest_dirs <- dirs[dirs != ""]
 cat(paste(" ", sort(closest_dirs), collapse = "\n"), "\n")
 
-# Count CSVs written
-all_csvs <- list.files(study_path, pattern = "\\.csv$", recursive = TRUE)
-cat(length(all_csvs), "CSV files written\n")
+# Count Parquet files written
+all_parquet <- list.files(study_path, pattern = "\\.parquet$", recursive = TRUE)
+cat(length(all_parquet), "Parquet files written\n")
 
 # Read a raw dataset back in from the first snapshot
 snap_date <- names(study$raw_data)[1]
-ae_back   <- read.csv(file.path(study_path, snap_date, "raw", "Raw_AE.csv"))
+ae_back   <- as.data.frame(arrow::read_parquet(file.path(study_path, snap_date, "raw", "Raw_AE.parquet")))
 nrow(ae_back)  # should match nrow(study$raw_data[[1]]$Raw_AE)
 
 # ── Export options ────────────────────────────────────────────────────────────
@@ -254,7 +254,7 @@ export_study_data(
   overwrite    = TRUE                # allow re-running without error
 )
 
-# save_rds = TRUE writes analytics_full.rds per snapshot alongside the CSVs,
+# save_rds = TRUE writes analytics_full.rds per snapshot alongside Parquet files,
 # preserving workflow lists, summaries, and other non-data-frame objects.
 rds_path <- export_study_data(
   study      = study,

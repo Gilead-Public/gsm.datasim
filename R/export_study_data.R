@@ -6,15 +6,15 @@
 #' ```
 #' <output_dir>/<study_id>/
 #'   <snapshot_date>/
-#'     raw/          # Raw_*.csv  (from study$raw_data)
-#'     mapped/       # Mapped_*.csv  (from study$analytics[[date]]$mapped)
-#'     analytics/    # <metric>_<table>.csv  (from study$analytics[[date]]$results)
-#'     reporting/    # Reporting_*.csv  (from study$reporting[[date]])
+#'     raw/          # Raw_*.parquet  (from study$raw_data)
+#'     mapped/       # Mapped_*.parquet  (from study$analytics[[date]]$mapped)
+#'     analytics/    # <metric>_<table>.parquet  (from study$analytics[[date]]$results)
+#'     reporting/    # Reporting_*.parquet  (from study$reporting[[date]])
 #' ```
 #'
 #' Folders are only created when the corresponding data actually exists.
 #' Non-data.frame leaves inside `analytics` are silently skipped; they can be
-#' preserved alongside the CSVs by setting `save_rds = TRUE`, which writes a
+#' preserved alongside the Parquet files by setting `save_rds = TRUE`, which writes a
 #' companion `analytics_full.rds` per snapshot.
 #'
 #' @param study A `longitudinal_study` object (output of
@@ -25,12 +25,14 @@
 #' @param study_folder Optional name for the top-level study folder.  Defaults
 #'   to \code{study$study_id} with characters that are invalid in folder names
 #'   replaced by underscores.
-#' @param overwrite If \code{TRUE}, existing CSV files are silently
+#' @param overwrite If \code{TRUE}, existing Parquet files are silently
 #'   overwritten.  If \code{FALSE} (default), an error is raised when the
 #'   target study folder already exists.
+#' @param compression Compression codec passed to \code{arrow::write_parquet}.
+#'   Defaults to \code{"snappy"}.
 #' @param save_rds If \code{TRUE}, an \code{analytics_full.rds} file is also
 #'   written per snapshot, preserving any non-data.frame objects (workflow
-#'   lists, summaries, etc.) that cannot be expressed as flat CSVs.
+#'   lists, summaries, etc.) that cannot be expressed as flat Parquet files.
 #'   Defaults to \code{FALSE}.
 #' @param verbose If \code{TRUE}, prints progress messages.  Defaults to
 #'   \code{FALSE}.
@@ -41,6 +43,7 @@ export_study_data <- function(study,
                               output_dir    = ".",
                               study_folder  = NULL,
                               overwrite     = FALSE,
+                              compression   = "snappy",
                               save_rds      = FALSE,
                               verbose       = FALSE) {
 
@@ -52,8 +55,11 @@ export_study_data <- function(study,
   if (!is.character(output_dir) || length(output_dir) != 1) {
     stop("`output_dir` must be a single character string.")
   }
+  if (!is.character(compression) || length(compression) != 1 || nchar(compression) == 0) {
+    stop("`compression` must be a single non-empty character string.")
+  }
 
-  vcat <- function(...) if (isTRUE(verbose)) message(...)
+  .verbose <- isTRUE(verbose)
 
   # ── Build study root path ────────────────────────────────────────────────────
 
@@ -70,25 +76,27 @@ export_study_data <- function(study,
   }
 
   dir.create(study_root, recursive = TRUE, showWarnings = FALSE)
-  vcat("Exporting study '", study$study_id, "' to: ", study_root, sep = "")
+  if (.verbose) message("Exporting study '", study$study_id, "' to: ", study_root)
 
   # ── Per-snapshot export ──────────────────────────────────────────────────────
 
   snapshot_names <- names(study$raw_data) %||% seq_along(study$raw_data)
 
-  for (snap_name in snapshot_names) {
+  purrr::walk(snapshot_names, function(snap_name) {
 
     snap_dir <- file.path(study_root, snap_name)
     dir.create(snap_dir, recursive = TRUE, showWarnings = FALSE)
-    vcat("  Snapshot: ", snap_name, sep = "")
+    if (.verbose) message("  Snapshot: ", snap_name)
 
     # -- raw/ ----------------------------------------------------------------
     raw_snap <- study$raw_data[[snap_name]]
     if (!is.null(raw_snap) && length(raw_snap) > 0) {
       raw_dir <- file.path(snap_dir, "raw")
       dir.create(raw_dir, showWarnings = FALSE)
-      .write_df_list(raw_snap, raw_dir, overwrite = overwrite, verbose = verbose)
-      vcat("    raw/  (", length(raw_snap), " datasets)", sep = "")
+      n_raw <- .write_df_list(raw_snap, raw_dir,
+                              overwrite = overwrite,
+                              compression = compression)
+      if (.verbose) message("    raw/  (", n_raw, " datasets)")
     }
 
     # -- mapped/ and analytics/ (from study$analytics) ----------------------
@@ -103,8 +111,10 @@ export_study_data <- function(study,
         if (length(mapped_dfs) > 0) {
           mapped_dir <- file.path(snap_dir, "mapped")
           dir.create(mapped_dir, showWarnings = FALSE)
-          .write_df_list(mapped_dfs, mapped_dir, overwrite = overwrite, verbose = verbose)
-          vcat("    mapped/  (", length(mapped_dfs), " datasets)", sep = "")
+          n_mapped <- .write_df_list(mapped_dfs, mapped_dir,
+                                     overwrite = overwrite,
+                                     compression = compression)
+          if (.verbose) message("    mapped/  (", n_mapped, " datasets)")
         }
       }
 
@@ -114,15 +124,16 @@ export_study_data <- function(study,
         analytics_dir <- file.path(snap_dir, "analytics")
         dir.create(analytics_dir, showWarnings = FALSE)
         n_written <- .write_analytics_results(results, analytics_dir,
-                                              overwrite = overwrite, verbose = verbose)
-        vcat("    analytics/  (", n_written, " tables)", sep = "")
+                                              overwrite = overwrite,
+                                              compression = compression)
+        if (.verbose) message("    analytics/  (", n_written, " tables)")
       }
 
       # Optional: full RDS for anything that isn't a data.frame
       if (isTRUE(save_rds)) {
         rds_path <- file.path(snap_dir, "analytics_full.rds")
         saveRDS(analytics_snap, rds_path)
-        vcat("    analytics_full.rds written", sep = "")
+        if (.verbose) message("    analytics_full.rds written")
       }
     }
 
@@ -134,72 +145,77 @@ export_study_data <- function(study,
       if (length(reporting_dfs) > 0) {
         reporting_dir <- file.path(snap_dir, "reporting")
         dir.create(reporting_dir, showWarnings = FALSE)
-        .write_df_list(reporting_dfs, reporting_dir, overwrite = overwrite, verbose = verbose)
-        vcat("    reporting/  (", length(reporting_dfs), " datasets)", sep = "")
+        n_reporting <- .write_df_list(reporting_dfs, reporting_dir,
+                                      overwrite = overwrite,
+                                      compression = compression)
+        if (.verbose) message("    reporting/  (", n_reporting, " datasets)")
       }
     }
-  }
+  })
 
-  vcat("Export complete: ", study_root, sep = "")
+  if (.verbose) message("Export complete: ", study_root)
   invisible(study_root)
 }
 
 # ── Internal helpers ──────────────────────────────────────────────────────────
 
-# Write a flat named list of data frames to <dir>/<name>.csv
-.write_df_list <- function(df_list, dir, overwrite, verbose) {
-  vcat <- function(...) if (isTRUE(verbose)) message(...)
-  for (nm in names(df_list)) {
-    obj <- df_list[[nm]]
-    if (!is.data.frame(obj)) next
-    csv_path <- file.path(dir, paste0(nm, ".csv"))
-    if (file.exists(csv_path) && !isTRUE(overwrite)) {
-      warning("Skipping existing file (use overwrite = TRUE): ", csv_path)
-      next
-    }
-    utils::write.csv(obj, csv_path, row.names = FALSE)
+# Write one data frame to Parquet, respecting overwrite behavior.
+.write_df_parquet <- function(df, parquet_path, overwrite, compression) {
+  if (file.exists(parquet_path) && !isTRUE(overwrite)) {
+    warning("Skipping existing file (use overwrite = TRUE): ", parquet_path)
+    return(FALSE)
   }
+
+  arrow::write_parquet(df, parquet_path, compression = compression)
+  TRUE
+}
+
+# Write a flat named list of data frames to <dir>/<name>.parquet
+.write_df_list <- function(df_list, dir, overwrite, compression) {
+  n_written <- purrr::imap_int(df_list, function(obj, nm) {
+    if (!is.data.frame(obj)) return(0L)
+    parquet_path <- file.path(dir, paste0(nm, ".parquet"))
+    as.integer(.write_df_parquet(obj, parquet_path,
+                                 overwrite = overwrite,
+                                 compression = compression))
+  })
+
+  sum(n_written)
 }
 
 # Write analytics results to <analytics_dir>.
 # Results is a named list where each entry is either:
-#   - a data.frame (written directly as <metric>.csv)
-#   - a list of data.frames (written as <metric>_<table>.csv)
+#   - a data.frame (written directly as <metric>.parquet)
+#   - a list of data.frames (written as <metric>_<table>.parquet)
 #   - a deeper nested list (recursed one level; anything else is skipped)
-# Returns the total count of CSV files written.
-.write_analytics_results <- function(results, dir, overwrite, verbose) {
-  n_written <- 0L
-
-  for (metric_name in names(results)) {
-    metric <- results[[metric_name]]
+# Returns the total count of Parquet files written.
+.write_analytics_results <- function(results, dir, overwrite, compression) {
+  n_written <- purrr::imap_int(results, function(metric, metric_name) {
 
     if (is.data.frame(metric)) {
       # Top-level data frame — write directly
-      csv_path <- file.path(dir, paste0(metric_name, ".csv"))
-      if (!file.exists(csv_path) || isTRUE(overwrite)) {
-        utils::write.csv(metric, csv_path, row.names = FALSE)
-        n_written <- n_written + 1L
-      } else {
-        warning("Skipping existing file (use overwrite = TRUE): ", csv_path)
-      }
-
-    } else if (is.list(metric)) {
-      # Named list of tables inside one metric — e.g. kri0001$Analysis_Input
-      for (table_name in names(metric)) {
-        tbl <- metric[[table_name]]
-        if (!is.data.frame(tbl)) next
-        safe_table <- gsub("[^A-Za-z0-9._-]", "_", table_name)
-        csv_path   <- file.path(dir, paste0(metric_name, "_", safe_table, ".csv"))
-        if (!file.exists(csv_path) || isTRUE(overwrite)) {
-          utils::write.csv(tbl, csv_path, row.names = FALSE)
-          n_written <- n_written + 1L
-        } else {
-          warning("Skipping existing file (use overwrite = TRUE): ", csv_path)
-        }
-      }
+      parquet_path <- file.path(dir, paste0(metric_name, ".parquet"))
+      return(as.integer(.write_df_parquet(metric, parquet_path,
+                                          overwrite = overwrite,
+                                          compression = compression)))
     }
-    # Non-list, non-data.frame objects are silently skipped
-  }
 
-  n_written
+    if (is.list(metric)) {
+      # Named list of tables inside one metric — e.g. kri0001$Analysis_Input
+      metric_writes <- purrr::imap_int(metric, function(tbl, table_name) {
+        if (!is.data.frame(tbl)) return(0L)
+        safe_table <- gsub("[^A-Za-z0-9._-]", "_", table_name)
+        parquet_path <- file.path(dir, paste0(metric_name, "_", safe_table, ".parquet"))
+        as.integer(.write_df_parquet(tbl, parquet_path,
+                                     overwrite = overwrite,
+                                     compression = compression))
+      })
+      return(sum(metric_writes))
+    }
+
+    # Non-list, non-data.frame objects are silently skipped
+    0L
+  })
+
+  sum(n_written)
 }

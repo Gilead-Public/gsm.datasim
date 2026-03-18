@@ -9,6 +9,7 @@ export_study_data(
   output_dir = ".",
   study_folder = NULL,
   overwrite = FALSE,
+  compression = "snappy",
   save_rds = FALSE,
   verbose = FALSE
 )
@@ -25,13 +26,16 @@ Defaults to the current working directory.}
 to \code{study$study_id} with characters that are invalid in folder names
 replaced by underscores.}
 
-\item{overwrite}{If \code{TRUE}, existing CSV files are silently
+\item{overwrite}{If \code{TRUE}, existing Parquet files are silently
 overwritten.  If \code{FALSE} (default), an error is raised when the
 target study folder already exists.}
 
+\item{compression}{Compression codec passed to \code{arrow::write_parquet}.
+Defaults to \code{"snappy"}.}
+
 \item{save_rds}{If \code{TRUE}, an \code{analytics_full.rds} file is also
 written per snapshot, preserving any non-data.frame objects (workflow
-lists, summaries, etc.) that cannot be expressed as flat CSVs.
+lists, summaries, etc.) that cannot be expressed as flat Parquet files.
 Defaults to \code{FALSE}.}
 
 \item{verbose}{If \code{TRUE}, prints progress messages.  Defaults to
@@ -47,14 +51,14 @@ Each snapshot date becomes a subdirectory containing up to four subfolders:
 \details{
 \if{html}{\out{<div class="sourceCode">}}\preformatted{<output_dir>/<study_id>/
   <snapshot_date>/
-    raw/          # Raw_*.csv  (from study$raw_data)
-    mapped/       # Mapped_*.csv  (from study$analytics[[date]]$mapped)
-    analytics/    # <metric>_<table>.csv  (from study$analytics[[date]]$results)
-    reporting/    # Reporting_*.csv  (from study$reporting[[date]])
+    raw/          # Raw_*.parquet  (from study$raw_data)
+    mapped/       # Mapped_*.parquet  (from study$analytics[[date]]$mapped)
+    analytics/    # <metric>_<table>.parquet  (from study$analytics[[date]]$results)
+    reporting/    # Reporting_*.parquet  (from study$reporting[[date]])
 }\if{html}{\out{</div>}}
 
 Folders are only created when the corresponding data actually exists.
 Non-data.frame leaves inside \code{analytics} are silently skipped; they can be
-preserved alongside the CSVs by setting \code{save_rds = TRUE}, which writes a
+preserved alongside the Parquet files by setting \code{save_rds = TRUE}, which writes a
 companion \code{analytics_full.rds} per snapshot.
 }
