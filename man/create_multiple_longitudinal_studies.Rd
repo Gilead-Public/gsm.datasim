@@ -24,18 +24,18 @@ create_multiple_longitudinal_studies(
 )
 }
 \arguments{
-\item{study_names}{Character vector of study names/identifiers to create.}
+\item{study_names}{Character vector of study names/identifiers}
 
-\item{participants}{Number of participants per study. Can be a single value
+\item{participants}{Number of participants per study (default 100). Can be a single value
 applied to all studies or a vector of values per study.}
 
-\item{sites}{Number of sites per study. Can be a single value
+\item{sites}{Number of sites per study (default 10). Can be a single value
 applied to all studies or a vector of values per study.}
 
-\item{snapshots}{Number of snapshots per study. Can be a single value
+\item{snapshots}{Number of snapshots per study (default 5). Can be a single value
 applied to all studies or a vector of values per study.}
 
-\item{interval}{Time between snapshots (e.g., "1 month", "2 weeks"). Can be a single value
+\item{interval}{Time between snapshots (default "1 month"). Can be a single value
 applied to all studies or a vector of values per study.}
 
 \item{domains}{Clinical domains to include (default c("AE", "LB", "VISIT")).
@@ -69,7 +69,8 @@ Requires parallel processing setup if TRUE.}
 Named list of LongitudinalStudy objects, with names corresponding to study_names
 }
 \description{
-Create multiple longitudinal studies with shared or per-study configuration.
+Creates multiple longitudinal studies simultaneously, allowing for efficient
+batch generation of study data with shared or per-study configuration.
 }
 \examples{
 \dontrun{

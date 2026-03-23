@@ -11,6 +11,7 @@ quick_longitudinal_study(
   months_duration = 24,
   study_type = "standard",
   include_pipeline = TRUE,
+  outlier_intensity = 1,
   verbose = FALSE
 )
 }
@@ -26,6 +27,8 @@ quick_longitudinal_study(
 \item{study_type}{Type of study - "standard" or "endpoints"}
 
 \item{include_pipeline}{Whether to run both the analytics and reporting pipelines (default TRUE)}
+
+\item{outlier_intensity}{Global multiplier for outlier-like values in domain generators.}
 
 \item{verbose}{Whether to print progress/output messages}
 }
