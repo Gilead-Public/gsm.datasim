@@ -14,7 +14,8 @@ create_study_config(
   analytics_package = NULL,
   analytics_workflows = NULL,
   reporting_package = NULL,
-  reporting_workflows = NULL
+  reporting_workflows = NULL,
+  outlier_intensity = 1
 )
 ```
 
@@ -47,6 +48,11 @@ create_study_config(
 - reporting_workflows:
 
   Specific reporting workflows to run (default: all)
+
+- outlier_intensity:
+
+  Global multiplier for outlier-like values in domain generators. Use
+  `1` for current baseline, values `>1` to increase outlier prevalence.
 
 ## Value
 

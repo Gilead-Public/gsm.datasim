@@ -11,6 +11,7 @@ export_study_data(
   study,
   output_dir = ".",
   study_folder = NULL,
+  format = "csv",
   overwrite = FALSE,
   save_rds = FALSE,
   verbose = FALSE
@@ -37,9 +38,14 @@ export_study_data(
   `study$study_id` with characters that are invalid in folder names
   replaced by underscores.
 
+- format:
+
+  Export format. Options are "csv" (default), "parquet", or "both". When
+  "parquet" is used, the arrow package must be installed.
+
 - overwrite:
 
-  If `TRUE`, existing CSV files are silently overwritten. If `FALSE`
+  If `TRUE`, existing files are silently overwritten. If `FALSE`
   (default), an error is raised when the target study folder already
   exists.
 
@@ -47,7 +53,7 @@ export_study_data(
 
   If `TRUE`, an `analytics_full.rds` file is also written per snapshot,
   preserving any non-data.frame objects (workflow lists, summaries,
-  etc.) that cannot be expressed as flat CSVs. Defaults to `FALSE`.
+  etc.) that cannot be expressed as flat files. Defaults to `FALSE`.
 
 - verbose:
 

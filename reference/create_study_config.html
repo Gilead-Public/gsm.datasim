@@ -55,7 +55,8 @@ and dataset specifications for clinical trial data generation.</p>
 <span>  analytics_package <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  analytics_workflows <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  reporting_package <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  reporting_workflows <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  reporting_workflows <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  outlier_intensity <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -89,6 +90,11 @@ and dataset specifications for clinical trial data generation.</p>
 
 <dt id="arg-reporting-workflows">reporting_workflows<a class="anchor" aria-label="anchor" href="#arg-reporting-workflows"></a></dt>
 <dd><p>Specific reporting workflows to run (default: all)</p></dd>
+
+
+<dt id="arg-outlier-intensity">outlier_intensity<a class="anchor" aria-label="anchor" href="#arg-outlier-intensity"></a></dt>
+<dd><p>Global multiplier for outlier-like values in domain generators.
+Use <code>1</code> for current baseline, values <code>&gt;1</code> to increase outlier prevalence.</p></dd>
 
 </dl></div>
     <div class="section level2">

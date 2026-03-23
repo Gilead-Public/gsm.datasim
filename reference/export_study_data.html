@@ -52,6 +52,7 @@ Each snapshot date becomes a subdirectory containing up to four subfolders:</p>
 <span>  <span class="va">study</span>,</span>
 <span>  output_dir <span class="op">=</span> <span class="st">"."</span>,</span>
 <span>  study_folder <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  format <span class="op">=</span> <span class="st">"csv"</span>,</span>
 <span>  overwrite <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  save_rds <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
@@ -79,8 +80,13 @@ to <code>study$study_id</code> with characters that are invalid in folder names
 replaced by underscores.</p></dd>
 
 
+<dt id="arg-format">format<a class="anchor" aria-label="anchor" href="#arg-format"></a></dt>
+<dd><p>Export format. Options are "csv" (default), "parquet", or "both".
+When "parquet" is used, the arrow package must be installed.</p></dd>
+
+
 <dt id="arg-overwrite">overwrite<a class="anchor" aria-label="anchor" href="#arg-overwrite"></a></dt>
-<dd><p>If <code>TRUE</code>, existing CSV files are silently
+<dd><p>If <code>TRUE</code>, existing files are silently
 overwritten.  If <code>FALSE</code> (default), an error is raised when the
 target study folder already exists.</p></dd>
 
@@ -88,7 +94,7 @@ target study folder already exists.</p></dd>
 <dt id="arg-save-rds">save_rds<a class="anchor" aria-label="anchor" href="#arg-save-rds"></a></dt>
 <dd><p>If <code>TRUE</code>, an <code>analytics_full.rds</code> file is also
 written per snapshot, preserving any non-data.frame objects (workflow
-lists, summaries, etc.) that cannot be expressed as flat CSVs.
+lists, summaries, etc.) that cannot be expressed as flat files.
 Defaults to <code>FALSE</code>.</p></dd>
 
 
