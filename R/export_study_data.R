@@ -19,7 +19,11 @@
 #'
 #' @param study A `longitudinal_study` object (output of
 #'   \code{\link{create_longitudinal_study}} or
-#'   \code{\link{quick_longitudinal_study}}).
+#'   \code{\link{quick_longitudinal_study}}), or a
+#'   \code{multiple_longitudinal_studies} object (output of
+#'   \code{\link{create_multiple_longitudinal_studies}}).  When a collection of
+#'   studies is passed, each study is exported to its own subfolder under
+#'   \code{output_dir}.
 #' @param output_dir Root directory under which the study folder is created.
 #'   Defaults to the current working directory.
 #' @param study_folder Optional name for the top-level study folder.  Defaults
@@ -37,7 +41,8 @@
 #' @param verbose If \code{TRUE}, prints progress messages.  Defaults to
 #'   \code{FALSE}.
 #'
-#' @return Invisibly returns the path to the top-level study folder.
+#' @return Invisibly returns the path to the top-level study folder (for a
+#'   single study) or a named list of paths (for multiple studies).
 #' @export
 export_study_data <- function(study,
                               output_dir    = ".",
@@ -49,8 +54,26 @@ export_study_data <- function(study,
 
   # ── Input validation ────────────────────────────────────────────────────────
 
+  # Handle multiple_longitudinal_studies by exporting each study individually
+  if (inherits(study, "multiple_longitudinal_studies")) {
+    export_paths <- vector("list", length(study))
+    names(export_paths) <- names(study)
+    for (study_name in names(study)) {
+      export_paths[[study_name]] <- export_study_data(
+        study        = study[[study_name]],
+        output_dir   = output_dir,
+        study_folder = study_name,
+        format       = format,
+        overwrite    = overwrite,
+        save_rds     = save_rds,
+        verbose      = verbose
+      )
+    }
+    return(invisible(export_paths))
+  }
+
   if (!inherits(study, "longitudinal_study")) {
-    stop("`study` must be a longitudinal_study object (output of create_longitudinal_study).")
+    stop("`study` must be a longitudinal_study or multiple_longitudinal_studies object.")
   }
   if (!is.character(output_dir) || length(output_dir) != 1) {
     stop("`output_dir` must be a single character string.")
