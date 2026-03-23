@@ -383,6 +383,188 @@ study <- run_longitudinal_analytics(study, verbose = TRUE)
 study <- run_longitudinal_reporting(study, verbose = TRUE)
 ```
 
+## Multiple Studies Generation
+
+When you need to generate data for multiple studies simultaneously, the
+`create_multiple_longitudinal_studies()` function provides an efficient
+approach. This is particularly useful for:
+
+- Comparing different study designs
+- Generating test data for multiple protocols
+- Batch processing for portfolio analysis
+- Creating matched cohorts with different characteristics
+
+### Basic Multiple Studies Setup
+
+Create multiple studies with shared configuration:
+
+``` r
+# Generate three studies with identical configuration
+studies <- create_multiple_longitudinal_studies(
+  study_names = c("PHASE2-001", "PHASE2-002", "PHASE2-003"),
+  participants = 150,
+  sites = 12,
+  snapshots = 6,
+  interval = "1 month",
+  domains = c("AE", "LB", "VISIT", "PD"),
+  run_analytics = TRUE,
+  run_reporting = FALSE,
+  verbose = TRUE
+)
+
+# Examine the collection
+print(studies)  # Shows summary of all studies
+names(studies)  # Study names
+
+# Access individual studies
+study_1 <- studies[["PHASE2-001"]]
+summary(study_1)
+```
+
+### Per-Study Configuration
+
+Customize individual studies while maintaining shared defaults:
+
+``` r
+# Create studies with different characteristics
+studies <- create_multiple_longitudinal_studies(
+  study_names = c("SMALL-PHASE2", "LARGE-PHASE3", "SAFETY-RUN"),
+  participants = c(80, 400, 50),     # Different participant counts
+  sites = c(8, 25, 3),               # Different site counts
+  snapshots = c(4, 12, 8),          # Different durations
+  interval = "1 month",              # Shared interval
+  domains = c("AE", "LB", "VISIT"),  # Base domains (can be overridden)
+  study_configs = list(
+    "SMALL-PHASE2" = list(
+      domains = c("AE", "LB", "VISIT"),
+      interval = "2 weeks",
+      outlier_intensity = 0.8
+    ),
+    "LARGE-PHASE3" = list(
+      domains = c("AE", "LB", "VISIT", "PD", "PK", "QUERY"),
+      analytics_package = "gsm.kri",
+      analytics_workflows = c("kri0001", "kri0002", "kri0005")
+    ),
+    "SAFETY-RUN" = list(
+      domains = c("AE", "LB", "Death", "EXCLUSION"),
+      outlier_intensity = 2.0,
+      interval = "1 week"
+    )
+  ),
+  run_analytics = TRUE,
+  verbose = TRUE
+)
+
+# Each study has different characteristics    
+summary(studies)
+```
+
+### Parallel Processing
+
+For large batches, enable parallel processing to speed up generation:
+
+``` r
+# Generate studies in parallel (requires parallel package)
+large_batch <- create_multiple_longitudinal_studies(
+  study_names = paste0("BATCH-", sprintf("%03d", 1:8)),
+  participants = 200,
+  sites = 15,  
+  snapshots = 6,
+  domains = c("AE", "LB", "VISIT"),
+  parallel = TRUE,     # Enable parallel processing
+  run_analytics = TRUE,
+  verbose = TRUE
+)
+
+# Check results
+print(large_batch)
+```
+
+### Export Multiple Studies
+
+Automatically export all studies to disk during generation:
+
+``` r
+# Generate and automatically export
+studies <- create_multiple_longitudinal_studies(
+  study_names = c("EXPORT-001", "EXPORT-002"),
+  participants = 100,
+  sites = 8,
+  snapshots = 4,
+  domains = c("AE", "LB"),
+  run_analytics = TRUE,
+  run_reporting = TRUE,
+  export_studies = TRUE,      # Auto-export to disk
+  export_dir = "./studies",   # Export directory
+  verbose = TRUE
+)
+
+# Or export afterwards
+export_multiple_studies(
+  studies = studies,
+  output_dir = "./exported_studies",
+  save_rds = TRUE,
+  verbose = TRUE
+)
+```
+
+### Working with Multiple Studies Collections
+
+The returned object has special methods for easy inspection:
+
+``` r
+# Print method shows overview
+print(studies)
+
+# Summary method provides detailed statistics
+study_summary <- summary(studies)
+print(study_summary)
+
+# Access individual studies
+individual_study <- studies[["EXPORT-001"]]
+
+# Loop through all studies
+for (study_name in names(studies)) {
+  study <- studies[[study_name]]
+  cat("Study:", study_name, "\n")
+  cat("  Participants:", study$config$participants, "\n")
+  cat("  Analytics:", !is.null(study$analytics), "\n")
+}
+```
+
+### Portfolio-Level Analysis
+
+Use multiple studies for comparative analysis:
+
+``` r
+# Generate studies with different safety profiles
+safety_portfolio <- create_multiple_longitudinal_studies(
+  study_names = c("LOW-RISK", "MEDIUM-RISK", "HIGH-RISK"),
+  participants = 200,
+  sites = 12,
+  snapshots = 8,
+  domains = c("AE", "LB", "Death", "STUDCOMP"),
+  study_configs = list(
+    "LOW-RISK" = list(outlier_intensity = 0.5),
+    "MEDIUM-RISK" = list(outlier_intensity = 1.0), 
+    "HIGH-RISK" = list(outlier_intensity = 2.5)
+  ),
+  run_analytics = TRUE,
+  verbose = TRUE
+)
+
+# Compare AE rates across studies
+for (study_name in names(safety_portfolio)) {
+  study <- safety_portfolio[[study_name]]
+  
+  # Get final snapshot AE data
+  final_snapshot <- study$raw_data[[length(study$raw_data)]]
+  ae_count <- if ("Raw_AE" %in% names(final_snapshot)) nrow(final_snapshot$Raw_AE) else 0
+  
+  cat(sprintf("%s: %d total AEs\n", study_name, ae_count))
+}
+```
+
 ## Data Examination and Validation
 
 ### Exploring Generated Data
@@ -401,7 +583,7 @@ study <- create_longitudinal_study(
 )
 
 # Check data for each snapshot
-for (i in seq_along(study$raw_data)) {
+for (i in 1:length(study$raw_data)) {
   snapshot_name <- names(study$raw_data)[i]
   snapshot_data <- study$raw_data[[i]]
   
@@ -459,10 +641,10 @@ directory:
 
     <output_dir>/<study_id>/
       <snapshot_date>/
-        raw/          # Raw_*.parquet
-        mapped/       # Mapped_*.parquet  (present when analytics ran)
-        analytics/    # <metric>_<table>.parquet  (present when analytics ran)
-        reporting/    # Reporting_*.parquet  (present when reporting ran)
+        raw/          # Raw_*.csv
+        mapped/       # Mapped_*.csv  (present when analytics ran)
+        analytics/    # <metric>_<table>.csv  (present when analytics ran)
+        reporting/    # Reporting_*.csv  (present when reporting ran)
 
 Folders are only created when the corresponding data exists for a
 snapshot.
@@ -506,12 +688,11 @@ study_path <- export_study_data(
 )
 ```
 
-### Preserving Non-Parquet Objects
+### Preserving Non-CSV Objects
 
 The analytics pipeline stores workflow lists, summaries, and other
-objects that cannot be written as flat Parquet tables. Set
-`save_rds = TRUE` to write a companion `analytics_full.rds` file per
-snapshot:
+objects that cannot be flattened to CSV. Set `save_rds = TRUE` to write
+a companion `analytics_full.rds` file per snapshot:
 
 ``` r
 study_path <- export_study_data(
@@ -530,18 +711,18 @@ names(analytics_snap)  # $results, $mapped, $lWorkflow, $summary
 ### Inspecting the Exported Files
 
 ``` r
-# List all Parquet files written across all snapshots
-all_parquet <- list.files(study_path, pattern = "\\.parquet$", recursive = TRUE)
-cat(length(all_parquet), "Parquet files written\n")
+# List all CSV files written across all snapshots
+all_csvs <- list.files(study_path, pattern = "\\.csv$", recursive = TRUE)
+cat(length(all_csvs), "CSV files written\n")
 
 # Raw data lives in <snapshot>/raw/
-raw_parquet <- all_parquet[grepl("/raw/", all_parquet)]
-cat("Raw Parquet files:", paste(basename(raw_parquet), collapse = ", "), "\n")
+raw_csvs <- all_csvs[grepl("/raw/", all_csvs)]
+cat("Raw CSVs:", paste(basename(raw_csvs), collapse = ", "), "\n")
 
 # Read a specific snapshot's adverse event data back in
 snap_date <- names(study$raw_data)[1]
-ae_path   <- file.path(study_path, snap_date, "raw", "Raw_AE.parquet")
-ae_df     <- as.data.frame(arrow::read_parquet(ae_path))
+ae_path   <- file.path(study_path, snap_date, "raw", "Raw_AE.csv")
+ae_df     <- read.csv(ae_path)
 nrow(ae_df)
 ```
 
