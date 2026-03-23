@@ -20,6 +20,8 @@
   : Execute analytics pipeline
 - [`execute_reporting_pipeline()`](https://gilead-biostats.github.io/gsm.datasim/reference/execute_reporting_pipeline.md)
   : Execute the reporting pipeline using gsm.reporting workflows
+- [`export_multiple_studies()`](https://gilead-biostats.github.io/gsm.datasim/reference/export_multiple_studies.md)
+  : Export multiple longitudinal studies to disk
 - [`export_study_data()`](https://gilead-biostats.github.io/gsm.datasim/reference/export_study_data.md)
   : Export Complete Study Data to Disk
 - [`generate_analytics_layers()`](https://gilead-biostats.github.io/gsm.datasim/reference/generate_analytics_layers.md)
@@ -28,8 +30,6 @@
   : Generate raw data for endpoints study (multi-package)
 - [`generate_raw_data_from_config()`](https://gilead-biostats.github.io/gsm.datasim/reference/generate_raw_data_from_config.md)
   : Generate raw data from a study config
-- [`generate_rawdata_for_single_study()`](https://gilead-biostats.github.io/gsm.datasim/reference/generate_rawdata_for_single_study.md)
-  : Generate Raw Data for a Single Study
 - [`generate_reporting_layers()`](https://gilead-biostats.github.io/gsm.datasim/reference/generate_reporting_layers.md)
   : Generate reporting layers from analytics results
 - [`generate_study_data()`](https://gilead-biostats.github.io/gsm.datasim/reference/generate_study_data.md)
@@ -48,6 +48,10 @@
   : Parse interval string to snapshot width
 - [`prepare_combined_specs_for_generation()`](https://gilead-biostats.github.io/gsm.datasim/reference/prepare_combined_specs_for_generation.md)
   : Prepare combined specs for generation
+- [`print(`*`<multiple_longitudinal_studies>`*`)`](https://gilead-biostats.github.io/gsm.datasim/reference/print.multiple_longitudinal_studies.md)
+  : Print method for multiple longitudinal studies
+- [`print(`*`<summary.multiple_longitudinal_studies>`*`)`](https://gilead-biostats.github.io/gsm.datasim/reference/print.summary.multiple_longitudinal_studies.md)
+  : Print method for summary of multiple longitudinal studies
 - [`quick_longitudinal_study()`](https://gilead-biostats.github.io/gsm.datasim/reference/quick_longitudinal_study.md)
   : Quick longitudinal study creation
 - [`raw_data_generator()`](https://gilead-biostats.github.io/gsm.datasim/reference/raw_data_generator.md)
@@ -58,12 +62,16 @@
   : Run Analytics Pipeline on Longitudinal Study
 - [`run_longitudinal_reporting()`](https://gilead-biostats.github.io/gsm.datasim/reference/run_longitudinal_reporting.md)
   : Run Reporting Pipeline on Longitudinal Study
+- [`set_outlier_config()`](https://gilead-biostats.github.io/gsm.datasim/reference/set_outlier_config.md)
+  : Set Outlier Configuration
 - [`set_temporal_config()`](https://gilead-biostats.github.io/gsm.datasim/reference/set_temporal_config.md)
   : Set Temporal Configuration
 - [`study_config_examples`](https://gilead-biostats.github.io/gsm.datasim/reference/study_config_examples.md)
   : Example of config interface usage
 - [`summarize_longitudinal_study()`](https://gilead-biostats.github.io/gsm.datasim/reference/summarize_longitudinal_study.md)
   : Get Summary of Longitudinal Study
+- [`summary(`*`<multiple_longitudinal_studies>`*`)`](https://gilead-biostats.github.io/gsm.datasim/reference/summary.multiple_longitudinal_studies.md)
+  : Summary method for multiple longitudinal studies
 - [`validate_study_config()`](https://gilead-biostats.github.io/gsm.datasim/reference/validate_study_config.md)
   : Validate Study Configuration
 - [`validate_study_inputs()`](https://gilead-biostats.github.io/gsm.datasim/reference/validate_study_inputs.md)

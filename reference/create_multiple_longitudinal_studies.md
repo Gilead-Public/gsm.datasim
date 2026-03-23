@@ -1,6 +1,7 @@
 # Create Multiple Longitudinal Studies
 
-Create multiple longitudinal studies with shared or per-study
+Creates multiple longitudinal studies simultaneously, allowing for
+efficient batch generation of study data with shared or per-study
 configuration.
 
 ## Usage
@@ -30,27 +31,27 @@ create_multiple_longitudinal_studies(
 
 - study_names:
 
-  Character vector of study names/identifiers to create.
+  Character vector of study names/identifiers
 
 - participants:
 
-  Number of participants per study. Can be a single value applied to all
-  studies or a vector of values per study.
+  Number of participants per study (default 100). Can be a single value
+  applied to all studies or a vector of values per study.
 
 - sites:
 
-  Number of sites per study. Can be a single value applied to all
-  studies or a vector of values per study.
+  Number of sites per study (default 10). Can be a single value applied
+  to all studies or a vector of values per study.
 
 - snapshots:
 
-  Number of snapshots per study. Can be a single value applied to all
-  studies or a vector of values per study.
+  Number of snapshots per study (default 5). Can be a single value
+  applied to all studies or a vector of values per study.
 
 - interval:
 
-  Time between snapshots (e.g., "1 month", "2 weeks"). Can be a single
-  value applied to all studies or a vector of values per study.
+  Time between snapshots (default "1 month"). Can be a single value
+  applied to all studies or a vector of values per study.
 
 - domains:
 

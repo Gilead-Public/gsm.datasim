@@ -13,6 +13,7 @@ quick_longitudinal_study(
   months_duration = 24,
   study_type = "standard",
   include_pipeline = TRUE,
+  outlier_intensity = 1,
   verbose = FALSE
 )
 ```
@@ -43,6 +44,10 @@ quick_longitudinal_study(
 
   Whether to run both the analytics and reporting pipelines (default
   TRUE)
+
+- outlier_intensity:
+
+  Global multiplier for outlier-like values in domain generators.
 
 - verbose:
 
