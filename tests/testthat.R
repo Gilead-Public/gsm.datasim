@@ -8,6 +8,7 @@
 
 library(testthat)
 library(gsm.core)
+library(gsm.datasim)
 library(gsm.mapping)
 library(gsm.datasim)
 
