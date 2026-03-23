@@ -11,7 +11,8 @@ create_study_config(
   analytics_package = NULL,
   analytics_workflows = NULL,
   reporting_package = NULL,
-  reporting_workflows = NULL
+  reporting_workflows = NULL,
+  outlier_intensity = 1
 )
 }
 \arguments{
@@ -28,6 +29,9 @@ create_study_config(
 \item{reporting_package}{Reporting package to use (default: \code{"gsm.reporting"})}
 
 \item{reporting_workflows}{Specific reporting workflows to run (default: all)}
+
+\item{outlier_intensity}{Global multiplier for outlier-like values in domain generators.
+Use \code{1} for current baseline, values \code{>1} to increase outlier prevalence.}
 }
 \value{
 A list containing study configuration

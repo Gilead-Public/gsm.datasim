@@ -10,12 +10,15 @@
 #' @param analytics_workflows Specific workflows to run
 #' @param reporting_package Reporting package to use (default: \code{"gsm.reporting"})
 #' @param reporting_workflows Specific reporting workflows to run (default: all)
+#' @param outlier_intensity Global multiplier for outlier-like values in domain generators.
+#'   Use \code{1} for current baseline, values \code{>1} to increase outlier prevalence.
 #'
 #' @return A list containing study configuration
 #' @export
 create_study_config <- function(study_id = "STUDY001", participant_count = 100, site_count = 10,
                                analytics_package = NULL, analytics_workflows = NULL,
-                               reporting_package = NULL, reporting_workflows = NULL) {
+                               reporting_package = NULL, reporting_workflows = NULL,
+                               outlier_intensity = 1) {
   config <- list(
     study_params = list(
       study_id = study_id,
@@ -24,7 +27,8 @@ create_study_config <- function(study_id = "STUDY001", participant_count = 100, 
       analytics_package = analytics_package,
       analytics_workflows = analytics_workflows,
       reporting_package = reporting_package,
-      reporting_workflows = reporting_workflows
+      reporting_workflows = reporting_workflows,
+      outlier_intensity = outlier_intensity
     ),
     temporal_config = list(
       start_date = as.Date("2023-01-01"),
@@ -42,6 +46,21 @@ create_study_config <- function(study_id = "STUDY001", participant_count = 100, 
   config <- add_dataset_config(config, "Raw_ENROLL", enabled = TRUE, count_formula = function(config) config$study_params$participant_count)
   
   class(config) <- c("study_config", "list")
+  return(config)
+}
+
+#' Set Outlier Configuration
+#'
+#' Updates outlier generation intensity in a study config.
+#'
+#' @param config Study configuration list
+#' @param intensity Global outlier intensity multiplier. \code{1} keeps current
+#'   behavior, values \code{>1} increase outlier prevalence.
+#'
+#' @return Updated study configuration
+#' @export
+set_outlier_config <- function(config, intensity = 1) {
+  config$study_params$outlier_intensity <- intensity
   return(config)
 }
 
@@ -138,6 +157,14 @@ validate_study_config <- function(config) {
     stop("site_count must be at least 1")
   }
 
+  if (!is.null(config$study_params$outlier_intensity) &&
+      (!is.numeric(config$study_params$outlier_intensity) ||
+       length(config$study_params$outlier_intensity) != 1 ||
+       is.na(config$study_params$outlier_intensity) ||
+       config$study_params$outlier_intensity < 0)) {
+    stop("outlier_intensity must be a single non-negative numeric value")
+  }
+
   return(TRUE)
 }
 
@@ -168,6 +195,7 @@ validate_study_config <- function(config) {
 #' @param inclusion_exclusion Include inclusion/exclusion criteria (Raw_IE)
 #' @param exclusions Include exclusion tracking (Raw_EXCLUSION)
 #' @param country Include country mapping
+#' @param outlier_intensity Global multiplier for outlier-like values in domain generators.
 #'
 #' @return Study configuration with standard datasets
 #' @export
@@ -181,9 +209,17 @@ create_standard_study_config <- function(study_id = "STUDY001", participant_coun
                                         queries = TRUE, pharmacokinetics = TRUE,
                                         study_drug_completion = TRUE, study_completion = TRUE,
                                         inclusion_exclusion = TRUE, exclusions = TRUE,
-                                        country = TRUE) {
+                                        country = TRUE,
+                                        outlier_intensity = 1) {
 
-  config <- create_study_config(study_id, participant_count, site_count, analytics_package, analytics_workflows)
+  config <- create_study_config(
+    study_id = study_id,
+    participant_count = participant_count,
+    site_count = site_count,
+    analytics_package = analytics_package,
+    analytics_workflows = analytics_workflows,
+    outlier_intensity = outlier_intensity
+  )
 
   # Core datasets (override automatic inclusion if user wants to disable)
   if (!study) config <- remove_dataset_config(config, "Raw_STUDY")

@@ -8,6 +8,7 @@ export_study_data(
   study,
   output_dir = ".",
   study_folder = NULL,
+  format = "csv",
   overwrite = FALSE,
   save_rds = FALSE,
   verbose = FALSE
@@ -25,13 +26,16 @@ Defaults to the current working directory.}
 to \code{study$study_id} with characters that are invalid in folder names
 replaced by underscores.}
 
-\item{overwrite}{If \code{TRUE}, existing CSV files are silently
+\item{format}{Export format. Options are "csv" (default), "parquet", or "both".
+When "parquet" is used, the arrow package must be installed.}
+
+\item{overwrite}{If \code{TRUE}, existing files are silently
 overwritten.  If \code{FALSE} (default), an error is raised when the
 target study folder already exists.}
 
 \item{save_rds}{If \code{TRUE}, an \code{analytics_full.rds} file is also
 written per snapshot, preserving any non-data.frame objects (workflow
-lists, summaries, etc.) that cannot be expressed as flat CSVs.
+lists, summaries, etc.) that cannot be expressed as flat files.
 Defaults to \code{FALSE}.}
 
 \item{verbose}{If \code{TRUE}, prints progress messages.  Defaults to
