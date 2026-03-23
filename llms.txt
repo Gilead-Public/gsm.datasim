@@ -94,6 +94,8 @@ all analysis and reporting data along with html report outputs.
   : High-Level Study Creation API
 - [`create_longitudinal_study_data()`](https://gilead-biostats.github.io/gsm.datasim/reference/create_longitudinal_study_data.md)
   : Create Longitudinal Study Data Structure
+- [`create_multiple_longitudinal_studies()`](https://gilead-biostats.github.io/gsm.datasim/reference/create_multiple_longitudinal_studies.md)
+  : Create Multiple Longitudinal Studies
 - [`create_standard_study_config()`](https://gilead-biostats.github.io/gsm.datasim/reference/create_standard_study_config.md)
   : Create Study Configuration for Standard Datasets
 - [`create_study_config()`](https://gilead-biostats.github.io/gsm.datasim/reference/create_study_config.md)
@@ -112,6 +114,8 @@ all analysis and reporting data along with html report outputs.
   : Generate raw data for endpoints study (multi-package)
 - [`generate_raw_data_from_config()`](https://gilead-biostats.github.io/gsm.datasim/reference/generate_raw_data_from_config.md)
   : Generate raw data from a study config
+- [`generate_rawdata_for_single_study()`](https://gilead-biostats.github.io/gsm.datasim/reference/generate_rawdata_for_single_study.md)
+  : Generate Raw Data for a Single Study
 - [`generate_reporting_layers()`](https://gilead-biostats.github.io/gsm.datasim/reference/generate_reporting_layers.md)
   : Generate reporting layers from analytics results
 - [`generate_study_data()`](https://gilead-biostats.github.io/gsm.datasim/reference/generate_study_data.md)

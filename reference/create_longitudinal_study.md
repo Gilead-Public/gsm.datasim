@@ -18,6 +18,7 @@ create_longitudinal_study(
   analytics_package = NULL,
   analytics_workflows = NULL,
   run_reporting = FALSE,
+  outlier_intensity = 1,
   verbose = FALSE
 )
 ```
@@ -63,6 +64,10 @@ create_longitudinal_study(
 - run_reporting:
 
   Whether to run the reporting pipeline after analytics (default FALSE)
+
+- outlier_intensity:
+
+  Global multiplier for outlier-like values in domain generators.
 
 - verbose:
 

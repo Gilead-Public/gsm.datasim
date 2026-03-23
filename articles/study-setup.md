@@ -386,8 +386,9 @@ study <- run_longitudinal_reporting(study, verbose = TRUE)
 ## Multiple Studies Generation
 
 When you need to generate data for multiple studies simultaneously, the
-`create_multiple_longitudinal_studies()` function provides an efficient
-approach. This is particularly useful for:
+[`create_multiple_longitudinal_studies()`](https://gilead-biostats.github.io/gsm.datasim/reference/create_multiple_longitudinal_studies.md)
+function provides an efficient approach. This is particularly useful
+for:
 
 - Comparing different study designs
 - Generating test data for multiple protocols

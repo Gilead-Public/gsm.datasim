@@ -29,7 +29,8 @@ create_standard_study_config(
   study_completion = TRUE,
   inclusion_exclusion = TRUE,
   exclusions = TRUE,
-  country = TRUE
+  country = TRUE,
+  outlier_intensity = 1
 )
 ```
 
@@ -126,6 +127,10 @@ create_standard_study_config(
 - country:
 
   Include country mapping
+
+- outlier_intensity:
+
+  Global multiplier for outlier-like values in domain generators.
 
 ## Value
 

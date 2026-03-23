@@ -12,6 +12,7 @@
 <url><loc>https://gilead-biostats.github.io/gsm.datasim/reference/add_dataset_config.html</loc></url>
 <url><loc>https://gilead-biostats.github.io/gsm.datasim/reference/create_longitudinal_study.html</loc></url>
 <url><loc>https://gilead-biostats.github.io/gsm.datasim/reference/create_longitudinal_study_data.html</loc></url>
+<url><loc>https://gilead-biostats.github.io/gsm.datasim/reference/create_multiple_longitudinal_studies.html</loc></url>
 <url><loc>https://gilead-biostats.github.io/gsm.datasim/reference/create_standard_study_config.html</loc></url>
 <url><loc>https://gilead-biostats.github.io/gsm.datasim/reference/create_study_config.html</loc></url>
 <url><loc>https://gilead-biostats.github.io/gsm.datasim/reference/ensure_core_mappings.html</loc></url>
@@ -21,6 +22,7 @@
 <url><loc>https://gilead-biostats.github.io/gsm.datasim/reference/generate_analytics_layers.html</loc></url>
 <url><loc>https://gilead-biostats.github.io/gsm.datasim/reference/generate_raw_data_for_endpoints.html</loc></url>
 <url><loc>https://gilead-biostats.github.io/gsm.datasim/reference/generate_raw_data_from_config.html</loc></url>
+<url><loc>https://gilead-biostats.github.io/gsm.datasim/reference/generate_rawdata_for_single_study.html</loc></url>
 <url><loc>https://gilead-biostats.github.io/gsm.datasim/reference/generate_reporting_layers.html</loc></url>
 <url><loc>https://gilead-biostats.github.io/gsm.datasim/reference/generate_study_data.html</loc></url>
 <url><loc>https://gilead-biostats.github.io/gsm.datasim/reference/generate_study_snapshots.html</loc></url>

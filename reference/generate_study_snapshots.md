@@ -13,6 +13,7 @@ generate_study_snapshots(
   interval,
   mappings,
   base_date = NULL,
+  outlier_intensity = 1,
   verbose = FALSE
 )
 ```
@@ -46,6 +47,10 @@ generate_study_snapshots(
 - base_date:
 
   Base date for snapshot generation (defaults to "2012-01-31" if NULL)
+
+- outlier_intensity:
+
+  Global multiplier for outlier-like values in domain generators.
 
 - verbose:
 

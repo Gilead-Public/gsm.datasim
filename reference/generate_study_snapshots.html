@@ -53,6 +53,7 @@
 <span>  <span class="va">interval</span>,</span>
 <span>  <span class="va">mappings</span>,</span>
 <span>  base_date <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  outlier_intensity <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -87,6 +88,10 @@
 
 <dt id="arg-base-date">base_date<a class="anchor" aria-label="anchor" href="#arg-base-date"></a></dt>
 <dd><p>Base date for snapshot generation (defaults to "2012-01-31" if NULL)</p></dd>
+
+
+<dt id="arg-outlier-intensity">outlier_intensity<a class="anchor" aria-label="anchor" href="#arg-outlier-intensity"></a></dt>
+<dd><p>Global multiplier for outlier-like values in domain generators.</p></dd>
 
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
