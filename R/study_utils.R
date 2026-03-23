@@ -55,6 +55,15 @@ generate_snapshots_from_config <- function(config,
                                            default_package = "gsm.mapping",
                                            workflow_path = "workflow/1_mappings",
                                            verbose = FALSE) {
+  outlier_intensity <- if (!is.null(config$study_params$outlier_intensity)) {
+    config$study_params$outlier_intensity
+  } else {
+    1
+  }
+  old_outlier_intensity <- getOption("gsm.datasim.outlier_intensity")
+  options(gsm.datasim.outlier_intensity = outlier_intensity)
+  on.exit(options(gsm.datasim.outlier_intensity = old_outlier_intensity), add = TRUE)
+
   domain_pkgs <- resolve_domain_package_df(config, domain_package_df, default_package)
   if (nrow(domain_pkgs) == 0) {
     return(list())
@@ -160,10 +169,12 @@ ensure_core_mappings <- function(domains) {
 #' @param interval Time interval between snapshots
 #' @param mappings Vector of mapping names to use
 #' @param base_date Base date for snapshot generation (defaults to "2012-01-31" if NULL)
+#' @param outlier_intensity Global multiplier for outlier-like values in domain generators.
 #' @param verbose Whether to print progress/output messages
 #' @return List of raw data for each snapshot
 #' @export
-generate_study_snapshots <- function(study_id, participants, sites, snapshots, interval, mappings, base_date = NULL, verbose = FALSE) {
+generate_study_snapshots <- function(study_id, participants, sites, snapshots, interval, mappings,
+                                     base_date = NULL, outlier_intensity = 1, verbose = FALSE) {
   snapshot_width <- parse_interval_to_snapshot_width(interval)
 
   # Calculate start dates for each snapshot
@@ -195,7 +206,8 @@ generate_study_snapshots <- function(study_id, participants, sites, snapshots, i
     config <- create_study_config(
       study_id = study_id,
       participant_count = subject_counts[i],
-      site_count        = site_counts[i]
+      site_count        = site_counts[i],
+      outlier_intensity = outlier_intensity
     )
 
     # Set temporal configuration with the specific start date for this snapshot
@@ -309,7 +321,12 @@ execute_analytics_pipeline <- function(raw_data, config) {
       available_raw_names <- stringr::str_replace(names(snapshot_data), "^Raw_", "")
 
       # Derived mappings that have no Raw_* source but depend on prior mapped outputs
-      derived_mapping_names <- c("COUNTRY")
+      derived_mapping_names <- c("COUNTRY") 
+      
+      # Add EXCLUSION if IE, ENROLL, and PD are all included in the raw data
+      if (all(c("IE", "ENROLL", "PD") %in% available_raw_names)) {
+        derived_mapping_names <- c(derived_mapping_names, "EXCLUSION")
+      }
 
       workflows_to_run <- unique(c(available_raw_names, derived_mapping_names))
 

@@ -38,6 +38,37 @@ pak::pak("Gilead-BioStats/gsm.datasim@dev")
  # Generate raw data using a template file (currently it runs on a smaller template but not always on a larger one),
  # this is our current goto sim process:
  data <- raw_data_generator(template_path = "~/gsm.datasim/data-raw/small_template.csv")
+
+ # Longitudinal study with increased outlier prevalence (more analysis flags)
+ study <- quick_longitudinal_study(
+     study_name = "DEMO-OUTLIERS",
+     participants = 200,
+     sites = 15,
+     months_duration = 6,
+     outlier_intensity = 2.5
+ )
+
+ # Same option is available in create_longitudinal_study()
+ study2 <- create_longitudinal_study(
+     study_id = "DEMO-OUTLIERS-2",
+     participants = 150,
+     sites = 10,
+     snapshots = 4,
+     interval = "1 month",
+     domains = c("AE", "LB", "VISIT", "QUERY"),
+     outlier_intensity = 2
+ )
+
+ # Generate multiple studies at once
+ studies <- create_multiple_longitudinal_studies(
+     study_names = c("STUDY-001", "STUDY-002", "STUDY-003"),
+     participants = 200,
+     sites = 12,
+     snapshots = 6,
+     domains = c("AE", "LB", "VISIT", "PD"),
+     run_analytics = TRUE,
+     verbose = TRUE
+ )
 ```
 
 See `inst/examples/run_gsm_workflows.R` for a script to run all gsm workflows using data generated from
