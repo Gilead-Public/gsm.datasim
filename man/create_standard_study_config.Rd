@@ -27,7 +27,8 @@ create_standard_study_config(
   study_completion = TRUE,
   inclusion_exclusion = TRUE,
   exclusions = TRUE,
-  country = TRUE
+  country = TRUE,
+  outlier_intensity = 1
 )
 }
 \arguments{
@@ -76,6 +77,8 @@ create_standard_study_config(
 \item{exclusions}{Include exclusion tracking (Raw_EXCLUSION)}
 
 \item{country}{Include country mapping}
+
+\item{outlier_intensity}{Global multiplier for outlier-like values in domain generators.}
 }
 \value{
 Study configuration with standard datasets

@@ -12,6 +12,7 @@ generate_study_snapshots(
   interval,
   mappings,
   base_date = NULL,
+  outlier_intensity = 1,
   verbose = FALSE
 )
 }
@@ -29,6 +30,8 @@ generate_study_snapshots(
 \item{mappings}{Vector of mapping names to use}
 
 \item{base_date}{Base date for snapshot generation (defaults to "2012-01-31" if NULL)}
+
+\item{outlier_intensity}{Global multiplier for outlier-like values in domain generators.}
 
 \item{verbose}{Whether to print progress/output messages}
 }
