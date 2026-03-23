@@ -17,7 +17,11 @@ export_study_data(
 \arguments{
 \item{study}{A \code{longitudinal_study} object (output of
 \code{\link{create_longitudinal_study}} or
-\code{\link{quick_longitudinal_study}}).}
+\code{\link{quick_longitudinal_study}}), or a
+\code{multiple_longitudinal_studies} object (output of
+\code{\link{create_multiple_longitudinal_studies}}).  When a collection of
+studies is passed, each study is exported to its own subfolder under
+\code{output_dir}.}
 
 \item{output_dir}{Root directory under which the study folder is created.
 Defaults to the current working directory.}
@@ -42,7 +46,8 @@ Defaults to \code{FALSE}.}
 \code{FALSE}.}
 }
 \value{
-Invisibly returns the path to the top-level study folder.
+Invisibly returns the path to the top-level study folder (for a
+single study) or a named list of paths (for multiple studies).
 }
 \description{
 Writes a \code{longitudinal_study} object to a structured folder hierarchy.
