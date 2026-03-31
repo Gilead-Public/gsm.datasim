@@ -28,12 +28,19 @@
 #' @param strStartDate A string to denote when the first snapshot of simulated data occurs
 #' @param save A boolean, specifying whether or not this should be saved out as an RDS
 #' @param generation_mode Generation backend to use: "core" (default) or "legacy".
+#' @param lWorkflows Optional named list of workflow objects (from
+#'   `gsm.core::MakeWorkflowList()`). When supplied the function routes to
+#'   [generate_data_from_workflows()] to produce a single-snapshot dataset
+#'   driven entirely by the workflow spec. `SnapshotCount` and `SnapshotWidth`
+#'   are ignored in this mode.
 #'
 #' @return A list of raw data generated for each study snapshot, saved as an RDS file in `"data-raw/raw_data.RDS"`.
 #'
 #' @details
 #' The function performs the following steps:
 #' \enumerate{
+#'   \item If `lWorkflows` is provided, delegates to [generate_data_from_workflows()]
+#'   to produce a spec-driven single snapshot.
 #'   \item If `ParticipantCount`, `SiteCount`, `StudyID`, or `SnapshotCount` is `NULL`, the function reads
 #'   the `template.csv` file to get the necessary parameters for multiple studies.
 #'   \item It generates raw data for study snapshots based on either provided parameters or the template file.
@@ -53,6 +60,13 @@
 #'
 #' # Generate raw data using a template file
 #' data <- raw_data_generator()
+#'
+#' # Generate raw data from workflows
+#' wf <- gsm.core::MakeWorkflowList(
+#'   strPath = "workflow/1_mappings",
+#'   strPackage = "gsm.mapping"
+#' )
+#' data <- raw_data_generator(lWorkflows = wf, ParticipantCount = 200, SiteCount = 20)
 #' }
 #'
 #' @export
@@ -69,9 +83,48 @@ raw_data_generator <- function(
   package = "gsm.mapping",
   strStartDate = "2012-01-01",
   save = FALSE,
-  generation_mode = c("core", "legacy")
+  generation_mode = c("core", "legacy"),
+  lWorkflows = NULL
 ) {
   generation_mode <- match.arg(generation_mode)
+
+  # ── Workflow-driven generation path ──────────────────────────────────────
+  if (!is.null(lWorkflows)) {
+    logger::log_info("Using workflow-driven generation via generate_data_from_workflows()")
+
+    snap_count <- SnapshotCount %||% 1L
+    snap_width <- SnapshotWidth %||% "months"
+
+    snapshot_data <- generate_data_from_workflows(
+      lWorkflows     = lWorkflows,
+      n_participants = ParticipantCount %||% 100L,
+      n_sites        = SiteCount %||% 10L,
+      study_id       = StudyID %||% "STUDY-001",
+      start_date     = strStartDate,
+      end_date       = as.character(as.Date(strStartDate) + 365),
+      snapshot_count = snap_count,
+      snapshot_width = snap_width
+    )
+
+    study_key <- StudyID %||% "STUDY-001"
+
+    # Single-snapshot returns a flat list of data.frames; wrap for consistency
+    if (snap_count <= 1L) {
+      raw_data_list <- stats::setNames(
+        list(list(`1` = snapshot_data)),
+        study_key
+      )
+    } else {
+      raw_data_list <- stats::setNames(list(snapshot_data), study_key)
+    }
+
+    if (isTRUE(save)) {
+      save_data_on_disk(raw_data_list)
+      logger::log_info("Dataset saved successfully!")
+    }
+
+    return(raw_data_list)
+  }
 
   if (identical(generation_mode, "legacy") && !isTRUE(.gsm_datasim_runtime_state$legacy_mode_warned)) {
     warning(

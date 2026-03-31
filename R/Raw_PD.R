@@ -29,6 +29,7 @@ Raw_PD <- function(data, previous_data, spec, startDate, ...) {
   args <- list(
     studyid = list(n, data$Raw_STUDY$protocol_number[[1]]),
     subjid = list(n, external_subjid = data$Raw_SUBJ$subjid),
+    dvdecod = list(n, data$Raw_SUBJ),
     default = list(n, startDate)
   )
 
@@ -42,9 +43,23 @@ deemedimportant <- function(n, ...) {
   sample(c("Yes", "No"), n, replace = TRUE)
 }
 
-dvdecod <- function(n, ...) {
-  # Function body for deemedimportant
-  sample(c("Informed Consent", "Missing Data", "Study Procedures", "Inclusion Criteria", "Exclusion Criteria"), n, replace = TRUE, prob = c(0.3, 0.3, 0.3, 0.05, 0.05))
+dvdecod <- function(n, Raw_SUBJ_data = NULL, ...) {
+  row_keys <- if (is.data.frame(Raw_SUBJ_data) && "subjid" %in% names(Raw_SUBJ_data)) {
+    sample(Raw_SUBJ_data$subjid, n, replace = TRUE)
+  } else {
+    NULL
+  }
+
+  sample_categorical_with_hotspots(
+    values = c("Informed Consent", "Missing Data", "Study Procedures", "Inclusion Criteria", "Exclusion Criteria"),
+    n = n,
+    base_prob = c(0.3, 0.3, 0.3, 0.05, 0.05),
+    outlier_idx = 4:5,
+    row_keys = row_keys,
+    key_map = Raw_SUBJ_data,
+    key_col = "subjid",
+    site_col = "invid"
+  )
 }
 
 dvterm <- function(n, ...) {

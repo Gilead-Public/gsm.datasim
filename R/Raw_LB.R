@@ -91,6 +91,7 @@ Raw_LB <- function(data, previous_data, spec, startDate, ...) {
     subj_visit_repeated = list(nrow(tests), subj_visits),
     studyid = list(all_n, data$Raw_STUDY$protocol_number[[1]]),
     lb_dt = list(all_n, startDate),
+    toxgrg_nsv = list(all_n, subj_visits, data$Raw_SUBJ, nrow(tests)),
     default = list(all_n, subj_visits, tests)
   )
 
@@ -117,11 +118,25 @@ lbtstnam <- function(n, subj_visits, tests, ...) {
   rep(tests$lbtstnam, nrow(subj_visits))
 }
 
-toxgrg_nsv <- function(n, ...) {
-  # Function body for toxgrg_nsv
-  sample(c("", "0", "1", "2", "3", "4"),
-    n,
-    prob = c(0.49, 0.4875, 0.01, 0.005, 0.005, 0.0025),
-    replace = TRUE
+toxgrg_nsv <- function(n, subj_visits = NULL, Raw_SUBJ_data = NULL, tests_n = 1, ...) {
+  # Increase higher lab tox grades in hotspot sites while preserving baseline mix.
+  row_keys <- NULL
+  if (!is.null(subj_visits) && "subjid" %in% names(subj_visits) && !is.null(tests_n)) {
+    row_keys <- rep(subj_visits$subjid, each = tests_n)
+    row_keys <- row_keys[seq_len(min(length(row_keys), n))]
+    if (length(row_keys) < n) {
+      row_keys <- c(row_keys, rep(row_keys[length(row_keys)], n - length(row_keys)))
+    }
+  }
+
+  sample_categorical_with_hotspots(
+    values = c("", "0", "1", "2", "3", "4"),
+    n = n,
+    base_prob = c(0.49, 0.4875, 0.01, 0.005, 0.005, 0.0025),
+    outlier_idx = 3:6,
+    row_keys = row_keys,
+    key_map = Raw_SUBJ_data,
+    key_col = "subjid",
+    site_col = "invid"
   )
 }

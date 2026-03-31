@@ -12,7 +12,18 @@ study <- quick_longitudinal_study(
   participants = 1000,
   sites = 150,
   months_duration = 3,
-  study_type = "standard"
+  study_type = "standard",
+  outlier_intensity = 1
+)
+
+# Increase outlier prevalence to trigger more analytics flags
+high_outlier_study <- quick_longitudinal_study(
+  study_name = "Oncology Phase III Trial - High Outliers",
+  participants = 1000,
+  sites = 150,
+  months_duration = 3,
+  study_type = "standard",
+  outlier_intensity = 2.5
 )
 
 # Endpoints study (endpoint mappings)
@@ -59,7 +70,8 @@ cardio_study <- create_longitudinal_study(
   snapshots = 6,
   interval = "2 months",
   domains = c("AE", "LB", "VISIT", "QUERY"),
-  run_analytics = FALSE  # Just raw data for this example
+  run_analytics = FALSE,  # Just raw data for this example
+  outlier_intensity = 2
 )
 
 summarize_longitudinal_study(cardio_study)

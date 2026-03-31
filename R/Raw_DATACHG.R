@@ -63,6 +63,7 @@ Raw_DATACHG <- function(data, previous_data, spec, startDate, ...) {
     subject_nsv_visit_repeated = list(nrow(forms), subject_nsv_visits),
     visit_date = list(all_n, startDate),
     studyid = list(all_n, data$Raw_STUDY$protocol_number[[1]]),
+    n_changes = list(all_n, subject_nsv_visits, data$Raw_SUBJ),
     default = list(all_n, subject_nsv_visits, forms)
   )
 
@@ -88,11 +89,29 @@ field <- function(n, subject_nsv_visits, forms, ...) {
   rep(forms$field, nrow(subject_nsv_visits))
 }
 
-n_changes <- function(n, ...) {
-  # Function body for n_changes
-  sample(0:6,
-    prob = c(0.74, 0.22, 0.03, 0.005, 0.003, 0.0019, 0.0001),
-    n,
-    replace = TRUE
+n_changes <- function(n, subject_nsv_visits = NULL, Raw_SUBJ_data = NULL, ...) {
+  # z-score style long-tail counts to create clearer statistical outliers.
+  vals <- generate_zscore_outlier_values(
+    n = n,
+    mean = 0.9,
+    sd = 0.9,
+    min_value = 0,
+    max_value = 20,
+    one_sided = TRUE,
+    integer = TRUE
   )
+
+  if (!is.null(subject_nsv_visits) && "subject_nsv" %in% names(subject_nsv_visits)) {
+    vals <- inject_site_hotspot_outliers(
+      values = vals,
+      row_keys = subject_nsv_visits$subject_nsv,
+      key_map = Raw_SUBJ_data,
+      key_col = "subject_nsv",
+      site_col = "invid",
+      min_z = 3
+    )
+    vals <- as.integer(pmin(20, pmax(0, round(vals))))
+  }
+
+  vals
 }
