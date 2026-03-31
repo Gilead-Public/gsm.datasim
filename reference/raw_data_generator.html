@@ -41,7 +41,7 @@ is saved as an RDS file."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Generate Raw Data for Study Snapshots</h1>
-      <small class="dont-index">Source: <a href="https://github.com/Gilead-BioStats/gsm.datasim/blob/fix-95-alt/R/raw_data_generator.R" class="external-link"><code>R/raw_data_generator.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/Gilead-BioStats/gsm.datasim/blob/fix-use-custom-specs/R/raw_data_generator.R" class="external-link"><code>R/raw_data_generator.R</code></a></small>
       <div class="d-none name"><code>raw_data_generator.Rd</code></div>
     </div>
 
@@ -67,7 +67,8 @@ is saved as an RDS file.</p>
 <span>  package <span class="op">=</span> <span class="st">"gsm.mapping"</span>,</span>
 <span>  strStartDate <span class="op">=</span> <span class="st">"2012-01-01"</span>,</span>
 <span>  save <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  generation_mode <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"core"</span>, <span class="st">"legacy"</span><span class="op">)</span></span>
+<span>  generation_mode <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"core"</span>, <span class="st">"legacy"</span><span class="op">)</span>,</span>
+<span>  lWorkflows <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -133,6 +134,14 @@ Accepts "days", "weeks", "months" and "years". User can also place a number and 
 <dt id="arg-generation-mode">generation_mode<a class="anchor" aria-label="anchor" href="#arg-generation-mode"></a></dt>
 <dd><p>Generation backend to use: "core" (default) or "legacy".</p></dd>
 
+
+<dt id="arg-lworkflows">lWorkflows<a class="anchor" aria-label="anchor" href="#arg-lworkflows"></a></dt>
+<dd><p>Optional named list of workflow objects (from
+<code><a href="https://gilead-biostats.github.io/gsm.core/reference/MakeWorkflowList.html" class="external-link">gsm.core::MakeWorkflowList()</a></code>). When supplied the function routes to
+<code><a href="generate_data_from_workflows.html">generate_data_from_workflows()</a></code> to produce a single-snapshot dataset
+driven entirely by the workflow spec. <code>SnapshotCount</code> and <code>SnapshotWidth</code>
+are ignored in this mode.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -140,7 +149,9 @@ Accepts "days", "weeks", "months" and "years". User can also place a number and 
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>The function performs the following steps:</p><ol><li><p>If <code>ParticipantCount</code>, <code>SiteCount</code>, <code>StudyID</code>, or <code>SnapshotCount</code> is <code>NULL</code>, the function reads
+    <p>The function performs the following steps:</p><ol><li><p>If <code>lWorkflows</code> is provided, delegates to <code><a href="generate_data_from_workflows.html">generate_data_from_workflows()</a></code>
+to produce a spec-driven single snapshot.</p></li>
+<li><p>If <code>ParticipantCount</code>, <code>SiteCount</code>, <code>StudyID</code>, or <code>SnapshotCount</code> is <code>NULL</code>, the function reads
 the <code>template.csv</code> file to get the necessary parameters for multiple studies.</p></li>
 <li><p>It generates raw data for study snapshots based on either provided parameters or the template file.</p></li>
 <li><p>The generated data is saved as an RDS file and returned as a list.</p></li>
@@ -160,6 +171,13 @@ the <code>template.csv</code> file to get the necessary parameters for multiple 
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Generate raw data using a template file</span></span></span>
 <span class="r-in"><span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu">raw_data_generator</span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Generate raw data from workflows</span></span></span>
+<span class="r-in"><span><span class="va">wf</span> <span class="op">&lt;-</span> <span class="fu">gsm.core</span><span class="fu">::</span><span class="fu"><a href="https://gilead-biostats.github.io/gsm.core/reference/MakeWorkflowList.html" class="external-link">MakeWorkflowList</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  strPath <span class="op">=</span> <span class="st">"workflow/1_mappings"</span>,</span></span>
+<span class="r-in"><span>  strPackage <span class="op">=</span> <span class="st">"gsm.mapping"</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu">raw_data_generator</span><span class="op">(</span>lWorkflows <span class="op">=</span> <span class="va">wf</span>, ParticipantCount <span class="op">=</span> <span class="fl">200</span>, SiteCount <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
