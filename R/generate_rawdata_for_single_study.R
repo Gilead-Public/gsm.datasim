@@ -244,8 +244,11 @@ generate_snapshots_from_combined_specs <- function(SnapshotCount,
         ungroup()
     }
     if ("Raw_VISIT" %in% names(data) & "Raw_SDRGCOMP" %in% names(data)) {
+      sdrgcomp_unique <- data$Raw_SDRGCOMP %>%
+        dplyr::distinct(subjid, .keep_all = TRUE) %>%
+        dplyr::select(subjid, sdrgyn)
       data$Raw_VISIT <- data$Raw_VISIT %>%
-        dplyr::left_join(dplyr::select(data$Raw_SDRGCOMP, subjid, sdrgyn), by = c("subjid")) %>%
+        dplyr::left_join(sdrgcomp_unique, by = c("subjid")) %>%
         dplyr::filter(sdrgyn == "Y" | !foldername %in% c("End of Treatment", "Follow-up")) %>%
         dplyr::select(-sdrgyn)
     }
