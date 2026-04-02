@@ -28,7 +28,7 @@ Raw_SDRGCOMP <- function(data, previous_data, spec, startDate, ...) {
   }
 
   args <- list(
-    subjid = list(n, data$Raw_SUBJ$subjid, replace = FALSE),
+    subjid = list(n, unique(data$Raw_VISIT$subjid), replace = FALSE),
     studyid = list(n, data$Raw_STUDY$protocol_number[[1]]),
     default = list(n, startDate)
   )
@@ -41,7 +41,7 @@ Raw_SDRGCOMP <- function(data, previous_data, spec, startDate, ...) {
 sdrgyn <- function(n, ...) {
   # Function body for sdrgyn
   sample(c("Y", "N"),
-    prob = c(0.75, 0.25),
+    prob = c(0.70, 0.30),
     n,
     replace = TRUE
   )

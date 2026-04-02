@@ -96,7 +96,7 @@ complex_study <- create_study_config("COMPLEX-TRIAL-001", participant_count = 30
                       factor <- snapshot_idx / config$temporal_config$snapshot_count
                       round(base_count * factor)
                     }) %>%
-  add_dataset_config("Raw_SV", enabled = TRUE) %>%
+  add_dataset_config("Raw_VISIT", enabled = TRUE) %>%
   add_dataset_config("Raw_LB", enabled = TRUE) %>%
   add_dataset_config("Raw_QUERY", enabled = TRUE) %>%
   add_dataset_config("Raw_DATACHG", enabled = TRUE)

@@ -26,7 +26,7 @@ config <- set_temporal_config(
   snapshot_width = "months"
 )
 
-for (dataset_name in c("Raw_STUDY", "Raw_SITE", "Raw_SUBJ", "Raw_ENROLL", "Raw_SV", "Raw_VISIT", "Raw_AE", "Raw_LB")) {
+for (dataset_name in c("Raw_STUDY", "Raw_SITE", "Raw_SUBJ", "Raw_ENROLL", "Raw_VISIT", "Raw_AE", "Raw_LB")) {
   config <- add_dataset_config(config, dataset_name, enabled = TRUE)
 }
 

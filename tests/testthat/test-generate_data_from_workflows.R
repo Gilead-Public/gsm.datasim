@@ -188,8 +188,8 @@ test_that("generate_data_from_workflows handles pure-unknown workflows", {
 
   expect_type(result, "list")
   # Should contain both custom domains (Raw_STUDY/Raw_SITE/Raw_SUBJ/Raw_ENROLL
-  # are auto-added by prepare_combined_specs_for_generation if Raw_SV/Raw_VISIT
-  # are missing, but the custom domains should definitely be there)
+  # are auto-added by prepare_combined_specs_for_generation if Raw_VISIT
+  # is missing, but the custom domains should definitely be there)
   expect_true("Raw_CUSTOM1" %in% names(result))
   expect_true("Raw_CUSTOM2" %in% names(result))
 
