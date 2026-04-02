@@ -43,11 +43,15 @@ Raw_VISIT <- function(data, previous_data, spec, startDate, SnapshotWidth, ...) 
     curr_spec$invid <- NULL
   }
 
-  if (!("foldername" %in% names(curr_spec))) {
+  # Check if any existing spec entry maps to foldername/instancename via source_col
+  has_foldername_source <- any(vapply(curr_spec, function(x) identical(x[["source_col"]], "foldername"), logical(1)))
+  has_instancename_source <- any(vapply(curr_spec, function(x) identical(x[["source_col"]], "instancename"), logical(1)))
+
+  if (!("foldername" %in% names(curr_spec)) && !has_foldername_source) {
     curr_spec$foldername <- list(required = TRUE)
   }
 
-  if (!("instancename" %in% names(curr_spec))) {
+  if (!("instancename" %in% names(curr_spec)) && !has_instancename_source) {
     curr_spec$instancename <- list(required = TRUE)
   }
 
