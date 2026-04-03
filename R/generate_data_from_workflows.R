@@ -312,7 +312,7 @@ generate_data_from_workflows <- function(
     Raw_AE         = function(np, ns) np * 3L,
     Raw_PD         = function(np, ns) np * 3L,
     Raw_LB         = function(np, ns) np,
-    Raw_SDRGCOMP   = function(np, ns) np,
+    Raw_SDRGCOMP   = function(np, ns) ceiling(np / 2),
     Raw_DATACHG    = function(np, ns) np,
     Raw_DATAENT    = function(np, ns) np,
     Raw_QUERY      = function(np, ns) np,
