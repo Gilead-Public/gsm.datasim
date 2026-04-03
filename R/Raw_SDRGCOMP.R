@@ -27,8 +27,11 @@ Raw_SDRGCOMP <- function(data, previous_data, spec, startDate, ...) {
     return(dataset)
   }
 
+  existing_subjs <- if (is.null(dataset)) unique(character(0)) else unique(dataset$subjid)
+  available_subjs <- setdiff(unique(data$Raw_VISIT$subjid), existing_subjs)
+
   args <- list(
-    subjid = list(n, unique(data$Raw_VISIT$subjid), replace = FALSE),
+    subjid = list(n, available_subjs, replace = FALSE),
     studyid = list(n, data$Raw_STUDY$protocol_number[[1]]),
     default = list(n, startDate)
   )

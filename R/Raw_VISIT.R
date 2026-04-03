@@ -65,7 +65,9 @@ Raw_VISIT <- function(data, previous_data, spec, startDate, SnapshotWidth, ...) 
   }
 
 
-  subjs <- subjid(n, external_subjid = data$Raw_SUBJ$subjid, replace = FALSE)
+  existing_subjs <- if (is.null(dataset)) unique(character(0)) else unique(dataset$subjid)
+  available_subjs <- setdiff(unique(data$Raw_SUBJ$subjid), existing_subjs)
+  subjs <- subjid(n, external_subjid = available_subjs, replace = FALSE)
   invids <- data.frame(subjid = subjs) %>%
     left_join(., select(data$Raw_SUBJ, subjid, invid), by = "subjid") %>%
     pull(invid)
