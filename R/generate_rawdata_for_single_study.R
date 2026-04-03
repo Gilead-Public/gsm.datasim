@@ -243,14 +243,41 @@ generate_snapshots_from_combined_specs <- function(SnapshotCount,
         filter(rgmn_dt == min(rgmn_dt, na.rm = TRUE)) %>%
         ungroup()
     }
-    if ("Raw_VISIT" %in% names(data) & "Raw_SDRGCOMP" %in% names(data)) {
-      sdrgcomp_unique <- data$Raw_SDRGCOMP %>%
-        dplyr::distinct(subjid, .keep_all = TRUE) %>%
-        dplyr::select(subjid, sdrgyn)
+    if ("Raw_VISIT" %in% names(data)) {
+      treatment_visits <- paste0("VISIT ", 1:5)
+
+      # Screening: all subjects (no filter needed)
+
+      # VISIT 1-5: only enrolled subjects
+      enrolled_subjs <- data$Raw_SUBJ %>%
+        dplyr::filter(enrollyn == "Y") %>%
+        dplyr::pull(subjid)
+
+      # End of Treatment: only subjects who discontinued drug (sdrgyn == "N")
+      eot_subjs <- character(0)
+      if ("Raw_SDRGCOMP" %in% names(data)) {
+        eot_subjs <- data$Raw_SDRGCOMP %>%
+          dplyr::distinct(subjid, .keep_all = TRUE) %>%
+          dplyr::filter(sdrgyn == "N") %>%
+          dplyr::pull(subjid)
+      }
+
+      # Follow-up: only subjects who completed the study (compyn == "Y")
+      followup_subjs <- character(0)
+      if ("Raw_STUDCOMP" %in% names(data)) {
+        followup_subjs <- data$Raw_STUDCOMP %>%
+          dplyr::distinct(subjid, .keep_all = TRUE) %>%
+          dplyr::filter(compyn == "Y") %>%
+          dplyr::pull(subjid)
+      }
+
       data$Raw_VISIT <- data$Raw_VISIT %>%
-        dplyr::left_join(sdrgcomp_unique, by = c("subjid")) %>%
-        dplyr::filter(sdrgyn == "Y" | !foldername %in% c("End of Treatment", "Follow-up")) %>%
-        dplyr::select(-sdrgyn)
+        dplyr::filter(
+          (foldername == "Screening") |
+          (foldername %in% treatment_visits & subjid %in% enrolled_subjs) |
+          (foldername == "End of Treatment" & subjid %in% eot_subjs) |
+          (foldername == "Follow-up" & subjid %in% followup_subjs)
+        )
     }
     snapshots[[snapshot_idx]] <- data
     logger::log_info(glue::glue(" -- Snapshot {snapshot_idx} added successfully"))
