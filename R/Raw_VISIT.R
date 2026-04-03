@@ -75,7 +75,7 @@ Raw_VISIT <- function(data, previous_data, spec, startDate, SnapshotWidth, ...) 
   args <- list(
     subjid_repeated = list(nrow(possible_visits), subjs),
     invid_repeated = list(nrow(possible_visits), invids),
-    studyid = list(nrow(possible_visits), data$Raw_STUDY$protocol_number[[1]]),
+    studyid = list(n * nrow(possible_visits), data$Raw_STUDY$protocol_number[[1]]),
     visit_dt = list(n, startDate, possible_visits, SnapshotWidth),
     default = list(n, subjs, possible_visits)
   )
