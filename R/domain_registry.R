@@ -341,7 +341,7 @@ get_domain_registry <- function() {
       dataset         = "Raw_SDRGCOMP",
       required_inputs = c("data", "previous_data", "combined_specs", "n", "start_date"),
       count_fn        = function(counts, snapshot_idx)
-                          counts$subject_count[snapshot_idx],
+                          ceiling(counts$subject_count[snapshot_idx]/2),
       generate_fn     = function(context) {
         d         <- .delta("Raw_SDRGCOMP", context$previous_data, context$n)
         if (d$n <= 0) return(d$dataset)
