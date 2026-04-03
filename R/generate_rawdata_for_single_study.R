@@ -1,3 +1,52 @@
+#' Filter visit rows based on subject status across domains
+#'
+#' Applies conditional visit rules:
+#' - Screening: all subjects
+#' - VISIT 1-5: only enrolled subjects (enrollyn == "Y")
+#' - End of Treatment: only subjects who discontinued drug (sdrgyn == "N")
+#' - Follow-up: only subjects who completed the study (compyn == "Y")
+#'
+#' @param data Named list of data frames (must contain Raw_VISIT and Raw_SUBJ;
+#'   optionally Raw_SDRGCOMP and Raw_STUDCOMP).
+#' @return Filtered Raw_VISIT data frame.
+#' @keywords internal
+filter_visits_by_status <- function(data) {
+  treatment_visits <- paste0("VISIT ", 1:5)
+
+  # Screening: all subjects (no filter needed)
+
+  # VISIT 1-5: only enrolled subjects
+  enrolled_subjs <- data$Raw_SUBJ %>%
+    dplyr::filter(enrollyn == "Y") %>%
+    dplyr::pull(subjid)
+
+  # End of Treatment: only subjects who discontinued drug (sdrgyn == "N")
+  eot_subjs <- character(0)
+  if ("Raw_SDRGCOMP" %in% names(data)) {
+    eot_subjs <- data$Raw_SDRGCOMP %>%
+      dplyr::distinct(subjid, .keep_all = TRUE) %>%
+      dplyr::filter(sdrgyn == "N") %>%
+      dplyr::pull(subjid)
+  }
+
+  # Follow-up: only subjects who completed the study (compyn == "Y")
+  followup_subjs <- character(0)
+  if ("Raw_STUDCOMP" %in% names(data)) {
+    followup_subjs <- data$Raw_STUDCOMP %>%
+      dplyr::distinct(subjid, .keep_all = TRUE) %>%
+      dplyr::filter(compyn == "Y") %>%
+      dplyr::pull(subjid)
+  }
+
+  data$Raw_VISIT %>%
+    dplyr::filter(
+      (foldername == "Screening") |
+        (foldername %in% treatment_visits & subjid %in% enrolled_subjs) |
+        (foldername == "End of Treatment" & subjid %in% eot_subjs) |
+        (foldername == "Follow-up" & subjid %in% followup_subjs)
+    )
+}
+
 #' Prepare combined specs for generation
 #'
 #' Removes mapped outputs from `combined_specs`, ensures required core raw
@@ -244,40 +293,7 @@ generate_snapshots_from_combined_specs <- function(SnapshotCount,
         ungroup()
     }
     if ("Raw_VISIT" %in% names(data)) {
-      treatment_visits <- paste0("VISIT ", 1:5)
-
-      # Screening: all subjects (no filter needed)
-
-      # VISIT 1-5: only enrolled subjects
-      enrolled_subjs <- data$Raw_SUBJ %>%
-        dplyr::filter(enrollyn == "Y") %>%
-        dplyr::pull(subjid)
-
-      # End of Treatment: only subjects who discontinued drug (sdrgyn == "N")
-      eot_subjs <- character(0)
-      if ("Raw_SDRGCOMP" %in% names(data)) {
-        eot_subjs <- data$Raw_SDRGCOMP %>%
-          dplyr::distinct(subjid, .keep_all = TRUE) %>%
-          dplyr::filter(sdrgyn == "N") %>%
-          dplyr::pull(subjid)
-      }
-
-      # Follow-up: only subjects who completed the study (compyn == "Y")
-      followup_subjs <- character(0)
-      if ("Raw_STUDCOMP" %in% names(data)) {
-        followup_subjs <- data$Raw_STUDCOMP %>%
-          dplyr::distinct(subjid, .keep_all = TRUE) %>%
-          dplyr::filter(compyn == "Y") %>%
-          dplyr::pull(subjid)
-      }
-
-      data$Raw_VISIT <- data$Raw_VISIT %>%
-        dplyr::filter(
-          (foldername == "Screening") |
-          (foldername %in% treatment_visits & subjid %in% enrolled_subjs) |
-          (foldername == "End of Treatment" & subjid %in% eot_subjs) |
-          (foldername == "Follow-up" & subjid %in% followup_subjs)
-        )
+      data$Raw_VISIT <- filter_visits_by_status(data)
     }
     snapshots[[snapshot_idx]] <- data
     logger::log_info(glue::glue(" -- Snapshot {snapshot_idx} added successfully"))
