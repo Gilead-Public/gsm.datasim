@@ -35,14 +35,15 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/Gilead-BioStats/gsm.datasim/blob/fix-use-custom-specs/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/Gilead-BioStats/gsm.datasim/blob/fix-95-alt/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.1.3" id="gsmdatasim-v113">gsm.datasim v1.1.3<a class="anchor" aria-label="anchor" href="#gsmdatasim-v113"></a></h2>
 <p>This patch release makes the following updates:</p>
-<ul><li>Added <code>strStartDate</code> to <code>generate_rawdata_for_single_study()</code> and <code><a href="../reference/raw_data_generator.html">raw_data_generator()</a></code> to allow arbitrary snapshot start dates.</li>
+<ul><li>Added <code>strStartDate</code> to <code><a href="../reference/generate_rawdata_for_single_study.html">generate_rawdata_for_single_study()</a></code> and <code><a href="../reference/raw_data_generator.html">raw_data_generator()</a></code> to allow arbitrary snapshot start dates.</li>
 <li>Added <code>db_lock_dt</code> generation in <code>Raw_STUDY</code> based on the snapshot global max date.</li>
+<li>Updated default count scaling for <code>SDRGCOMP</code> and <code>AntiCancer</code> records in <code><a href="../reference/generate_rawdata_for_single_study.html">generate_rawdata_for_single_study()</a></code>.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.1.2" id="gsmdatasim-v112">gsm.datasim v1.1.2<a class="anchor" aria-label="anchor" href="#gsmdatasim-v112"></a></h2>
@@ -64,7 +65,7 @@
 <p>We are excited to announce the first major release of the <code>gsm.datasim</code> package, a collection of functions to generate synthetic test data for the RBQM of Clinical Trials based on several parameters.</p>
 <div class="section level3">
 <h3 id="notable-changes-1-0-0">Notable Changes:<a class="anchor" aria-label="anchor" href="#notable-changes-1-0-0"></a></h3>
-<p><strong>User-facing functions</strong> - <code>generate_rawdata_for_single_study()</code> can create snapshot(s) for a single study when provided with the proper parameters and appropriate mapping specifications. - <code><a href="../reference/raw_data_generator.html">raw_data_generator()</a></code> is a wrapper to run <code>generate_rawdata_for_single_study()</code> to create multiple studies if providing a template/dataset containing a variety of these parameters.</p>
+<p><strong>User-facing functions</strong> - <code><a href="../reference/generate_rawdata_for_single_study.html">generate_rawdata_for_single_study()</a></code> can create snapshot(s) for a single study when provided with the proper parameters and appropriate mapping specifications. - <code><a href="../reference/raw_data_generator.html">raw_data_generator()</a></code> is a wrapper to run <code><a href="../reference/generate_rawdata_for_single_study.html">generate_rawdata_for_single_study()</a></code> to create multiple studies if providing a template/dataset containing a variety of these parameters.</p>
 <p><strong>New Mapping Workflows Support:</strong> - All workflows that exist in <code>gsm.mapping</code>’s <code>inst/workflow/1_mappings</code> are now supported, with “STUDY”, “SUBJ”, “SITE” and “ENROLL” always being required. - There are many <code>gsm.endpoints</code> specific domains, such as <code>Anticancer</code> and <code>OverallResponse</code> that now have support as well.</p>
 <p><strong>Replacing <code>clindata</code> with <code>gsm.datasim</code>:</strong> - The object <code><a href="https://gilead-biostats.github.io/gsm.core/reference/lSource.html" class="external-link">gsm.core::lSource</a></code> was created using <code>gsm.datasim</code> for examples, tests, and vignettes across the <code>gsm</code> ecosystem. This object is based on “core mappings” which include: “AE”, “COUNTRY”, “DATACHG”, “DATAENT”, “ENROLL”, “LB”, “PD”, “PK”, “QUERY”, “STUDY”, “STUDCOMP”, “SDRGCOMP”, “SITE”, “SUBJ”</p>
 </div>

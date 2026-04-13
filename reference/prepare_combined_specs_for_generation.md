@@ -34,5 +34,5 @@ specs <- list(
 
 prepared <- prepare_combined_specs_for_generation(specs)
 names(prepared)
-#> [1] "Raw_SUBJ"  "Raw_VISIT" "Raw_AE"   
+#> [1] "Raw_SUBJ"  "Raw_SV"    "Raw_VISIT" "Raw_AE"   
 ```

@@ -22,8 +22,7 @@ raw_data_generator(
   package = "gsm.mapping",
   strStartDate = "2012-01-01",
   save = FALSE,
-  generation_mode = c("core", "legacy"),
-  lWorkflows = NULL
+  generation_mode = c("core", "legacy")
 )
 ```
 
@@ -92,15 +91,6 @@ raw_data_generator(
 
   Generation backend to use: "core" (default) or "legacy".
 
-- lWorkflows:
-
-  Optional named list of workflow objects (from
-  [`gsm.core::MakeWorkflowList()`](https://gilead-biostats.github.io/gsm.core/reference/MakeWorkflowList.html)).
-  When supplied the function routes to
-  [`generate_data_from_workflows()`](https://gilead-biostats.github.io/gsm.datasim/reference/generate_data_from_workflows.md)
-  to produce a single-snapshot dataset driven entirely by the workflow
-  spec. `SnapshotCount` and `SnapshotWidth` are ignored in this mode.
-
 ## Value
 
 A list of raw data generated for each study snapshot, saved as an RDS
@@ -110,18 +100,14 @@ file in `"data-raw/raw_data.RDS"`.
 
 The function performs the following steps:
 
-1.  If `lWorkflows` is provided, delegates to
-    [`generate_data_from_workflows()`](https://gilead-biostats.github.io/gsm.datasim/reference/generate_data_from_workflows.md)
-    to produce a spec-driven single snapshot.
-
-2.  If `ParticipantCount`, `SiteCount`, `StudyID`, or `SnapshotCount` is
+1.  If `ParticipantCount`, `SiteCount`, `StudyID`, or `SnapshotCount` is
     `NULL`, the function reads the `template.csv` file to get the
     necessary parameters for multiple studies.
 
-3.  It generates raw data for study snapshots based on either provided
+2.  It generates raw data for study snapshots based on either provided
     parameters or the template file.
 
-4.  The generated data is saved as an RDS file and returned as a list.
+3.  The generated data is saved as an RDS file and returned as a list.
 
 ## Examples
 
@@ -138,12 +124,5 @@ data <- raw_data_generator(
 
 # Generate raw data using a template file
 data <- raw_data_generator()
-
-# Generate raw data from workflows
-wf <- gsm.core::MakeWorkflowList(
-  strPath = "workflow/1_mappings",
-  strPackage = "gsm.mapping"
-)
-data <- raw_data_generator(lWorkflows = wf, ParticipantCount = 200, SiteCount = 20)
 } # }
 ```

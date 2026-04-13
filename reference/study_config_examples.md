@@ -15,6 +15,7 @@ config <- create_study_config("ONCOLOGY001", participant_count = 200, site_count
                       factor <- snapshot_idx / config$temporal_config$snapshot_count
                       round(base_count * factor)
                     }) %>%
+  add_dataset_config("Raw_SV", enabled = TRUE) %>%
   add_dataset_config("Raw_VISIT", enabled = TRUE)
 study_data <- generate_study_data(config)
 

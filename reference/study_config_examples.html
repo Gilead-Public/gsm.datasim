@@ -35,7 +35,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Example of config interface usage</h1>
-      <small class="dont-index">Source: <a href="https://github.com/Gilead-BioStats/gsm.datasim/blob/fix-use-custom-specs/R/study_builder.R" class="external-link"><code>R/study_builder.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/Gilead-BioStats/gsm.datasim/blob/fix-95-alt/R/study_builder.R" class="external-link"><code>R/study_builder.R</code></a></small>
       <div class="d-none name"><code>study_config_examples.Rd</code></div>
     </div>
 
@@ -57,6 +57,7 @@
 <span class="r-in"><span>                      <span class="va">factor</span> <span class="op">&lt;-</span> <span class="va">snapshot_idx</span> <span class="op">/</span> <span class="va">config</span><span class="op">$</span><span class="va">temporal_config</span><span class="op">$</span><span class="va">snapshot_count</span></span></span>
 <span class="r-in"><span>                      <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">base_count</span> <span class="op">*</span> <span class="va">factor</span><span class="op">)</span></span></span>
 <span class="r-in"><span>                    <span class="op">}</span><span class="op">)</span> <span class="op"><a href="pipe.html">%&gt;%</a></span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="add_dataset_config.html">add_dataset_config</a></span><span class="op">(</span><span class="st">"Raw_SV"</span>, enabled <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op"><a href="pipe.html">%&gt;%</a></span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="add_dataset_config.html">add_dataset_config</a></span><span class="op">(</span><span class="st">"Raw_VISIT"</span>, enabled <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">study_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="generate_study_data.html">generate_study_data</a></span><span class="op">(</span><span class="va">config</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>

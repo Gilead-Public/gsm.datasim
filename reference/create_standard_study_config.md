@@ -82,7 +82,7 @@ create_standard_study_config(
 
 - subject_visits:
 
-  Include subject visit data (Raw_VISIT)
+  Include subject visit data (Raw_SV)
 
 - visit_schedule:
 
