@@ -1,0 +1,174 @@
+# Test Data Simulator
+
+## Overview
+
+The [gsm.datasim](https://github.com/Gilead-BioStats/gsm.datasim)
+package provides functionality to produce sample data for use in the
+testing and development of applications and packages related to
+Risk-Based Quality Monitoring (RBQM) of Clinical Trials. Given inputs
+regarding the synthetic Study’s desired ID, Participant Count, Site
+Count, Snapshot Count, and the Key Risk Indicators to be constructed,
+the package generates data pertaining to:
+
+- Participant demographics
+- Adverse effects
+- Trial discontinuation
+- Lab results
+- Visit information
+- Study and site location
+- I/E criteria
+- Study metadata
+
+By Default, the package constructs data that would create all KRIs that
+are available in the [`{gsm}`](https://github.com/Gilead-BioStats/gsm)
+package.
+
+## Installation \*Temporarily broken due to repo permissions issue\*
+
+You can install the development version of
+[gsm.datasim](https://github.com/Gilead-BioStats/gsm.datasim) from
+GitHub with:
+
+    # install.packages("pak")
+    pak::pak("Gilead-BioStats/gsm.datasim@dev")
+
+## Sample Code
+
+     # Generate raw data using specified parameters
+     data <- raw_data_generator(ParticipantCount = 100, SiteCount = 10, StudyID = "Study01", SnapshotCount = 5)
+
+     # Generate raw data using specified parameters and Mappings
+     data <- raw_data_generator(ParticipantCount = 100,
+                                SiteCount = 10,
+                                StudyID = "Study01",
+                                SnapshotCount = 5,
+                                workflow_path = "workflow/1_mappings",
+                                mappings = c("Raw_STUDY", "Raw_SITE", "Raw_SUBJ", "Raw_ENROLL",)
+
+     # Generate raw data using a template file (currently it runs on a smaller template but not always on a larger one),
+     # this is our current goto sim process:
+     data <- raw_data_generator(template_path = "~/gsm.datasim/data-raw/small_template.csv")
+
+     # Longitudinal study with increased outlier prevalence (more analysis flags)
+     study <- quick_longitudinal_study(
+         study_name = "DEMO-OUTLIERS",
+         participants = 200,
+         sites = 15,
+         months_duration = 6,
+         outlier_intensity = 2.5
+     )
+
+     # Same option is available in create_longitudinal_study()
+     study2 <- create_longitudinal_study(
+         study_id = "DEMO-OUTLIERS-2",
+         participants = 150,
+         sites = 10,
+         snapshots = 4,
+         interval = "1 month",
+         domains = c("AE", "LB", "VISIT", "QUERY"),
+         outlier_intensity = 2
+     )
+
+     # Generate multiple studies at once
+     studies <- create_multiple_longitudinal_studies(
+         study_names = c("STUDY-001", "STUDY-002", "STUDY-003"),
+         participants = 200,
+         sites = 12,
+         snapshots = 6,
+         domains = c("AE", "LB", "VISIT", "PD"),
+         run_analytics = TRUE,
+         verbose = TRUE
+     )
+
+See `inst/examples/run_gsm_workflows.R` for a script to run all gsm
+workflows using data generated from `raw_data_generator`. Result will be
+all analysis and reporting data along with html report outputs.
+
+# Package index
+
+## All functions
+
+- [`add_dataset_config()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/add_dataset_config.md)
+  : Add Dataset Configuration
+- [`create_longitudinal_study()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/create_longitudinal_study.md)
+  : High-Level Study Creation API
+- [`create_longitudinal_study_data()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/create_longitudinal_study_data.md)
+  : Create Longitudinal Study Data Structure
+- [`create_multiple_longitudinal_studies()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/create_multiple_longitudinal_studies.md)
+  : Create Multiple Longitudinal Studies
+- [`create_standard_study_config()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/create_standard_study_config.md)
+  : Create Study Configuration for Standard Datasets
+- [`create_study_config()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/create_study_config.md)
+  : Create Study Configuration
+- [`ensure_core_mappings()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/ensure_core_mappings.md)
+  : Ensure core mappings are included
+- [`execute_analytics_pipeline()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/execute_analytics_pipeline.md)
+  : Execute analytics pipeline
+- [`execute_reporting_pipeline()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/execute_reporting_pipeline.md)
+  : Execute the reporting pipeline using gsm.reporting workflows
+- [`export_multiple_studies()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/export_multiple_studies.md)
+  : Export multiple longitudinal studies to disk
+- [`export_study_data()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/export_study_data.md)
+  : Export Complete Study Data to Disk
+- [`generate_analytics_layers()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_analytics_layers.md)
+  : Generate analytics layers from raw data
+- [`generate_raw_data_for_endpoints()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_raw_data_for_endpoints.md)
+  : Generate raw data for endpoints study (multi-package)
+- [`generate_raw_data_from_config()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_raw_data_from_config.md)
+  : Generate raw data from a study config
+- [`generate_reporting_layers()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_reporting_layers.md)
+  : Generate reporting layers from analytics results
+- [`generate_study_data()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_study_data.md)
+  : Generate study data with configuration
+- [`generate_study_snapshots()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_study_snapshots.md)
+  : Generate study data across multiple snapshots
+- [`get_available_domains()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/get_available_domains.md)
+  : Get Available Domain Names
+- [`get_domain_registry()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/get_domain_registry.md)
+  : Domain Registry (draft)
+- [`get_domain_timeline()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/get_domain_timeline.md)
+  : Get Domain Timeline Data
+- [`get_snapshot_data()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/get_snapshot_data.md)
+  : Get Data for Specific Snapshot
+- [`parse_interval_to_snapshot_width()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/parse_interval_to_snapshot_width.md)
+  : Parse interval string to snapshot width
+- [`prepare_combined_specs_for_generation()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/prepare_combined_specs_for_generation.md)
+  : Prepare combined specs for generation
+- [`print(`*`<multiple_longitudinal_studies>`*`)`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/print.multiple_longitudinal_studies.md)
+  : Print method for multiple longitudinal studies
+- [`print(`*`<summary.multiple_longitudinal_studies>`*`)`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/print.summary.multiple_longitudinal_studies.md)
+  : Print method for summary of multiple longitudinal studies
+- [`quick_longitudinal_study()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/quick_longitudinal_study.md)
+  : Quick longitudinal study creation
+- [`raw_data_generator()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/raw_data_generator.md)
+  : Generate Raw Data for Study Snapshots
+- [`remove_dataset_config()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/remove_dataset_config.md)
+  : Remove Dataset Configuration
+- [`run_longitudinal_analytics()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/run_longitudinal_analytics.md)
+  : Run Analytics Pipeline on Longitudinal Study
+- [`run_longitudinal_reporting()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/run_longitudinal_reporting.md)
+  : Run Reporting Pipeline on Longitudinal Study
+- [`set_outlier_config()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/set_outlier_config.md)
+  : Set Outlier Configuration
+- [`set_temporal_config()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/set_temporal_config.md)
+  : Set Temporal Configuration
+- [`study_config_examples`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/study_config_examples.md)
+  : Example of config interface usage
+- [`summarize_longitudinal_study()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/summarize_longitudinal_study.md)
+  : Get Summary of Longitudinal Study
+- [`summary(`*`<multiple_longitudinal_studies>`*`)`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/summary.multiple_longitudinal_studies.md)
+  : Summary method for multiple longitudinal studies
+- [`validate_study_config()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/validate_study_config.md)
+  : Validate Study Configuration
+- [`validate_study_inputs()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/validate_study_inputs.md)
+  : Study Utility Functions
+
+# Articles
+
+### All vignettes
+
+- [addnewdomain](https://gilead-biostats.github.io/gsm.datasim/dev/articles/addnewdomain.md):
+- [Understanding the Domain
+  Registry](https://gilead-biostats.github.io/gsm.datasim/dev/articles/domain-registry.md):
+- [Setting up Clinical Studies with
+  gsm.datasim](https://gilead-biostats.github.io/gsm.datasim/dev/articles/study-setup.md):
