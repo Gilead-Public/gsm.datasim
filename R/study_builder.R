@@ -195,6 +195,9 @@ validate_study_config <- function(config) {
 #' @param inclusion_exclusion Include inclusion/exclusion criteria (Raw_IE)
 #' @param exclusions Include exclusion tracking (Raw_EXCLUSION)
 #' @param country Include country mapping
+#' @param death Include death events (Raw_Death)
+#' @param randomization Include randomization data (Raw_Randomization)
+#' @param overall_response Include overall response data (Raw_OverallResponse)
 #' @param outlier_intensity Global multiplier for outlier-like values in domain generators.
 #'
 #' @return Study configuration with standard datasets
@@ -210,6 +213,7 @@ create_standard_study_config <- function(study_id = "STUDY001", participant_coun
                                         study_drug_completion = TRUE, study_completion = TRUE,
                                         inclusion_exclusion = TRUE, exclusions = TRUE,
                                         country = TRUE,
+                                        death = TRUE, randomization = TRUE, overall_response = TRUE,
                                         outlier_intensity = 1) {
 
   config <- create_study_config(
@@ -241,6 +245,9 @@ create_standard_study_config <- function(study_id = "STUDY001", participant_coun
   if (inclusion_exclusion) config <- add_dataset_config(config, "Raw_IE", enabled = TRUE)
   if (exclusions) config <- add_dataset_config(config, "Raw_EXCLUSION", enabled = TRUE)
   if (country) config <- add_dataset_config(config, "Raw_COUNTRY", enabled = TRUE)
+  if (death) config <- add_dataset_config(config, "Raw_Death", enabled = TRUE)
+  if (randomization) config <- add_dataset_config(config, "Raw_Randomization", enabled = TRUE)
+  if (overall_response) config <- add_dataset_config(config, "Raw_OverallResponse", enabled = TRUE)
 
   return(config)
 }
