@@ -46,7 +46,10 @@ update_column <- function(existing_col, new_col, col_name) {
     # Handle type conflict with a warning when available
     if (!is.null(existing_col$type) && !is.null(new_col$type)) {
       if (existing_col$type != new_col$type) {
-        cli_warn("Type mismatch for `{col_name}`. Using first type: {existing_col$type}")
+        warning(
+          sprintf("Type mismatch for '%s'. Using first type: %s", col_name, existing_col$type),
+          call. = FALSE
+        )
       }
     }
   } else {

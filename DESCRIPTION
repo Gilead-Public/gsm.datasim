@@ -2,17 +2,18 @@ Package: gsm.datasim
 Title: Synthetic Test Data Generator
 Version: 1.1.3
 Authors@R: c(
-    person("Roman", "Rogoza", email = "roman.rogoza@atorusresearch.com", role = c("aut", "cre")),
-    person("Laura", "Maxwell", email = "laura.maxwell@atorusresearch.com", role = c("aut")),
-    person("Zelos", "Zhu", email = "zelos.zhu@atorusresearch.com", role = c("aut")),
+    person("Laura", "Maxwell", email = "laura.maxwell@atorusresearch.com", role = c("aut", "cre")),
+    person("Zelos", "Zhu", email = "zelos.zhu@atorusresearch.com", role = c("aut")),    
+    person("Roman", "Rogoza", email = "roman.rogoza@atorusresearch.com", role = c("aut")),
     person("Gilead Sciences", role = "cph"))
 Description: Generates synthetic test data for the RBQM of Clinical Trials based on several parameters. 
 Imports:
     arrow,
     dplyr, 
     glue,
-    gsm.core (>= 1.1.2),
-    gsm.mapping (>= 1.1.2),
+    gsm.core (>= 1.1.0),
+    gsm.mapping (>= 1.1.0),
+    lifecycle,
     logger,
     lubridate,
     magrittr,
@@ -22,12 +23,16 @@ Imports:
     tictoc,
     utils
 Suggests:
+    gsm.kri,
+    gsm.reporting,
     knitr,
     rmarkdown,
     testthat
 Remotes:
     gsm.core=Gilead-BioStats/gsm.core@main,
-    gsm.mapping=Gilead-BioStats/gsm.mapping@main
+    gsm.kri=Gilead-BioStats/gsm.kri@main,
+    gsm.mapping=Gilead-BioStats/gsm.mapping@main,
+    gsm.reporting=Gilead-BioStats/gsm.reporting@main
 License: Apache License (>= 2)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

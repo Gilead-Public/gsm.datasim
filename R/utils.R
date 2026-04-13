@@ -82,7 +82,20 @@ count_gen <- function(max_n, SnapshotCount) {
   return(counts)
 }
 
-load_specs <- function(workflow_path, mappings, package) {
+.gsm_datasim_spec_cache <- new.env(parent = emptyenv())
+
+load_specs <- function(workflow_path, mappings, package, use_cache = TRUE) {
+  cache_key <- paste(
+    package,
+    workflow_path,
+    paste(mappings, collapse = "|"),
+    sep = "::"
+  )
+
+  if (isTRUE(use_cache) && exists(cache_key, envir = .gsm_datasim_spec_cache, inherits = FALSE)) {
+    return(get(cache_key, envir = .gsm_datasim_spec_cache, inherits = FALSE))
+  }
+
   wf_mapping <- gsm.core::MakeWorkflowList(strPath = workflow_path, strNames = mappings, strPackage = package)
   wf_req <- gsm.core::MakeWorkflowList(strPath = "workflow/1_mappings", strNames = c("SUBJ", "STUDY", "SITE", "ENROLL"), strPackage = "gsm.mapping")
   wf_all <- modifyList(wf_mapping, wf_req)
@@ -96,6 +109,10 @@ load_specs <- function(workflow_path, mappings, package) {
   }
   combined_specs <- CombineSpecs(wf_all)
 
+  if (isTRUE(use_cache)) {
+    assign(cache_key, combined_specs, envir = .gsm_datasim_spec_cache)
+  }
+
   return(combined_specs)
 }
 
@@ -107,8 +124,10 @@ rename_raw_data_vars_per_spec <- function(variable_data, spec) {
     if ("source_col" %in% names(variabale)) {
       # Retrieve the new name from "source_col"
       new_name <- variabale[["source_col"]]
-      # Rename the variable in the appropriate dataset in the snapshot
-      variable_data <- variable_data %>% dplyr::rename(!!rlang::sym(new_name) := all_of(var_name))
+      # Rename only when the source column is present
+      if (var_name %in% names(variable_data)) {
+        names(variable_data)[names(variable_data) == var_name] <- new_name
+      }
     }
   }
   return(variable_data)
@@ -143,7 +162,7 @@ generate_unique_combinations_code <- function(data, vars, run_code = FALSE) {
   code <- paste0(code, ")")
 
   if (run_code) {
-    result <- eval(parse(text = code_to_run))
+    result <- eval(parse(text = code))
   } else {
     result <- code
   }

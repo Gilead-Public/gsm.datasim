@@ -18,12 +18,12 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Roman Rogoza \email{roman.rogoza@atorusresearch.com}
+\strong{Maintainer}: Laura Maxwell \email{laura.maxwell@atorusresearch.com}
 
 Authors:
 \itemize{
-  \item Laura Maxwell \email{laura.maxwell@atorusresearch.com}
   \item Zelos Zhu \email{zelos.zhu@atorusresearch.com}
+  \item Roman Rogoza \email{roman.rogoza@atorusresearch.com}
 }
 
 Other contributors:
