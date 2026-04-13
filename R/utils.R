@@ -388,8 +388,8 @@ generate_consecutive_random_dates <- function(n, start_date, mean_days_between_d
   prev_date <- start_date
 
   for (i in seq_len(n)) {
-    # Define the date range
-    min_date <- prev_date
+    # Define the date range (start one day after previous to guarantee unique dates)
+    min_date <- prev_date + 1
     max_date <- prev_date + mean_days_between_dates
     # Generate a random date within the range
     random_date <- as.Date(sample(seq(min_date, max_date, by = "day"), 1), origin = "1970-01-01")

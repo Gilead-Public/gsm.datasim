@@ -1,3 +1,52 @@
+#' Filter visit rows based on subject status across domains
+#'
+#' Applies conditional visit rules:
+#' - Screening: all subjects
+#' - VISIT 1-5: only enrolled subjects (enrollyn == "Y")
+#' - End of Treatment: only subjects who discontinued drug (sdrgyn == "N")
+#' - Follow-up: only subjects who completed the study (compyn == "Y")
+#'
+#' @param data Named list of data frames (must contain Raw_VISIT and Raw_SUBJ;
+#'   optionally Raw_SDRGCOMP and Raw_STUDCOMP).
+#' @return Filtered Raw_VISIT data frame.
+#' @keywords internal
+filter_visits_by_status <- function(data) {
+  treatment_visits <- paste0("VISIT ", 1:5)
+
+  # Screening: all subjects (no filter needed)
+
+  # VISIT 1-5: only enrolled subjects
+  enrolled_subjs <- data$Raw_SUBJ %>%
+    dplyr::filter(enrollyn == "Y") %>%
+    dplyr::pull(subjid)
+
+  # End of Treatment: only subjects who discontinued drug (sdrgyn == "N")
+  eot_subjs <- character(0)
+  if ("Raw_SDRGCOMP" %in% names(data)) {
+    eot_subjs <- data$Raw_SDRGCOMP %>%
+      dplyr::distinct(subjid, .keep_all = TRUE) %>%
+      dplyr::filter(sdrgyn == "N") %>%
+      dplyr::pull(subjid)
+  }
+
+  # Follow-up: only subjects who completed the study (compyn == "Y")
+  followup_subjs <- character(0)
+  if ("Raw_STUDCOMP" %in% names(data)) {
+    followup_subjs <- data$Raw_STUDCOMP %>%
+      dplyr::distinct(subjid, .keep_all = TRUE) %>%
+      dplyr::filter(compyn == "Y") %>%
+      dplyr::pull(subjid)
+  }
+
+  data$Raw_VISIT %>%
+    dplyr::filter(
+      (foldername == "Screening") |
+        (foldername %in% treatment_visits & subjid %in% enrolled_subjs) |
+        (foldername == "End of Treatment" & subjid %in% eot_subjs) |
+        (foldername == "Follow-up" & subjid %in% followup_subjs)
+    )
+}
+
 #' Prepare combined specs for generation
 #'
 #' Removes mapped outputs from `combined_specs`, ensures required core raw
@@ -29,28 +78,14 @@ prepare_combined_specs_for_generation <- function(combined_specs, desired_specs 
   )
 
   # Specify the desired first few elements in order
-  desired_order <- c("Raw_STUDY", "Raw_SITE", "Raw_SUBJ", "Raw_ENROLL", "Raw_SV", "Raw_VISIT", "Raw_STUDCOMP")
-  if (!("Raw_SV" %in% names(combined_specs))) {
-    combined_specs$Raw_SV <- list(
+  desired_order <- c("Raw_STUDY", "Raw_SITE", "Raw_SUBJ", "Raw_ENROLL", "Raw_VISIT", "Raw_STUDCOMP", "Raw_SDRGCOMP")
+  if (!("Raw_VISIT" %in% names(combined_specs))) {
+    combined_specs$Raw_VISIT <- list(
       subjid = list(required = TRUE),
       foldername = list(required = TRUE),
       instancename = list(required = TRUE),
-      visit_dt = list(required = TRUE)
-    )
-  }
-  if (!("Visit" %in% names(combined_specs))) {
-    combined_specs$Raw_VISIT <- list(
-      subjid = list(required = TRUE),
-      visit = list(
-        required = TRUE,
-        source_col = "foldername"
-      ),
-      visit_date = list(
-        required = TRUE,
-        source_col = "visit_dt"
-      ),
-      studyid = list(required = TRUE),
-      invid = list(required = TRUE)
+      visit_dt = list(required = TRUE),
+      studyid = list(required = TRUE)
     )
   }
   desired_order <- desired_order[desired_order %in% names(combined_specs)]
@@ -189,10 +224,6 @@ generate_snapshots_from_combined_specs <- function(SnapshotCount,
         ),
         Raw_ENROLL = list(data, previous_data, combined_specs, n_enroll = n, startDate = start_dates[snapshot_idx], split_vars = list("subject_to_enrollment")),
         Raw_IE = list(data, previous_data, combined_specs, n_IE = n, split_vars = list("subject_to_ie", "tiver_ietestcd_ietest_ieorres_iecat")),
-        Raw_SV = list(data, previous_data, combined_specs,
-          n = n, startDate = start_dates[snapshot_idx], split_vars = list("subjid_repeated"),
-          SnapshotWidth = SnapshotWidth
-        ),
         Raw_STUDCOMP = list(data, previous_data, combined_specs, n = n, startDate = start_dates[snapshot_idx], split_vars = list("subjid_invid_unique")),
         Raw_LB = list(data, previous_data, combined_specs, n = n, startDate = start_dates[snapshot_idx], split_vars = list("subj_visit_repeated")),
         Raw_DATACHG = list(data, previous_data, combined_specs, n = n, startDate = start_dates[snapshot_idx], split_vars = list("subject_nsv_visit_repeated")),
@@ -209,9 +240,8 @@ generate_snapshots_from_combined_specs <- function(SnapshotCount,
         Raw_VISIT = list(data, previous_data, combined_specs,
           n = n,
           startDate = start_dates[snapshot_idx],
-          SnapshotCount = SnapshotCount,
           SnapshotWidth = SnapshotWidth,
-          split_vars = list("subjid_invid")
+          split_vars = list("subjid_repeated")
         ),
         Raw_Randomization = list(data, previous_data, combined_specs,
           n = n,
@@ -261,6 +291,9 @@ generate_snapshots_from_combined_specs <- function(SnapshotCount,
         group_by(subjid) %>%
         filter(rgmn_dt == min(rgmn_dt, na.rm = TRUE)) %>%
         ungroup()
+    }
+    if ("Raw_VISIT" %in% names(data)) {
+      data$Raw_VISIT <- filter_visits_by_status(data)
     }
     snapshots[[snapshot_idx]] <- data
     logger::log_info(glue::glue(" -- Snapshot {snapshot_idx} added successfully"))

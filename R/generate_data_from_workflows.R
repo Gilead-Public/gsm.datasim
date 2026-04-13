@@ -307,7 +307,6 @@ generate_data_from_workflows <- function(
     Raw_SUBJ       = function(np, ns) np,
     Raw_ENROLL     = function(np, ns) np,
     Raw_IE         = function(np, ns) np,
-    Raw_SV         = function(np, ns) np,
     Raw_VISIT      = function(np, ns) np,
     Raw_STUDCOMP   = function(np, ns) ceiling(np / 10),
     Raw_AE         = function(np, ns) np * 3L,

@@ -109,28 +109,10 @@ get_domain_registry <- function() {
     ),
 
     # ── Visit / time-on-study datasets ───────────────────────────────────────
-    Raw_SV = list(
-      dataset         = "Raw_SV",
-      required_inputs = c("data", "previous_data", "combined_specs", "n",
-                          "start_date", "snapshot_width"),
-      count_fn        = function(counts, snapshot_idx) counts$subject_count[snapshot_idx],
-      generate_fn     = function(context) {
-        Raw_SV(
-          data          = context$data,
-          previous_data = context$previous_data,
-          spec          = context$combined_specs,
-          startDate     = context$start_date,
-          n             = context$n,
-          SnapshotWidth = context$snapshot_width,
-          split_vars    = list("subjid_repeated")
-        )
-      }
-    ),
-
     Raw_VISIT = list(
       dataset         = "Raw_VISIT",
       required_inputs = c("data", "previous_data", "combined_specs", "n",
-                          "start_date", "snapshot_count", "snapshot_width"),
+                          "start_date", "snapshot_width"),
       count_fn        = function(counts, snapshot_idx) counts$subject_count[snapshot_idx],
       generate_fn     = function(context) {
         Raw_VISIT(
@@ -139,9 +121,8 @@ get_domain_registry <- function() {
           spec          = context$combined_specs,
           startDate     = context$start_date,
           n             = context$n,
-          SnapshotCount = context$snapshot_count,
           SnapshotWidth = context$snapshot_width,
-          split_vars    = list("subjid_invid")
+          split_vars    = list("subjid_repeated")
         )
       }
     ),
@@ -319,7 +300,7 @@ get_domain_registry <- function() {
         }
 
         subjs <- subjid(n, external_subjid = data$Raw_SUBJ$subjid, replace = FALSE)
-        subj_visits <- data$Raw_SV %>%
+        subj_visits <- data$Raw_VISIT %>%
           dplyr::filter(subjid %in% subjs) %>%
           dplyr::select(subjid, instancename)
         all_n <- nrow(subj_visits) * nrow(tests)
@@ -360,14 +341,14 @@ get_domain_registry <- function() {
       dataset         = "Raw_SDRGCOMP",
       required_inputs = c("data", "previous_data", "combined_specs", "n", "start_date"),
       count_fn        = function(counts, snapshot_idx)
-                          ceiling(counts$subject_count[snapshot_idx] / 2),
+                          ceiling(counts$subject_count[snapshot_idx]/2),
       generate_fn     = function(context) {
         d         <- .delta("Raw_SDRGCOMP", context$previous_data, context$n)
         if (d$n <= 0) return(d$dataset)
         spec      <- context$combined_specs
         curr_spec <- spec$Raw_SDRGCOMP
         args <- list(
-          subjid  = list(d$n, context$data$Raw_SUBJ$subjid, replace = FALSE),
+          subjid  = list(d$n, unique(context$data$Raw_VISIT$subjid), replace = FALSE),
           studyid = list(d$n, context$data$Raw_STUDY$protocol_number[[1]]),
           default = list(d$n, context$start_date)
         )

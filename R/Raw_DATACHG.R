@@ -52,7 +52,7 @@ Raw_DATACHG <- function(data, previous_data, spec, startDate, ...) {
   subject_nsvs <- subject_nsv(n, data$Raw_SUBJ$subjid,
     subject_nsv = data$Raw_SUBJ$subject_nsv, replace = FALSE
   )
-  subject_nsv_visits <- data$Raw_SV %>%
+  subject_nsv_visits <- data$Raw_VISIT %>%
     dplyr::left_join((data$Raw_SUBJ %>% dplyr::select(subjid, subject_nsv)), by = dplyr::join_by(subjid)) %>%
     dplyr::filter(subject_nsv %in% subject_nsvs) %>%
     dplyr::select(subject_nsv, instancename)

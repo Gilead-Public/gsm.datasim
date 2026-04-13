@@ -27,8 +27,11 @@ Raw_SDRGCOMP <- function(data, previous_data, spec, startDate, ...) {
     return(dataset)
   }
 
+  existing_subjs <- if (is.null(dataset)) unique(character(0)) else unique(dataset$subjid)
+  available_subjs <- setdiff(unique(data$Raw_VISIT$subjid), existing_subjs)
+
   args <- list(
-    subjid = list(n, data$Raw_SUBJ$subjid, replace = FALSE),
+    subjid = list(n, available_subjs, replace = FALSE),
     studyid = list(n, data$Raw_STUDY$protocol_number[[1]]),
     default = list(n, startDate)
   )
@@ -41,7 +44,7 @@ Raw_SDRGCOMP <- function(data, previous_data, spec, startDate, ...) {
 sdrgyn <- function(n, ...) {
   # Function body for sdrgyn
   sample(c("Y", "N"),
-    prob = c(0.75, 0.25),
+    prob = c(0.70, 0.30),
     n,
     replace = TRUE
   )
