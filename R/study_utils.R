@@ -459,11 +459,13 @@ execute_analytics_pipeline <- function(raw_data, config) {
       )
     } else if (!is.null(config$study_params$analytics_package)) {
       lWorkflow <- gsm.core::MakeWorkflowList(
-        strPackage = config$study_params$analytics_package
+        strPackage = config$study_params$analytics_package,
+        strPath = "workflow/2_metrics"
       )
     } else {
       lWorkflow <- gsm.core::MakeWorkflowList(
-        strPackage = "gsm.kri"
+        strPackage = "gsm.kri",
+        strPath = "workflow/2_metrics"
       )
     }
 
@@ -496,8 +498,8 @@ execute_analytics_pipeline <- function(raw_data, config) {
       available_raw_names <- stringr::str_replace(names(snapshot_data), "^Raw_", "")
 
       # Derived mappings that have no Raw_* source but depend on prior mapped outputs
-      derived_mapping_names <- c("COUNTRY") 
-      
+      derived_mapping_names <- c("COUNTRY")
+
       # Add EXCLUSION if IE, ENROLL, and PD are all included in the raw data
       if (all(c("IE", "ENROLL", "PD") %in% available_raw_names)) {
         derived_mapping_names <- c(derived_mapping_names, "EXCLUSION")
