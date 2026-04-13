@@ -1,0 +1,132 @@
+---
+title: "Longitudinal Data Generation"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    theme: flatly
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment  = "#>",
+  eval     = FALSE
+)
+library(gsm.datasim)
+```
+
+## Quick Start
+
+`quick_longitudinal_study()` replaces 50+ lines of manual workflow
+orchestration with a single call.
+
+```{r quick-start}
+# Standard study (core mappings + gsm.kri analytics)
+study <- quick_longitudinal_study(
+  study_name      = "Oncology Phase III Trial",
+  participants    = 1000,
+  sites           = 150,
+  months_duration = 3,
+  study_type      = "standard"
+)
+
+summarize_longitudinal_study(study)
+```
+
+## Exploring Analytics Results
+
+```{r analytics}
+if (!is.null(study$analytics)) {
+  latest_snapshot  <- tail(names(study$analytics), 1)
+  latest_analytics <- study$analytics[[latest_snapshot]]
+  cat("Latest analytics snapshot:", latest_snapshot, "\n")
+
+  if (!is.null(latest_analytics) && "results" %in% names(latest_analytics)) {
+    results          <- latest_analytics$results
+    analysis_results <- results[grep("^Analysis_",           names(results), ignore.case = TRUE)]
+    legacy_results   <- results[grep("^(site|country|study)", names(results), ignore.case = TRUE)]
+    cat("Analysis results:", length(analysis_results), "metrics\n")
+    cat("Legacy results:  ", length(legacy_results),   "metrics\n")
+  }
+}
+```
+
+## Custom Longitudinal Study
+
+```{r custom-study}
+cardio_study <- create_longitudinal_study(
+  study_id      = "CARDIO-001",
+  participants  = 500,
+  sites         = 25,
+  snapshots     = 6,
+  interval      = "2 months",
+  domains       = c("AE", "LB", "VISIT", "QUERY"),
+  run_analytics = FALSE
+)
+
+summarize_longitudinal_study(cardio_study)
+
+ae_timeline <- get_domain_timeline(cardio_study, "AE")
+cat("Adverse events across", length(ae_timeline), "snapshots\n")
+
+snapshot_1_data <- get_snapshot_data(cardio_study, 1)
+cat("Datasets in snapshot 1:", paste(names(snapshot_1_data), collapse = ", "), "\n")
+```
+
+## Config API with Pipes
+
+For full control over dataset counts and temporal settings.
+
+```{r config-api}
+complex_study <- create_study_config(
+  "COMPLEX-TRIAL-001",
+  participant_count = 300,
+  site_count        = 20
+) %>%
+  set_temporal_config(
+    start_date     = "2023-01-01",
+    snapshot_count = 8,
+    snapshot_width = "6 weeks"
+  ) %>%
+  add_dataset_config("Raw_AE", enabled = TRUE,
+    count_formula = function(config, snapshot_idx = 1) {
+      base_count <- config$study_params$participant_count * 2.5
+      factor     <- snapshot_idx / config$temporal_config$snapshot_count
+      round(base_count * factor)
+    }
+  ) %>%
+  add_dataset_config("Raw_SV",      enabled = TRUE) %>%
+  add_dataset_config("Raw_LB",      enabled = TRUE) %>%
+  add_dataset_config("Raw_QUERY",   enabled = TRUE) %>%
+  add_dataset_config("Raw_DATACHG", enabled = TRUE)
+
+cat("Study:", complex_study$study_params$study_id, "\n")
+cat("Participants:", complex_study$study_params$participant_count,
+    "| Sites:", complex_study$study_params$site_count, "\n")
+cat("Enabled datasets:", paste(names(complex_study$dataset_configs), collapse = ", "), "\n")
+
+# Generate data
+# complex_results <- generate_study_data(complex_study)
+```
+
+## Advanced Configuration
+
+```{r advanced}
+config <- create_study_config(
+  study_id          = "ADVANCED-001",
+  participant_count = 200,
+  site_count        = 15
+) %>%
+  set_temporal_config(
+    start_date     = "2024-01-01",
+    snapshot_count = 10,
+    snapshot_width = "months"
+  ) %>%
+  add_dataset_config("Raw_AE", enabled = TRUE) %>%
+  add_dataset_config("Raw_LB", enabled = TRUE)
+
+validate_study_config(config)
+cat("Configuration validated successfully\n")
+```

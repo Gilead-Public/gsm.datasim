@@ -1,0 +1,340 @@
+---
+title: "gsm.datasim Demo"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    theme: flatly
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse  = TRUE,
+  comment   = "#>",
+  eval      = FALSE
+)
+library(gsm.datasim)
+```
+
+## Data Generation Only
+
+If you only need simulated raw data — no analytics, no reporting — use
+`create_longitudinal_study()` with both pipelines disabled. This is the
+fastest way to get `Raw_*` data frames across multiple snapshots.
+
+```{r data-only}
+data_only <- create_longitudinal_study(
+  study_id      = "DATA-001",
+  participants  = 200,
+  sites         = 15,
+  snapshots     = 6,
+  interval      = "1 month",
+  domains       = c("AE", "LB", "VISIT", "QUERY", "SUBJ"),
+  run_analytics = FALSE,
+  run_reporting = FALSE,
+  verbose       = TRUE
+)
+
+names(data_only)            # $study_id, $config, $raw_data
+names(data_only$raw_data)   # one entry per snapshot date
+
+snap  <- data_only$raw_data[[1]]
+snap4 <- data_only$raw_data[[4]]
+names(snap)
+nrow(snap$Raw_SUBJ)
+nrow(snap4$Raw_SUBJ)
+nrow(snap$Raw_AE)
+nrow(snap4$Raw_AE)
+```
+
+## Quick Start
+
+`quick_longitudinal_study()` is the batteries-included entry point. It
+generates multi-snapshot raw data with the domain list determined by
+`study_type`, then runs the gsm.kri analytics pipeline and the
+gsm.reporting pipeline — all in one call.
+
+```{r quick-start}
+study <- quick_longitudinal_study(
+  study_name       = "DEMO-001",
+  participants     = 200,
+  sites            = 15,
+  months_duration  = 6,
+  study_type       = "standard",
+  include_pipeline = TRUE
+)
+```
+
+## Outlier Intensity
+
+Use `outlier_intensity` to increase or decrease outlier-like values that
+drive downstream flags in the analysis layer.
+
+```{r outlier}
+# Baseline
+baseline_study <- quick_longitudinal_study(
+  study_name       = "DEMO-OUTLIER-BASELINE",
+  participants     = 200,
+  sites            = 15,
+  months_duration  = 6,
+  study_type       = "standard",
+  outlier_intensity = 1
+)
+
+# More aggressive outlier generation
+high_outlier_study <- quick_longitudinal_study(
+  study_name        = "DEMO-OUTLIER-HIGH",
+  participants      = 200,
+  sites             = 15,
+  months_duration   = 6,
+  study_type        = "standard",
+  outlier_intensity = 2.5
+)
+
+# Also available on create_longitudinal_study()
+custom_outlier_study <- create_longitudinal_study(
+  study_id          = "DEMO-OUTLIER-CUSTOM",
+  participants      = 150,
+  sites             = 10,
+  snapshots         = 4,
+  interval          = "1 month",
+  domains           = c("AE", "LB", "VISIT", "QUERY"),
+  run_analytics     = TRUE,
+  run_reporting     = FALSE,
+  outlier_intensity = 2
+)
+```
+
+## The Study Object
+
+The returned list has five top-level slots.
+
+```{r study-object}
+names(study)
+# $study_id   — character study identifier
+# $config     — study parameters (participants, sites, domains, intervals, …)
+# $raw_data   — named list of snapshot data frames, one entry per snapshot date
+# $analytics  — gsm.kri pipeline output, named by snapshot date
+# $reporting  — gsm.reporting pipeline output, named by snapshot date
+```
+
+## Raw Data
+
+Snapshots are keyed by date (`YYYY-MM-DD`). Each snapshot is a named list
+of data frames (`Raw_SUBJ`, `Raw_AE`, `Raw_LB`, …).
+
+```{r raw-data}
+names(study$raw_data)
+
+snap_1 <- get_snapshot_data(study, 1)
+names(snap_1)
+
+cat("Subjects in snapshot 1:", nrow(snap_1$Raw_SUBJ), "\n")
+cat("AE rows in snapshot 1: ", nrow(snap_1$Raw_AE),   "\n")
+
+# Track a single domain across all snapshots
+ae_timeline <- get_domain_timeline(study, "AE")
+ae_counts   <- sapply(ae_timeline, nrow)
+print(ae_counts)
+
+get_available_domains(study)
+```
+
+## Analytics Pipeline Results
+
+`study$analytics` is a named list (one entry per snapshot). Each snapshot
+slot contains:
+
+- `$results`   — named list of metric results (`Analysis_kri0001`, …)
+- `$mapped`    — mapped data frames (`Mapped_SUBJ`, `Mapped_AE`, …)
+- `$lWorkflow` — the workflow list used
+- `$summary`   — lightweight metadata for the snapshot
+
+```{r analytics}
+snap_analytics <- study$analytics[["2012-01-31"]]
+names(snap_analytics)
+
+metric_names <- names(snap_analytics$results)
+cat("Metrics computed:", paste(metric_names, collapse = ", "), "\n")
+
+kri <- snap_analytics$results[[metric_names[1]]]
+names(kri)           # Analysis_Summary, Analysis_Flagged, Analysis_Analyzed
+kri$Analysis_Summary
+kri$Analysis_Flagged
+
+total <- sum(sapply(study$analytics, function(s) length(s$results)))
+cat("Total metric results across all snapshots:", total, "\n")
+```
+
+## Reporting Pipeline Results
+
+```{r reporting}
+names(study$reporting)
+
+snap_reporting <- study$reporting[["2012-01-31"]]
+names(snap_reporting)
+```
+
+## Stepwise Pipeline Execution
+
+Build the study in stages to inspect data before running heavy pipelines.
+
+```{r stepwise}
+raw_study <- create_longitudinal_study(
+  study_id      = "STEP-001",
+  participants  = 100,
+  sites         = 10,
+  snapshots     = 4,
+  interval      = "1 month",
+  domains       = c("AE", "LB", "VISIT", "QUERY"),
+  run_analytics = FALSE,
+  run_reporting = FALSE,
+  verbose       = TRUE
+)
+
+raw_study <- run_longitudinal_analytics(raw_study, verbose = TRUE)
+raw_study <- run_longitudinal_reporting(raw_study, verbose = TRUE)
+
+names(raw_study)  # now includes $analytics and $reporting
+```
+
+## Low-Level Config API
+
+For full control over dataset counts, temporal settings, and which
+analytics/reporting packages and workflows to run.
+
+```{r config-api}
+custom_study <- create_study_config(
+  study_id            = "CUSTOM-001",
+  participant_count   = 300,
+  site_count          = 20,
+  analytics_package   = "gsm.kri",
+  analytics_workflows = c("kri0001", "kri0002", "kri0003"),
+  reporting_package   = "gsm.reporting"
+) |>
+  set_temporal_config(
+    start_date     = "2023-06-01",
+    snapshot_count = 12,
+    snapshot_width = "months"
+  ) |>
+  add_dataset_config("Raw_AE",    enabled = TRUE) |>
+  add_dataset_config("Raw_LB",    enabled = TRUE) |>
+  add_dataset_config("Raw_VISIT", enabled = TRUE) |>
+  add_dataset_config("Raw_QUERY", enabled = TRUE) |>
+  add_dataset_config("Raw_DATACHG", enabled = TRUE,
+    count_formula = function(config, snapshot_idx = 1) {
+      round(config$study_params$participant_count * 0.4 * snapshot_idx /
+              config$temporal_config$snapshot_count)
+    }
+  )
+
+str(custom_study$study_params)
+str(custom_study$temporal_config)
+names(custom_study$dataset_configs)
+
+raw_data <- generate_raw_data_from_config(custom_study, verbose = TRUE)
+analytics <- generate_analytics_layers(raw_data, custom_study, verbose = TRUE)
+reporting <- generate_reporting_layers(analytics, custom_study, verbose = TRUE)
+
+study_obj <- create_longitudinal_study_data(
+  study_id = custom_study$study_params$study_id,
+  raw_data = raw_data,
+  config = list(
+    participants = custom_study$study_params$participant_count,
+    sites        = custom_study$study_params$site_count,
+    snapshots    = custom_study$temporal_config$snapshot_count,
+    interval     = paste(1, custom_study$temporal_config$snapshot_width),
+    domains      = gsub("^Raw_", "", names(custom_study$dataset_configs))
+  )
+)
+study_obj$analytics <- analytics
+study_obj$reporting <- reporting
+
+summarize_longitudinal_study(study_obj)
+```
+
+## Exporting Study Data
+
+`export_study_data()` writes a completed study to a structured folder
+hierarchy on disk.
+
+```
+<output_dir>/<study_id>/
+  <snapshot_date>/
+    raw/          # Raw_*.csv
+    mapped/       # Mapped_*.csv     (when analytics ran)
+    analytics/    # <metric>_<table>.csv  (when analytics ran)
+    reporting/    # Reporting_*.csv  (when reporting ran)
+```
+
+```{r export}
+study_path <- export_study_data(
+  study      = study,
+  output_dir = tempdir(),
+  verbose    = TRUE
+)
+
+# Parquet format (requires arrow package)
+export_study_data(
+  study        = study,
+  output_dir   = ".",
+  format       = "parquet",
+  study_folder = "DEMO-001-export",
+  overwrite    = TRUE
+)
+
+# Save full analytics object as RDS alongside CSVs
+rds_path <- export_study_data(
+  study      = study,
+  output_dir = tempdir(),
+  overwrite  = TRUE,
+  save_rds   = TRUE
+)
+
+snap_date      <- names(study$raw_data)[1]
+analytics_snap <- readRDS(file.path(rds_path, snap_date, "analytics_full.rds"))
+names(analytics_snap)   # $results, $mapped, $lWorkflow, $summary
+```
+
+## Creating Multiple Studies
+
+```{r multiple}
+portfolio <- create_multiple_longitudinal_studies(
+  study_names   = c("TRIAL-001", "TRIAL-002", "TRIAL-003"),
+  participants  = 150,
+  sites         = 12,
+  snapshots     = 4,
+  domains       = c("AE", "LB", "VISIT"),
+  run_analytics = FALSE,
+  verbose       = TRUE
+)
+
+names(portfolio)
+length(portfolio[["TRIAL-001"]]$raw_data)   # 4 snapshots
+
+portfolio_mixed <- create_multiple_longitudinal_studies(
+  study_names  = c("PHASE2-SMALL", "PHASE3-LARGE"),
+  participants = c(50, 300),
+  sites        = c(5, 20),
+  snapshots    = c(3, 12),
+  study_configs = list(
+    "PHASE2-SMALL" = list(domains = c("AE", "LB")),
+    "PHASE3-LARGE" = list(domains = c("AE", "LB", "VISIT", "PD", "PK"))
+  ),
+  run_analytics = FALSE,
+  verbose      = TRUE
+)
+
+print(portfolio_mixed)
+summary(portfolio_mixed)
+
+# Export all studies as parquet
+export_study_data(
+  study      = portfolio,
+  output_dir = ".",
+  format     = "parquet",
+  overwrite  = TRUE,
+  verbose    = TRUE
+)
+```
