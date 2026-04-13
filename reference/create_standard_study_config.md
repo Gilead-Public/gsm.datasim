@@ -30,6 +30,9 @@ create_standard_study_config(
   inclusion_exclusion = TRUE,
   exclusions = TRUE,
   country = TRUE,
+  death = TRUE,
+  randomization = TRUE,
+  overall_response = TRUE,
   outlier_intensity = 1
 )
 ```
@@ -127,6 +130,18 @@ create_standard_study_config(
 - country:
 
   Include country mapping
+
+- death:
+
+  Include death events (Raw_Death)
+
+- randomization:
+
+  Include randomization data (Raw_Randomization)
+
+- overall_response:
+
+  Include overall response data (Raw_OverallResponse)
 
 - outlier_intensity:
 
