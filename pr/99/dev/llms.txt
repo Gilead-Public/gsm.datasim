@@ -181,7 +181,8 @@ export_study_data(
 
 ## Examples
 
-Full worked examples are in `inst/examples/`:
+Full worked examples are in `inst/examples/` as well as in the Examples
+section of the website:
 
 - `example_demo.Rmd` — complete walkthrough of all major features
 - `example_longitudinal.Rmd` — longitudinal data generation patterns
