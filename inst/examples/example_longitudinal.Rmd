@@ -1,11 +1,10 @@
 ---
 title: "Longitudinal Data Generation"
-output:
-  html_document:
-    toc: true
-    toc_float: true
-    toc_depth: 3
-    theme: flatly
+author: "[gsm.datasim](https://gilead-biostats.github.io/gsm.datasim) Example"
+description: "Demonstrates quick-start, custom longitudinal studies, and the config API for multi-snapshot data generation."
+index: 2
+date: "`r format(Sys.time(), '%B %d, %Y %H:%M:%S %Z')`"
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
