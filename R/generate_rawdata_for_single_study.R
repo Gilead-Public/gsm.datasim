@@ -65,6 +65,64 @@ prepare_combined_specs_for_generation <- function(combined_specs, desired_specs 
   combined_specs
 }
 
+# Private helper: route a single domain to its legacy generator function.
+# Used by both generate_snapshots_from_combined_specs() (deprecated path) and
+# run_domain_generation_loop() (new config-native path).
+dispatch_legacy_domain_generator <- function(data_type, data, previous_data, combined_specs,
+                                             n, start_date, end_date,
+                                             SnapshotCount, SnapshotWidth) {
+  generator_func <- data_type
+  args <- switch(data_type,
+    Raw_SITE = list(data, previous_data, combined_specs, n_sites = n, startDate = start_date, split_vars = list("Country_State_City")),
+    Raw_SUBJ = list(data, previous_data, combined_specs,
+      n_subj = n, startDate = start_date,
+      endDate = end_date, split_vars = list(
+        "subject_site_synq",
+        "subjid_subject_nsv",
+        "enrollyn_enrolldt_timeonstudy_firstparticipantdate_firstdosedate_timeontreatment"
+      )
+    ),
+    Raw_ENROLL = list(data, previous_data, combined_specs, n_enroll = n, startDate = start_date, split_vars = list("subject_to_enrollment")),
+    Raw_IE = list(data, previous_data, combined_specs, n_IE = n, split_vars = list("subject_to_ie", "tiver_ietestcd_ietest_ieorres_iecat")),
+    Raw_SV = list(data, previous_data, combined_specs,
+      n = n, startDate = start_date, split_vars = list("subjid_repeated"),
+      SnapshotWidth = SnapshotWidth
+    ),
+    Raw_STUDCOMP = list(data, previous_data, combined_specs, n = n, startDate = start_date, split_vars = list("subjid_invid_unique")),
+    Raw_LB = list(data, previous_data, combined_specs, n = n, startDate = start_date, split_vars = list("subj_visit_repeated")),
+    Raw_DATACHG = list(data, previous_data, combined_specs, n = n, startDate = start_date, split_vars = list("subject_nsv_visit_repeated")),
+    Raw_DATAENT = list(data, previous_data, combined_specs, n = n, startDate = start_date, split_vars = list("subject_nsv_visit_repeated")),
+    Raw_QUERY = list(data, previous_data, combined_specs, n = n, startDate = start_date, split_vars = list("subject_nsv_visit_repeated")),
+    Raw_AE = list(data, previous_data, combined_specs,
+      n = n, startDate = start_date,
+      endDate = end_date, split_vars = list("aest_dt_aeen_dt")
+    ),
+    Raw_AntiCancer = list(data, previous_data, combined_specs, n = n, startDate = start_date),
+    Raw_Baseline   = list(data, previous_data, combined_specs, n = n, startDate = start_date),
+    Raw_Consents   = list(data, previous_data, combined_specs, n = n, startDate = start_date),
+    Raw_Death      = list(data, previous_data, combined_specs, n = n, startDate = start_date),
+    Raw_VISIT = list(data, previous_data, combined_specs,
+      n = n,
+      startDate = start_date,
+      SnapshotCount = SnapshotCount,
+      SnapshotWidth = SnapshotWidth,
+      split_vars = list("subjid_invid")
+    ),
+    Raw_Randomization = list(data, previous_data, combined_specs,
+      n = n,
+      startDate = start_date,
+      split_vars = list("subjid_invid_country")
+    ),
+    Raw_OverallResponse = list(data, previous_data, combined_specs,
+      n = n,
+      split_vars = list("subjid_rs_dt")
+    ),
+    Raw_PK = list(data, previous_data, combined_specs, n = n, startDate = start_date, split_vars = list("subjid_visit_pkdat")),
+    list(data, previous_data, combined_specs, n = n, startDate = start_date) # Default case
+  )
+  as.data.frame(do.call(generator_func, args))
+}
+
 generate_snapshots_from_combined_specs <- function(SnapshotCount,
                                                    SnapshotWidth,
                                                    ParticipantCount,
@@ -175,62 +233,17 @@ generate_snapshots_from_combined_specs <- function(SnapshotCount,
         next
       }
 
-      generator_func <- data_type
-      # Determine arguments based on variable name
-      args <- switch(data_type,
-        Raw_SITE = list(data, previous_data, combined_specs, n_sites = n, startDate = start_dates[snapshot_idx], split_vars = list("Country_State_City")),
-        Raw_SUBJ = list(data, previous_data, combined_specs,
-          n_subj = n, startDate = start_dates[snapshot_idx],
-          endDate = end_dates[snapshot_idx], split_vars = list(
-            "subject_site_synq",
-            "subjid_subject_nsv",
-            "enrollyn_enrolldt_timeonstudy_firstparticipantdate_firstdosedate_timeontreatment"
-          )
-        ),
-        Raw_ENROLL = list(data, previous_data, combined_specs, n_enroll = n, startDate = start_dates[snapshot_idx], split_vars = list("subject_to_enrollment")),
-        Raw_IE = list(data, previous_data, combined_specs, n_IE = n, split_vars = list("subject_to_ie", "tiver_ietestcd_ietest_ieorres_iecat")),
-        Raw_SV = list(data, previous_data, combined_specs,
-          n = n, startDate = start_dates[snapshot_idx], split_vars = list("subjid_repeated"),
-          SnapshotWidth = SnapshotWidth
-        ),
-        Raw_STUDCOMP = list(data, previous_data, combined_specs, n = n, startDate = start_dates[snapshot_idx], split_vars = list("subjid_invid_unique")),
-        Raw_LB = list(data, previous_data, combined_specs, n = n, startDate = start_dates[snapshot_idx], split_vars = list("subj_visit_repeated")),
-        Raw_DATACHG = list(data, previous_data, combined_specs, n = n, startDate = start_dates[snapshot_idx], split_vars = list("subject_nsv_visit_repeated")),
-        Raw_DATAENT = list(data, previous_data, combined_specs, n = n, startDate = start_dates[snapshot_idx], split_vars = list("subject_nsv_visit_repeated")),
-        Raw_QUERY = list(data, previous_data, combined_specs, n = n, startDate = start_dates[snapshot_idx], split_vars = list("subject_nsv_visit_repeated")),
-        Raw_AE = list(data, previous_data, combined_specs,
-          n = n, startDate = start_dates[snapshot_idx],
-          endDate = end_dates[snapshot_idx], split_vars = list("aest_dt_aeen_dt")
-        ),
-        Raw_AntiCancer = list(data, previous_data, combined_specs, n = n, startDate = start_dates[snapshot_idx]),
-        Raw_Baseline = list(data, previous_data, combined_specs, n = n, startDate = start_dates[snapshot_idx]),
-        Raw_Consents = list(data, previous_data, combined_specs, n = n, startDate = start_dates[snapshot_idx]),
-        Raw_Death = list(data, previous_data, combined_specs, n = n, startDate = start_dates[snapshot_idx]),
-        Raw_VISIT = list(data, previous_data, combined_specs,
-          n = n,
-          startDate = start_dates[snapshot_idx],
-          SnapshotCount = SnapshotCount,
-          SnapshotWidth = SnapshotWidth,
-          split_vars = list("subjid_invid")
-        ),
-        Raw_Randomization = list(data, previous_data, combined_specs,
-          n = n,
-          startDate = start_dates[snapshot_idx],
-          split_vars = list("subjid_invid_country")
-        ),
-        Raw_OverallResponse = list(data, previous_data, combined_specs,
-          n = n,
-          split_vars = list("subjid_rs_dt")
-        ),
-        Raw_PK = list(data, previous_data, combined_specs, n = n, startDate = start_dates[snapshot_idx], split_vars = list("subjid_visit_pkdat")),
-        Raw_IE = list(data, previous_data, combined_specs, n = n, split_vars = list("tiver_ietestcd_ietest_ieorres_iecat")),
-        list(data, previous_data, combined_specs, n = n, startDate = start_dates[snapshot_idx]) # Default case
+      data[[data_type]] <- dispatch_legacy_domain_generator(
+        data_type     = data_type,
+        data          = data,
+        previous_data = previous_data,
+        combined_specs = combined_specs,
+        n             = n,
+        start_date    = start_dates[snapshot_idx],
+        end_date      = end_dates[snapshot_idx],
+        SnapshotCount = SnapshotCount,
+        SnapshotWidth = SnapshotWidth
       )
-
-
-      variable_data <- do.call(generator_func, args)
-      # Combine variables into a data frame
-      data[[data_type]] <- as.data.frame(variable_data)
       logger::log_info(glue::glue(" ---- Dataset {data_type} added successfully"))
     }
 
@@ -271,6 +284,32 @@ generate_snapshots_from_combined_specs <- function(SnapshotCount,
   snapshots
 }
 
+#' Generate raw data for a single study (Deprecated)
+#'
+#' @description
+#' `r lifecycle::badge("deprecated")`
+#'
+#' This function is deprecated. Please use the study configuration approach
+#' instead: [create_study_config()], [add_dataset_config()], and
+#' [generate_study_data()]. See `vignette("study-setup", package = "gsm.datasim")`
+#' for a full walkthrough.
+#'
+#' @param SnapshotCount Number of snapshots to generate.
+#' @param SnapshotWidth Width of each snapshot interval (in days).
+#' @param ParticipantCount Number of participants.
+#' @param SiteCount Number of sites.
+#' @param StudyID Study identifier string.
+#' @param workflow_path Path to the workflow YAML files.
+#' @param mappings Named list of column mappings.
+#' @param package Package name used to locate specs.
+#' @param strStartDate Study start date as a string (default `"2012-01-01"`).
+#' @param desired_specs Optional character vector of dataset names to keep.
+#'
+#' @return A named list of snapshot data frames, named by snapshot end date.
+#'
+#' @keywords internal
+#' @export
+#' @seealso [create_study_config()], [add_dataset_config()], [generate_study_data()]
 generate_rawdata_for_single_study <- function(SnapshotCount,
   SnapshotWidth,
   ParticipantCount,
@@ -281,6 +320,14 @@ generate_rawdata_for_single_study <- function(SnapshotCount,
   package,
   strStartDate = "2012-01-01",
   desired_specs = NULL) {
+  lifecycle::deprecate_warn(
+    when = "1.1.3",
+    what = "generate_rawdata_for_single_study()",
+    details = paste0(
+      "Please use create_study_config(), add_dataset_config(), and generate_study_data() instead. ",
+      "See vignette(\"study-setup\", package = \"gsm.datasim\") for a full walkthrough."
+    )
+  )
   combined_specs <- load_specs(workflow_path, mappings, package)
   prepared_specs <- prepare_combined_specs_for_generation(
     combined_specs = combined_specs,
