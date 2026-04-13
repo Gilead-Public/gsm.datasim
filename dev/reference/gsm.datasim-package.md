@@ -15,13 +15,13 @@ Useful links:
 
 ## Author
 
-**Maintainer**: Roman Rogoza <roman.rogoza@atorusresearch.com>
+**Maintainer**: Laura Maxwell <laura.maxwell@atorusresearch.com>
 
 Authors:
 
-- Laura Maxwell <laura.maxwell@atorusresearch.com>
-
 - Zelos Zhu <zelos.zhu@atorusresearch.com>
+
+- Roman Rogoza <roman.rogoza@atorusresearch.com>
 
 Other contributors:
 
