@@ -14,7 +14,7 @@
 infer_column_type <- function(col_name, col_spec = list()) {
   # 1. Explicit type from spec
 
-if (!is.null(col_spec$type)) {
+  if (!is.null(col_spec$type)) {
     type <- tolower(col_spec$type)
     if (type %in% c("date", "numeric", "integer", "logical", "character", "timestamp")) {
       return(type)
