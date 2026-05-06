@@ -112,17 +112,18 @@ get_domain_registry <- function() {
     Raw_VISIT = list(
       dataset         = "Raw_VISIT",
       required_inputs = c("data", "previous_data", "combined_specs", "n",
-                          "start_date", "snapshot_width"),
+                          "start_date", "snapshot_count", "snapshot_width"),
       count_fn        = function(counts, snapshot_idx) counts$subject_count[snapshot_idx],
       generate_fn     = function(context) {
         Raw_VISIT(
-          data          = context$data,
-          previous_data = context$previous_data,
-          spec          = context$combined_specs,
-          startDate     = context$start_date,
-          n             = context$n,
-          SnapshotWidth = context$snapshot_width,
-          split_vars    = list("subjid_repeated")
+          data           = context$data,
+          previous_data  = context$previous_data,
+          spec           = context$combined_specs,
+          startDate      = context$start_date,
+          n              = context$n,
+          SnapshotCount  = context$snapshot_count,
+          SnapshotWidth  = context$snapshot_width,
+          split_vars     = list("subjid_invid")
         )
       }
     ),
@@ -300,7 +301,7 @@ get_domain_registry <- function() {
         }
 
         subjs <- subjid(n, external_subjid = data$Raw_SUBJ$subjid, replace = FALSE)
-        subj_visits <- data$Raw_VISIT %>%
+        subj_visits <- data$Raw_SV %>%
           dplyr::filter(subjid %in% subjs) %>%
           dplyr::select(subjid, instancename)
         all_n <- nrow(subj_visits) * nrow(tests)
