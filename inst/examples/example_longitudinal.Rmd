@@ -44,7 +44,7 @@ if (!is.null(study$analytics)) {
 
   if (!is.null(latest_analytics) && "results" %in% names(latest_analytics)) {
     results          <- latest_analytics$results
-    analysis_results <- results[grep("^Analysis_",            names(results), ignore.case = TRUE)]
+    analysis_results <- results[grep("^Analysis_",           names(results), ignore.case = TRUE)]
     legacy_results   <- results[grep("^(site|country|study)", names(results), ignore.case = TRUE)]
     cat("Analysis results:", length(analysis_results), "metrics\n")
     cat("Legacy results:  ", length(legacy_results),   "metrics\n")

@@ -49,6 +49,186 @@ resolve_domain_package_df <- function(config, domain_package_df = NULL, default_
   resolved
 }
 
+# Private helper: look up the record count for a domain at a given snapshot index.
+resolve_domain_count <- function(data_type, counts, snapshot_idx) {
+  dplyr::case_when(
+    data_type == "Raw_AE"         ~ counts$ae_count[snapshot_idx],
+    data_type == "Raw_ENROLL"     ~ unlist(counts$enrollment_count[snapshot_idx]),
+    data_type == "Raw_SITE"       ~ counts$site_count[snapshot_idx],
+    data_type == "Raw_PD"         ~ counts$pd_count[snapshot_idx],
+    data_type == "Raw_SUBJ"       ~ counts$subject_count[snapshot_idx],
+    data_type == "Raw_SDRGCOMP"   ~ counts$sdrgcomp_count[snapshot_idx],
+    data_type == "Raw_STUDCOMP"   ~ counts$studcomp_count[snapshot_idx],
+    data_type == "Raw_Consents"   ~ counts$consents_count[snapshot_idx],
+    data_type == "Raw_Death"      ~ counts$death_count[snapshot_idx],
+    data_type == "Raw_AntiCancer" ~ counts$anticancer_count[snapshot_idx],
+    data_type == "Raw_IE"         ~ unlist(counts$enrollment_count[snapshot_idx]),
+    TRUE                          ~ counts$subject_count[snapshot_idx]
+  )
+}
+
+# Private helper: config-native generation loop.
+# Drives iteration from names(combined_specs) but derives all study/temporal
+# parameters from the config object directly, without delegating to the legacy
+# generate_snapshots_from_combined_specs() function.
+#
+# @param combined_specs Prepared (Mapped_*-stripped, core-ordered) spec list from
+#   load_specs() + prepare_combined_specs_for_generation().
+# @param config Study configuration object (temporal_config + study_params).
+# @param source_domains Character vector of unprefixed domain/mapping names as
+#   supplied by the caller (used for the gilda_STUDY opt-in check).
+# @return Named list of snapshot data lists, named by snapshot end date.
+run_domain_generation_loop <- function(combined_specs, config, source_domains) {
+  tc <- config$temporal_config
+  sp <- config$study_params
+
+  snapshot_count    <- tc$snapshot_count
+  snapshot_width    <- tc$snapshot_width
+  study_id          <- sp$study_id
+  participant_count <- sp$participant_count
+  site_count_param  <- sp$site_count
+
+  start_dates     <- seq(as.Date(tc$start_date), length.out = snapshot_count, by = snapshot_width)
+  end_dates       <- start_dates + 28
+  global_max_date <- max(end_dates)
+
+  subject_count    <- count_gen(participant_count, snapshot_count)
+  site_count_vec   <- count_gen(site_count_param,  snapshot_count)
+  if (snapshot_count > 1) {
+    enrollment_count <- enrollment_count_gen(subject_count)
+  }
+  enrollment_count <- subject_count
+
+  counts <- list(
+    subject_count    = subject_count,
+    site_count       = site_count_vec,
+    enrollment_count = enrollment_count,
+    ae_count         = subject_count * 3,
+    pd_count         = subject_count * 3,
+    sdrgcomp_count   = ceiling(subject_count / 10),
+    studcomp_count   = ceiling(subject_count / 10),
+    consents_count   = ceiling(subject_count / 75),
+    death_count      = ceiling(subject_count / 85),
+    anticancer_count = ceiling(subject_count / 75)
+  )
+
+  snapshots <- list()
+
+  for (snapshot_idx in seq_len(snapshot_count)) {
+    logger::log_info(glue::glue(" -- Adding snapshot {snapshot_idx}..."))
+    data <- list()
+
+    # --- Pre-loop: Raw_STUDY (special-cased; not yet in domain registry) ---
+    if (snapshot_idx == 1) {
+      previous_data <- list()
+      data$Raw_STUDY <- as.data.frame(Raw_STUDY(data, previous_data, combined_specs,
+        StudyID          = study_id,
+        SiteCount        = site_count_param,
+        ParticipantCount = participant_count,
+        MinDate          = start_dates[snapshot_idx],
+        MaxDate          = end_dates[snapshot_idx],
+        GlobalMaxDate    = global_max_date
+      ))
+      if ("gilda_STUDY" %in% source_domains) {
+        data$raw_gilda_study_data <- as.data.frame(raw_gilda_study_data(data, previous_data, combined_specs,
+          StudyID          = study_id,
+          SiteCount        = site_count_param,
+          ParticipantCount = participant_count,
+          MinDate          = start_dates[snapshot_idx],
+          MaxDate          = end_dates[snapshot_idx],
+          GlobalMaxDate    = global_max_date
+        ))
+      }
+    } else {
+      data$Raw_STUDY <- snapshots[[1]]$Raw_STUDY
+      data$Raw_STUDY$act_fpfv <- act_fpfv(
+        start_dates[snapshot_idx],
+        end_dates[snapshot_idx],
+        data$Raw_STUDY$act_fpfv
+      )
+      if ("gilda_STUDY" %in% source_domains) {
+        data$raw_gilda_study_data <- snapshots[[1]]$raw_gilda_study_data
+      }
+      previous_data <- snapshots[[snapshot_idx - 1]]
+    }
+
+    # --- Per-domain loop (driven by combined_specs key order) ---
+    for (data_type in names(combined_specs)) {
+      if (data_type %in% c("Raw_STUDY", "raw_gilda_study_data")) next
+
+      logger::log_info(glue::glue(" ---- Adding dataset {data_type}..."))
+
+      n <- resolve_domain_count(data_type, counts, snapshot_idx)
+
+      registry_context <- list(
+        data           = data,
+        previous_data  = previous_data,
+        combined_specs = combined_specs,
+        n              = n,
+        start_date     = start_dates[snapshot_idx],
+        end_date       = end_dates[snapshot_idx],
+        snapshot_idx   = snapshot_idx,
+        snapshot_count = snapshot_count,
+        snapshot_width = snapshot_width,
+        study_id       = study_id
+      )
+
+      migrated_data <- generate_domain_from_registry(data_type, registry_context)
+
+      if (!is.null(migrated_data)) {
+        data[[data_type]] <- migrated_data
+        logger::log_info(glue::glue(" ---- Dataset {data_type} added successfully"))
+        next
+      }
+
+      data[[data_type]] <- dispatch_legacy_domain_generator(
+        data_type      = data_type,
+        data           = data,
+        previous_data  = previous_data,
+        combined_specs = combined_specs,
+        n              = n,
+        start_date     = start_dates[snapshot_idx],
+        end_date       = end_dates[snapshot_idx],
+        SnapshotCount  = snapshot_count,
+        SnapshotWidth  = snapshot_width
+      )
+      logger::log_info(glue::glue(" ---- Dataset {data_type} added successfully"))
+    }
+
+    # --- Post-processing ---
+    if (!is.null(data$Raw_ENROLL) && nrow(data$Raw_ENROLL) > 0) {
+      to_subj <- data$Raw_ENROLL %>%
+        dplyr::select(subjid, enrollyn)
+      data$Raw_SUBJ <- data$Raw_SUBJ %>%
+        dplyr::rows_upsert(to_subj, by = "subjid") %>%
+        dplyr::mutate(
+          enrolldt    = dplyr::if_else(enrollyn == "N", as.Date(NA), enrolldt),
+          timeonstudy = dplyr::if_else(enrollyn == "N", NA, timeonstudy)
+        )
+    }
+    if ("Raw_IE" %in% names(data)) {
+      unenrolled <- data$Raw_SUBJ %>%
+        dplyr::filter(enrollyn == "N") %>%
+        dplyr::pull(subjid)
+      data$Raw_IE <- data$Raw_IE %>%
+        dplyr::slice_sample(n = round(participant_count / 3)) %>%
+        dplyr::filter(!(subjid %in% unenrolled))
+    }
+    if ("Raw_Randomization" %in% names(data)) {
+      data$Raw_Randomization <- data$Raw_Randomization %>%
+        dplyr::group_by(subjid) %>%
+        dplyr::filter(rgmn_dt == min(rgmn_dt, na.rm = TRUE)) %>%
+        dplyr::ungroup()
+    }
+
+    snapshots[[snapshot_idx]] <- data
+    logger::log_info(glue::glue(" -- Snapshot {snapshot_idx} added successfully"))
+  }
+
+  names(snapshots) <- as.character(end_dates)
+  snapshots
+}
+
 # WP1 core helper: generate snapshots from config (single- and multi-package)
 generate_snapshots_from_config <- function(config,
                                            domain_package_df = NULL,
@@ -87,15 +267,10 @@ generate_snapshots_from_config <- function(config,
     )
     prepared_specs <- prepare_combined_specs_for_generation(combined_specs)
 
-    raw_by_package[[pkg]] <- generate_snapshots_from_combined_specs(
-      SnapshotCount = config$temporal_config$snapshot_count,
-      SnapshotWidth = config$temporal_config$snapshot_width,
-      ParticipantCount = config$study_params$participant_count,
-      SiteCount = config$study_params$site_count,
-      StudyID = config$study_params$study_id,
+    raw_by_package[[pkg]] <- run_domain_generation_loop(
       combined_specs = prepared_specs,
-      mappings = domains_in_pkg,
-      strStartDate = as.character(config$temporal_config$start_date)
+      config         = config,
+      source_domains = domains_in_pkg
     )
   }
 
@@ -284,11 +459,13 @@ execute_analytics_pipeline <- function(raw_data, config) {
       )
     } else if (!is.null(config$study_params$analytics_package)) {
       lWorkflow <- gsm.core::MakeWorkflowList(
-        strPackage = config$study_params$analytics_package
+        strPackage = config$study_params$analytics_package,
+        strPath = "workflow/2_metrics"
       )
     } else {
       lWorkflow <- gsm.core::MakeWorkflowList(
-        strPackage = "gsm.kri"
+        strPackage = "gsm.kri",
+        strPath = "workflow/2_metrics"
       )
     }
 
@@ -321,8 +498,8 @@ execute_analytics_pipeline <- function(raw_data, config) {
       available_raw_names <- stringr::str_replace(names(snapshot_data), "^Raw_", "")
 
       # Derived mappings that have no Raw_* source but depend on prior mapped outputs
-      derived_mapping_names <- c("COUNTRY") 
-      
+      derived_mapping_names <- c("COUNTRY")
+
       # Add EXCLUSION if IE, ENROLL, and PD are all included in the raw data
       if (all(c("IE", "ENROLL", "PD") %in% available_raw_names)) {
         derived_mapping_names <- c(derived_mapping_names, "EXCLUSION")

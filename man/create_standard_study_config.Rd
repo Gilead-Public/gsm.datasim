@@ -28,6 +28,9 @@ create_standard_study_config(
   inclusion_exclusion = TRUE,
   exclusions = TRUE,
   country = TRUE,
+  death = TRUE,
+  randomization = TRUE,
+  overall_response = TRUE,
   outlier_intensity = 1
 )
 }
@@ -77,6 +80,12 @@ create_standard_study_config(
 \item{exclusions}{Include exclusion tracking (Raw_EXCLUSION)}
 
 \item{country}{Include country mapping}
+
+\item{death}{Include death events (Raw_Death)}
+
+\item{randomization}{Include randomization data (Raw_Randomization)}
+
+\item{overall_response}{Include overall response data (Raw_OverallResponse)}
 
 \item{outlier_intensity}{Global multiplier for outlier-like values in domain generators.}
 }

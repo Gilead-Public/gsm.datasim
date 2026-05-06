@@ -4,5 +4,5 @@ template:
 
 navbar:
   structure:
-    left: [articles,reference, news]
+    left: [articles, reference, examples, news]
     right: [search, github]

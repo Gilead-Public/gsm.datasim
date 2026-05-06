@@ -45,12 +45,12 @@ cat("Raw_AE entry fields:", paste(names(registry$Raw_AE), collapse = ", "), "\n"
 
 Every valid entry must have exactly these four fields:
 
-| Field              | Type                             | Description                                  |
-|--------------------|----------------------------------|----------------------------------------------|
-| `$dataset`         | `character(1)`                   | The `Raw_*` name                             |
-| `$required_inputs` | `character(n)`                   | Context keys the entry reads                 |
-| `$count_fn`        | `function(counts, snapshot_idx)` | Picks the right count for this snapshot      |
-| `$generate_fn`     | `function(context)`              | All generation logic; returns a `data.frame` |
+| Field             | Type                         | Description                                               |
+|-------------------|------------------------------|-----------------------------------------------------------|
+| `$dataset`        | `character(1)`               | The `Raw_*` name                                          |
+| `$required_inputs`| `character(n)`               | Context keys the entry reads                              |
+| `$count_fn`       | `function(counts, snapshot_idx)` | Picks the right count for this snapshot              |
+| `$generate_fn`    | `function(context)`          | All generation logic; returns a `data.frame`              |
 
 ```{r entry-contract}
 ae_entry <- registry$Raw_AE
@@ -107,8 +107,8 @@ config <- create_study_config(
 raw_data <- generate_raw_data_from_config(config, verbose = TRUE)
 
 cat("Datasets in snapshot 1:", paste(names(raw_data[[1]]), collapse = ", "), "\n")
-cat("Raw_AE rows  :", nrow(raw_data[[1]]$Raw_AE),    "\n")
-cat("Raw_LB rows  :", nrow(raw_data[[1]]$Raw_LB),    "\n")
+cat("Raw_AE rows  :", nrow(raw_data[[1]]$Raw_AE),   "\n")
+cat("Raw_LB rows  :", nrow(raw_data[[1]]$Raw_LB),   "\n")
 cat("Raw_VISIT rows:", nrow(raw_data[[1]]$Raw_VISIT), "\n")
 ```
 
@@ -142,7 +142,6 @@ new_entry <- list(
     }
 
     n_new <- n - previous_row_num
-
     if (n_new <= 0) return(dataset)
 
     args <- list(

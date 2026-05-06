@@ -19,8 +19,8 @@ library(gsm.datasim)
 ## Data Generation Only
 
 If you only need simulated raw data — no analytics, no reporting — use
-`create_longitudinal_study()` with both pipelines disabled. This is the fastest
-way to get `Raw_*` data frames across multiple snapshots.
+`create_longitudinal_study()` with both pipelines disabled. This is the
+fastest way to get `Raw_*` data frames across multiple snapshots.
 
 ```{r data-only}
 data_only <- create_longitudinal_study(
@@ -35,8 +35,8 @@ data_only <- create_longitudinal_study(
   verbose       = TRUE
 )
 
-names(data_only)           # $study_id, $config, $raw_data
-names(data_only$raw_data)  # one entry per snapshot date
+names(data_only)            # $study_id, $config, $raw_data
+names(data_only$raw_data)   # one entry per snapshot date
 
 snap  <- data_only$raw_data[[1]]
 snap4 <- data_only$raw_data[[4]]
@@ -73,11 +73,11 @@ drive downstream flags in the analysis layer.
 ```{r outlier}
 # Baseline
 baseline_study <- quick_longitudinal_study(
-  study_name        = "DEMO-OUTLIER-BASELINE",
-  participants      = 200,
-  sites             = 15,
-  months_duration   = 6,
-  study_type        = "standard",
+  study_name       = "DEMO-OUTLIER-BASELINE",
+  participants     = 200,
+  sites            = 15,
+  months_duration  = 6,
+  study_type       = "standard",
   outlier_intensity = 1
 )
 
@@ -158,7 +158,7 @@ metric_names <- names(snap_analytics$results)
 cat("Metrics computed:", paste(metric_names, collapse = ", "), "\n")
 
 kri <- snap_analytics$results[[metric_names[1]]]
-names(kri)  # Analysis_Summary, Analysis_Flagged, Analysis_Analyzed
+names(kri)           # Analysis_Summary, Analysis_Flagged, Analysis_Analyzed
 kri$Analysis_Summary
 kri$Analysis_Flagged
 
@@ -224,7 +224,7 @@ custom_study <- create_study_config(
   add_dataset_config("Raw_DATACHG", enabled = TRUE,
     count_formula = function(config, snapshot_idx = 1) {
       round(config$study_params$participant_count * 0.4 * snapshot_idx /
-             config$temporal_config$snapshot_count)
+              config$temporal_config$snapshot_count)
     }
   )
 
@@ -232,14 +232,14 @@ str(custom_study$study_params)
 str(custom_study$temporal_config)
 names(custom_study$dataset_configs)
 
-raw_data  <- generate_raw_data_from_config(custom_study, verbose = TRUE)
+raw_data <- generate_raw_data_from_config(custom_study, verbose = TRUE)
 analytics <- generate_analytics_layers(raw_data, custom_study, verbose = TRUE)
 reporting <- generate_reporting_layers(analytics, custom_study, verbose = TRUE)
 
 study_obj <- create_longitudinal_study_data(
   study_id = custom_study$study_params$study_id,
   raw_data = raw_data,
-  config   = list(
+  config = list(
     participants = custom_study$study_params$participant_count,
     sites        = custom_study$study_params$site_count,
     snapshots    = custom_study$temporal_config$snapshot_count,
@@ -293,7 +293,7 @@ rds_path <- export_study_data(
 
 snap_date      <- names(study$raw_data)[1]
 analytics_snap <- readRDS(file.path(rds_path, snap_date, "analytics_full.rds"))
-names(analytics_snap)  # $results, $mapped, $lWorkflow, $summary
+names(analytics_snap)   # $results, $mapped, $lWorkflow, $summary
 ```
 
 ## Creating Multiple Studies
@@ -310,19 +310,19 @@ portfolio <- create_multiple_longitudinal_studies(
 )
 
 names(portfolio)
-length(portfolio[["TRIAL-001"]]$raw_data)  # 4 snapshots
+length(portfolio[["TRIAL-001"]]$raw_data)   # 4 snapshots
 
 portfolio_mixed <- create_multiple_longitudinal_studies(
-  study_names   = c("PHASE2-SMALL", "PHASE3-LARGE"),
-  participants  = c(50, 300),
-  sites         = c(5, 20),
-  snapshots     = c(3, 12),
+  study_names  = c("PHASE2-SMALL", "PHASE3-LARGE"),
+  participants = c(50, 300),
+  sites        = c(5, 20),
+  snapshots    = c(3, 12),
   study_configs = list(
     "PHASE2-SMALL" = list(domains = c("AE", "LB")),
     "PHASE3-LARGE" = list(domains = c("AE", "LB", "VISIT", "PD", "PK"))
   ),
   run_analytics = FALSE,
-  verbose       = TRUE
+  verbose      = TRUE
 )
 
 print(portfolio_mixed)
