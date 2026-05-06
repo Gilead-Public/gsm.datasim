@@ -1,0 +1,205 @@
+---
+title: "Domain Registry"
+author: "[gsm.datasim](https://gilead-biostats.github.io/gsm.datasim) Example"
+description: "How to inspect, use, and extend the Domain Registry for custom data generation."
+index: 3
+date: "`r format(Sys.time(), '%B %d, %Y %H:%M:%S %Z')`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment  = "#>",
+  eval     = FALSE
+)
+library(gsm.datasim)
+```
+
+## Overview
+
+The Domain Registry is the extensible system that replaces the legacy
+`switch()` block for domain generation. It defines, per domain, exactly
+how data should be generated: what counts to use, what arguments to pass,
+and which generator function to call.
+
+Migrating a domain to the registry makes it:
+
+- **Self-describing** — all logic lives in one place per domain
+- **Independently testable**
+- **Overridable** without touching core generation code
+
+## Inspecting the Registry
+
+```{r inspect}
+registry <- get_domain_registry()
+
+cat("Registry-backed domains:", paste(names(registry), collapse = ", "), "\n")
+
+# Each entry has four contract fields
+cat("Raw_AE entry fields:", paste(names(registry$Raw_AE), collapse = ", "), "\n")
+# > "dataset"  "required_inputs"  "count_fn"  "generate_fn"
+```
+
+## The Entry Contract
+
+Every valid entry must have exactly these four fields:
+
+| Field              | Type                             | Description                                  |
+|--------------------|----------------------------------|----------------------------------------------|
+| `$dataset`         | `character(1)`                   | The `Raw_*` name                             |
+| `$required_inputs` | `character(n)`                   | Context keys the entry reads                 |
+| `$count_fn`        | `function(counts, snapshot_idx)` | Picks the right count for this snapshot      |
+| `$generate_fn`     | `function(context)`              | All generation logic; returns a `data.frame` |
+
+```{r entry-contract}
+ae_entry <- registry$Raw_AE
+
+cat("dataset        :", ae_entry$dataset, "\n")
+cat("required_inputs:", paste(ae_entry$required_inputs, collapse = ", "), "\n")
+
+# count_fn body
+print(body(ae_entry$count_fn))
+
+# generate_fn body (first 10 lines)
+bdy <- deparse(body(ae_entry$generate_fn))
+cat(paste(head(bdy, 10), collapse = "\n"), "\n  ...\n")
+```
+
+## How the Registry Fits the Pipeline
+
+Inside `run_domain_generation_loop()` the per-domain dispatch is:
+
+```r
+migrated_data <- generate_domain_from_registry(data_type, context)
+if (!is.null(migrated_data)) {
+  data[[data_type]] <- migrated_data
+  next   # skip the legacy dispatcher
+}
+# ... dispatch_legacy_domain_generator() for domains not yet in the registry
+```
+
+The `context` list passed to every `generate_fn` contains:
+
+```
+data, previous_data, combined_specs,
+n, start_date, end_date,
+snapshot_idx, snapshot_count, snapshot_width, study_id
+```
+
+You can verify the registry path end-to-end by generating a small study:
+
+```{r pipeline-demo}
+config <- create_study_config(
+  study_id          = "REG-DEMO-001",
+  participant_count = 50,
+  site_count        = 5
+) |>
+  set_temporal_config(
+    start_date     = "2023-01-01",
+    snapshot_count = 3,
+    snapshot_width = "months"
+  ) |>
+  add_dataset_config("Raw_AE",    enabled = TRUE) |>
+  add_dataset_config("Raw_LB",    enabled = TRUE) |>
+  add_dataset_config("Raw_VISIT", enabled = TRUE)
+
+raw_data <- generate_raw_data_from_config(config, verbose = TRUE)
+
+cat("Datasets in snapshot 1:", paste(names(raw_data[[1]]), collapse = ", "), "\n")
+cat("Raw_AE rows  :", nrow(raw_data[[1]]$Raw_AE),    "\n")
+cat("Raw_LB rows  :", nrow(raw_data[[1]]$Raw_LB),    "\n")
+cat("Raw_VISIT rows:", nrow(raw_data[[1]]$Raw_VISIT), "\n")
+```
+
+## Adding a New Domain to the Registry
+
+To migrate a domain from the legacy dispatcher:
+
+1. Write a well-typed entry list
+2. Register it via `raw_data_generator()` override or by editing
+   `get_domain_registry()` directly
+3. Remove the corresponding `case` from `dispatch_legacy_domain_generator()`
+
+```{r add-domain}
+# Example: migrating a hypothetical Raw_Biomarker domain
+new_entry <- list(
+  dataset         = "Raw_Biomarker",
+  required_inputs = c("data", "previous_data", "combined_specs", "n", "start_date"),
+  count_fn        = function(counts, snapshot_idx) counts$subject_count[snapshot_idx],
+  generate_fn     = function(context) {
+    spec          <- context$combined_specs
+    data          <- context$data
+    previous_data <- context$previous_data
+    n             <- context$n
+
+    if ("Raw_Biomarker" %in% names(previous_data)) {
+      dataset          <- previous_data$Raw_Biomarker
+      previous_row_num <- nrow(dataset)
+    } else {
+      dataset          <- NULL
+      previous_row_num <- 0
+    }
+
+    n_new <- n - previous_row_num
+
+    if (n_new <= 0) return(dataset)
+
+    args <- list(
+      subjid  = list(n_new, external_subjid = data$Raw_SUBJ$subjid),
+      default = list(n_new, context$start_date)
+    )
+
+    as.data.frame(add_new_var_data(dataset, spec$Raw_Biomarker, args, spec$Raw_Biomarker))
+  }
+)
+```
+
+## Using the Config Helper Path
+
+Equivalent generation using the explicit config helper:
+
+```{r config-path}
+config <- create_study_config(
+  study_id          = "REGISTRY-EXAMPLE-001",
+  participant_count = 80,
+  site_count        = 8
+) |>
+  set_temporal_config(
+    start_date     = "2012-01-01",
+    snapshot_count = 2,
+    snapshot_width = "months"
+  )
+
+for (ds in c("Raw_STUDY", "Raw_SITE", "Raw_SUBJ", "Raw_ENROLL",
+             "Raw_SV", "Raw_VISIT", "Raw_AE", "Raw_LB")) {
+  config <- add_dataset_config(config, ds, enabled = TRUE)
+}
+
+raw_data            <- generate_study_data(config)
+raw_data_via_config <- generate_raw_data_from_config(config)
+
+cat("Snapshots:", length(raw_data), "\n")
+cat("Snapshot keys:", paste(names(raw_data), collapse = ", "), "\n")
+
+snapshot_1 <- raw_data[[1]]
+cat("Datasets in snapshot 1:", paste(names(snapshot_1), collapse = ", "), "\n")
+cat("Raw_AE rows:", nrow(snapshot_1$Raw_AE), "\n")
+cat("Raw_LB rows:", nrow(snapshot_1$Raw_LB), "\n")
+
+# Wrap into a study object for helper functions
+study <- create_longitudinal_study_data(
+  study_id = "REGISTRY-EXAMPLE-001",
+  raw_data = raw_data,
+  config   = list(
+    participants = 80,
+    sites        = 8,
+    snapshots    = 2,
+    interval     = "1 month",
+    domains      = c("AE", "LB", "VISIT"),
+    study_type   = "standard"
+  )
+)
+
+summarize_longitudinal_study(study)
+```
