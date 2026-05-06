@@ -35,7 +35,7 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::covr, local::., Gilead-BioStats/gsm.utils
+          extra-packages: any::covr, local::., Gilead-BioStats/gsm.utils@main
           needs: coverage
 
       - name: Compute coverage
