@@ -10,7 +10,7 @@
 #' When `snapshot_count > 1`, the function produces cumulative longitudinal
 #' snapshots using the same delta-accumulation pattern as the core pipeline:
 #' each snapshot's `previous_data` is the prior snapshot, row counts ramp up
-#' via [count_gen()], and dates advance by `snapshot_width`.
+#' via `count_gen()`, and dates advance by `snapshot_width`.
 #'
 #' @param lWorkflows A named list of workflow objects, each containing a `$spec`
 #'   element (e.g. from `gsm.core::MakeWorkflowList()`).
@@ -26,13 +26,13 @@
 #' @param snapshot_count Integer. Number of longitudinal snapshots to generate
 #'   (default 1). When \code{> 1} the return value is a named list of snapshots,
 #'   each itself a named list of domain data.frames.
-#' @param snapshot_width Character. Time step between snapshots — passed to
+#' @param snapshot_width Character. Time step between snapshots -- passed to
 #'   [seq.Date()] as `by` (e.g. `"months"`, `"weeks"`, `"3 months"`). Default
 #'   `"months"`.
 #' @param domain_counts Optional named list mapping domain names to desired
 #'   *final* row counts (e.g. `list(Raw_AE = 300, Raw_LB = 500)`). In
 #'   multi-snapshot mode these are the targets for the *last* snapshot; earlier
-#'   snapshots ramp up via [count_gen()]. Domains not listed here receive a
+#'   snapshots ramp up via `count_gen()`. Domains not listed here receive a
 #'   default based on heuristic multipliers of `n_participants`.
 #' @param desired_domains Optional character vector of domain names to generate.
 #'   `NULL` (default) generates all `Raw_*` domains found in the spec.
@@ -44,15 +44,15 @@
 #' @details
 #' The generation follows a three-tier fallback strategy for each domain:
 #' \enumerate{
-#'   \item **Domain registry** — [generate_domain_from_registry()] is tried first.
+#'   \item **Domain registry** -- `generate_domain_from_registry()` is tried first.
 #'         This covers all domains with dedicated, curated generation logic.
-#'   \item **Legacy Raw_*() function** — if the domain is not in the registry but a
+#'   \item **Legacy Raw_*() function** -- if the domain is not in the registry but a
 #'         function with the domain name exists (e.g. `Raw_AE()`), it is called.
-#'   \item **Type-based fallback** — [generate_unknown_domain()] generates each
+#'   \item **Type-based fallback** -- [generate_unknown_domain()] generates each
 #'         column using spec metadata (type, FK detection, name pattern heuristics).
 #' }
 #'
-#' Domains are generated in dependency order (Raw_STUDY → Raw_SITE → Raw_SUBJ →
+#' Domains are generated in dependency order (Raw_STUDY -> Raw_SITE -> Raw_SUBJ ->
 #' Raw_ENROLL first) so that downstream domains can reference foreign key columns
 #' from previously generated domains.
 #'
@@ -96,7 +96,7 @@ generate_data_from_workflows <- function(
   domain_counts = NULL,
   desired_domains = NULL
 ) {
-  # ── Validate inputs ──────────────────────────────────────────────────────
+  # -- Validate inputs -------------------------------------------------------
   if (!is.list(lWorkflows) || length(lWorkflows) == 0) {
     stop("`lWorkflows` must be a non-empty named list of workflow objects.", call. = FALSE)
   }
@@ -105,7 +105,7 @@ generate_data_from_workflows <- function(
   start_date     <- as.Date(start_date)
   end_date       <- as.Date(end_date)
 
-  # ── Combine specs from all workflows ─────────────────────────────────────
+  # -- Combine specs from all workflows -------------------------------------
   combined_specs <- CombineSpecs(lWorkflows, bIsWorkflow = TRUE)
   combined_specs <- prepare_combined_specs_for_generation(combined_specs, desired_specs = desired_domains)
 
@@ -116,10 +116,10 @@ generate_data_from_workflows <- function(
 
   logger::log_info("Generating data for {length(combined_specs)} domains: {paste(names(combined_specs), collapse = ', ')}")
 
-  # ── Build the domain registry for known-domain lookups ───────────────────
+  # -- Build the domain registry for known-domain lookups -------------------
   registry <- get_domain_registry()
 
-  # ── Determine final (max) row counts per domain ──────────────────────────
+  # -- Determine final (max) row counts per domain ----------------------------
   domain_max_n <- .resolve_domain_counts(
     domain_names   = names(combined_specs),
     n_participants = n_participants,
@@ -127,7 +127,7 @@ generate_data_from_workflows <- function(
     user_counts    = domain_counts
   )
 
-  # ── Single-snapshot shortcut ─────────────────────────────────────────────
+  # -- Single-snapshot shortcut -----------------------------------------------
   if (snapshot_count <= 1L) {
     return(
       .generate_single_snapshot(
@@ -145,7 +145,7 @@ generate_data_from_workflows <- function(
     )
   }
 
-  # ── Multi-snapshot longitudinal generation ───────────────────────────────
+  # -- Multi-snapshot longitudinal generation ---------------------------------
   snapshot_start_dates <- seq(start_date, length.out = snapshot_count, by = snapshot_width)
   snapshot_end_dates   <- snapshot_start_dates + 28
 
@@ -166,7 +166,7 @@ generate_data_from_workflows <- function(
   previous_data <- list()
 
   for (snapshot_idx in seq_len(snapshot_count)) {
-    logger::log_info("── Snapshot {snapshot_idx}/{snapshot_count} ({snapshot_end_dates[snapshot_idx]}) ──")
+    logger::log_info("-- Snapshot {snapshot_idx}/{snapshot_count} ({snapshot_end_dates[snapshot_idx]}) --")
 
     domain_n_this <- stats::setNames(
       lapply(names(domain_count_vectors), function(d) domain_count_vectors[[d]][snapshot_idx]),
@@ -188,7 +188,7 @@ generate_data_from_workflows <- function(
 
     snapshots[[snapshot_idx]] <- snapshot_data
     previous_data             <- snapshot_data
-    logger::log_info("── Snapshot {snapshot_idx} complete ──")
+    logger::log_info("-- Snapshot {snapshot_idx} complete --")
   }
 
   names(snapshots) <- as.character(snapshot_end_dates)
@@ -196,12 +196,12 @@ generate_data_from_workflows <- function(
 }
 
 
-# ── Internal helpers ──────────────────────────────────────────────────────────
+# -- Internal helpers ---------------------------------------------------------
 
 #' Generate a Single Snapshot of Domain Data
 #'
 #' Iterates over all domains in `combined_specs` using the three-tier fallback
-#' (registry → legacy → type-based). Supports cumulative generation via
+#' (registry -> legacy -> type-based). Supports cumulative generation via
 #' `previous_data`.
 #'
 #' @keywords internal
@@ -217,7 +217,7 @@ generate_data_from_workflows <- function(
 
     logger::log_info("Generating {domain} (target n = {n})...")
 
-    # ── Tier 1: Domain registry ──────────────────────────────────────────
+    # -- Tier 1: Domain registry ------------------------------------------------
     registry_context <- list(
       data           = data,
       previous_data  = previous_data,
@@ -249,7 +249,7 @@ generate_data_from_workflows <- function(
       next
     }
 
-    # ── Tier 2: Legacy Raw_*() function ──────────────────────────────────
+    # -- Tier 2: Legacy Raw_*() function ----------------------------------------
     legacy_fn <- tryCatch(match.fun(domain), error = function(e) NULL)
     if (!is.null(legacy_fn)) {
       legacy_result <- tryCatch({
@@ -273,7 +273,7 @@ generate_data_from_workflows <- function(
       }
     }
 
-    # ── Tier 3: Type-based fallback ──────────────────────────────────────
+    # -- Tier 3: Type-based fallback --------------------------------------------
     fallback_context <- list(
       data       = data,
       start_date = start_date,
