@@ -19,7 +19,7 @@
 }
 \description{
 Iterates over all domains in \code{combined_specs} using the three-tier fallback
-(registry → legacy → type-based). Supports cumulative generation via
+(registry -> legacy -> type-based). Supports cumulative generation via
 \code{previous_data}.
 }
 \keyword{internal}

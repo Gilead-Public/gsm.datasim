@@ -39,14 +39,14 @@ is derived from \code{start_date} + \code{snapshot_width}. Defaults to
 (default 1). When \code{> 1} the return value is a named list of snapshots,
 each itself a named list of domain data.frames.}
 
-\item{snapshot_width}{Character. Time step between snapshots — passed to
+\item{snapshot_width}{Character. Time step between snapshots -- passed to
 \code{\link[=seq.Date]{seq.Date()}} as \code{by} (e.g. \code{"months"}, \code{"weeks"}, \code{"3 months"}). Default
 \code{"months"}.}
 
 \item{domain_counts}{Optional named list mapping domain names to desired
 \emph{final} row counts (e.g. \code{list(Raw_AE = 300, Raw_LB = 500)}). In
 multi-snapshot mode these are the targets for the \emph{last} snapshot; earlier
-snapshots ramp up via \code{\link[=count_gen]{count_gen()}}. Domains not listed here receive a
+snapshots ramp up via \code{count_gen()}. Domains not listed here receive a
 default based on heuristic multipliers of \code{n_participants}.}
 
 \item{desired_domains}{Optional character vector of domain names to generate.
@@ -69,19 +69,19 @@ all other domains fall back to type-based column generation via
 When \code{snapshot_count > 1}, the function produces cumulative longitudinal
 snapshots using the same delta-accumulation pattern as the core pipeline:
 each snapshot's \code{previous_data} is the prior snapshot, row counts ramp up
-via \code{\link[=count_gen]{count_gen()}}, and dates advance by \code{snapshot_width}.
+via \code{count_gen()}, and dates advance by \code{snapshot_width}.
 
 The generation follows a three-tier fallback strategy for each domain:
 \enumerate{
-\item \strong{Domain registry} — \code{\link[=generate_domain_from_registry]{generate_domain_from_registry()}} is tried first.
+\item \strong{Domain registry} -- \code{generate_domain_from_registry()} is tried first.
 This covers all domains with dedicated, curated generation logic.
-\item \strong{Legacy Raw_*() function} — if the domain is not in the registry but a
+\item \strong{Legacy Raw_*() function} -- if the domain is not in the registry but a
 function with the domain name exists (e.g. \code{Raw_AE()}), it is called.
-\item \strong{Type-based fallback} — \code{\link[=generate_unknown_domain]{generate_unknown_domain()}} generates each
+\item \strong{Type-based fallback} -- \code{\link[=generate_unknown_domain]{generate_unknown_domain()}} generates each
 column using spec metadata (type, FK detection, name pattern heuristics).
 }
 
-Domains are generated in dependency order (Raw_STUDY → Raw_SITE → Raw_SUBJ →
+Domains are generated in dependency order (Raw_STUDY -> Raw_SITE -> Raw_SUBJ ->
 Raw_ENROLL first) so that downstream domains can reference foreign key columns
 from previously generated domains.
 }
