@@ -66,7 +66,7 @@ generate_data_from_workflows(
 
 - snapshot_width:
 
-  Character. Time step between snapshots — passed to
+  Character. Time step between snapshots – passed to
   [`seq.Date()`](https://rdrr.io/r/base/seq.Date.html) as `by` (e.g.
   `"months"`, `"weeks"`, `"3 months"`). Default `"months"`.
 
@@ -98,21 +98,21 @@ counts ramp up via `count_gen()`, and dates advance by `snapshot_width`.
 
 The generation follows a three-tier fallback strategy for each domain:
 
-1.  **Domain registry** — `generate_domain_from_registry()` is tried
+1.  **Domain registry** – `generate_domain_from_registry()` is tried
     first. This covers all domains with dedicated, curated generation
     logic.
 
-2.  **Legacy Raw\_\*() function** — if the domain is not in the registry
+2.  **Legacy Raw\_\*() function** – if the domain is not in the registry
     but a function with the domain name exists (e.g. `Raw_AE()`), it is
     called.
 
-3.  **Type-based fallback** —
+3.  **Type-based fallback** –
     [`generate_unknown_domain()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_unknown_domain.md)
     generates each column using spec metadata (type, FK detection, name
     pattern heuristics).
 
-Domains are generated in dependency order (Raw_STUDY → Raw_SITE →
-Raw_SUBJ → Raw_ENROLL first) so that downstream domains can reference
+Domains are generated in dependency order (Raw_STUDY -\> Raw_SITE -\>
+Raw_SUBJ -\> Raw_ENROLL first) so that downstream domains can reference
 foreign key columns from previously generated domains.
 
 ## Examples

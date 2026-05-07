@@ -1,7 +1,7 @@
 # Generate a Single Snapshot of Domain Data
 
 Iterates over all domains in `combined_specs` using the three-tier
-fallback (registry → legacy → type-based). Supports cumulative
+fallback (registry -\> legacy -\> type-based). Supports cumulative
 generation via `previous_data`.
 
 ## Usage
