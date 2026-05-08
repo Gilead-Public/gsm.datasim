@@ -624,3 +624,108 @@ print.summary.multiple_longitudinal_studies <- function(x, ...) {
         "| Reporting:", if (details$has_reporting) "Yes" else "No", "\n")
   }
 }
+
+#' Create a portfolio of studies from a base config and per-study variants
+#'
+#' A convenience wrapper around [create_multiple_longitudinal_studies()] that lets
+#' you define a shared base configuration and a single named list of per-study
+#' overrides (variants).  Only the fields that differ between studies need to
+#' appear in each variant entry -- everything else falls back to the base.
+#'
+#' Vectorised parameters (`participants`, `sites`, `snapshots`,
+#' `outlier_intensity`, `interval`) are automatically extracted from the variant
+#' list so you never have to maintain a parallel vector alongside `study_configs`.
+#'
+#' @param variants Named list of per-study override lists.  Names become the
+#'   study identifiers.  Each element may contain any combination of:
+#'   `participants`, `sites`, `snapshots`, `interval`, `domains`,
+#'   `outlier_intensity`, `run_analytics`, `run_reporting`, or any other
+#'   argument accepted by [create_longitudinal_study()].
+#' @param participants Default participant count for studies that do not specify
+#'   their own (default 100).
+#' @param sites Default site count (default 10).
+#' @param snapshots Default number of snapshots (default 6).
+#' @param interval Default snapshot interval (default `"1 month"`).
+#' @param domains Default domain vector (default `c("AE", "LB", "VISIT")`).
+#' @param ... Additional arguments forwarded verbatim to
+#'   [create_multiple_longitudinal_studies()] (e.g. `run_analytics`,
+#'   `run_reporting`, `parallel`, `verbose`).
+#'
+#' @return A `multiple_longitudinal_studies` object (named list of
+#'   `longitudinal_study` objects).
+#'
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' # Define shared defaults; each variant only specifies what changes
+#' studies <- study_portfolio(
+#'   variants = list(
+#'     "PHASE2-SMALL" = list(participants = 80,  sites = 8,  snapshots = 4,
+#'                           domains = c("AE", "LB")),
+#'     "PHASE3-LARGE" = list(participants = 400, sites = 25, snapshots = 12,
+#'                           domains = c("AE", "LB", "VISIT", "PD")),
+#'     "SAFETY-RUN"   = list(participants = 50,  sites = 3,  snapshots = 8,
+#'                           outlier_intensity = 2)
+#'   ),
+#'   # Shared defaults (used when a variant does not override)
+#'   participants = 100,
+#'   sites        = 10,
+#'   snapshots    = 6,
+#'   interval     = "1 month",
+#'   domains      = c("AE", "LB", "VISIT"),
+#'   run_analytics = FALSE,
+#'   verbose       = TRUE
+#' )
+#'
+#' names(studies)                         # "PHASE2-SMALL" "PHASE3-LARGE" "SAFETY-RUN"
+#' studies[["PHASE3-LARGE"]]$config       # inspect per-study config
+#' }
+study_portfolio <- function(variants,
+                            participants = 100,
+                            sites = 10,
+                            snapshots = 6,
+                            interval = "1 month",
+                            domains = c("AE", "LB", "VISIT"),
+                            ...) {
+  if (!is.list(variants) || is.null(names(variants)) || any(names(variants) == "")) {
+    stop("`variants` must be a fully named list (each element name becomes a study ID).")
+  }
+
+  study_names <- names(variants)
+
+  # Scalar params that create_multiple_longitudinal_studies can accept as vectors
+  scalar_params <- c("participants", "sites", "snapshots", "interval", "outlier_intensity")
+
+  extract_vec <- function(key, default) {
+    vapply(variants, function(v) {
+      val <- v[[key]]
+      if (!is.null(val)) val else default
+    }, FUN.VALUE = vector(typeof(default), 1L))
+  }
+
+  participants_vec      <- extract_vec("participants",      participants)
+  sites_vec             <- extract_vec("sites",             sites)
+  snapshots_vec         <- extract_vec("snapshots",         snapshots)
+  interval_vec          <- extract_vec("interval",          interval)
+  outlier_intensity_vec <- extract_vec("outlier_intensity", 1)
+
+  # Remaining per-study overrides (non-scalar fields like domains, run_analytics, etc.)
+  study_configs <- lapply(variants, function(v) {
+    extra <- v[setdiff(names(v), scalar_params)]
+    if (length(extra) == 0) NULL else extra
+  })
+  study_configs <- Filter(Negate(is.null), study_configs)
+
+  create_multiple_longitudinal_studies(
+    study_names       = study_names,
+    participants      = participants_vec,
+    sites             = sites_vec,
+    snapshots         = snapshots_vec,
+    interval          = interval_vec,
+    domains           = domains,
+    outlier_intensity = outlier_intensity_vec,
+    study_configs     = if (length(study_configs) > 0) study_configs else NULL,
+    ...
+  )
+}
