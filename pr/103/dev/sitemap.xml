@@ -9,6 +9,7 @@
 <url><loc>https://gilead-biostats.github.io/gsm.datasim/dev/examples/example_demo.html</loc></url>
 <url><loc>https://gilead-biostats.github.io/gsm.datasim/dev/examples/example_domain_registry.html</loc></url>
 <url><loc>https://gilead-biostats.github.io/gsm.datasim/dev/examples/example_longitudinal.html</loc></url>
+<url><loc>https://gilead-biostats.github.io/gsm.datasim/dev/examples/example_multiple_studies.html</loc></url>
 <url><loc>https://gilead-biostats.github.io/gsm.datasim/dev/examples/example_workflow_driven.html</loc></url>
 <url><loc>https://gilead-biostats.github.io/gsm.datasim/dev/index.html</loc></url>
 <url><loc>https://gilead-biostats.github.io/gsm.datasim/dev/news/index.html</loc></url>
@@ -56,6 +57,7 @@
 <url><loc>https://gilead-biostats.github.io/gsm.datasim/dev/reference/set_outlier_config.html</loc></url>
 <url><loc>https://gilead-biostats.github.io/gsm.datasim/dev/reference/set_temporal_config.html</loc></url>
 <url><loc>https://gilead-biostats.github.io/gsm.datasim/dev/reference/study_config_examples.html</loc></url>
+<url><loc>https://gilead-biostats.github.io/gsm.datasim/dev/reference/study_portfolio.html</loc></url>
 <url><loc>https://gilead-biostats.github.io/gsm.datasim/dev/reference/summarize_longitudinal_study.html</loc></url>
 <url><loc>https://gilead-biostats.github.io/gsm.datasim/dev/reference/summary.multiple_longitudinal_studies.html</loc></url>
 <url><loc>https://gilead-biostats.github.io/gsm.datasim/dev/reference/validate_study_config.html</loc></url>

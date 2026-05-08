@@ -12,7 +12,7 @@
 <meta name="author" content="gsm.datasim Example" />
 
 
-<title>Domain Registry</title>
+<title>Generating Multiple Studies</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -349,214 +349,223 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">Domain Registry</h1>
+<h1 class="title toc-ignore">Generating Multiple Studies</h1>
 <h4 class="author"><a href="https://gilead-biostats.github.io/gsm.datasim">gsm.datasim</a>
 Example</h4>
-<h4 class="date">May 08, 2026 16:56:51 UTC</h4>
+<h4 class="date">May 08, 2026 16:56:52 UTC</h4>
 
 </div>
 
 
 <div id="overview" class="section level2">
 <h2>Overview</h2>
-<p>The Domain Registry is the extensible system that replaces the legacy
-<code>switch()</code> block for domain generation. It defines, per
-domain, exactly how data should be generated: what counts to use, what
-arguments to pass, and which generator function to call.</p>
-<p>Migrating a domain to the registry makes it:</p>
-<ul>
-<li><strong>Self-describing</strong> — all logic lives in one place per
-domain</li>
-<li><strong>Independently testable</strong></li>
-<li><strong>Overridable</strong> without touching core generation
-code</li>
-</ul>
-</div>
-<div id="inspecting-the-registry" class="section level2">
-<h2>Inspecting the Registry</h2>
-<pre class="r"><code>registry &lt;- get_domain_registry()
-
-cat(&quot;Registry-backed domains:&quot;, paste(names(registry), collapse = &quot;, &quot;), &quot;\n&quot;)
-
-# Each entry has four contract fields
-cat(&quot;Raw_AE entry fields:&quot;, paste(names(registry$Raw_AE), collapse = &quot;, &quot;), &quot;\n&quot;)
-# &gt; &quot;dataset&quot;  &quot;required_inputs&quot;  &quot;count_fn&quot;  &quot;generate_fn&quot;</code></pre>
-</div>
-<div id="the-entry-contract" class="section level2">
-<h2>The Entry Contract</h2>
-<p>Every valid entry must have exactly these four fields:</p>
+<p><code>gsm.datasim</code> provides two functions for generating
+multiple studies in a single call:</p>
 <table>
 <colgroup>
-<col width="17%" />
-<col width="27%" />
-<col width="54%" />
+<col width="50%" />
+<col width="50%" />
 </colgroup>
 <thead>
 <tr class="header">
-<th>Field</th>
-<th>Type</th>
-<th>Description</th>
+<th>Function</th>
+<th>Best for</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td><code>$dataset</code></td>
-<td><code>character(1)</code></td>
-<td>The <code>Raw_*</code> name</td>
+<td><code>create_multiple_longitudinal_studies()</code></td>
+<td>Full control; vectorised params + <code>study_configs</code>
+overrides</td>
 </tr>
 <tr class="even">
-<td><code>$required_inputs</code></td>
-<td><code>character(n)</code></td>
-<td>Context keys the entry reads</td>
-</tr>
-<tr class="odd">
-<td><code>$count_fn</code></td>
-<td><code>function(counts, snapshot_idx)</code></td>
-<td>Picks the right count for this snapshot</td>
-</tr>
-<tr class="even">
-<td><code>$generate_fn</code></td>
-<td><code>function(context)</code></td>
-<td>All generation logic; returns a <code>data.frame</code></td>
+<td><code>study_portfolio()</code></td>
+<td>Variant-first design — define only what differs per study</td>
 </tr>
 </tbody>
 </table>
-<pre class="r"><code>ae_entry &lt;- registry$Raw_AE
-
-cat(&quot;dataset        :&quot;, ae_entry$dataset, &quot;\n&quot;)
-cat(&quot;required_inputs:&quot;, paste(ae_entry$required_inputs, collapse = &quot;, &quot;), &quot;\n&quot;)
-
-# count_fn body
-print(body(ae_entry$count_fn))
-
-# generate_fn body (first 10 lines)
-bdy &lt;- deparse(body(ae_entry$generate_fn))
-cat(paste(head(bdy, 10), collapse = &quot;\n&quot;), &quot;\n  ...\n&quot;)</code></pre>
+<p>Both return a <code>multiple_longitudinal_studies</code> object (a
+named list of <code>longitudinal_study</code> objects) with
+<code>print()</code> and <code>summary()</code> methods.</p>
+<hr />
 </div>
-<div id="how-the-registry-fits-the-pipeline" class="section level2">
-<h2>How the Registry Fits the Pipeline</h2>
-<p>Inside <code>run_domain_generation_loop()</code> the per-domain
-dispatch is:</p>
-<pre class="r"><code>migrated_data &lt;- generate_domain_from_registry(data_type, context)
-if (!is.null(migrated_data)) {
-  data[[data_type]] &lt;- migrated_data
-  next   # skip the legacy dispatcher
-}
-# ... dispatch_legacy_domain_generator() for domains not yet in the registry</code></pre>
-<p>The <code>context</code> list passed to every
-<code>generate_fn</code> contains:</p>
-<pre><code>data, previous_data, combined_specs,
-n, start_date, end_date,
-snapshot_idx, snapshot_count, snapshot_width, study_id</code></pre>
-<p>You can verify the registry path end-to-end by generating a small
-study:</p>
-<pre class="r"><code>config &lt;- create_study_config(
-  study_id          = &quot;REG-DEMO-001&quot;,
-  participant_count = 50,
-  site_count        = 5
-) |&gt;
-  set_temporal_config(
-    start_date     = &quot;2023-01-01&quot;,
-    snapshot_count = 3,
-    snapshot_width = &quot;months&quot;
-  ) |&gt;
-  add_dataset_config(&quot;Raw_AE&quot;,    enabled = TRUE) |&gt;
-  add_dataset_config(&quot;Raw_LB&quot;,    enabled = TRUE) |&gt;
-  add_dataset_config(&quot;Raw_VISIT&quot;, enabled = TRUE)
-
-raw_data &lt;- generate_raw_data_from_config(config, verbose = TRUE)
-
-cat(&quot;Datasets in snapshot 1:&quot;, paste(names(raw_data[[1]]), collapse = &quot;, &quot;), &quot;\n&quot;)
-cat(&quot;Raw_AE rows  :&quot;, nrow(raw_data[[1]]$Raw_AE),   &quot;\n&quot;)
-cat(&quot;Raw_LB rows  :&quot;, nrow(raw_data[[1]]$Raw_LB),   &quot;\n&quot;)
-cat(&quot;Raw_VISIT rows:&quot;, nrow(raw_data[[1]]$Raw_VISIT), &quot;\n&quot;)</code></pre>
-</div>
-<div id="adding-a-new-domain-to-the-registry" class="section level2">
-<h2>Adding a New Domain to the Registry</h2>
-<p>To migrate a domain from the legacy dispatcher:</p>
-<ol style="list-style-type: decimal">
-<li>Write a well-typed entry list</li>
-<li>Register it via <code>raw_data_generator()</code> override or by
-editing <code>get_domain_registry()</code> directly</li>
-<li>Remove the corresponding <code>case</code> from
-<code>dispatch_legacy_domain_generator()</code></li>
-</ol>
-<pre class="r"><code># Example: migrating a hypothetical Raw_Biomarker domain
-new_entry &lt;- list(
-  dataset         = &quot;Raw_Biomarker&quot;,
-  required_inputs = c(&quot;data&quot;, &quot;previous_data&quot;, &quot;combined_specs&quot;, &quot;n&quot;, &quot;start_date&quot;),
-  count_fn        = function(counts, snapshot_idx) counts$subject_count[snapshot_idx],
-  generate_fn     = function(context) {
-    spec          &lt;- context$combined_specs
-    data          &lt;- context$data
-    previous_data &lt;- context$previous_data
-    n             &lt;- context$n
-
-    if (&quot;Raw_Biomarker&quot; %in% names(previous_data)) {
-      dataset          &lt;- previous_data$Raw_Biomarker
-      previous_row_num &lt;- nrow(dataset)
-    } else {
-      dataset          &lt;- NULL
-      previous_row_num &lt;- 0
-    }
-
-    n_new &lt;- n - previous_row_num
-    if (n_new &lt;= 0) return(dataset)
-
-    args &lt;- list(
-      subjid  = list(n_new, external_subjid = data$Raw_SUBJ$subjid),
-      default = list(n_new, context$start_date)
-    )
-
-    as.data.frame(add_new_var_data(dataset, spec$Raw_Biomarker, args, spec$Raw_Biomarker))
-  }
-)</code></pre>
-</div>
-<div id="using-the-config-helper-path" class="section level2">
-<h2>Using the Config Helper Path</h2>
-<p>Equivalent generation using the explicit config helper:</p>
-<pre class="r"><code>config &lt;- create_study_config(
-  study_id          = &quot;REGISTRY-EXAMPLE-001&quot;,
-  participant_count = 80,
-  site_count        = 8
-) |&gt;
-  set_temporal_config(
-    start_date     = &quot;2012-01-01&quot;,
-    snapshot_count = 2,
-    snapshot_width = &quot;months&quot;
-  )
-
-for (ds in c(&quot;Raw_STUDY&quot;, &quot;Raw_SITE&quot;, &quot;Raw_SUBJ&quot;, &quot;Raw_ENROLL&quot;,
-             &quot;Raw_SV&quot;, &quot;Raw_VISIT&quot;, &quot;Raw_AE&quot;, &quot;Raw_LB&quot;)) {
-  config &lt;- add_dataset_config(config, ds, enabled = TRUE)
-}
-
-raw_data            &lt;- generate_study_data(config)
-raw_data_via_config &lt;- generate_raw_data_from_config(config)
-
-cat(&quot;Snapshots:&quot;, length(raw_data), &quot;\n&quot;)
-cat(&quot;Snapshot keys:&quot;, paste(names(raw_data), collapse = &quot;, &quot;), &quot;\n&quot;)
-
-snapshot_1 &lt;- raw_data[[1]]
-cat(&quot;Datasets in snapshot 1:&quot;, paste(names(snapshot_1), collapse = &quot;, &quot;), &quot;\n&quot;)
-cat(&quot;Raw_AE rows:&quot;, nrow(snapshot_1$Raw_AE), &quot;\n&quot;)
-cat(&quot;Raw_LB rows:&quot;, nrow(snapshot_1$Raw_LB), &quot;\n&quot;)
-
-# Wrap into a study object for helper functions
-study &lt;- create_longitudinal_study_data(
-  study_id = &quot;REGISTRY-EXAMPLE-001&quot;,
-  raw_data = raw_data,
-  config   = list(
-    participants = 80,
-    sites        = 8,
-    snapshots    = 2,
-    interval     = &quot;1 month&quot;,
-    domains      = c(&quot;AE&quot;, &quot;LB&quot;, &quot;VISIT&quot;),
-    study_type   = &quot;standard&quot;
-  )
+<div id="identical-configuration-across-all-studies" class="section level2">
+<h2>1. Identical configuration across all studies</h2>
+<p>When every study shares the same design, pass a single value for each
+parameter and a vector of names.</p>
+<pre class="r"><code>studies &lt;- create_multiple_longitudinal_studies(
+  study_names   = c(&quot;TRIAL-001&quot;, &quot;TRIAL-002&quot;, &quot;TRIAL-003&quot;),
+  participants  = 150,
+  sites         = 12,
+  snapshots     = 6,
+  interval      = &quot;1 month&quot;,
+  domains       = c(&quot;AE&quot;, &quot;LB&quot;, &quot;VISIT&quot;, &quot;PD&quot;),
+  run_analytics = FALSE,
+  verbose       = TRUE
 )
 
-summarize_longitudinal_study(study)</code></pre>
+print(studies)          # collection-level summary
+summary(studies)        # aggregate statistics
+
+# Access a single study
+trial_1 &lt;- studies[[&quot;TRIAL-001&quot;]]
+names(trial_1$raw_data)                         # snapshot dates
+nrow(trial_1$raw_data[[1]][[&quot;Raw_AE&quot;]])         # AE rows in snapshot 1</code></pre>
+<hr />
+</div>
+<div id="per-study-parameters-via-vectors-and-study_configs" class="section level2">
+<h2>2. Per-study parameters via vectors and
+<code>study_configs</code></h2>
+<p>Pass parallel vectors for scalar parameters and use
+<code>study_configs</code> for anything that can’t be vectorised
+(e.g. <code>domains</code>).</p>
+<pre class="r"><code>studies &lt;- create_multiple_longitudinal_studies(
+  study_names  = c(&quot;PHASE2-SMALL&quot;, &quot;PHASE3-LARGE&quot;, &quot;SAFETY-RUN&quot;),
+  # Scalar params as vectors -- one value per study
+  participants = c(80,  400, 50),
+  sites        = c(8,   25,  3),
+  snapshots    = c(4,   12,  8),
+  interval     = &quot;1 month&quot;,              # shared
+  domains      = c(&quot;AE&quot;, &quot;LB&quot;, &quot;VISIT&quot;), # default; overridden below
+  # Non-scalar overrides per study
+  study_configs = list(
+    &quot;PHASE2-SMALL&quot; = list(
+      domains           = c(&quot;AE&quot;, &quot;LB&quot;),
+      outlier_intensity = 0.8
+    ),
+    &quot;PHASE3-LARGE&quot; = list(
+      domains           = c(&quot;AE&quot;, &quot;LB&quot;, &quot;VISIT&quot;, &quot;PD&quot;, &quot;PK&quot;),
+      outlier_intensity = 1.0
+    ),
+    &quot;SAFETY-RUN&quot; = list(
+      domains           = c(&quot;AE&quot;, &quot;LB&quot;, &quot;VISIT&quot;),
+      outlier_intensity = 2.0   # amplify outliers for safety monitoring testing
+    )
+  ),
+  run_analytics = FALSE,
+  verbose       = TRUE
+)
+
+# Confirm each study got its own config
+for (nm in names(studies)) {
+  cat(nm, &quot;-- participants:&quot;, studies[[nm]]$config$participants,
+      &quot;| domains:&quot;, paste(studies[[nm]]$config$domains, collapse = &quot;, &quot;), &quot;\n&quot;)
+}</code></pre>
+<hr />
+</div>
+<div id="study_portfolio-variant-first-interface" class="section level2">
+<h2>3. <code>study_portfolio()</code> – variant-first interface</h2>
+<p>Define a single named list of variants. Each entry contains only what
+differs from the shared defaults; everything else falls back
+automatically.</p>
+<pre class="r"><code>studies &lt;- study_portfolio(
+  variants = list(
+    &quot;PHASE2-SMALL&quot; = list(
+      participants      = 80,
+      sites             = 8,
+      snapshots         = 4,
+      domains           = c(&quot;AE&quot;, &quot;LB&quot;),
+      outlier_intensity = 0.8
+    ),
+    &quot;PHASE3-LARGE&quot; = list(
+      participants = 400,
+      sites        = 25,
+      snapshots    = 12,
+      domains      = c(&quot;AE&quot;, &quot;LB&quot;, &quot;VISIT&quot;, &quot;PD&quot;, &quot;PK&quot;)
+    ),
+    &quot;SAFETY-RUN&quot; = list(
+      participants      = 50,
+      sites             = 3,
+      snapshots         = 8,
+      outlier_intensity = 2.0
+    )
+  ),
+  # Shared defaults -- used when a variant does not specify its own value
+  participants  = 100,
+  sites         = 10,
+  snapshots     = 6,
+  interval      = &quot;1 month&quot;,
+  domains       = c(&quot;AE&quot;, &quot;LB&quot;, &quot;VISIT&quot;),
+  run_analytics = FALSE,
+  verbose       = TRUE
+)
+
+print(studies)</code></pre>
+<hr />
+</div>
+<div id="inspecting-and-comparing-studies" class="section level2">
+<h2>4. Inspecting and comparing studies</h2>
+<pre class="r"><code># Snapshot dates for each study
+lapply(studies, function(s) names(s$raw_data))
+
+# Row counts for Raw_AE at the final snapshot, across all studies
+sapply(studies, function(s) {
+  last_snap &lt;- tail(s$raw_data, 1)[[1]]
+  if (&quot;Raw_AE&quot; %in% names(last_snap)) nrow(last_snap$Raw_AE) else NA_integer_
+})
+
+# Domains present in each study
+lapply(studies, get_available_domains)
+
+# Timeline of a single domain across snapshots for one study
+ae_timeline &lt;- get_domain_timeline(studies[[&quot;PHASE3-LARGE&quot;]], &quot;Raw_AE&quot;)
+sapply(ae_timeline, nrow)   # row count per snapshot</code></pre>
+<hr />
+</div>
+<div id="running-analytics-and-reporting" class="section level2">
+<h2>5. Running analytics and reporting</h2>
+<p>Pass <code>run_analytics = TRUE</code> (and optionally
+<code>run_reporting = TRUE</code>) to run the full pipeline for every
+study in one call.</p>
+<pre class="r"><code>studies &lt;- study_portfolio(
+  variants = list(
+    &quot;PHASE2-SMALL&quot; = list(participants = 80,  sites = 8,  snapshots = 4,
+                          domains = c(&quot;AE&quot;, &quot;LB&quot;)),
+    &quot;PHASE3-LARGE&quot; = list(participants = 400, sites = 25, snapshots = 12,
+                          domains = c(&quot;AE&quot;, &quot;LB&quot;, &quot;VISIT&quot;, &quot;PD&quot;))
+  ),
+  participants  = 100,
+  sites         = 10,
+  snapshots     = 6,
+  interval      = &quot;1 month&quot;,
+  domains       = c(&quot;AE&quot;, &quot;LB&quot;, &quot;VISIT&quot;),
+  run_analytics = TRUE,
+  run_reporting = FALSE,
+  verbose       = TRUE
+)
+
+# Analytics results are nested: study -&gt; snapshot -&gt; results
+has_analytics &lt;- sapply(studies, function(s) !is.null(s$analytics))
+cat(&quot;Analytics completed:&quot;, sum(has_analytics), &quot;of&quot;, length(studies), &quot;studies\n&quot;)
+
+# Drill into one study&#39;s latest snapshot analytics
+latest  &lt;- tail(names(studies[[&quot;PHASE3-LARGE&quot;]]$analytics), 1)
+results &lt;- studies[[&quot;PHASE3-LARGE&quot;]]$analytics[[latest]]$results
+cat(&quot;Result tables in latest snapshot:&quot;, paste(names(results), collapse = &quot;, &quot;), &quot;\n&quot;)</code></pre>
+<hr />
+</div>
+<div id="exporting-all-studies" class="section level2">
+<h2>6. Exporting all studies</h2>
+<pre class="r"><code># Export to separate sub-folders under ./output/
+export_multiple_studies(
+  studies    = studies,
+  output_dir = &quot;./output&quot;,
+  overwrite  = TRUE,
+  verbose    = TRUE
+)
+
+# Or generate and export in one step via create_multiple_longitudinal_studies()
+studies &lt;- create_multiple_longitudinal_studies(
+  study_names    = c(&quot;TRIAL-001&quot;, &quot;TRIAL-002&quot;),
+  participants   = 150,
+  sites          = 12,
+  snapshots      = 6,
+  domains        = c(&quot;AE&quot;, &quot;LB&quot;, &quot;VISIT&quot;),
+  run_analytics  = FALSE,
+  export_studies = TRUE,
+  export_dir     = &quot;./output&quot;,
+  verbose        = TRUE
+)</code></pre>
 </div>
 
 

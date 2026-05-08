@@ -74,6 +74,9 @@
   : Set Temporal Configuration
 - [`study_config_examples`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/study_config_examples.md)
   : Example of config interface usage
+- [`study_portfolio()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/study_portfolio.md)
+  : Create a portfolio of studies from a base config and per-study
+  variants
 - [`summarize_longitudinal_study()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/summarize_longitudinal_study.md)
   : Get Summary of Longitudinal Study
 - [`summary(`*`<multiple_longitudinal_studies>`*`)`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/summary.multiple_longitudinal_studies.md)
