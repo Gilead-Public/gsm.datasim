@@ -97,7 +97,15 @@ generate_data_from_workflows <- function(
   desired_domains = NULL
 ) {
   # -- Validate inputs -------------------------------------------------------
-  if (!is.list(lWorkflows) || length(lWorkflows) == 0) {
+  workflow_names <- names(lWorkflows)
+  if (
+    !is.list(lWorkflows) ||
+    length(lWorkflows) == 0 ||
+    is.null(workflow_names) ||
+    length(workflow_names) != length(lWorkflows) ||
+    any(is.na(workflow_names)) ||
+    any(!nzchar(workflow_names))
+  ) {
     stop("`lWorkflows` must be a non-empty named list of workflow objects.", call. = FALSE)
   }
 
@@ -107,7 +115,14 @@ generate_data_from_workflows <- function(
 
   # -- Combine specs from all workflows -------------------------------------
   combined_specs <- CombineSpecs(lWorkflows, bIsWorkflow = TRUE)
+  had_raw_visit_spec <- "Raw_VISIT" %in% names(combined_specs)
+  raw_visit_spec <- if (had_raw_visit_spec) combined_specs$Raw_VISIT else NULL
+
   combined_specs <- prepare_combined_specs_for_generation(combined_specs, desired_specs = desired_domains)
+
+  if (had_raw_visit_spec && "Raw_VISIT" %in% names(combined_specs)) {
+    combined_specs$Raw_VISIT <- raw_visit_spec
+  }
 
   if (length(combined_specs) == 0) {
     warning("No Raw_* domains found in the combined workflow specs.", call. = FALSE)
@@ -147,7 +162,8 @@ generate_data_from_workflows <- function(
 
   # -- Multi-snapshot longitudinal generation ---------------------------------
   snapshot_start_dates <- seq(start_date, length.out = snapshot_count, by = snapshot_width)
-  snapshot_end_dates   <- snapshot_start_dates + 28
+  snapshot_end_dates   <- c(snapshot_start_dates[-1] - 1, end_date)
+  snapshot_end_dates   <- pmin(snapshot_end_dates, end_date)
 
   # Build per-snapshot counts using count_gen() for realistic ramp-up
   domain_count_vectors <- stats::setNames(
