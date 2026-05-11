@@ -12,7 +12,7 @@
 #' @param snapshots Number of snapshots
 #' @param interval Time between snapshots (e.g., "1 month", "2 weeks")
 #' @param domains Clinical domains to include
-#' @param run_analytics Whether to run the analytics pipeline (default TRUE)
+#' @param run_analytics Whether to run the analytics pipeline (default FALSE)
 #' @param analytics_package Package containing workflows (optional)
 #' @param analytics_workflows Specific workflows to run (optional)
 #' @param run_reporting Whether to run the reporting pipeline after analytics (default FALSE)
@@ -26,7 +26,7 @@ create_longitudinal_study <- function(study_id = "STUDY-001",
                                      snapshots = 5,
                                      interval = "1 month",
                                      domains = c("AE", "LB", "VISIT"),
-                                     run_analytics = TRUE,
+                                     run_analytics = FALSE,
                                      analytics_package = NULL,
                                      analytics_workflows = NULL,
                                      run_reporting = FALSE,
@@ -113,7 +113,7 @@ create_longitudinal_study <- function(study_id = "STUDY-001",
 #' @param sites Number of sites (default 150)
 #' @param months_duration Duration in months (default 24)
 #' @param study_type Type of study - "standard" or "endpoints"
-#' @param include_pipeline Whether to run both the analytics and reporting pipelines (default TRUE)
+#' @param include_pipeline Whether to run both the analytics and reporting pipelines (default FALSE)
 #' @param outlier_intensity Global multiplier for outlier-like values in domain generators.
 #' @param verbose Whether to print progress/output messages
 #' @return LongitudinalStudy object with complete data and analytics
@@ -123,7 +123,7 @@ quick_longitudinal_study <- function(study_name = "GS-US-000-0001",
                                     sites = 150,
                                     months_duration = 24,
                                     study_type = "standard",
-                                    include_pipeline = TRUE,
+                                    include_pipeline = FALSE,
                                     outlier_intensity = 1,
                                     verbose = FALSE) {
 
@@ -270,7 +270,7 @@ quick_longitudinal_study <- function(study_name = "GS-US-000-0001",
 #'   applied to all studies or a vector of values per study.
 #' @param domains Clinical domains to include (default c("AE", "LB", "VISIT")).
 #'   Applied to all studies unless overridden in study_configs.
-#' @param run_analytics Whether to run the analytics pipeline (default TRUE)
+#' @param run_analytics Whether to run the analytics pipeline (default FALSE)
 #' @param analytics_package Package containing workflows (optional)
 #' @param analytics_workflows Specific workflows to run (optional)
 #' @param run_reporting Whether to run the reporting pipeline after analytics (default FALSE)
@@ -319,7 +319,7 @@ create_multiple_longitudinal_studies <- function(study_names,
                                                 snapshots = 5,
                                                 interval = "1 month",
                                                 domains = c("AE", "LB", "VISIT"),
-                                                run_analytics = TRUE,
+                                                run_analytics = FALSE,
                                                 analytics_package = NULL,
                                                 analytics_workflows = NULL,
                                                 run_reporting = FALSE,
