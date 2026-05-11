@@ -22,13 +22,14 @@ library(gsm.datasim)
 orchestration with a single call.
 
 ```{r quick-start}
-# Standard study (core mappings + gsm.kri analytics)
+# Standard study — set include_pipeline = TRUE to also run analytics + reporting
 study <- quick_longitudinal_study(
-  study_name      = "Oncology Phase III Trial",
-  participants    = 1000,
-  sites           = 150,
-  months_duration = 3,
-  study_type      = "standard"
+  study_name       = "Oncology Phase III Trial",
+  participants     = 1000,
+  sites            = 150,
+  months_duration  = 3,
+  study_type       = "standard",
+  include_pipeline = TRUE
 )
 
 summarize_longitudinal_study(study)
