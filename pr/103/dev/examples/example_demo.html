@@ -352,7 +352,7 @@ display: none;
 <h1 class="title toc-ignore">gsm.datasim Demo</h1>
 <h4 class="author"><a href="https://gilead-biostats.github.io/gsm.datasim">gsm.datasim</a>
 Example</h4>
-<h4 class="date">May 11, 2026 14:59:55 UTC</h4>
+<h4 class="date">May 11, 2026 15:08:12 UTC</h4>
 
 </div>
 
@@ -390,8 +390,9 @@ nrow(snap4$Raw_AE)</code></pre>
 <h2>Quick Start</h2>
 <p><code>quick_longitudinal_study()</code> is the batteries-included
 entry point. It generates multi-snapshot raw data with the domain list
-determined by <code>study_type</code>, then runs the gsm.kri analytics
-pipeline and the gsm.reporting pipeline — all in one call.</p>
+determined by <code>study_type</code>. Pass
+<code>include_pipeline = TRUE</code> to also run the gsm.kri analytics
+and gsm.reporting pipelines.</p>
 <pre class="r"><code>study &lt;- quick_longitudinal_study(
   study_name       = &quot;DEMO-001&quot;,
   participants     = 200,

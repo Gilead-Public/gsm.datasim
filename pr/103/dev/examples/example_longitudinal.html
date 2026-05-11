@@ -352,7 +352,7 @@ display: none;
 <h1 class="title toc-ignore">Longitudinal Data Generation</h1>
 <h4 class="author"><a href="https://gilead-biostats.github.io/gsm.datasim">gsm.datasim</a>
 Example</h4>
-<h4 class="date">May 11, 2026 14:59:56 UTC</h4>
+<h4 class="date">May 11, 2026 15:08:13 UTC</h4>
 
 </div>
 
@@ -361,13 +361,14 @@ Example</h4>
 <h2>Quick Start</h2>
 <p><code>quick_longitudinal_study()</code> replaces 50+ lines of manual
 workflow orchestration with a single call.</p>
-<pre class="r"><code># Standard study (core mappings + gsm.kri analytics)
+<pre class="r"><code># Standard study — set include_pipeline = TRUE to also run analytics + reporting
 study &lt;- quick_longitudinal_study(
-  study_name      = &quot;Oncology Phase III Trial&quot;,
-  participants    = 1000,
-  sites           = 150,
-  months_duration = 3,
-  study_type      = &quot;standard&quot;
+  study_name       = &quot;Oncology Phase III Trial&quot;,
+  participants     = 1000,
+  sites            = 150,
+  months_duration  = 3,
+  study_type       = &quot;standard&quot;,
+  include_pipeline = TRUE
 )
 
 summarize_longitudinal_study(study)</code></pre>

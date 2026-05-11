@@ -150,8 +150,9 @@ study.
 The
 [`create_longitudinal_study()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/create_longitudinal_study.md)
 function provides the easiest way to set up a longitudinal study. By
-default it runs the analytics pipeline; set `run_reporting = TRUE` to
-also run the reporting pipeline:
+default only raw data is generated; set `run_analytics = TRUE` to run
+the analytics pipeline and `run_reporting = TRUE` to also run the
+reporting pipeline:
 
 ``` r
 
@@ -278,8 +279,8 @@ quarterly_study <- create_longitudinal_study(
 
 For rapid prototyping, use the
 [`quick_longitudinal_study()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/quick_longitudinal_study.md)
-function. Both analytics and reporting run by default when
-`include_pipeline = TRUE`:
+function. Pass `include_pipeline = TRUE` to run both the analytics and
+reporting pipelines:
 
 ``` r
 
@@ -290,7 +291,7 @@ quick_study <- quick_longitudinal_study(
   sites = 10,
   months_duration = 18,             # 18-month study
   study_type = "standard",
-  include_pipeline = TRUE,          # default: runs analytics + reporting
+  include_pipeline = TRUE,          # runs analytics + reporting
   verbose = TRUE
 )
 

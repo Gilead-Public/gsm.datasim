@@ -225,9 +225,10 @@ study.</p>
 <h3 id="basic-longitudinal-study">Basic Longitudinal Study<a class="anchor" aria-label="anchor" href="#basic-longitudinal-study"></a>
 </h3>
 <p>The <code><a href="../reference/create_longitudinal_study.html">create_longitudinal_study()</a></code> function provides the
-easiest way to set up a longitudinal study. By default it runs the
-analytics pipeline; set <code>run_reporting = TRUE</code> to also run
-the reporting pipeline:</p>
+easiest way to set up a longitudinal study. By default only raw data is
+generated; set <code>run_analytics = TRUE</code> to run the analytics
+pipeline and <code>run_reporting = TRUE</code> to also run the reporting
+pipeline:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create a longitudinal study with default settings</span></span>
 <span><span class="va">study</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_longitudinal_study.html">create_longitudinal_study</a></span><span class="op">(</span></span>
@@ -347,8 +348,9 @@ studies:</p>
 <h3 id="quick-study-creation">Quick Study Creation<a class="anchor" aria-label="anchor" href="#quick-study-creation"></a>
 </h3>
 <p>For rapid prototyping, use the
-<code><a href="../reference/quick_longitudinal_study.html">quick_longitudinal_study()</a></code> function. Both analytics and
-reporting run by default when <code>include_pipeline = TRUE</code>:</p>
+<code><a href="../reference/quick_longitudinal_study.html">quick_longitudinal_study()</a></code> function. Pass
+<code>include_pipeline = TRUE</code> to run both the analytics and
+reporting pipelines:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create a study with sensible defaults — analytics and reporting both run by default</span></span>
 <span><span class="va">quick_study</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/quick_longitudinal_study.html">quick_longitudinal_study</a></span><span class="op">(</span></span>
@@ -357,7 +359,7 @@ reporting run by default when <code>include_pipeline = TRUE</code>:</p>
 <span>  sites <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  months_duration <span class="op">=</span> <span class="fl">18</span>,             <span class="co"># 18-month study</span></span>
 <span>  study_type <span class="op">=</span> <span class="st">"standard"</span>,</span>
-<span>  include_pipeline <span class="op">=</span> <span class="cn">TRUE</span>,          <span class="co"># default: runs analytics + reporting</span></span>
+<span>  include_pipeline <span class="op">=</span> <span class="cn">TRUE</span>,          <span class="co"># runs analytics + reporting</span></span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
