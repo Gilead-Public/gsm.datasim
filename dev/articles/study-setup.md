@@ -1,6 +1,7 @@
 # Setting up Clinical Studies with gsm.datasim
 
 ``` r
+
 library(gsm.datasim)
 #> Registered S3 method overwritten by 'logger':
 #>   method         from 
@@ -34,6 +35,7 @@ The simplest way to create a single snapshot study is using the study
 configuration system:
 
 ``` r
+
 # Create a basic study configuration
 config <- create_study_config(
   study_id = "STUDY001",
@@ -58,6 +60,7 @@ names(raw_data)
 Even for single snapshots, you can control the temporal aspects:
 
 ``` r
+
 # Create configuration with specific temporal settings
 config <- create_study_config(
   study_id = "STUDY002", 
@@ -90,6 +93,7 @@ snapshot contains `$results` (named by workflow,
 e.g. `Analysis_kri0001`), `$mapped`, `$lWorkflow`, and `$summary`:
 
 ``` r
+
 # Create study with analytics
 config <- create_study_config(
   study_id = "STUDY003",
@@ -123,6 +127,7 @@ analytics results. Pass the analytics output directly to
 [`generate_reporting_layers()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_reporting_layers.md):
 
 ``` r
+
 # Run reporting pipeline on analytics results
 reporting_results <- generate_reporting_layers(
   analytics_results = analytics_results,
@@ -149,6 +154,7 @@ default it runs the analytics pipeline; set `run_reporting = TRUE` to
 also run the reporting pipeline:
 
 ``` r
+
 # Create a longitudinal study with default settings
 study <- create_longitudinal_study(
   study_id = "LONG-001",
@@ -184,6 +190,7 @@ if (!is.null(study$reporting)) {
 For more control over the longitudinal study setup:
 
 ``` r
+
 # Create a complex longitudinal study
 study <- create_longitudinal_study(
   study_id = "ADVANCED-001",
@@ -207,6 +214,7 @@ print(summary_data)
 You can specify a custom starting date for your longitudinal study:
 
 ``` r
+
 # Use the lower-level function for more control
 mappings <- ensure_core_mappings(c("AE", "LB", "VISIT"))
 
@@ -242,6 +250,7 @@ study <- create_longitudinal_study_data(
 The package supports various time intervals for longitudinal studies:
 
 ``` r
+
 # Weekly snapshots
 weekly_study <- create_longitudinal_study(
   study_id = "WEEKLY-001",
@@ -273,6 +282,7 @@ function. Both analytics and reporting run by default when
 `include_pipeline = TRUE`:
 
 ``` r
+
 # Create a study with sensible defaults — analytics and reporting both run by default
 quick_study <- quick_longitudinal_study(
   study_name = "QUICK-PROTO-001",
@@ -295,6 +305,7 @@ names(quick_study)  # includes $analytics and $reporting
 Choose clinical domains based on your study objectives:
 
 ``` r
+
 # Oncology study domains
 oncology_domains <- c("AE", "LB", "PD", "OverallResponse", 
                      "VISIT", "DATACHG", "QUERY")
@@ -326,6 +337,7 @@ gsm.core results per snapshot; pass them directly to the reporting
 pipeline.
 
 ``` r
+
 # Create study with specific analytics workflows
 study <- create_longitudinal_study(
   study_id = "MONITORED-001",
@@ -365,6 +377,7 @@ if (!is.null(study$reporting)) {
 You can also run the pipelines separately on an existing study object:
 
 ``` r
+
 # Build raw data only
 study <- create_longitudinal_study(
   study_id = "STEPWISE-001",
@@ -400,6 +413,7 @@ for:
 Create multiple studies with shared configuration:
 
 ``` r
+
 # Generate three studies with identical configuration
 studies <- create_multiple_longitudinal_studies(
   study_names = c("PHASE2-001", "PHASE2-002", "PHASE2-003"),
@@ -427,6 +441,7 @@ summary(study_1)
 Customize individual studies while maintaining shared defaults:
 
 ``` r
+
 # Create studies with different characteristics
 studies <- create_multiple_longitudinal_studies(
   study_names = c("SMALL-PHASE2", "LARGE-PHASE3", "SAFETY-RUN"),
@@ -465,6 +480,7 @@ summary(studies)
 For large batches, enable parallel processing to speed up generation:
 
 ``` r
+
 # Generate studies in parallel (requires parallel package)
 large_batch <- create_multiple_longitudinal_studies(
   study_names = paste0("BATCH-", sprintf("%03d", 1:8)),
@@ -486,6 +502,7 @@ print(large_batch)
 Automatically export all studies to disk during generation:
 
 ``` r
+
 # Generate and automatically export
 studies <- create_multiple_longitudinal_studies(
   study_names = c("EXPORT-001", "EXPORT-002"),
@@ -514,6 +531,7 @@ export_multiple_studies(
 The returned object has special methods for easy inspection:
 
 ``` r
+
 # Print method shows overview
 print(studies)
 
@@ -538,6 +556,7 @@ for (study_name in names(studies)) {
 Use multiple studies for comparative analysis:
 
 ``` r
+
 # Generate studies with different safety profiles
 safety_portfolio <- create_multiple_longitudinal_studies(
   study_names = c("LOW-RISK", "MEDIUM-RISK", "HIGH-RISK"),
@@ -571,6 +590,7 @@ for (study_name in names(safety_portfolio)) {
 ### Exploring Generated Data
 
 ``` r
+
 # After generating a study, examine the data structure
 study <- create_longitudinal_study(
   study_id = "EXPLORE-001",
@@ -605,6 +625,7 @@ for (i in 1:length(study$raw_data)) {
 ### Data Quality Checks
 
 ``` r
+
 # Function to validate study data
 validate_study_data <- function(study) {
   validation_results <- list()
@@ -653,6 +674,7 @@ snapshot.
 ### Basic Export
 
 ``` r
+
 # Generate a small study to export
 study <- create_longitudinal_study(
   study_id     = "EXPORT-001",
@@ -680,6 +702,7 @@ list.dirs(study_path, full.names = FALSE, recursive = TRUE)
 ### Controlling the Output Location
 
 ``` r
+
 # Write to a specific project folder
 study_path <- export_study_data(
   study        = study,
@@ -696,6 +719,7 @@ objects that cannot be flattened to CSV. Set `save_rds = TRUE` to write
 a companion `analytics_full.rds` file per snapshot:
 
 ``` r
+
 study_path <- export_study_data(
   study      = study,
   output_dir = tempdir(),
@@ -712,6 +736,7 @@ names(analytics_snap)  # $results, $mapped, $lWorkflow, $summary
 ### Inspecting the Exported Files
 
 ``` r
+
 # List all CSV files written across all snapshots
 all_csvs <- list.files(study_path, pattern = "\\.csv$", recursive = TRUE)
 cat(length(all_csvs), "CSV files written\n")

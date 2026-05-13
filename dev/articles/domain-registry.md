@@ -1,6 +1,7 @@
 # Understanding the Domain Registry
 
 ``` r
+
 library(gsm.datasim)
 #> Registered S3 method overwritten by 'logger':
 #>   method         from 
@@ -49,6 +50,7 @@ The domain registry is a named list where each entry defines:
 ### Viewing the Registry
 
 ``` r
+
 # Get the complete domain registry
 registry <- get_domain_registry()
 
@@ -67,6 +69,7 @@ Adverse Events are a critical domain in clinical trials and RBQM,
 specifically:
 
 ``` r
+
 # View AE domain configuration
 ae_config <- registry$Raw_AE
 
@@ -87,6 +90,7 @@ print(ae_config$required_inputs)
 Laboratory data represents test results over time:
 
 ``` r
+
 # View LB domain configuration  
 lb_config <- registry$Raw_LB
 
@@ -102,6 +106,7 @@ print(lb_config$generate_fn)
 ### Available Domains
 
 ``` r
+
 # Get all available domains from the registry
 available_domains <- get_available_domains()
 print(available_domains)
@@ -118,6 +123,7 @@ print(mapping_domains)
 The registry system is used automatically when you configure studies:
 
 ``` r
+
 # Create a study configuration
 config <- create_study_config(
   study_id = "REGISTRY001",
@@ -144,6 +150,7 @@ raw_data <- generate_study_data(config, verbose = TRUE)
 Some domains depend on others. The registry manages this automatically:
 
 ``` r
+
 # Check domain dependencies
 check_domain_dependencies <- function(domain_name) {
   registry <- get_domain_registry()
@@ -171,6 +178,7 @@ print(core_domains)
 The registry supports domains from different packages:
 
 ``` r
+
 # Create a domain-package mapping
 domain_package_df <- data.frame(
   domain = c("AE", "LB", "VISIT", "CustomDomain"),
@@ -199,6 +207,7 @@ raw_data <- generate_raw_data_for_endpoints(config, domain_package_df)
 Different domains have different temporal patterns:
 
 ``` r
+
 # Get timeline information for a domain
 ae_timeline <- get_domain_timeline("Raw_AE")
 print(ae_timeline)
@@ -218,6 +227,7 @@ print(lb_timeline)
 The registry handles different growth patterns:
 
 ``` r
+
 # Domains have different growth patterns:
 
 # Linear growth (steady increase)
@@ -247,6 +257,7 @@ Each domain has a specific generation function (e.g., `Raw_AE()`,
 `Raw_LB()`):
 
 ``` r
+
 # Domain generation functions typically take these parameters:
 # - data: Current snapshot data
 # - previous_data: Previous snapshot(s) for continuity  
@@ -267,6 +278,7 @@ Each domain has a specific generation function (e.g., `Raw_AE()`,
 You can customize how record counts are determined:
 
 ``` r
+
 # Create a study with custom count logic
 config <- create_study_config(
   study_id = "CUSTOM-COUNTS",
@@ -307,6 +319,7 @@ config <- add_dataset_config(
 You can extend the registry with custom domains:
 
 ``` r
+
 # Define a custom domain
 add_custom_domain_to_registry <- function() {
   # Get current registry
@@ -345,6 +358,7 @@ add_custom_domain_to_registry <- function() {
 If you create new domains, you’ll need generation functions:
 
 ``` r
+
 # Example structure for a custom domain generation function
 Raw_CUSTOM <- function(data, combined_specs, n, startDate, custom_param = NULL) {
   # Your custom data generation logic here
@@ -378,6 +392,7 @@ The registry supports migration between different data generation
 approaches:
 
 ``` r
+
 # The package includes migration utilities for moving from
 # older approaches to the registry-based system
 
@@ -395,6 +410,7 @@ print(available_for_migration)
 ### Registry Validation
 
 ``` r
+
 # Validate registry configuration
 validate_domain_registry <- function(registry = NULL) {
   if (is.null(registry)) {
@@ -451,6 +467,7 @@ str(validation, max.level = 2)
 ### Performance Considerations
 
 ``` r
+
 # Registry-based generation is optimized for performance:
 
 # 1. Efficient package loading - only loads needed packages
@@ -467,6 +484,7 @@ str(validation, max.level = 2)
 ### Troubleshooting
 
 ``` r
+
 # Common issues and solutions:
 
 # Issue: Domain not found in registry

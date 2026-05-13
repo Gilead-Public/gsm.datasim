@@ -12,6 +12,7 @@ on the generated data.
 ## Installation
 
 ``` r
+
 # install.packages("pak")
 pak::pak("Gilead-BioStats/gsm.datasim@*release")
 ```
@@ -19,12 +20,14 @@ pak::pak("Gilead-BioStats/gsm.datasim@*release")
 Development version:
 
 ``` r
+
 pak::pak("Gilead-BioStats/gsm.datasim")
 ```
 
 ## Quick Start
 
 ``` r
+
 library(gsm.datasim)
 
 # Generate a standard 6-month study with analytics + reporting
@@ -53,36 +56,36 @@ ae_counts <- sapply(get_domain_timeline(study, "AE"), nrow)
 
 ### Study generation
 
-| Function                                                                                                                                        | Description                                               |
-|-------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------|
-| [`quick_longitudinal_study()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/quick_longitudinal_study.md)                         | Single-call entry point: raw data + analytics + reporting |
-| [`create_longitudinal_study()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/create_longitudinal_study.md)                       | Full control over domains, intervals, and pipelines       |
-| [`create_multiple_longitudinal_studies()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/create_multiple_longitudinal_studies.md) | Generate a portfolio of studies in one call               |
-| [`create_study_config()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/create_study_config.md)                                   | Build a config object for low-level control               |
-| [`generate_study_data()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_study_data.md)                                   | Generate raw data from a config object                    |
+| Function | Description |
+|----|----|
+| [`quick_longitudinal_study()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/quick_longitudinal_study.md) | Single-call entry point: raw data + analytics + reporting |
+| [`create_longitudinal_study()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/create_longitudinal_study.md) | Full control over domains, intervals, and pipelines |
+| [`create_multiple_longitudinal_studies()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/create_multiple_longitudinal_studies.md) | Generate a portfolio of studies in one call |
+| [`create_study_config()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/create_study_config.md) | Build a config object for low-level control |
+| [`generate_study_data()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_study_data.md) | Generate raw data from a config object |
 
 ### Study access helpers
 
-| Function                                                                                                                        | Description                           |
-|---------------------------------------------------------------------------------------------------------------------------------|---------------------------------------|
-| [`get_snapshot_data()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/get_snapshot_data.md)                       | Extract data for a specific snapshot  |
-| [`get_domain_timeline()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/get_domain_timeline.md)                   | All snapshots for a single domain     |
-| [`get_available_domains()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/get_available_domains.md)               | List all domains present in the study |
-| [`summarize_longitudinal_study()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/summarize_longitudinal_study.md) | Print a study summary                 |
+| Function | Description |
+|----|----|
+| [`get_snapshot_data()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/get_snapshot_data.md) | Extract data for a specific snapshot |
+| [`get_domain_timeline()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/get_domain_timeline.md) | All snapshots for a single domain |
+| [`get_available_domains()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/get_available_domains.md) | List all domains present in the study |
+| [`summarize_longitudinal_study()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/summarize_longitudinal_study.md) | Print a study summary |
 
 ### Pipelines
 
-| Function                                                                                                                    | Description                                    |
-|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------|
+| Function | Description |
+|----|----|
 | [`run_longitudinal_analytics()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/run_longitudinal_analytics.md) | Run (or re-run) the gsm.kri analytics pipeline |
-| [`run_longitudinal_reporting()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/run_longitudinal_reporting.md) | Run (or re-run) the gsm.reporting pipeline     |
-| [`generate_analytics_layers()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_analytics_layers.md)   | Run analytics on already-generated raw data    |
-| [`generate_reporting_layers()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_reporting_layers.md)   | Run reporting on analytics results             |
+| [`run_longitudinal_reporting()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/run_longitudinal_reporting.md) | Run (or re-run) the gsm.reporting pipeline |
+| [`generate_analytics_layers()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_analytics_layers.md) | Run analytics on already-generated raw data |
+| [`generate_reporting_layers()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_reporting_layers.md) | Run reporting on analytics results |
 
 ### Export
 
-| Function                                                                                                  | Description                                                 |
-|-----------------------------------------------------------------------------------------------------------|-------------------------------------------------------------|
+| Function | Description |
+|----|----|
 | [`export_study_data()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/export_study_data.md) | Write study to structured folder hierarchy (CSV or Parquet) |
 
 ## Common Patterns
@@ -90,6 +93,7 @@ ae_counts <- sapply(get_domain_timeline(study, "AE"), nrow)
 ### Data generation only (no pipeline)
 
 ``` r
+
 data_only <- create_longitudinal_study(
   study_id      = "DATA-001",
   participants  = 200,
@@ -105,6 +109,7 @@ data_only <- create_longitudinal_study(
 ### Increased outlier prevalence
 
 ``` r
+
 study <- quick_longitudinal_study(
   study_name        = "DEMO-OUTLIER-HIGH",
   participants      = 200,
@@ -117,6 +122,7 @@ study <- quick_longitudinal_study(
 ### Stepwise pipeline execution
 
 ``` r
+
 # Step 1 — raw data
 study <- create_longitudinal_study(
   study_id      = "STEP-001",
@@ -139,6 +145,7 @@ study <- run_longitudinal_reporting(study)
 ### Low-level config API
 
 ``` r
+
 config <- create_study_config(
   study_id          = "CUSTOM-001",
   participant_count = 300,
@@ -158,6 +165,7 @@ reporting <- generate_reporting_layers(analytics, config)
 ### Multiple studies
 
 ``` r
+
 studies <- create_multiple_longitudinal_studies(
   study_names   = c("TRIAL-001", "TRIAL-002", "TRIAL-003"),
   participants  = 200,
@@ -171,6 +179,7 @@ studies <- create_multiple_longitudinal_studies(
 ### Export
 
 ``` r
+
 export_study_data(
   study      = study,
   output_dir = "./output",
@@ -181,12 +190,11 @@ export_study_data(
 
 ## Examples
 
-Full worked examples are in `inst/examples/` as well as in the Examples
-section of the website:
+Full worked examples are in the Examples section of the website:
 
-- `example_demo.Rmd` — complete walkthrough of all major features
-- `example_longitudinal.Rmd` — longitudinal data generation patterns
-- `example_domain_registry.Rmd` — extending the Domain Registry
+- `example_demo.html` — complete walkthrough of all major features
+- `example_longitudinal.html` — longitudinal data generation patterns
+- `example_domain_registry.html` — extending the Domain Registry
 
 ## Domain Registry
 
@@ -196,6 +204,7 @@ generation. Each entry defines how data should be generated for a single
 modifying core generation code.
 
 ``` r
+
 registry <- get_domain_registry()
 cat("Registry-backed domains:", paste(names(registry), collapse = ", "), "\n")
 ```

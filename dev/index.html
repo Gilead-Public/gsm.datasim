@@ -23,7 +23,7 @@
 
     <a class="navbar-brand me-2" href="index.html">gsm.datasim</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.1.3</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.1.3.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -121,28 +121,28 @@
 <col width="50%">
 <col width="50%">
 </colgroup>
-<thead><tr class="header">
+<thead><tr>
 <th>Function</th>
 <th>Description</th>
 </tr></thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td><code><a href="reference/quick_longitudinal_study.html">quick_longitudinal_study()</a></code></td>
 <td>Single-call entry point: raw data + analytics + reporting</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code><a href="reference/create_longitudinal_study.html">create_longitudinal_study()</a></code></td>
 <td>Full control over domains, intervals, and pipelines</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code><a href="reference/create_multiple_longitudinal_studies.html">create_multiple_longitudinal_studies()</a></code></td>
 <td>Generate a portfolio of studies in one call</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code><a href="reference/create_study_config.html">create_study_config()</a></code></td>
 <td>Build a config object for low-level control</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code><a href="reference/generate_study_data.html">generate_study_data()</a></code></td>
 <td>Generate raw data from a config object</td>
 </tr>
@@ -153,24 +153,24 @@
 <h3 id="study-access-helpers">Study access helpers<a class="anchor" aria-label="anchor" href="#study-access-helpers"></a>
 </h3>
 <table class="table">
-<thead><tr class="header">
+<thead><tr>
 <th>Function</th>
 <th>Description</th>
 </tr></thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td><code><a href="reference/get_snapshot_data.html">get_snapshot_data()</a></code></td>
 <td>Extract data for a specific snapshot</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code><a href="reference/get_domain_timeline.html">get_domain_timeline()</a></code></td>
 <td>All snapshots for a single domain</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code><a href="reference/get_available_domains.html">get_available_domains()</a></code></td>
 <td>List all domains present in the study</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code><a href="reference/summarize_longitudinal_study.html">summarize_longitudinal_study()</a></code></td>
 <td>Print a study summary</td>
 </tr>
@@ -185,24 +185,24 @@
 <col width="50%">
 <col width="50%">
 </colgroup>
-<thead><tr class="header">
+<thead><tr>
 <th>Function</th>
 <th>Description</th>
 </tr></thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td><code><a href="reference/run_longitudinal_analytics.html">run_longitudinal_analytics()</a></code></td>
 <td>Run (or re-run) the gsm.kri analytics pipeline</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code><a href="reference/run_longitudinal_reporting.html">run_longitudinal_reporting()</a></code></td>
 <td>Run (or re-run) the gsm.reporting pipeline</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code><a href="reference/generate_analytics_layers.html">generate_analytics_layers()</a></code></td>
 <td>Run analytics on already-generated raw data</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code><a href="reference/generate_reporting_layers.html">generate_reporting_layers()</a></code></td>
 <td>Run reporting on analytics results</td>
 </tr>
@@ -217,11 +217,11 @@
 <col width="50%">
 <col width="50%">
 </colgroup>
-<thead><tr class="header">
+<thead><tr>
 <th>Function</th>
 <th>Description</th>
 </tr></thead>
-<tbody><tr class="odd">
+<tbody><tr>
 <td><code><a href="reference/export_study_data.html">export_study_data()</a></code></td>
 <td>Write study to structured folder hierarchy (CSV or Parquet)</td>
 </tr></tbody>
@@ -327,14 +327,14 @@
 <div class="section level2">
 <h2 id="examples">Examples<a class="anchor" aria-label="anchor" href="#examples"></a>
 </h2>
-<p>Full worked examples are in <code>inst/examples/</code> as well as in the Examples section of the website:</p>
+<p>Full worked examples are in the Examples section of the website:</p>
 <ul>
 <li>
-<code>example_demo.Rmd</code> — complete walkthrough of all major features</li>
+<code>example_demo.html</code> — complete walkthrough of all major features</li>
 <li>
-<code>example_longitudinal.Rmd</code> — longitudinal data generation patterns</li>
+<code>example_longitudinal.html</code> — longitudinal data generation patterns</li>
 <li>
-<code>example_domain_registry.Rmd</code> — extending the Domain Registry</li>
+<code>example_domain_registry.html</code> — extending the Domain Registry</li>
 </ul>
 </div>
 <div class="section level2">

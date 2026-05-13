@@ -1,6 +1,7 @@
 # addnewdomain
 
 ``` r
+
 library(gsm.datasim)
 ```
 
