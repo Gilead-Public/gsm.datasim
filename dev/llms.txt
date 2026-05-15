@@ -11,16 +11,21 @@ on the generated data.
 
 ## Installation
 
+You can install the latest release of gsm.datasim from
+[GitHub](https://github.com/) with:
+
 ``` r
 
 # install.packages("pak")
 pak::pak("Gilead-BioStats/gsm.datasim@*release")
 ```
 
-Development version:
+You can install the development version of gsm.datasim from
+[GitHub](https://github.com/) with:
 
 ``` r
 
+# install.packages("pak")
 pak::pak("Gilead-BioStats/gsm.datasim")
 ```
 
