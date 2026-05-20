@@ -123,7 +123,7 @@ get_domain_registry <- function() {
           n              = context$n,
           SnapshotCount  = context$snapshot_count,
           SnapshotWidth  = context$snapshot_width,
-          split_vars     = list("subjid_invid")
+          split_vars     = list("subjid_repeated", "invid_repeated")
         )
       }
     ),
@@ -301,7 +301,7 @@ get_domain_registry <- function() {
         }
 
         subjs <- subjid(n, external_subjid = data$Raw_SUBJ$subjid, replace = FALSE)
-        subj_visits <- data$Raw_SV %>%
+        subj_visits <- data$Raw_VISIT %>%
           dplyr::filter(subjid %in% subjs) %>%
           dplyr::select(subjid, instancename)
         all_n <- nrow(subj_visits) * nrow(tests)

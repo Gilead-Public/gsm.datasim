@@ -29,28 +29,13 @@ prepare_combined_specs_for_generation <- function(combined_specs, desired_specs 
   )
 
   # Specify the desired first few elements in order
-  desired_order <- c("Raw_STUDY", "Raw_SITE", "Raw_SUBJ", "Raw_ENROLL", "Raw_SV", "Raw_VISIT", "Raw_STUDCOMP")
-  if (!("Raw_SV" %in% names(combined_specs))) {
-    combined_specs$Raw_SV <- list(
+  desired_order <- c("Raw_STUDY", "Raw_SITE", "Raw_SUBJ", "Raw_ENROLL", "Raw_VISIT", "Raw_STUDCOMP")
+  if (!("Raw_VISIT" %in% names(combined_specs))) {
+    combined_specs$Raw_VISIT <- list(
       subjid = list(required = TRUE),
       foldername = list(required = TRUE),
       instancename = list(required = TRUE),
       visit_dt = list(required = TRUE)
-    )
-  }
-  if (!("Visit" %in% names(combined_specs))) {
-    combined_specs$Raw_VISIT <- list(
-      subjid = list(required = TRUE),
-      visit = list(
-        required = TRUE,
-        source_col = "foldername"
-      ),
-      visit_date = list(
-        required = TRUE,
-        source_col = "visit_dt"
-      ),
-      studyid = list(required = TRUE),
-      invid = list(required = TRUE)
     )
   }
   desired_order <- desired_order[desired_order %in% names(combined_specs)]
@@ -84,8 +69,8 @@ dispatch_legacy_domain_generator <- function(data_type, data, previous_data, com
     ),
     Raw_ENROLL = list(data, previous_data, combined_specs, n_enroll = n, startDate = start_date, split_vars = list("subject_to_enrollment")),
     Raw_IE = list(data, previous_data, combined_specs, n_IE = n, split_vars = list("subject_to_ie", "tiver_ietestcd_ietest_ieorres_iecat")),
-    Raw_SV = list(data, previous_data, combined_specs,
-      n = n, startDate = start_date, split_vars = list("subjid_repeated"),
+    Raw_VISIT = list(data, previous_data, combined_specs,
+      n = n, startDate = start_date, split_vars = list("subjid_repeated", "invid_repeated"),
       SnapshotWidth = SnapshotWidth
     ),
     Raw_STUDCOMP = list(data, previous_data, combined_specs, n = n, startDate = start_date, split_vars = list("subjid_invid_unique")),
@@ -101,13 +86,6 @@ dispatch_legacy_domain_generator <- function(data_type, data, previous_data, com
     Raw_Baseline   = list(data, previous_data, combined_specs, n = n, startDate = start_date),
     Raw_Consents   = list(data, previous_data, combined_specs, n = n, startDate = start_date),
     Raw_Death      = list(data, previous_data, combined_specs, n = n, startDate = start_date),
-    Raw_VISIT = list(data, previous_data, combined_specs,
-      n = n,
-      startDate = start_date,
-      SnapshotCount = SnapshotCount,
-      SnapshotWidth = SnapshotWidth,
-      split_vars = list("subjid_invid")
-    ),
     Raw_Randomization = list(data, previous_data, combined_specs,
       n = n,
       startDate = start_date,

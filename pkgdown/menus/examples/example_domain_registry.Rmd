@@ -171,7 +171,7 @@ config <- create_study_config(
   )
 
 for (ds in c("Raw_STUDY", "Raw_SITE", "Raw_SUBJ", "Raw_ENROLL",
-             "Raw_SV", "Raw_VISIT", "Raw_AE", "Raw_LB")) {
+             "Raw_VISIT", "Raw_AE", "Raw_LB")) {
   config <- add_dataset_config(config, ds, enabled = TRUE)
 }
 

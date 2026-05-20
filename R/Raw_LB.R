@@ -81,7 +81,7 @@ Raw_LB <- function(data, previous_data, spec, startDate, ...) {
   }
 
   subjs <- subjid(n, external_subjid = data$Raw_SUBJ$subjid, replace = FALSE)
-  subj_visits <- data$Raw_SV %>%
+  subj_visits <- data$Raw_VISIT %>%
     dplyr::filter(subjid %in% subjs) %>%
     dplyr::select(subjid, instancename)
 
