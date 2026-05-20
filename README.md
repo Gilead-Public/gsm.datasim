@@ -1,7 +1,23 @@
 # gsm.datasim
 
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/Gilead-BioStats/gsm.datasim/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/Gilead-BioStats/gsm.datasim/actions/workflows/R-CMD-check.yaml)
+
+<div class="pkgdown-release">
+
+[![R-CMD-check](https://github.com/Gilead-BioStats/gsm.datasim/actions/workflows/R-CMD-check.yaml/badge.svg?branch=main)](https://github.com/Gilead-BioStats/gsm.datasim/actions/workflows/R-CMD-check.yaml)
+[![test-coverage](https://github.com/Gilead-BioStats/gsm.datasim/actions/workflows/test-coverage.yaml/badge.svg?branch=main)](https://github.com/Gilead-BioStats/gsm.datasim/actions/workflows/test-coverage.yaml)
+[![pkgdown-all](https://github.com/Gilead-BioStats/gsm.datasim/actions/workflows/pkgdown-all.yaml/badge.svg?branch=main)](https://github.com/Gilead-BioStats/gsm.datasim/actions/workflows/pkgdown-all.yaml)
+
+</div>
+
+<div class="pkgdown-devel">
+
+[![R-CMD-check](https://github.com/Gilead-BioStats/gsm.datasim/actions/workflows/R-CMD-check.yaml/badge.svg?branch=dev)](https://github.com/Gilead-BioStats/gsm.datasim/actions/workflows/R-CMD-check.yaml)
+[![test-coverage](https://github.com/Gilead-BioStats/gsm.datasim/actions/workflows/test-coverage.yaml/badge.svg?branch=dev)](https://github.com/Gilead-BioStats/gsm.datasim/actions/workflows/test-coverage.yaml)
+[![pkgdown-all](https://github.com/Gilead-BioStats/gsm.datasim/actions/workflows/pkgdown-all.yaml/badge.svg?branch=dev)](https://github.com/Gilead-BioStats/gsm.datasim/actions/workflows/pkgdown-all.yaml)
+
+</div>
+
 <!-- badges: end -->
 
 ## Overview
@@ -14,16 +30,24 @@ reporting pipelines on the generated data.
 
 ## Installation
 
-```r
+You can install the latest release of gsm.datasim from [GitHub](https://github.com/) with:
+
+``` r
 # install.packages("pak")
 pak::pak("Gilead-BioStats/gsm.datasim@*release")
 ```
 
-Development version:
+<div class="pkgdown-devel">
 
-```r
+You can install the development version of gsm.datasim from
+[GitHub](https://github.com/) with:
+
+``` r
+# install.packages("pak")
 pak::pak("Gilead-BioStats/gsm.datasim")
 ```
+
+</div>
 
 ## Quick Start
 
@@ -184,11 +208,11 @@ export_study_data(
 
 ## Examples
 
-Full worked examples are in `inst/examples/` as well as in the Examples section of the website:
+Full worked examples are in the Examples section of the website:
 
-- `example_demo.Rmd` — complete walkthrough of all major features
-- `example_longitudinal.Rmd` — longitudinal data generation patterns
-- `example_domain_registry.Rmd` — extending the Domain Registry
+- `example_demo.html` — complete walkthrough of all major features
+- `example_longitudinal.html` — longitudinal data generation patterns
+- `example_domain_registry.html` — extending the Domain Registry
 
 ## Domain Registry
 
