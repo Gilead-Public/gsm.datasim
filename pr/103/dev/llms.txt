@@ -11,16 +11,21 @@ on the generated data.
 
 ## Installation
 
+You can install the latest release of gsm.datasim from
+[GitHub](https://github.com/) with:
+
 ``` r
 
 # install.packages("pak")
 pak::pak("Gilead-BioStats/gsm.datasim@*release")
 ```
 
-Development version:
+You can install the development version of gsm.datasim from
+[GitHub](https://github.com/) with:
 
 ``` r
 
+# install.packages("pak")
 pak::pak("Gilead-BioStats/gsm.datasim")
 ```
 
@@ -190,12 +195,11 @@ export_study_data(
 
 ## Examples
 
-Full worked examples are in `inst/examples/` as well as in the Examples
-section of the website:
+Full worked examples are in the Examples section of the website:
 
-- `example_demo.Rmd` — complete walkthrough of all major features
-- `example_longitudinal.Rmd` — longitudinal data generation patterns
-- `example_domain_registry.Rmd` — extending the Domain Registry
+- `example_demo.html` — complete walkthrough of all major features
+- `example_longitudinal.html` — longitudinal data generation patterns
+- `example_domain_registry.html` — extending the Domain Registry
 
 ## Domain Registry
 
