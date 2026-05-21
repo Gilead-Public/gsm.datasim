@@ -352,7 +352,7 @@ display: none;
 <h1 class="title toc-ignore">Workflow-Driven Data Generation</h1>
 <h4 class="author"><a href="https://gilead-biostats.github.io/gsm.datasim">gsm.datasim</a>
 Example</h4>
-<h4 class="date">May 21, 2026 14:15:20 UTC</h4>
+<h4 class="date">May 21, 2026 14:18:23 UTC</h4>
 
 </div>
 
@@ -467,6 +467,117 @@ raw_custom &lt;- generate_data_from_workflows(
 
 cat(&quot;Custom domain columns:\n&quot;)
 str(raw_custom$Raw_DISEASE)</code></pre>
+</div>
+<div id="on-the-fly-column-overrides" class="section level2">
+<h2>On-the-Fly Column Overrides</h2>
+<p><code>column_overrides</code> lets you add new columns or replace
+existing ones in any generated domain without modifying workflow specs
+or generator functions. Overrides are applied <strong>after</strong> the
+domain is generated, so all curated structure
+(e.g. <code>Raw_LB</code>’s test panel / subject-visit cross-join) is
+preserved.</p>
+<p>Each column value can be a function, a vector to sample from, or a
+scalar.</p>
+<div id="add-a-new-column-with-a-custom-distribution" class="section level3">
+<h3>Add a new column with a custom distribution</h3>
+<p>If a preexisting workflow spec references a column that has no named
+generator (e.g. <code>score_val</code> in an LB workflow),
+<code>gsm.datasim</code> auto-fills it via type inference. Use
+<code>column_overrides</code> when you need a specific distribution
+instead of the generic fallback.</p>
+<pre class="r"><code>raw_lb_scored &lt;- generate_data_from_workflows(
+  lWorkflows     = lWorkflows,
+  n_participants = 200,
+  column_overrides = list(
+    Raw_LB = list(
+      score_val = function(n) round(runif(n, 0, 10), 1)
+    )
+  )
+)
+
+summary(raw_lb_scored$Raw_LB$score_val)</code></pre>
+</div>
+<div id="sample-from-a-fixed-set-of-values" class="section level3">
+<h3>Sample from a fixed set of values</h3>
+<p>Pass a vector and each row is drawn with replacement.</p>
+<pre class="r"><code>raw_lb_units &lt;- generate_data_from_workflows(
+  lWorkflows     = lWorkflows,
+  n_participants = 200,
+  column_overrides = list(
+    Raw_LB = list(
+      lbstresu = c(&quot;mg/dL&quot;, &quot;mmol/L&quot;, &quot;g/L&quot;)
+    )
+  )
+)
+
+table(raw_lb_units$Raw_LB$lbstresu)</code></pre>
+</div>
+<div id="broadcast-a-scalar-to-every-row" class="section level3">
+<h3>Broadcast a scalar to every row</h3>
+<p>A length-1 value is repeated to fill all rows.</p>
+<pre class="r"><code>raw_lb_cat &lt;- generate_data_from_workflows(
+  lWorkflows     = lWorkflows,
+  n_participants = 200,
+  column_overrides = list(
+    Raw_LB = list(lbcat = &quot;CHEMISTRY&quot;)
+  )
+)
+
+unique(raw_lb_cat$Raw_LB$lbcat)</code></pre>
+</div>
+<div id="derive-a-column-from-the-generated-data-frame" class="section level3">
+<h3>Derive a column from the generated data frame</h3>
+<p>Use <code>function(n, df)</code> (two parameters) to access the
+fully-generated domain data frame and compute a column from existing
+columns.</p>
+<pre class="r"><code>raw_lb_derived &lt;- generate_data_from_workflows(
+  lWorkflows     = lWorkflows,
+  n_participants = 200,
+  column_overrides = list(
+    Raw_LB = list(
+      lbstnrhi  = function(n, df) round(df$lbstresn * 1.2, 2),
+      visit_flag = function(n, df) ifelse(df$visnam == &quot;SCREENING&quot;, &quot;S&quot;, &quot;F&quot;)
+    )
+  )
+)
+
+head(raw_lb_derived$Raw_LB[, c(&quot;lbstresn&quot;, &quot;lbstnrhi&quot;, &quot;visnam&quot;, &quot;visit_flag&quot;)])</code></pre>
+</div>
+<div id="combine-overrides-across-multiple-domains" class="section level3">
+<h3>Combine overrides across multiple domains</h3>
+<pre class="r"><code>raw_multi &lt;- generate_data_from_workflows(
+  lWorkflows     = lWorkflows,
+  n_participants = 200,
+  column_overrides = list(
+    Raw_LB = list(
+      lbcat     = &quot;CHEMISTRY&quot;,
+      score_val = function(n) round(runif(n, 0, 10), 1)
+    ),
+    Raw_AE = list(
+      severity_score = function(n) sample(1:5, n, replace = TRUE)
+    )
+  )
+)</code></pre>
+</div>
+<div id="overrides-in-multi-snapshot-mode" class="section level3">
+<h3>Overrides in multi-snapshot mode</h3>
+<p><code>column_overrides</code> are applied on every snapshot
+automatically.</p>
+<pre class="r"><code>snapshots_scored &lt;- generate_data_from_workflows(
+  lWorkflows     = lWorkflows,
+  n_participants = 200,
+  snapshot_count = 6,
+  snapshot_width = &quot;months&quot;,
+  column_overrides = list(
+    Raw_LB = list(
+      score_val = function(n) round(runif(n, 0, 10), 1)
+    )
+  )
+)
+
+# score_val is present in every snapshot
+sapply(snapshots_scored, function(s) !is.null(s$Raw_LB$score_val))</code></pre>
+</div>
 </div>
 
 

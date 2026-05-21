@@ -221,6 +221,68 @@ from previously generated domains.</p>
 <span class="r-in"><span>  desired_domains <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Raw_SUBJ"</span>, <span class="st">"Raw_AE"</span>, <span class="st">"Raw_SITE"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  domain_counts <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>Raw_AE <span class="op">=</span> <span class="fl">600</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># --- column_overrides examples -------------------------------------------</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Add a new numeric column to Raw_LB using a custom distribution.</span></span></span>
+<span class="r-in"><span><span class="co"># Workflows that reference a column with no named generator (e.g. score_val</span></span></span>
+<span class="r-in"><span><span class="co"># from a preexisting LB workflow) are auto-filled via type inference; use</span></span></span>
+<span class="r-in"><span><span class="co"># column_overrides when you need a specific distribution instead.</span></span></span>
+<span class="r-in"><span><span class="va">raw_data</span> <span class="op">&lt;-</span> <span class="fu">generate_data_from_workflows</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="va">lWorkflows</span>,</span></span>
+<span class="r-in"><span>  column_overrides <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    Raw_LB <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>      score_val <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">n</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">n</span>, <span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span>, <span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-in"><span>    <span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Sample from a fixed set of values (sampled with replacement)</span></span></span>
+<span class="r-in"><span><span class="va">raw_data</span> <span class="op">&lt;-</span> <span class="fu">generate_data_from_workflows</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="va">lWorkflows</span>,</span></span>
+<span class="r-in"><span>  column_overrides <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    Raw_LB <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>      lbstresu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mg/dL"</span>, <span class="st">"mmol/L"</span>, <span class="st">"g/L"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>    <span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Derive a column from other columns in the same domain using function(n, df).</span></span></span>
+<span class="r-in"><span><span class="co"># The second argument receives the fully-generated domain data.frame.</span></span></span>
+<span class="r-in"><span><span class="va">raw_data</span> <span class="op">&lt;-</span> <span class="fu">generate_data_from_workflows</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="va">lWorkflows</span>,</span></span>
+<span class="r-in"><span>  column_overrides <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    Raw_LB <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>      lbstnrhi  <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">n</span>, <span class="va">df</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">lbstresn</span> <span class="op">*</span> <span class="fl">1.2</span>, <span class="fl">2</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>      visit_flag <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">n</span>, <span class="va">df</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">visnam</span> <span class="op">==</span> <span class="st">"SCREENING"</span>, <span class="st">"S"</span>, <span class="st">"F"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>    <span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Broadcast a scalar to every row, and combine overrides across domains</span></span></span>
+<span class="r-in"><span><span class="va">raw_data</span> <span class="op">&lt;-</span> <span class="fu">generate_data_from_workflows</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="va">lWorkflows</span>,</span></span>
+<span class="r-in"><span>  column_overrides <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    Raw_LB <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>      lbcat     <span class="op">=</span> <span class="st">"CHEMISTRY"</span>,</span></span>
+<span class="r-in"><span>      score_val <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">n</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">n</span>, <span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span>, <span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-in"><span>    <span class="op">)</span>,</span></span>
+<span class="r-in"><span>    Raw_AE <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>      severity_score <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">n</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="va">n</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span>    <span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># column_overrides also apply on every snapshot in multi-snapshot mode</span></span></span>
+<span class="r-in"><span><span class="va">snapshots</span> <span class="op">&lt;-</span> <span class="fu">generate_data_from_workflows</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="va">lWorkflows</span>,</span></span>
+<span class="r-in"><span>  snapshot_count <span class="op">=</span> <span class="fl">6</span>,</span></span>
+<span class="r-in"><span>  column_overrides <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    Raw_LB <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>      score_val <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">n</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">n</span>, <span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span>, <span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-in"><span>    <span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>

@@ -181,5 +181,67 @@ raw_data <- generate_data_from_workflows(
   desired_domains = c("Raw_SUBJ", "Raw_AE", "Raw_SITE"),
   domain_counts = list(Raw_AE = 600)
 )
+
+# --- column_overrides examples -------------------------------------------
+
+# Add a new numeric column to Raw_LB using a custom distribution.
+# Workflows that reference a column with no named generator (e.g. score_val
+# from a preexisting LB workflow) are auto-filled via type inference; use
+# column_overrides when you need a specific distribution instead.
+raw_data <- generate_data_from_workflows(
+  lWorkflows,
+  column_overrides = list(
+    Raw_LB = list(
+      score_val = function(n) round(runif(n, 0, 10), 1)
+    )
+  )
+)
+
+# Sample from a fixed set of values (sampled with replacement)
+raw_data <- generate_data_from_workflows(
+  lWorkflows,
+  column_overrides = list(
+    Raw_LB = list(
+      lbstresu = c("mg/dL", "mmol/L", "g/L")
+    )
+  )
+)
+
+# Derive a column from other columns in the same domain using function(n, df).
+# The second argument receives the fully-generated domain data.frame.
+raw_data <- generate_data_from_workflows(
+  lWorkflows,
+  column_overrides = list(
+    Raw_LB = list(
+      lbstnrhi  = function(n, df) round(df$lbstresn * 1.2, 2),
+      visit_flag = function(n, df) ifelse(df$visnam == "SCREENING", "S", "F")
+    )
+  )
+)
+
+# Broadcast a scalar to every row, and combine overrides across domains
+raw_data <- generate_data_from_workflows(
+  lWorkflows,
+  column_overrides = list(
+    Raw_LB = list(
+      lbcat     = "CHEMISTRY",
+      score_val = function(n) round(runif(n, 0, 10), 1)
+    ),
+    Raw_AE = list(
+      severity_score = function(n) sample(1:5, n, replace = TRUE)
+    )
+  )
+)
+
+# column_overrides also apply on every snapshot in multi-snapshot mode
+snapshots <- generate_data_from_workflows(
+  lWorkflows,
+  snapshot_count = 6,
+  column_overrides = list(
+    Raw_LB = list(
+      score_val = function(n) round(runif(n, 0, 10), 1)
+    )
+  )
+)
 } # }
 ```
