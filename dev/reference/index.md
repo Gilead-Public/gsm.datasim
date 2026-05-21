@@ -26,6 +26,10 @@
   : Export Complete Study Data to Disk
 - [`generate_analytics_layers()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_analytics_layers.md)
   : Generate analytics layers from raw data
+- [`generate_column_by_type()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_column_by_type.md)
+  : Generate a Single Column by Inferred Type
+- [`generate_data_from_workflows()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_data_from_workflows.md)
+  : Generate Raw Data from Workflow Specifications
 - [`generate_raw_data_for_endpoints()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_raw_data_for_endpoints.md)
   : Generate raw data for endpoints study (multi-package)
 - [`generate_raw_data_from_config()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_raw_data_from_config.md)
@@ -36,6 +40,8 @@
   : Generate study data with configuration
 - [`generate_study_snapshots()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_study_snapshots.md)
   : Generate study data across multiple snapshots
+- [`generate_unknown_domain()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_unknown_domain.md)
+  : Generate Data for an Unknown Domain
 - [`get_available_domains()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/get_available_domains.md)
   : Get Available Domain Names
 - [`get_domain_registry()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/get_domain_registry.md)
@@ -68,6 +74,9 @@
   : Set Temporal Configuration
 - [`study_config_examples`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/study_config_examples.md)
   : Example of config interface usage
+- [`study_portfolio()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/study_portfolio.md)
+  : Create a portfolio of studies from a base config and per-study
+  variants
 - [`summarize_longitudinal_study()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/summarize_longitudinal_study.md)
   : Get Summary of Longitudinal Study
 - [`summary(`*`<multiple_longitudinal_studies>`*`)`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/summary.multiple_longitudinal_studies.md)

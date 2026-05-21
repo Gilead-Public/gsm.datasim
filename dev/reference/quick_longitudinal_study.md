@@ -12,7 +12,7 @@ quick_longitudinal_study(
   sites = 150,
   months_duration = 24,
   study_type = "standard",
-  include_pipeline = TRUE,
+  include_pipeline = FALSE,
   outlier_intensity = 1,
   verbose = FALSE
 )
@@ -43,7 +43,7 @@ quick_longitudinal_study(
 - include_pipeline:
 
   Whether to run both the analytics and reporting pipelines (default
-  TRUE)
+  FALSE)
 
 - outlier_intensity:
 

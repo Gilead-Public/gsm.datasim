@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Setting up Clinical Studies with gsm.datasim • gsm.datasim</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Setting up Clinical Studies with gsm.datasim">
 <meta name="robots" content="noindex">
@@ -39,15 +39,17 @@
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-examples" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Examples</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-examples">
 <li><a class="dropdown-item" href="../examples/example_demo.html">gsm.datasim Demo</a></li>
     <li><a class="dropdown-item" href="../examples/example_longitudinal.html">Longitudinal Data Generation</a></li>
     <li><a class="dropdown-item" href="../examples/example_domain_registry.html">Domain Registry</a></li>
+    <li><a class="dropdown-item" href="../examples/example_multiple_studies.html">Generating Multiple Studies</a></li>
+    <li><a class="dropdown-item" href="../examples/example_workflow_driven.html">Workflow-Driven Data Generation</a></li>
   </ul>
 </li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -223,9 +225,10 @@ study.</p>
 <h3 id="basic-longitudinal-study">Basic Longitudinal Study<a class="anchor" aria-label="anchor" href="#basic-longitudinal-study"></a>
 </h3>
 <p>The <code><a href="../reference/create_longitudinal_study.html">create_longitudinal_study()</a></code> function provides the
-easiest way to set up a longitudinal study. By default it runs the
-analytics pipeline; set <code>run_reporting = TRUE</code> to also run
-the reporting pipeline:</p>
+easiest way to set up a longitudinal study. By default only raw data is
+generated; set <code>run_analytics = TRUE</code> to run the analytics
+pipeline and <code>run_reporting = TRUE</code> to also run the reporting
+pipeline:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create a longitudinal study with default settings</span></span>
 <span><span class="va">study</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_longitudinal_study.html">create_longitudinal_study</a></span><span class="op">(</span></span>
@@ -345,8 +348,9 @@ studies:</p>
 <h3 id="quick-study-creation">Quick Study Creation<a class="anchor" aria-label="anchor" href="#quick-study-creation"></a>
 </h3>
 <p>For rapid prototyping, use the
-<code><a href="../reference/quick_longitudinal_study.html">quick_longitudinal_study()</a></code> function. Both analytics and
-reporting run by default when <code>include_pipeline = TRUE</code>:</p>
+<code><a href="../reference/quick_longitudinal_study.html">quick_longitudinal_study()</a></code> function. Pass
+<code>include_pipeline = TRUE</code> to run both the analytics and
+reporting pipelines:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create a study with sensible defaults — analytics and reporting both run by default</span></span>
 <span><span class="va">quick_study</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/quick_longitudinal_study.html">quick_longitudinal_study</a></span><span class="op">(</span></span>
@@ -355,7 +359,7 @@ reporting run by default when <code>include_pipeline = TRUE</code>:</p>
 <span>  sites <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  months_duration <span class="op">=</span> <span class="fl">18</span>,             <span class="co"># 18-month study</span></span>
 <span>  study_type <span class="op">=</span> <span class="st">"standard"</span>,</span>
-<span>  include_pipeline <span class="op">=</span> <span class="cn">TRUE</span>,          <span class="co"># default: runs analytics + reporting</span></span>
+<span>  include_pipeline <span class="op">=</span> <span class="cn">TRUE</span>,          <span class="co"># runs analytics + reporting</span></span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
