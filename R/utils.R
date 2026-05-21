@@ -242,8 +242,33 @@ add_new_var_data <- function(dataset, vars, args, orig_curr_spec, ...) {
       }
     }
 
-    # Generate data using the generator function
-    do.call(generator_func, curr_args)
+    # Generate data using the generator function.
+    # If no function with this name exists (e.g. a new spec column like
+    # `score_val` in Raw_LB from a preexisting workflow), fall back to
+    # type-based generation via generate_column_by_type so that the parent
+    # generator (registry or legacy) can still produce a structurally correct
+    # dataset with the extra column auto-filled.
+    tryCatch(
+      do.call(generator_func, curr_args),
+      error = function(e) {
+        if (grepl("could not find function", conditionMessage(e), fixed = TRUE)) {
+          n_val <- curr_args[[1L]]
+          if (!is.numeric(n_val) || length(n_val) != 1L) {
+            n_val <- tryCatch(nrow(curr_args[[1L]]), error = function(e2) 1L)
+          }
+          logger::log_debug(
+            "No generator function '{var_name}' found; using type-based fallback (n = {n_val})"
+          )
+          generate_column_by_type(
+            var_name,
+            orig_curr_spec[[var_name]] %||% list(),
+            as.integer(n_val)
+          )
+        } else {
+          stop(e)
+        }
+      }
+    )
   })
 
 

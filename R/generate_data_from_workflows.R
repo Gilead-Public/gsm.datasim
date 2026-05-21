@@ -36,6 +36,29 @@
 #'   default based on heuristic multipliers of `n_participants`.
 #' @param desired_domains Optional character vector of domain names to generate.
 #'   `NULL` (default) generates all `Raw_*` domains found in the spec.
+#' @param column_overrides Optional named list for specifying or overriding
+#'   individual columns in already-generated domains. The top-level names are
+#'   domain names (e.g. `"Raw_LB"`); each element is itself a named list whose
+#'   names are column names. Each column value can be:
+#'   \describe{
+#'     \item{A function `function(n, df)`}{Called with the row count and the
+#'       fully-generated domain `data.frame`. Use this to derive a column from
+#'       other columns in the same domain (e.g. computing a ratio).}
+#'     \item{A function `function(n)`}{Called with just the row count. Useful
+#'       for custom distributions or categorical values.}
+#'     \item{A vector}{Sampled with replacement to fill `n` rows.}
+#'     \item{A scalar}{Repeated to fill all `n` rows.}
+#'   }
+#'   Example:
+#'   \preformatted{
+#'   column_overrides = list(
+#'     Raw_LB = list(
+#'       score_val  = function(n)    round(runif(n, 0, 10), 1),
+#'       lbstresu   = c("mg/dL", "mmol/L", "g/L"),
+#'       visit_flag = function(n, df) ifelse(df$visnam == "SCREENING", "S", "F")
+#'     )
+#'   )
+#'   }
 #'
 #' @return When `snapshot_count == 1`, a named list of `data.frame`s (one per
 #'   domain). When `snapshot_count > 1`, a named list of snapshots keyed by
@@ -94,7 +117,8 @@ generate_data_from_workflows <- function(
   snapshot_count = 1L,
   snapshot_width = "months",
   domain_counts = NULL,
-  desired_domains = NULL
+  desired_domains = NULL,
+  column_overrides = NULL
 ) {
   # -- Validate inputs -------------------------------------------------------
   workflow_names <- names(lWorkflows)
@@ -146,16 +170,17 @@ generate_data_from_workflows <- function(
   if (snapshot_count <= 1L) {
     return(
       .generate_single_snapshot(
-        combined_specs = combined_specs,
-        domain_n       = domain_max_n,
-        registry       = registry,
-        start_date     = start_date,
-        end_date       = end_date,
-        snapshot_idx   = 1L,
-        snapshot_count = 1L,
-        snapshot_width = snapshot_width,
-        study_id       = study_id,
-        previous_data  = list()
+        combined_specs   = combined_specs,
+        domain_n         = domain_max_n,
+        registry         = registry,
+        start_date       = start_date,
+        end_date         = end_date,
+        snapshot_idx     = 1L,
+        snapshot_count   = 1L,
+        snapshot_width   = snapshot_width,
+        study_id         = study_id,
+        previous_data    = list(),
+        column_overrides = column_overrides
       )
     )
   }
@@ -190,16 +215,17 @@ generate_data_from_workflows <- function(
     )
 
     snapshot_data <- .generate_single_snapshot(
-      combined_specs = combined_specs,
-      domain_n       = domain_n_this,
-      registry       = registry,
-      start_date     = snapshot_start_dates[snapshot_idx],
-      end_date       = snapshot_end_dates[snapshot_idx],
-      snapshot_idx   = snapshot_idx,
-      snapshot_count = snapshot_count,
-      snapshot_width = snapshot_width,
-      study_id       = study_id,
-      previous_data  = previous_data
+      combined_specs   = combined_specs,
+      domain_n         = domain_n_this,
+      registry         = registry,
+      start_date       = snapshot_start_dates[snapshot_idx],
+      end_date         = snapshot_end_dates[snapshot_idx],
+      snapshot_idx     = snapshot_idx,
+      snapshot_count   = snapshot_count,
+      snapshot_width   = snapshot_width,
+      study_id         = study_id,
+      previous_data    = previous_data,
+      column_overrides = column_overrides
     )
 
     snapshots[[snapshot_idx]] <- snapshot_data
@@ -224,7 +250,8 @@ generate_data_from_workflows <- function(
 .generate_single_snapshot <- function(combined_specs, domain_n, registry,
                                       start_date, end_date,
                                       snapshot_idx, snapshot_count, snapshot_width,
-                                      study_id, previous_data) {
+                                      study_id, previous_data,
+                                      column_overrides = NULL) {
   data <- list()
 
   for (domain in names(combined_specs)) {
@@ -261,6 +288,7 @@ generate_data_from_workflows <- function(
 
     if (!is.null(registry_result)) {
       data[[domain]] <- as.data.frame(registry_result)
+      data[[domain]] <- .apply_column_overrides(data[[domain]], domain, column_overrides)
       logger::log_info("{domain} generated via domain registry ({nrow(data[[domain]])} rows)")
       next
     }
@@ -284,6 +312,7 @@ generate_data_from_workflows <- function(
 
       if (!is.null(legacy_result)) {
         data[[domain]] <- as.data.frame(legacy_result)
+        data[[domain]] <- .apply_column_overrides(data[[domain]], domain, column_overrides)
         logger::log_info("{domain} generated via legacy function ({nrow(data[[domain]])} rows)")
         next
       }
@@ -303,10 +332,54 @@ generate_data_from_workflows <- function(
       context       = fallback_context,
       previous_data = previous_data[[domain]]
     )
+    data[[domain]] <- .apply_column_overrides(data[[domain]], domain, column_overrides)
     logger::log_info("{domain} generated via type-based fallback ({nrow(data[[domain]])} rows)")
   }
 
   data
+}
+
+#' Apply Column Overrides to a Generated Domain Data Frame
+#'
+#' Post-processes a domain `data.frame` by applying user-supplied column
+#' specifications from `column_overrides`. Columns may be added (if new) or
+#' replaced (if already present).
+#'
+#' Each column value in the override list can be:
+#' * A **function** with signature `function(n, df)` — receives row count and the
+#'   full domain `data.frame`; useful for deriving values from other columns.
+#' * A **function** with signature `function(n)` — receives only the row count.
+#' * A **vector** — sampled with replacement to `n` rows.
+#' * A **scalar** — repeated to fill all `n` rows.
+#'
+#' @keywords internal
+.apply_column_overrides <- function(df, domain, column_overrides) {
+  if (is.null(column_overrides) || !domain %in% names(column_overrides)) return(df)
+
+  overrides <- column_overrides[[domain]]
+  n <- nrow(df)
+
+  for (col_name in names(overrides)) {
+    spec <- overrides[[col_name]]
+
+    col_vals <- if (is.function(spec)) {
+      params <- names(formals(spec))
+      if (length(params) >= 2) {
+        spec(n, df)
+      } else {
+        spec(n)
+      }
+    } else if (length(spec) == 1) {
+      rep(spec, n)
+    } else {
+      sample(spec, n, replace = TRUE)
+    }
+
+    df[[col_name]] <- col_vals
+    logger::log_debug("Column override applied: {domain}${col_name}")
+  }
+
+  df
 }
 
 #' Resolve Row Counts for Each Domain
