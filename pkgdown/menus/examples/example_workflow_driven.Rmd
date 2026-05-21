@@ -139,3 +139,126 @@ raw_custom <- generate_data_from_workflows(
 cat("Custom domain columns:\n")
 str(raw_custom$Raw_DISEASE)
 ```
+
+## On-the-Fly Column Overrides
+
+`column_overrides` lets you add new columns or replace existing ones in any
+generated domain without modifying workflow specs or generator functions.
+Overrides are applied **after** the domain is generated, so all curated
+structure (e.g. `Raw_LB`'s test panel / subject-visit cross-join) is preserved.
+
+Each column value can be a function, a vector to sample from, or a scalar.
+
+### Add a new column with a custom distribution
+
+If a preexisting workflow spec references a column that has no named generator
+(e.g. `score_val` in an LB workflow), `gsm.datasim` auto-fills it via
+type inference. Use `column_overrides` when you need a specific distribution
+instead of the generic fallback.
+
+```{r overrides-function}
+raw_lb_scored <- generate_data_from_workflows(
+  lWorkflows     = lWorkflows,
+  n_participants = 200,
+  column_overrides = list(
+    Raw_LB = list(
+      score_val = function(n) round(runif(n, 0, 10), 1)
+    )
+  )
+)
+
+summary(raw_lb_scored$Raw_LB$score_val)
+```
+
+### Sample from a fixed set of values
+
+Pass a vector and each row is drawn with replacement.
+
+```{r overrides-vector}
+raw_lb_units <- generate_data_from_workflows(
+  lWorkflows     = lWorkflows,
+  n_participants = 200,
+  column_overrides = list(
+    Raw_LB = list(
+      lbstresu = c("mg/dL", "mmol/L", "g/L")
+    )
+  )
+)
+
+table(raw_lb_units$Raw_LB$lbstresu)
+```
+
+### Broadcast a scalar to every row
+
+A length-1 value is repeated to fill all rows.
+
+```{r overrides-scalar}
+raw_lb_cat <- generate_data_from_workflows(
+  lWorkflows     = lWorkflows,
+  n_participants = 200,
+  column_overrides = list(
+    Raw_LB = list(lbcat = "CHEMISTRY")
+  )
+)
+
+unique(raw_lb_cat$Raw_LB$lbcat)
+```
+
+### Derive a column from the generated data frame
+
+Use `function(n, df)` (two parameters) to access the fully-generated domain
+data frame and compute a column from existing columns.
+
+```{r overrides-derive}
+raw_lb_derived <- generate_data_from_workflows(
+  lWorkflows     = lWorkflows,
+  n_participants = 200,
+  column_overrides = list(
+    Raw_LB = list(
+      lbstnrhi  = function(n, df) round(df$lbstresn * 1.2, 2),
+      visit_flag = function(n, df) ifelse(df$visnam == "SCREENING", "S", "F")
+    )
+  )
+)
+
+head(raw_lb_derived$Raw_LB[, c("lbstresn", "lbstnrhi", "visnam", "visit_flag")])
+```
+
+### Combine overrides across multiple domains
+
+```{r overrides-multi}
+raw_multi <- generate_data_from_workflows(
+  lWorkflows     = lWorkflows,
+  n_participants = 200,
+  column_overrides = list(
+    Raw_LB = list(
+      lbcat     = "CHEMISTRY",
+      score_val = function(n) round(runif(n, 0, 10), 1)
+    ),
+    Raw_AE = list(
+      severity_score = function(n) sample(1:5, n, replace = TRUE)
+    )
+  )
+)
+```
+
+### Overrides in multi-snapshot mode
+
+`column_overrides` are applied on every snapshot automatically.
+
+```{r overrides-longitudinal}
+snapshots_scored <- generate_data_from_workflows(
+  lWorkflows     = lWorkflows,
+  n_participants = 200,
+  snapshot_count = 6,
+  snapshot_width = "months",
+  column_overrides = list(
+    Raw_LB = list(
+      score_val = function(n) round(runif(n, 0, 10), 1)
+    )
+  )
+)
+
+# score_val is present in every snapshot
+sapply(snapshots_scored, function(s) !is.null(s$Raw_LB$score_val))
+```
