@@ -183,7 +183,7 @@ validate_study_config <- function(config) {
 #' @param adverse_events Include adverse event data
 #' @param protocol_deviations Include protocol deviation data
 #' @param lab_data Include laboratory data
-#' @param subject_visits Include subject visit data (Raw_SV)
+#' @param subject_visits Include subject visit data (Raw_VISIT)
 #' @param visit_schedule Include visit schedule data (Raw_VISIT)
 #' @param enrollment Include enrollment data
 #' @param data_changes Include data change tracking (Raw_DATACHG)
@@ -233,8 +233,7 @@ create_standard_study_config <- function(study_id = "STUDY001", participant_coun
   if (adverse_events) config <- add_dataset_config(config, "Raw_AE", enabled = TRUE)
   if (protocol_deviations) config <- add_dataset_config(config, "Raw_PD", enabled = TRUE)
   if (lab_data) config <- add_dataset_config(config, "Raw_LB", enabled = TRUE)
-  if (subject_visits) config <- add_dataset_config(config, "Raw_SV", enabled = TRUE)
-  if (visit_schedule) config <- add_dataset_config(config, "Raw_VISIT", enabled = TRUE)
+  if (subject_visits || visit_schedule) config <- add_dataset_config(config, "Raw_VISIT", enabled = TRUE)
   if (enrollment) config <- add_dataset_config(config, "Raw_ENROLL", enabled = TRUE)
   if (data_changes) config <- add_dataset_config(config, "Raw_DATACHG", enabled = TRUE)
   if (data_entry) config <- add_dataset_config(config, "Raw_DATAENT", enabled = TRUE)
@@ -266,7 +265,6 @@ create_standard_study_config <- function(study_id = "STUDY001", participant_coun
 #'                       factor <- snapshot_idx / config$temporal_config$snapshot_count
 #'                       round(base_count * factor)
 #'                     }) %>%
-#'   add_dataset_config("Raw_SV", enabled = TRUE) %>%
 #'   add_dataset_config("Raw_VISIT", enabled = TRUE)
 #' study_data <- generate_study_data(config)
 #'

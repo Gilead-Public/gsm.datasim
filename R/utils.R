@@ -17,6 +17,215 @@ combination_var_splitter <- function(variable_data, split_vars) {
 }
 
 
+get_outlier_intensity <- function() {
+  intensity <- getOption("gsm.datasim.outlier_intensity", default = 1)
+  if (!is.numeric(intensity) || length(intensity) != 1 || is.na(intensity)) {
+    return(1)
+  }
+  max(0, intensity)
+}
+
+
+scale_outlier_probabilities <- function(prob, outlier_idx, intensity = get_outlier_intensity()) {
+  if (length(prob) == 0) {
+    return(prob)
+  }
+
+  total_prob <- sum(prob)
+  if (total_prob <= 0) {
+    return(prob)
+  }
+
+  # Work with normalized probabilities and reapply original total at the end.
+  p <- prob / total_prob
+  valid_outlier_idx <- unique(outlier_idx[outlier_idx >= 1 & outlier_idx <= length(p)])
+
+  if (length(valid_outlier_idx) == 0 || intensity == 1) {
+    return(p * total_prob)
+  }
+
+  non_outlier_idx <- setdiff(seq_along(p), valid_outlier_idx)
+  outlier_mass <- sum(p[valid_outlier_idx])
+  non_outlier_mass <- sum(p[non_outlier_idx])
+
+  if (outlier_mass <= 0 || non_outlier_mass <= 0) {
+    return(p * total_prob)
+  }
+
+  # Use odds scaling (with a stronger boost for intensity > 1) so low-baseline
+  # outlier categories move enough to impact downstream flagging.
+  effective_intensity <- if (intensity <= 1) intensity else intensity^2
+  outlier_odds <- outlier_mass / non_outlier_mass
+  scaled_outlier_odds <- outlier_odds * effective_intensity
+  target_outlier_mass <- scaled_outlier_odds / (1 + scaled_outlier_odds)
+
+  p[valid_outlier_idx] <- p[valid_outlier_idx] * (target_outlier_mass / outlier_mass)
+  p[non_outlier_idx] <- p[non_outlier_idx] * ((1 - target_outlier_mass) / non_outlier_mass)
+
+  p * total_prob
+}
+
+
+generate_zscore_outlier_values <- function(n,
+                                           mean,
+                                           sd,
+                                           min_value = -Inf,
+                                           max_value = Inf,
+                                           intensity = get_outlier_intensity(),
+                                           one_sided = TRUE,
+                                           integer = TRUE) {
+  if (n <= 0) {
+    return(numeric(0))
+  }
+
+  base <- stats::rnorm(n, mean = mean, sd = sd)
+
+  if (intensity > 1) {
+    outlier_fraction <- min(0.35, 0.02 * (intensity^1.4))
+    n_outliers <- max(1L, floor(n * outlier_fraction))
+    outlier_idx <- sample.int(n, n_outliers, replace = FALSE)
+
+    z_magnitude <- stats::rnorm(
+      n_outliers,
+      mean = 2.8 + 0.6 * log(intensity),
+      sd = 0.45
+    )
+
+    z_sign <- if (isTRUE(one_sided)) {
+      rep(1, n_outliers)
+    } else {
+      sample(c(-1, 1), n_outliers, replace = TRUE)
+    }
+
+    base[outlier_idx] <- mean + (z_magnitude * z_sign * sd)
+  }
+
+  base <- pmin(pmax(base, min_value), max_value)
+  if (isTRUE(integer)) {
+    return(as.integer(round(base)))
+  }
+  base
+}
+
+
+inject_site_hotspot_outliers <- function(values,
+                                         row_keys,
+                                         key_map,
+                                         key_col = "subject_nsv",
+                                         site_col = "invid",
+                                         intensity = get_outlier_intensity(),
+                                         min_z = 3) {
+  if (length(values) == 0 || intensity <= 1) {
+    return(values)
+  }
+
+  if (is.null(key_map) || !(key_col %in% names(key_map)) || !(site_col %in% names(key_map))) {
+    return(values)
+  }
+
+  # Map each generated row to a site via row key (e.g., subject_nsv -> invid).
+  map_idx <- match(row_keys, key_map[[key_col]])
+  row_sites <- key_map[[site_col]][map_idx]
+  valid_idx <- which(!is.na(row_sites))
+  if (length(valid_idx) == 0) {
+    return(values)
+  }
+
+  unique_sites <- unique(row_sites[valid_idx])
+  n_sites <- length(unique_sites)
+  if (n_sites == 0) {
+    return(values)
+  }
+
+  hotspot_frac <- min(0.25, max(0.05, 0.04 * intensity))
+  n_hotspots <- max(1L, floor(n_sites * hotspot_frac))
+  hotspot_sites <- sample(unique_sites, n_hotspots, replace = FALSE)
+  hotspot_idx <- which(row_sites %in% hotspot_sites)
+  if (length(hotspot_idx) == 0) {
+    return(values)
+  }
+
+  base_sd <- stats::sd(values, na.rm = TRUE)
+  if (is.na(base_sd) || base_sd <= 0) {
+    base_sd <- 1
+  }
+
+  # Push hotspot rows into the 3+ SD tail to trigger z-score style flaggers.
+  shift_mean <- max(min_z, 2 + intensity) * base_sd
+  values[hotspot_idx] <- values[hotspot_idx] + abs(stats::rnorm(
+    length(hotspot_idx),
+    mean = shift_mean,
+    sd = 0.4 * base_sd
+  ))
+
+  values
+}
+
+
+sample_categorical_with_hotspots <- function(values,
+                                             n,
+                                             base_prob,
+                                             outlier_idx,
+                                             row_keys = NULL,
+                                             key_map = NULL,
+                                             key_col = "subjid",
+                                             site_col = "invid",
+                                             intensity = get_outlier_intensity()) {
+  if (n <= 0) {
+    return(values[integer(0)])
+  }
+
+  base_prob <- scale_outlier_probabilities(base_prob, outlier_idx = outlier_idx, intensity = intensity)
+  baseline_draw <- sample(values, n, replace = TRUE, prob = base_prob)
+
+  if (intensity <= 1 || is.null(row_keys) || is.null(key_map) ||
+      !(key_col %in% names(key_map)) || !(site_col %in% names(key_map))) {
+    return(baseline_draw)
+  }
+
+  map_idx <- match(row_keys, key_map[[key_col]])
+  row_sites <- key_map[[site_col]][map_idx]
+  valid_idx <- which(!is.na(row_sites))
+  if (length(valid_idx) == 0) {
+    return(baseline_draw)
+  }
+
+  unique_sites <- unique(row_sites[valid_idx])
+  hotspot_frac <- min(0.25, max(0.05, 0.04 * intensity))
+  n_hotspots <- max(1L, floor(length(unique_sites) * hotspot_frac))
+  hotspot_sites <- sample(unique_sites, n_hotspots, replace = FALSE)
+  hotspot_idx <- which(row_sites %in% hotspot_sites)
+  if (length(hotspot_idx) == 0) {
+    return(baseline_draw)
+  }
+
+  p <- base_prob / sum(base_prob)
+  out_idx <- unique(outlier_idx[outlier_idx >= 1 & outlier_idx <= length(p)])
+  non_idx <- setdiff(seq_along(p), out_idx)
+  if (length(out_idx) == 0 || length(non_idx) == 0) {
+    return(baseline_draw)
+  }
+
+  out_mass <- sum(p[out_idx])
+  non_mass <- sum(p[non_idx])
+  if (out_mass <= 0 || non_mass <= 0) {
+    return(baseline_draw)
+  }
+
+  boost <- intensity^2
+  out_odds <- out_mass / non_mass
+  boosted_out_mass <- (out_odds * boost) / (1 + out_odds * boost)
+  boosted_out_mass <- min(0.995, boosted_out_mass)
+
+  p_hot <- p
+  p_hot[out_idx] <- p_hot[out_idx] * (boosted_out_mass / out_mass)
+  p_hot[non_idx] <- p_hot[non_idx] * ((1 - boosted_out_mass) / non_mass)
+
+  baseline_draw[hotspot_idx] <- sample(values, length(hotspot_idx), replace = TRUE, prob = p_hot)
+  baseline_draw
+}
+
+
 add_new_var_data <- function(dataset, vars, args, orig_curr_spec, ...) {
   internal_args <- list(...)
 
@@ -33,8 +242,33 @@ add_new_var_data <- function(dataset, vars, args, orig_curr_spec, ...) {
       }
     }
 
-    # Generate data using the generator function
-    do.call(generator_func, curr_args)
+    # Generate data using the generator function.
+    # If no function with this name exists (e.g. a new spec column like
+    # `score_val` in Raw_LB from a preexisting workflow), fall back to
+    # type-based generation via generate_column_by_type so that the parent
+    # generator (registry or legacy) can still produce a structurally correct
+    # dataset with the extra column auto-filled.
+    tryCatch(
+      do.call(generator_func, curr_args),
+      error = function(e) {
+        if (grepl("could not find function", conditionMessage(e), fixed = TRUE)) {
+          n_val <- curr_args[[1L]]
+          if (!is.numeric(n_val) || length(n_val) != 1L) {
+            n_val <- tryCatch(nrow(curr_args[[1L]]), error = function(e2) 1L)
+          }
+          logger::log_debug(
+            "No generator function '{var_name}' found; using type-based fallback (n = {n_val})"
+          )
+          generate_column_by_type(
+            var_name,
+            orig_curr_spec[[var_name]] %||% list(),
+            as.integer(n_val)
+          )
+        } else {
+          stop(e)
+        }
+      }
+    )
   })
 
 
@@ -179,8 +413,8 @@ generate_consecutive_random_dates <- function(n, start_date, mean_days_between_d
   prev_date <- start_date
 
   for (i in seq_len(n)) {
-    # Define the date range
-    min_date <- prev_date
+    # Define the date range (start one day after previous to guarantee unique dates)
+    min_date <- prev_date + 1
     max_date <- prev_date + mean_days_between_dates
     # Generate a random date within the range
     random_date <- as.Date(sample(seq(min_date, max_date, by = "day"), 1), origin = "1970-01-01")

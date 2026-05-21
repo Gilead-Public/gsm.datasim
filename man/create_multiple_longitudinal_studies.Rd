@@ -11,7 +11,7 @@ create_multiple_longitudinal_studies(
   snapshots = 5,
   interval = "1 month",
   domains = c("AE", "LB", "VISIT"),
-  run_analytics = TRUE,
+  run_analytics = FALSE,
   analytics_package = NULL,
   analytics_workflows = NULL,
   run_reporting = FALSE,
@@ -41,7 +41,7 @@ applied to all studies or a vector of values per study.}
 \item{domains}{Clinical domains to include (default c("AE", "LB", "VISIT")).
 Applied to all studies unless overridden in study_configs.}
 
-\item{run_analytics}{Whether to run the analytics pipeline (default TRUE)}
+\item{run_analytics}{Whether to run the analytics pipeline (default FALSE)}
 
 \item{analytics_package}{Package containing workflows (optional)}
 

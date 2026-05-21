@@ -58,6 +58,7 @@ Raw_PK <- function(data, previous_data, spec, ...) {
   args <- list(
     subjid_visit_pkdat = list(nrow(possible_visits), subjs, data$Raw_VISIT),
     studyid = list(n, data$Raw_STUDY$protocol_number[[1]]),
+    pkperf = list(n, subjs, possible_visits, data$Raw_SUBJ),
     default = list(n, subjs, possible_visits)
   )
 
@@ -70,8 +71,17 @@ pktpt <- function(n, subjs, possible_visits, ...) {
   rep(possible_visits$pktpt, length(subjs))
 }
 
-pkperf <- function(n, subjs, possible_visits, ...) {
-  sample(c("Yes", "No"), length(subjs), replace = TRUE, prob = c(0.95, 0.05))
+pkperf <- function(n, subjs, possible_visits, Raw_SUBJ_data = NULL, ...) {
+  sample_categorical_with_hotspots(
+    values = c("Yes", "No"),
+    n = length(subjs),
+    base_prob = c(0.95, 0.05),
+    outlier_idx = 2,
+    row_keys = subjs,
+    key_map = Raw_SUBJ_data,
+    key_col = "subjid",
+    site_col = "invid"
+  )
 }
 
 subjid_visit_pkdat <- function(n, subjs, visit_data, ...) {

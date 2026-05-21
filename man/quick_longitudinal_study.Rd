@@ -10,7 +10,7 @@ quick_longitudinal_study(
   sites = 150,
   months_duration = 24,
   study_type = "standard",
-  include_pipeline = TRUE,
+  include_pipeline = FALSE,
   outlier_intensity = 1,
   verbose = FALSE
 )
@@ -26,7 +26,7 @@ quick_longitudinal_study(
 
 \item{study_type}{Type of study - "standard" or "endpoints"}
 
-\item{include_pipeline}{Whether to run both the analytics and reporting pipelines (default TRUE)}
+\item{include_pipeline}{Whether to run both the analytics and reporting pipelines (default FALSE)}
 
 \item{outlier_intensity}{Global multiplier for outlier-like values in domain generators.}
 

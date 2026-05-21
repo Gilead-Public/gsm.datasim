@@ -57,7 +57,7 @@ create_standard_study_config(
 
 \item{lab_data}{Include laboratory data}
 
-\item{subject_visits}{Include subject visit data (Raw_SV)}
+\item{subject_visits}{Include subject visit data (Raw_VISIT)}
 
 \item{visit_schedule}{Include visit schedule data (Raw_VISIT)}
 
