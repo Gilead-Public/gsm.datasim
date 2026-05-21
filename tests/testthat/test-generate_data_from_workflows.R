@@ -452,3 +452,267 @@ test_that("generate_unknown_domain returns previous_data when delta <= 0", {
   expect_equal(nrow(result), 10)
   expect_equal(result, initial)
 })
+
+# ── .apply_column_overrides ───────────────────────────────────────────────────
+
+test_that(".apply_column_overrides returns df unchanged when overrides is NULL", {
+  df <- data.frame(a = 1:5, b = letters[1:5], stringsAsFactors = FALSE)
+  result <- .apply_column_overrides(df, "Raw_X", NULL)
+  expect_equal(result, df)
+})
+
+test_that(".apply_column_overrides returns df unchanged when domain not in overrides", {
+  df <- data.frame(a = 1:5, stringsAsFactors = FALSE)
+  overrides <- list(Raw_OTHER = list(a = function(n) rep(99L, n)))
+  result <- .apply_column_overrides(df, "Raw_X", overrides)
+  expect_equal(result, df)
+})
+
+test_that(".apply_column_overrides adds new column via function(n)", {
+  df <- data.frame(a = 1:10, stringsAsFactors = FALSE)
+  overrides <- list(Raw_X = list(score = function(n) rep(7.5, n)))
+  result <- .apply_column_overrides(df, "Raw_X", overrides)
+  expect_true("score" %in% names(result))
+  expect_equal(result$score, rep(7.5, 10))
+})
+
+test_that(".apply_column_overrides replaces existing column via function(n)", {
+  df <- data.frame(val = 1:5, stringsAsFactors = FALSE)
+  overrides <- list(Raw_X = list(val = function(n) rep(0L, n)))
+  result <- .apply_column_overrides(df, "Raw_X", overrides)
+  expect_equal(result$val, rep(0L, 5))
+})
+
+test_that(".apply_column_overrides passes df to function(n, df)", {
+  df <- data.frame(base_val = c(1, 2, 3, 4, 5), stringsAsFactors = FALSE)
+  overrides <- list(Raw_X = list(double_val = function(n, df) df$base_val * 2))
+  result <- .apply_column_overrides(df, "Raw_X", overrides)
+  expect_true("double_val" %in% names(result))
+  expect_equal(result$double_val, c(2, 4, 6, 8, 10))
+})
+
+test_that(".apply_column_overrides samples vector with replacement", {
+  set.seed(42)
+  df <- data.frame(x = 1:20, stringsAsFactors = FALSE)
+  overrides <- list(Raw_X = list(unit = c("mg/dL", "mmol/L")))
+  result <- .apply_column_overrides(df, "Raw_X", overrides)
+  expect_equal(nrow(result), 20)
+  expect_true(all(result$unit %in% c("mg/dL", "mmol/L")))
+})
+
+test_that(".apply_column_overrides broadcasts scalar to all rows", {
+  df <- data.frame(x = 1:8, stringsAsFactors = FALSE)
+  overrides <- list(Raw_X = list(category = "CHEMISTRY"))
+  result <- .apply_column_overrides(df, "Raw_X", overrides)
+  expect_equal(result$category, rep("CHEMISTRY", 8))
+})
+
+test_that(".apply_column_overrides handles multiple columns in one call", {
+  df <- data.frame(a = 1:5, stringsAsFactors = FALSE)
+  overrides <- list(
+    Raw_X = list(
+      col1 = function(n) rep("A", n),
+      col2 = function(n) seq_len(n),
+      col3 = "fixed"
+    )
+  )
+  result <- .apply_column_overrides(df, "Raw_X", overrides)
+  expect_true(all(c("col1", "col2", "col3") %in% names(result)))
+  expect_equal(result$col1, rep("A", 5))
+  expect_equal(result$col2, 1:5)
+  expect_equal(result$col3, rep("fixed", 5))
+})
+
+# ── column_overrides integration via generate_data_from_workflows ─────────────
+
+make_override_workflows <- function() {
+  list(
+    wf1 = list(
+      meta  = list(),
+      spec  = list(
+        Raw_CUSTOM = list(
+          base_val = list(type = "numeric"),
+          label    = list(type = "character")
+        )
+      ),
+      steps = list()
+    )
+  )
+}
+
+test_that("column_overrides function(n) adds new column to generated domain", {
+  set.seed(42)
+  result <- generate_data_from_workflows(
+    lWorkflows       = make_override_workflows(),
+    n_participants   = 20,
+    column_overrides = list(
+      Raw_CUSTOM = list(score_val = function(n) round(runif(n, 0, 10), 1))
+    )
+  )
+  expect_true("score_val" %in% names(result$Raw_CUSTOM))
+  expect_equal(nrow(result$Raw_CUSTOM), 20)
+  expect_true(all(result$Raw_CUSTOM$score_val >= 0 & result$Raw_CUSTOM$score_val <= 10))
+})
+
+test_that("column_overrides function(n, df) can derive from existing columns", {
+  set.seed(42)
+  result <- generate_data_from_workflows(
+    lWorkflows       = make_override_workflows(),
+    n_participants   = 15,
+    column_overrides = list(
+      Raw_CUSTOM = list(
+        double_val = function(n, df) df$base_val * 2
+      )
+    )
+  )
+  expect_true("double_val" %in% names(result$Raw_CUSTOM))
+  expect_equal(result$Raw_CUSTOM$double_val, result$Raw_CUSTOM$base_val * 2)
+})
+
+test_that("column_overrides vector is sampled into generated domain", {
+  set.seed(42)
+  result <- generate_data_from_workflows(
+    lWorkflows       = make_override_workflows(),
+    n_participants   = 30,
+    column_overrides = list(
+      Raw_CUSTOM = list(unit = c("mg/dL", "mmol/L", "g/L"))
+    )
+  )
+  expect_true("unit" %in% names(result$Raw_CUSTOM))
+  expect_true(all(result$Raw_CUSTOM$unit %in% c("mg/dL", "mmol/L", "g/L")))
+})
+
+test_that("column_overrides scalar is broadcast to all rows", {
+  set.seed(42)
+  result <- generate_data_from_workflows(
+    lWorkflows       = make_override_workflows(),
+    n_participants   = 10,
+    column_overrides = list(
+      Raw_CUSTOM = list(category = "FIXED")
+    )
+  )
+  expect_true("category" %in% names(result$Raw_CUSTOM))
+  expect_true(all(result$Raw_CUSTOM$category == "FIXED"))
+})
+
+test_that("column_overrides replaces an existing column", {
+  set.seed(42)
+  result <- generate_data_from_workflows(
+    lWorkflows       = make_override_workflows(),
+    n_participants   = 10,
+    column_overrides = list(
+      Raw_CUSTOM = list(label = function(n) rep("OVERRIDE", n))
+    )
+  )
+  expect_true(all(result$Raw_CUSTOM$label == "OVERRIDE"))
+})
+
+test_that("column_overrides applies to multiple domains independently", {
+  set.seed(42)
+  wf <- list(
+    wf1 = list(
+      meta  = list(),
+      spec  = list(
+        Raw_A = list(x = list(type = "numeric")),
+        Raw_B = list(y = list(type = "character"))
+      ),
+      steps = list()
+    )
+  )
+  result <- generate_data_from_workflows(
+    lWorkflows       = wf,
+    n_participants   = 10,
+    column_overrides = list(
+      Raw_A = list(tag = "domain_a"),
+      Raw_B = list(tag = "domain_b")
+    )
+  )
+  expect_equal(unique(result$Raw_A$tag), "domain_a")
+  expect_equal(unique(result$Raw_B$tag), "domain_b")
+})
+
+test_that("column_overrides NULL leaves output unchanged (backward compat)", {
+  set.seed(42)
+  result_no_override <- generate_data_from_workflows(
+    lWorkflows     = make_override_workflows(),
+    n_participants = 10
+  )
+  set.seed(42)
+  result_null_override <- generate_data_from_workflows(
+    lWorkflows       = make_override_workflows(),
+    n_participants   = 10,
+    column_overrides = NULL
+  )
+  expect_equal(result_no_override, result_null_override)
+})
+
+test_that("column_overrides are applied on every snapshot in multi-snapshot mode", {
+  set.seed(42)
+  result <- generate_data_from_workflows(
+    lWorkflows       = make_override_workflows(),
+    n_participants   = 20,
+    snapshot_count   = 3,
+    snapshot_width   = "months",
+    column_overrides = list(
+      Raw_CUSTOM = list(flag = "HOT")
+    )
+  )
+  for (snap in result) {
+    expect_true("flag" %in% names(snap$Raw_CUSTOM))
+    expect_true(all(snap$Raw_CUSTOM$flag == "HOT"))
+  }
+})
+
+# ── add_new_var_data unknown-column fallback (utils.R) ────────────────────────
+
+test_that("add_new_var_data falls back to type-based generation for unknown column", {
+  # score_val has no named generator function; the tryCatch in add_new_var_data
+  # should fill it via generate_column_by_type rather than throwing.
+  n <- 10L
+  vars <- list(score_val = list(type = "numeric"))
+  args <- list(default = list(n))
+  orig_spec <- list(score_val = list(type = "numeric"))
+
+  result <- add_new_var_data(NULL, vars, args, orig_spec)
+  expect_s3_class(result, "data.frame")
+  expect_equal(nrow(result), n)
+  expect_true("score_val" %in% names(result))
+  expect_type(result$score_val, "double")
+})
+
+test_that("add_new_var_data still throws for non-missing-function errors", {
+  n <- 5L
+  # Use a known function that will error for a different reason (wrong arg type)
+  vars <- list(studyid = list())
+  args <- list(default = list("not_a_number"))
+  orig_spec <- list(studyid = list())
+
+  # Should propagate the error (not silently swallow it)
+  expect_error(add_new_var_data(NULL, vars, args, orig_spec))
+})
+
+test_that("unknown spec column in workflow does not drop to type-based fallback tier", {
+  # A workflow spec with a column (mystery_score) that has no generator should
+  # still produce a structurally correct domain via the registry/legacy tier,
+  # not degrade to the full type-based fallback for the whole domain.
+  set.seed(42)
+  wf <- list(
+    wf1 = list(
+      meta  = list(),
+      spec  = list(
+        Raw_CUSTOM = list(
+          id_col       = list(type = "character"),
+          mystery_score = list(type = "numeric")  # no mystery_score() function exists
+        )
+      ),
+      steps = list()
+    )
+  )
+  result <- generate_data_from_workflows(
+    lWorkflows     = wf,
+    n_participants = 15
+  )
+  expect_true("mystery_score" %in% names(result$Raw_CUSTOM))
+  expect_type(result$Raw_CUSTOM$mystery_score, "double")
+  expect_equal(nrow(result$Raw_CUSTOM), 15)
+})
