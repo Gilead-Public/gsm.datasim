@@ -22,7 +22,8 @@ generate_data_from_workflows(
   snapshot_count = 1L,
   snapshot_width = "months",
   domain_counts = NULL,
-  desired_domains = NULL
+  desired_domains = NULL,
+  column_overrides = NULL
 )
 ```
 
@@ -82,6 +83,44 @@ generate_data_from_workflows(
 
   Optional character vector of domain names to generate. `NULL`
   (default) generates all `Raw_*` domains found in the spec.
+
+- column_overrides:
+
+  Optional named list for specifying or overriding individual columns in
+  already-generated domains. The top-level names are domain names (e.g.
+  `"Raw_LB"`); each element is itself a named list whose names are
+  column names. Each column value can be:
+
+  A function `function(n, df)`
+
+  :   Called with the row count and the fully-generated domain
+      `data.frame`. Use this to derive a column from other columns in
+      the same domain (e.g. computing a ratio).
+
+  A function `function(n)`
+
+  :   Called with just the row count. Useful for custom distributions or
+      categorical values.
+
+  A vector
+
+  :   Sampled with replacement to fill `n` rows.
+
+  A scalar
+
+  :   Repeated to fill all `n` rows.
+
+  Example:
+
+
+        column_overrides = list(
+          Raw_LB = list(
+            score_val  = function(n)    round(runif(n, 0, 10), 1),
+            lbstresu   = c("mg/dL", "mmol/L", "g/L"),
+            visit_flag = function(n, df) ifelse(df$visnam == "SCREENING", "S", "F")
+          )
+        )
+        
 
 ## Value
 

@@ -17,6 +17,7 @@ generation via `previous_data`.
   snapshot_count,
   snapshot_width,
   study_id,
-  previous_data
+  previous_data,
+  column_overrides = NULL
 )
 ```
