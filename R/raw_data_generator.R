@@ -71,21 +71,20 @@
 #'
 #' @export
 raw_data_generator <- function(
-  ParticipantCount = NULL,
-  SiteCount = NULL,
-  StudyID = NULL,
-  SnapshotCount = NULL,
-  SnapshotWidth = NULL,
-  template_path = system.file("template.csv", package = "gsm.datasim"),
-  workflow_path = "workflow/1_mappings",
-  generate_reports = FALSE,
-  mappings = NULL,
-  package = "gsm.mapping",
-  strStartDate = "2012-01-01",
-  save = FALSE,
-  generation_mode = c("core", "legacy"),
-  lWorkflows = NULL
-) {
+    ParticipantCount = NULL,
+    SiteCount = NULL,
+    StudyID = NULL,
+    SnapshotCount = NULL,
+    SnapshotWidth = NULL,
+    template_path = system.file("template.csv", package = "gsm.datasim"),
+    workflow_path = "workflow/1_mappings",
+    generate_reports = FALSE,
+    mappings = NULL,
+    package = "gsm.mapping",
+    strStartDate = "2012-01-01",
+    save = FALSE,
+    generation_mode = c("core", "legacy"),
+    lWorkflows = NULL) {
   generation_mode <- match.arg(generation_mode)
 
   # ── Workflow-driven generation path ──────────────────────────────────────

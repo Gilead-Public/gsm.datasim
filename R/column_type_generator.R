@@ -25,20 +25,32 @@ infer_column_type <- function(col_name, col_spec = list()) {
   name <- tolower(col_name)
 
   # Date patterns: _dt, _date, date suffix, fpfv/lpfv date abbreviations
-  if (grepl("(_dt|_date|date)$", name) || grepl("^(dt_|date_)", name)) return("date")
-  if (grepl("(fpfv|lpfv|lplv|fplv)$", name)) return("date")
+  if (grepl("(_dt|_date|date)$", name) || grepl("^(dt_|date_)", name)) {
+    return("date")
+  }
+  if (grepl("(fpfv|lpfv|lplv|fplv)$", name)) {
+    return("date")
+  }
 
   # Y/N flag patterns
-  if (grepl("(_yn|yn)$", name) || grepl("(_flag|flag)$", name)) return("yn")
+  if (grepl("(_yn|yn)$", name) || grepl("(_flag|flag)$", name)) {
+    return("yn")
+  }
 
   # Integer/count patterns
-  if (grepl("(_count|count|_num|_n)$", name) || grepl("^(num_|n_)", name)) return("integer")
+  if (grepl("(_count|count|_num|_n)$", name) || grepl("^(num_|n_)", name)) {
+    return("integer")
+  }
 
   # Numeric/score patterns
-  if (grepl("(_score|_val|_result|_pct|_rate|_ratio)$", name)) return("numeric")
+  if (grepl("(_score|_val|_result|_pct|_rate|_ratio)$", name)) {
+    return("numeric")
+  }
 
   # Logical patterns
-  if (grepl("^(is_|has_|was_|can_)", name)) return("logical")
+  if (grepl("^(is_|has_|was_|can_)", name)) {
+    return("logical")
+  }
 
   # 3. Default
   "character"
@@ -56,12 +68,12 @@ infer_column_type <- function(col_name, col_spec = list()) {
 #' @keywords internal
 get_fk_mappings <- function() {
   list(
-    subjid    = list(domain = "Raw_SUBJ",  column = "subjid"),
+    subjid = list(domain = "Raw_SUBJ", column = "subjid"),
     subject_nsv = list(domain = "Raw_SUBJ", column = "subject_nsv"),
-    invid     = list(domain = "Raw_SITE",  column = "invid"),
-    siteid    = list(domain = "Raw_SITE",  column = "invid"),
-    studyid   = list(domain = "Raw_STUDY", column = "protocol_number"),
-    country   = list(domain = "Raw_SITE",  column = "country")
+    invid = list(domain = "Raw_SITE", column = "invid"),
+    siteid = list(domain = "Raw_SITE", column = "invid"),
+    studyid = list(domain = "Raw_STUDY", column = "protocol_number"),
+    country = list(domain = "Raw_SITE", column = "country")
   )
 }
 
@@ -101,21 +113,23 @@ generate_column_by_type <- function(col_name, col_spec = list(), n, context = li
   col_type <- infer_column_type(col_name, col_spec)
 
   start_date <- tryCatch(as.Date(context$start_date %||% "2012-01-01"), error = function(e) as.Date("2012-01-01"))
-  end_date   <- tryCatch(as.Date(context$end_date   %||% "2012-12-31"), error = function(e) as.Date("2012-12-31"))
+  end_date <- tryCatch(as.Date(context$end_date %||% "2012-12-31"), error = function(e) as.Date("2012-12-31"))
 
   switch(col_type,
     date = sample(seq.Date(start_date, end_date, by = "day"), n, replace = TRUE),
     timestamp = {
       dates <- sample(seq.Date(start_date, end_date, by = "day"), n, replace = TRUE)
-      as.POSIXct(paste(dates, sprintf("%02d:%02d:%02d",
-                                      sample(0:23, n, replace = TRUE),
-                                      sample(0:59, n, replace = TRUE),
-                                      sample(0:59, n, replace = TRUE))))
+      as.POSIXct(paste(dates, sprintf(
+        "%02d:%02d:%02d",
+        sample(0:23, n, replace = TRUE),
+        sample(0:59, n, replace = TRUE),
+        sample(0:59, n, replace = TRUE)
+      )))
     },
     numeric = round(stats::rnorm(n, mean = 50, sd = 15), 2),
     integer = sample(1L:100L, n, replace = TRUE),
     logical = sample(c(TRUE, FALSE), n, replace = TRUE, prob = c(0.7, 0.3)),
-    yn      = sample(c("Y", "N"), n, replace = TRUE, prob = c(0.8, 0.2)),
+    yn = sample(c("Y", "N"), n, replace = TRUE, prob = c(0.8, 0.2)),
     # default: character
     {
       prefix <- toupper(gsub("[^a-zA-Z]", "", substr(col_name, 1, 4)))
@@ -155,7 +169,9 @@ generate_column_by_type <- function(col_name, col_spec = list(), n, context = li
 #' @export
 generate_unknown_domain <- function(domain_name, domain_spec, n, context = list(),
                                     previous_data = NULL) {
-  if (n <= 0 && is.null(previous_data)) return(data.frame())
+  if (n <= 0 && is.null(previous_data)) {
+    return(data.frame())
+  }
   if (length(domain_spec) == 0) {
     logger::log_warn("Domain {domain_name} has no columns in spec; returning empty data.frame")
     return(data.frame(.row = seq_len(n))[, -1, drop = FALSE])
@@ -166,7 +182,9 @@ generate_unknown_domain <- function(domain_name, domain_spec, n, context = list(
   if (!is.null(previous_data) && is.data.frame(previous_data) && nrow(previous_data) > 0) {
     existing_df <- previous_data
     delta_n <- n - nrow(existing_df)
-    if (delta_n <= 0) return(existing_df)
+    if (delta_n <= 0) {
+      return(existing_df)
+    }
   } else {
     delta_n <- n
   }
@@ -183,21 +201,25 @@ generate_unknown_domain <- function(domain_name, domain_spec, n, context = list(
         error = function(e) NULL
       )
       if (!is.null(gen_fn)) {
-        result <- tryCatch({
-          # Attempt to call with common argument patterns
-          if ("external_subjid" %in% names(formals(gen_fn)) &&
+        result <- tryCatch(
+          {
+            # Attempt to call with common argument patterns
+            if ("external_subjid" %in% names(formals(gen_fn)) &&
               !is.null(context$data$Raw_SUBJ$subjid)) {
-            gen_fn(delta_n, external_subjid = context$data$Raw_SUBJ$subjid)
-          } else if (all(c("startDate", "endDate") %in% names(formals(gen_fn)))) {
-            gen_fn(delta_n,
-                   startDate = context$start_date %||% "2012-01-01",
-                   endDate = context$end_date %||% "2012-12-31")
-          } else if ("startDate" %in% names(formals(gen_fn))) {
-            gen_fn(delta_n, startDate = context$start_date %||% "2012-01-01")
-          } else {
-            gen_fn(delta_n)
-          }
-        }, error = function(e) NULL)
+              gen_fn(delta_n, external_subjid = context$data$Raw_SUBJ$subjid)
+            } else if (all(c("startDate", "endDate") %in% names(formals(gen_fn)))) {
+              gen_fn(delta_n,
+                startDate = context$start_date %||% "2012-01-01",
+                endDate = context$end_date %||% "2012-12-31"
+              )
+            } else if ("startDate" %in% names(formals(gen_fn))) {
+              gen_fn(delta_n, startDate = context$start_date %||% "2012-01-01")
+            } else {
+              gen_fn(delta_n)
+            }
+          },
+          error = function(e) NULL
+        )
 
         if (!is.null(result) && (is.atomic(result) && length(result) == delta_n)) {
           return(result)

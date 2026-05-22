@@ -14,11 +14,14 @@ get_domain_registry <- function() {
   .delta <- function(key, previous_data, target_n, unique_col = NULL) {
     if (key %in% names(previous_data)) {
       dataset <- previous_data[[key]]
-      prev_n  <- if (is.null(unique_col)) nrow(dataset)
-                 else length(unique(dataset[[unique_col]]))
+      prev_n <- if (is.null(unique_col)) {
+        nrow(dataset)
+      } else {
+        length(unique(dataset[[unique_col]]))
+      }
     } else {
       dataset <- NULL
-      prev_n  <- 0L
+      prev_n <- 0L
     }
     list(dataset = dataset, n = target_n - prev_n)
   }
@@ -26,10 +29,10 @@ get_domain_registry <- function() {
   list(
     # ── Core administrative datasets ─────────────────────────────────────────
     Raw_SITE = list(
-      dataset         = "Raw_SITE",
+      dataset = "Raw_SITE",
       required_inputs = c("data", "previous_data", "combined_specs", "n", "start_date"),
-      count_fn        = function(counts, snapshot_idx) counts$site_count[snapshot_idx],
-      generate_fn     = function(context) {
+      count_fn = function(counts, snapshot_idx) counts$site_count[snapshot_idx],
+      generate_fn = function(context) {
         Raw_SITE(
           data          = context$data,
           previous_data = context$previous_data,
@@ -40,21 +43,22 @@ get_domain_registry <- function() {
         )
       }
     ),
-
     Raw_SUBJ = list(
-      dataset         = "Raw_SUBJ",
-      required_inputs = c("data", "previous_data", "combined_specs", "n",
-                          "start_date", "end_date"),
-      count_fn        = function(counts, snapshot_idx) counts$subject_count[snapshot_idx],
-      generate_fn     = function(context) {
+      dataset = "Raw_SUBJ",
+      required_inputs = c(
+        "data", "previous_data", "combined_specs", "n",
+        "start_date", "end_date"
+      ),
+      count_fn = function(counts, snapshot_idx) counts$subject_count[snapshot_idx],
+      generate_fn = function(context) {
         Raw_SUBJ(
-          data          = context$data,
+          data = context$data,
           previous_data = context$previous_data,
-          spec          = context$combined_specs,
-          startDate     = context$start_date,
-          endDate       = context$end_date,
-          n_subj        = context$n,
-          split_vars    = list(
+          spec = context$combined_specs,
+          startDate = context$start_date,
+          endDate = context$end_date,
+          n_subj = context$n,
+          split_vars = list(
             "subject_site_synq",
             "subjid_subject_nsv",
             "enrollyn_enrolldt_timeonstudy_firstparticipantdate_firstdosedate_timeontreatment"
@@ -62,12 +66,11 @@ get_domain_registry <- function() {
         )
       }
     ),
-
     Raw_ENROLL = list(
-      dataset         = "Raw_ENROLL",
+      dataset = "Raw_ENROLL",
       required_inputs = c("data", "previous_data", "combined_specs", "n", "start_date"),
-      count_fn        = function(counts, snapshot_idx) counts$subject_count[snapshot_idx],
-      generate_fn     = function(context) {
+      count_fn = function(counts, snapshot_idx) counts$subject_count[snapshot_idx],
+      generate_fn = function(context) {
         Raw_ENROLL(
           data          = context$data,
           previous_data = context$previous_data,
@@ -78,12 +81,11 @@ get_domain_registry <- function() {
         )
       }
     ),
-
     Raw_IE = list(
-      dataset         = "Raw_IE",
+      dataset = "Raw_IE",
       required_inputs = c("data", "previous_data", "combined_specs", "n"),
-      count_fn        = function(counts, snapshot_idx) counts$subject_count[snapshot_idx],
-      generate_fn     = function(context) {
+      count_fn = function(counts, snapshot_idx) counts$subject_count[snapshot_idx],
+      generate_fn = function(context) {
         Raw_IE(
           data          = context$data,
           previous_data = context$previous_data,
@@ -93,12 +95,11 @@ get_domain_registry <- function() {
         )
       }
     ),
-
     Raw_EXCLUSION = list(
-      dataset         = "Raw_EXCLUSION",
+      dataset = "Raw_EXCLUSION",
       required_inputs = c("data", "previous_data", "combined_specs", "n"),
-      count_fn        = function(counts, snapshot_idx) counts$subject_count[snapshot_idx],
-      generate_fn     = function(context) {
+      count_fn = function(counts, snapshot_idx) counts$subject_count[snapshot_idx],
+      generate_fn = function(context) {
         Raw_EXCLUSION(
           data          = context$data,
           previous_data = context$previous_data,
@@ -110,11 +111,13 @@ get_domain_registry <- function() {
 
     # ── Visit / time-on-study datasets ───────────────────────────────────────
     Raw_VISIT = list(
-      dataset         = "Raw_VISIT",
-      required_inputs = c("data", "previous_data", "combined_specs", "n",
-                          "start_date", "snapshot_count", "snapshot_width"),
-      count_fn        = function(counts, snapshot_idx) counts$subject_count[snapshot_idx],
-      generate_fn     = function(context) {
+      dataset = "Raw_VISIT",
+      required_inputs = c(
+        "data", "previous_data", "combined_specs", "n",
+        "start_date", "snapshot_count", "snapshot_width"
+      ),
+      count_fn = function(counts, snapshot_idx) counts$subject_count[snapshot_idx],
+      generate_fn = function(context) {
         Raw_VISIT(
           data           = context$data,
           previous_data  = context$previous_data,
@@ -127,13 +130,13 @@ get_domain_registry <- function() {
         )
       }
     ),
-
     Raw_STUDCOMP = list(
-      dataset         = "Raw_STUDCOMP",
+      dataset = "Raw_STUDCOMP",
       required_inputs = c("data", "previous_data", "combined_specs", "n", "start_date"),
-      count_fn        = function(counts, snapshot_idx)
-                          ceiling(counts$subject_count[snapshot_idx] / 10),
-      generate_fn     = function(context) {
+      count_fn = function(counts, snapshot_idx) {
+        ceiling(counts$subject_count[snapshot_idx] / 10)
+      },
+      generate_fn = function(context) {
         Raw_STUDCOMP(
           data          = context$data,
           previous_data = context$previous_data,
@@ -147,10 +150,10 @@ get_domain_registry <- function() {
 
     # ── EDC / data management datasets ───────────────────────────────────────
     Raw_DATACHG = list(
-      dataset         = "Raw_DATACHG",
+      dataset = "Raw_DATACHG",
       required_inputs = c("data", "previous_data", "combined_specs", "n", "start_date"),
-      count_fn        = function(counts, snapshot_idx) counts$subject_count[snapshot_idx],
-      generate_fn     = function(context) {
+      count_fn = function(counts, snapshot_idx) counts$subject_count[snapshot_idx],
+      generate_fn = function(context) {
         Raw_DATACHG(
           data          = context$data,
           previous_data = context$previous_data,
@@ -161,12 +164,11 @@ get_domain_registry <- function() {
         )
       }
     ),
-
     Raw_DATAENT = list(
-      dataset         = "Raw_DATAENT",
+      dataset = "Raw_DATAENT",
       required_inputs = c("data", "previous_data", "combined_specs", "n", "start_date"),
-      count_fn        = function(counts, snapshot_idx) counts$subject_count[snapshot_idx],
-      generate_fn     = function(context) {
+      count_fn = function(counts, snapshot_idx) counts$subject_count[snapshot_idx],
+      generate_fn = function(context) {
         Raw_DATAENT(
           data          = context$data,
           previous_data = context$previous_data,
@@ -177,12 +179,11 @@ get_domain_registry <- function() {
         )
       }
     ),
-
     Raw_QUERY = list(
-      dataset         = "Raw_QUERY",
+      dataset = "Raw_QUERY",
       required_inputs = c("data", "previous_data", "combined_specs", "n", "start_date"),
-      count_fn        = function(counts, snapshot_idx) counts$subject_count[snapshot_idx],
-      generate_fn     = function(context) {
+      count_fn = function(counts, snapshot_idx) counts$subject_count[snapshot_idx],
+      generate_fn = function(context) {
         Raw_QUERY(
           data          = context$data,
           previous_data = context$previous_data,
@@ -200,30 +201,32 @@ get_domain_registry <- function() {
       required_inputs = c("data", "previous_data", "combined_specs", "n", "start_date", "end_date"),
       count_fn = function(counts, snapshot_idx) counts$ae_count[snapshot_idx],
       generate_fn = function(context) {
-        spec      <- context$combined_specs
+        spec <- context$combined_specs
         curr_spec <- spec$Raw_AE
-        data          <- context$data
+        data <- context$data
         previous_data <- context$previous_data
 
         if ("Raw_AE" %in% names(previous_data)) {
-          dataset          <- previous_data$Raw_AE
+          dataset <- previous_data$Raw_AE
           previous_row_num <- nrow(dataset)
         } else {
-          dataset          <- NULL
+          dataset <- NULL
           previous_row_num <- 0
         }
 
         n <- context$n - previous_row_num
-        if (n <= 0) return(dataset)
+        if (n <= 0) {
+          return(dataset)
+        }
 
         if (all(c("aeser", "aest_dt", "aeen_dt", "mdrpt_nsv", "mdrsoc_nsv", "aetoxgr") %in% names(curr_spec))) {
-          curr_spec$aeser           <- list(required = TRUE)
+          curr_spec$aeser <- list(required = TRUE)
           curr_spec$aest_dt_aeen_dt <- list(required = TRUE)
-          curr_spec$aest_dt         <- NULL
-          curr_spec$aeen_dt         <- NULL
-          curr_spec$mdrpt_nsv       <- list(required = TRUE)
-          curr_spec$mdrsoc_nsv      <- list(required = TRUE)
-          curr_spec$aetoxgr         <- list(required = TRUE)
+          curr_spec$aest_dt <- NULL
+          curr_spec$aeen_dt <- NULL
+          curr_spec$mdrpt_nsv <- list(required = TRUE)
+          curr_spec$mdrsoc_nsv <- list(required = TRUE)
+          curr_spec$aetoxgr <- list(required = TRUE)
         }
 
         args <- list(
@@ -234,7 +237,8 @@ get_domain_registry <- function() {
         )
 
         as.data.frame(add_new_var_data(dataset, curr_spec, args, spec$Raw_AE,
-                                        split_vars = list("aest_dt_aeen_dt")))
+          split_vars = list("aest_dt_aeen_dt")
+        ))
       }
     ),
     Raw_LB = list(
@@ -242,21 +246,23 @@ get_domain_registry <- function() {
       required_inputs = c("data", "previous_data", "combined_specs", "n", "start_date"),
       count_fn = function(counts, snapshot_idx) counts$subject_count[snapshot_idx],
       generate_fn = function(context) {
-        spec      <- context$combined_specs
+        spec <- context$combined_specs
         curr_spec <- spec$Raw_LB
-        data          <- context$data
+        data <- context$data
         previous_data <- context$previous_data
 
         if ("Raw_LB" %in% names(previous_data)) {
-          dataset          <- previous_data$Raw_LB
+          dataset <- previous_data$Raw_LB
           previous_row_num <- length(unique(dataset$subjid))
         } else {
-          dataset          <- NULL
+          dataset <- NULL
           previous_row_num <- 0
         }
 
         n <- context$n - previous_row_num
-        if (n <= 0) return(dataset)
+        if (n <= 0) {
+          return(dataset)
+        }
 
         tests <- data.frame(
           battrnam = c(
@@ -292,7 +298,7 @@ get_domain_registry <- function() {
 
         if (!("battrnam" %in% names(curr_spec))) curr_spec$battrnam <- list(required = TRUE)
         if (!("lbtstnam" %in% names(curr_spec))) curr_spec$lbtstnam <- list(required = TRUE)
-        if (!("visnam"   %in% names(curr_spec))) curr_spec$visnam   <- list(required = TRUE)
+        if (!("visnam" %in% names(curr_spec))) curr_spec$visnam <- list(required = TRUE)
 
         if (all(c("subjid", "visnam") %in% names(curr_spec))) {
           curr_spec$subj_visit_repeated <- list(required = TRUE)
@@ -314,20 +320,24 @@ get_domain_registry <- function() {
         )
 
         as.data.frame(add_new_var_data(dataset, curr_spec, args, spec$Raw_LB,
-                                        split_vars = list("subj_visit_repeated")))
+          split_vars = list("subj_visit_repeated")
+        ))
       }
     ),
 
     # ── Protocol deviation / study drug datasets ─────────────────────────────
     Raw_PD = list(
-      dataset         = "Raw_PD",
+      dataset = "Raw_PD",
       required_inputs = c("data", "previous_data", "combined_specs", "n", "start_date"),
-      count_fn        = function(counts, snapshot_idx)
-                          counts$subject_count[snapshot_idx] * 3L,
-      generate_fn     = function(context) {
-        d         <- .delta("Raw_PD", context$previous_data, context$n)
-        if (d$n <= 0) return(d$dataset)
-        spec      <- context$combined_specs
+      count_fn = function(counts, snapshot_idx) {
+        counts$subject_count[snapshot_idx] * 3L
+      },
+      generate_fn = function(context) {
+        d <- .delta("Raw_PD", context$previous_data, context$n)
+        if (d$n <= 0) {
+          return(d$dataset)
+        }
+        spec <- context$combined_specs
         curr_spec <- spec$Raw_PD
         args <- list(
           studyid = list(d$n, context$data$Raw_STUDY$protocol_number[[1]]),
@@ -337,16 +347,18 @@ get_domain_registry <- function() {
         as.data.frame(add_new_var_data(d$dataset, curr_spec, args, spec$Raw_PD))
       }
     ),
-
     Raw_SDRGCOMP = list(
-      dataset         = "Raw_SDRGCOMP",
+      dataset = "Raw_SDRGCOMP",
       required_inputs = c("data", "previous_data", "combined_specs", "n", "start_date"),
-      count_fn        = function(counts, snapshot_idx)
-                          ceiling(counts$subject_count[snapshot_idx]/2),
-      generate_fn     = function(context) {
-        d         <- .delta("Raw_SDRGCOMP", context$previous_data, context$n)
-        if (d$n <= 0) return(d$dataset)
-        spec      <- context$combined_specs
+      count_fn = function(counts, snapshot_idx) {
+        ceiling(counts$subject_count[snapshot_idx] / 2)
+      },
+      generate_fn = function(context) {
+        d <- .delta("Raw_SDRGCOMP", context$previous_data, context$n)
+        if (d$n <= 0) {
+          return(d$dataset)
+        }
+        spec <- context$combined_specs
         curr_spec <- spec$Raw_SDRGCOMP
         args <- list(
           subjid  = list(d$n, unique(context$data$Raw_VISIT$subjid), replace = FALSE),
@@ -359,23 +371,28 @@ get_domain_registry <- function() {
 
     # ── Specialty clinical datasets ───────────────────────────────────────────
     Raw_Consents = list(
-      dataset         = "Raw_Consents",
+      dataset = "Raw_Consents",
       required_inputs = c("data", "previous_data", "combined_specs", "n", "start_date"),
-      count_fn        = function(counts, snapshot_idx)
-                          ceiling(counts$subject_count[snapshot_idx] / 75),
-      generate_fn     = function(context) {
-        d         <- .delta("Raw_Consents", context$previous_data, context$n)
-        if (d$n <= 0) return(d$dataset)
-        spec      <- context$combined_specs
+      count_fn = function(counts, snapshot_idx) {
+        ceiling(counts$subject_count[snapshot_idx] / 75)
+      },
+      generate_fn = function(context) {
+        d <- .delta("Raw_Consents", context$previous_data, context$n)
+        if (d$n <= 0) {
+          return(d$dataset)
+        }
+        spec <- context$combined_specs
         curr_spec <- spec$Raw_Consents
         if (all(c("cons_dt", "constype", "conscat") %in% names(curr_spec))) {
-          curr_spec$cons_dt  <- list(required = TRUE)
+          curr_spec$cons_dt <- list(required = TRUE)
           curr_spec$constype <- list(required = TRUE)
-          curr_spec$conscat  <- list(required = TRUE)
+          curr_spec$conscat <- list(required = TRUE)
         }
         args <- list(
-          subjid  = list(d$n, external_subjid = context$data$Raw_SUBJ$subjid,
-                         replace = FALSE),
+          subjid = list(d$n,
+            external_subjid = context$data$Raw_SUBJ$subjid,
+            replace = FALSE
+          ),
           studyid = list(d$n, context$data$Raw_STUDY$protocol_number[[1]]),
           cons_dt = list(d$n, context$start_date),
           default = list(d$n)
@@ -383,48 +400,56 @@ get_domain_registry <- function() {
         as.data.frame(add_new_var_data(d$dataset, curr_spec, args, spec$Raw_Consents))
       }
     ),
-
     Raw_Death = list(
-      dataset         = "Raw_Death",
+      dataset = "Raw_Death",
       required_inputs = c("data", "previous_data", "combined_specs", "n", "start_date"),
-      count_fn        = function(counts, snapshot_idx)
-                          ceiling(counts$subject_count[snapshot_idx] / 85),
-      generate_fn     = function(context) {
-        d         <- .delta("Raw_Death", context$previous_data, context$n)
-        if (d$n <= 0) return(d$dataset)
-        spec      <- context$combined_specs
+      count_fn = function(counts, snapshot_idx) {
+        ceiling(counts$subject_count[snapshot_idx] / 85)
+      },
+      generate_fn = function(context) {
+        d <- .delta("Raw_Death", context$previous_data, context$n)
+        if (d$n <= 0) {
+          return(d$dataset)
+        }
+        spec <- context$combined_specs
         curr_spec <- spec$Raw_Death
         if ("death_dt" %in% names(curr_spec)) {
           curr_spec$death_dt <- list(required = TRUE)
         }
         args <- list(
-          subjid   = list(d$n, external_subjid = context$data$Raw_SUBJ$subjid,
-                          replace = FALSE),
-          studyid  = list(d$n, context$data$Raw_STUDY$protocol_number[[1]]),
+          subjid = list(d$n,
+            external_subjid = context$data$Raw_SUBJ$subjid,
+            replace = FALSE
+          ),
+          studyid = list(d$n, context$data$Raw_STUDY$protocol_number[[1]]),
           death_dt = list(d$n, context$start_date),
-          default  = list(d$n)
+          default = list(d$n)
         )
         as.data.frame(add_new_var_data(d$dataset, curr_spec, args, spec$Raw_Death))
       }
     ),
-
     Raw_AntiCancer = list(
-      dataset         = "Raw_AntiCancer",
+      dataset = "Raw_AntiCancer",
       required_inputs = c("data", "previous_data", "combined_specs", "n", "start_date"),
-      count_fn        = function(counts, snapshot_idx)
-                          ceiling(counts$subject_count[snapshot_idx] / 10),
-      generate_fn     = function(context) {
-        d         <- .delta("Raw_AntiCancer", context$previous_data, context$n)
-        if (d$n <= 0) return(d$dataset)
-        spec      <- context$combined_specs
+      count_fn = function(counts, snapshot_idx) {
+        ceiling(counts$subject_count[snapshot_idx] / 10)
+      },
+      generate_fn = function(context) {
+        d <- .delta("Raw_AntiCancer", context$previous_data, context$n)
+        if (d$n <= 0) {
+          return(d$dataset)
+        }
+        spec <- context$combined_specs
         curr_spec <- spec$Raw_AntiCancer
         if (all(c("cmtrt", "cmst_dt") %in% names(curr_spec))) {
-          curr_spec$cmtrt   <- list(required = TRUE)
+          curr_spec$cmtrt <- list(required = TRUE)
           curr_spec$cmst_dt <- list(required = TRUE)
         }
         args <- list(
-          subjid  = list(d$n, external_subjid = context$data$Raw_SUBJ$subjid,
-                         replace = FALSE),
+          subjid = list(d$n,
+            external_subjid = context$data$Raw_SUBJ$subjid,
+            replace = FALSE
+          ),
           studyid = list(d$n, context$data$Raw_STUDY$protocol_number[[1]]),
           cmst_dt = list(d$n, context$start_date),
           default = list(d$n)
@@ -432,12 +457,11 @@ get_domain_registry <- function() {
         as.data.frame(add_new_var_data(d$dataset, curr_spec, args, spec$Raw_AntiCancer))
       }
     ),
-
     Raw_Randomization = list(
-      dataset         = "Raw_Randomization",
+      dataset = "Raw_Randomization",
       required_inputs = c("data", "previous_data", "combined_specs", "n", "start_date"),
-      count_fn        = function(counts, snapshot_idx) counts$subject_count[snapshot_idx],
-      generate_fn     = function(context) {
+      count_fn = function(counts, snapshot_idx) counts$subject_count[snapshot_idx],
+      generate_fn = function(context) {
         Raw_Randomization(
           data          = context$data,
           previous_data = context$previous_data,
@@ -448,12 +472,11 @@ get_domain_registry <- function() {
         )
       }
     ),
-
     Raw_OverallResponse = list(
-      dataset         = "Raw_OverallResponse",
+      dataset = "Raw_OverallResponse",
       required_inputs = c("data", "previous_data", "combined_specs", "n"),
-      count_fn        = function(counts, snapshot_idx) counts$subject_count[snapshot_idx],
-      generate_fn     = function(context) {
+      count_fn = function(counts, snapshot_idx) counts$subject_count[snapshot_idx],
+      generate_fn = function(context) {
         Raw_OverallResponse(
           data          = context$data,
           previous_data = context$previous_data,
@@ -463,12 +486,11 @@ get_domain_registry <- function() {
         )
       }
     ),
-
     Raw_PK = list(
-      dataset         = "Raw_PK",
+      dataset = "Raw_PK",
       required_inputs = c("data", "previous_data", "combined_specs", "n"),
-      count_fn        = function(counts, snapshot_idx) counts$subject_count[snapshot_idx],
-      generate_fn     = function(context) {
+      count_fn = function(counts, snapshot_idx) counts$subject_count[snapshot_idx],
+      generate_fn = function(context) {
         Raw_PK(
           data          = context$data,
           previous_data = context$previous_data,
@@ -478,22 +500,25 @@ get_domain_registry <- function() {
         )
       }
     ),
-
     Raw_Baseline = list(
-      dataset         = "Raw_Baseline",
+      dataset = "Raw_Baseline",
       required_inputs = c("data", "previous_data", "combined_specs", "n", "start_date"),
-      count_fn        = function(counts, snapshot_idx) counts$subject_count[snapshot_idx],
-      generate_fn     = function(context) {
-        d         <- .delta("Raw_Baseline", context$previous_data, context$n)
-        if (d$n <= 0) return(d$dataset)
-        spec      <- context$combined_specs
+      count_fn = function(counts, snapshot_idx) counts$subject_count[snapshot_idx],
+      generate_fn = function(context) {
+        d <- .delta("Raw_Baseline", context$previous_data, context$n)
+        if (d$n <= 0) {
+          return(d$dataset)
+        }
+        spec <- context$combined_specs
         curr_spec <- spec$Raw_Baseline
         if ("scan_dt" %in% names(curr_spec)) {
           curr_spec$scan_dt <- list(required = TRUE)
         }
         args <- list(
-          subjid  = list(d$n, external_subjid = context$data$Raw_SUBJ$subjid,
-                         replace = FALSE),
+          subjid = list(d$n,
+            external_subjid = context$data$Raw_SUBJ$subjid,
+            replace = FALSE
+          ),
           studyid = list(d$n, context$data$Raw_STUDY$protocol_number[[1]]),
           scan_dt = list(d$n, context$start_date),
           default = list(d$n)

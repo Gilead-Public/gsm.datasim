@@ -10,19 +10,19 @@ get_endpoints_domains <- function() {
   endpoint_domains <- lEndpointMappings %>%
     gsm.mapping::CombineSpecs() %>%
     names() %>%
-    stringr::str_replace('Mapped_', '')
+    stringr::str_replace("Mapped_", "")
 
   # Domains from gsm.endpoints
   df <- data.frame(
     domain = endpoint_domains,
-    package = 'gsm.endpoints',
+    package = "gsm.endpoints",
     stringsAsFactors = FALSE
   )
 
   # Add required reporting domains from gsm.mapping
   extra_domains <- data.frame(
-    domain = c('STUDY', 'SITE'),
-    package = 'gsm.mapping',
+    domain = c("STUDY", "SITE"),
+    package = "gsm.mapping",
     stringsAsFactors = FALSE
   )
 

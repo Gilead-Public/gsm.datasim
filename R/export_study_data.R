@@ -45,13 +45,12 @@
 #'   single study) or a named list of paths (for multiple studies).
 #' @export
 export_study_data <- function(study,
-                              output_dir    = ".",
-                              study_folder  = NULL,
-                              format        = "csv",
-                              overwrite     = FALSE,
-                              save_rds      = FALSE,
-                              verbose       = FALSE) {
-
+                              output_dir = ".",
+                              study_folder = NULL,
+                              format = "csv",
+                              overwrite = FALSE,
+                              save_rds = FALSE,
+                              verbose = FALSE) {
   # ── Input validation ────────────────────────────────────────────────────────
 
   # Handle multiple_longitudinal_studies by exporting each study individually
@@ -109,7 +108,6 @@ export_study_data <- function(study,
   snapshot_names <- names(study$raw_data) %||% seq_along(study$raw_data)
 
   for (snap_name in snapshot_names) {
-
     snap_dir <- file.path(study_root, snap_name)
     dir.create(snap_dir, recursive = TRUE, showWarnings = FALSE)
     vcat("  Snapshot: ", snap_name, sep = "")
@@ -127,7 +125,6 @@ export_study_data <- function(study,
     analytics_snap <- if (!is.null(study$analytics)) study$analytics[[snap_name]] else NULL
 
     if (!is.null(analytics_snap)) {
-
       # mapped/
       mapped <- analytics_snap$mapped
       if (!is.null(mapped) && length(mapped) > 0) {
@@ -146,7 +143,8 @@ export_study_data <- function(study,
         analytics_dir <- file.path(snap_dir, "analytics")
         dir.create(analytics_dir, showWarnings = FALSE)
         n_written <- .write_analytics_results(results, analytics_dir,
-                                              format = format, overwrite = overwrite, verbose = verbose)
+          format = format, overwrite = overwrite, verbose = verbose
+        )
         vcat("    analytics/  (", n_written, " tables)", sep = "")
       }
 
@@ -184,7 +182,7 @@ export_study_data <- function(study,
   for (nm in names(df_list)) {
     obj <- df_list[[nm]]
     if (!is.data.frame(obj)) next
-    
+
     if (format %in% c("csv", "both")) {
       csv_path <- file.path(dir, paste0(nm, ".csv"))
       if (file.exists(csv_path) && !isTRUE(overwrite)) {
@@ -193,7 +191,7 @@ export_study_data <- function(study,
         utils::write.csv(obj, csv_path, row.names = FALSE)
       }
     }
-    
+
     if (format %in% c("parquet", "both")) {
       parquet_path <- file.path(dir, paste0(nm, ".parquet"))
       if (file.exists(parquet_path) && !isTRUE(overwrite)) {
@@ -228,7 +226,7 @@ export_study_data <- function(study,
           warning("Skipping existing file (use overwrite = TRUE): ", csv_path)
         }
       }
-      
+
       if (format %in% c("parquet", "both")) {
         parquet_path <- file.path(dir, paste0(metric_name, ".parquet"))
         if (!file.exists(parquet_path) || isTRUE(overwrite)) {
@@ -238,14 +236,13 @@ export_study_data <- function(study,
           warning("Skipping existing file (use overwrite = TRUE): ", parquet_path)
         }
       }
-
     } else if (is.list(metric)) {
       # Named list of tables inside one metric — e.g. kri0001$Analysis_Input
       for (table_name in names(metric)) {
         tbl <- metric[[table_name]]
         if (!is.data.frame(tbl)) next
         safe_table <- gsub("[^A-Za-z0-9._-]", "_", table_name)
-        
+
         if (format %in% c("csv", "both")) {
           csv_path <- file.path(dir, paste0(metric_name, "_", safe_table, ".csv"))
           if (!file.exists(csv_path) || isTRUE(overwrite)) {
@@ -255,7 +252,7 @@ export_study_data <- function(study,
             warning("Skipping existing file (use overwrite = TRUE): ", csv_path)
           }
         }
-        
+
         if (format %in% c("parquet", "both")) {
           parquet_path <- file.path(dir, paste0(metric_name, "_", safe_table, ".parquet"))
           if (!file.exists(parquet_path) || isTRUE(overwrite)) {

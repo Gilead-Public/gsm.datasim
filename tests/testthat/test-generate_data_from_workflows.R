@@ -285,7 +285,7 @@ test_that(".resolve_domain_counts respects user overrides", {
   )
 
   expect_equal(counts$Raw_AE, 999L)
-  expect_equal(counts$Raw_SUBJ, 100L)  # Not overridden
+  expect_equal(counts$Raw_SUBJ, 100L) # Not overridden
 })
 
 # ── Longitudinal / multi-snapshot ─────────────────────────────────────────────
@@ -528,8 +528,8 @@ test_that(".apply_column_overrides handles multiple columns in one call", {
 make_override_workflows <- function() {
   list(
     wf1 = list(
-      meta  = list(),
-      spec  = list(
+      meta = list(),
+      spec = list(
         Raw_CUSTOM = list(
           base_val = list(type = "numeric"),
           label    = list(type = "character")
@@ -543,8 +543,8 @@ make_override_workflows <- function() {
 test_that("column_overrides function(n) adds new column to generated domain", {
   set.seed(42)
   result <- generate_data_from_workflows(
-    lWorkflows       = make_override_workflows(),
-    n_participants   = 20,
+    lWorkflows = make_override_workflows(),
+    n_participants = 20,
     column_overrides = list(
       Raw_CUSTOM = list(score_val = function(n) round(runif(n, 0, 10), 1))
     )
@@ -557,8 +557,8 @@ test_that("column_overrides function(n) adds new column to generated domain", {
 test_that("column_overrides function(n, df) can derive from existing columns", {
   set.seed(42)
   result <- generate_data_from_workflows(
-    lWorkflows       = make_override_workflows(),
-    n_participants   = 15,
+    lWorkflows = make_override_workflows(),
+    n_participants = 15,
     column_overrides = list(
       Raw_CUSTOM = list(
         double_val = function(n, df) df$base_val * 2
@@ -572,8 +572,8 @@ test_that("column_overrides function(n, df) can derive from existing columns", {
 test_that("column_overrides vector is sampled into generated domain", {
   set.seed(42)
   result <- generate_data_from_workflows(
-    lWorkflows       = make_override_workflows(),
-    n_participants   = 30,
+    lWorkflows = make_override_workflows(),
+    n_participants = 30,
     column_overrides = list(
       Raw_CUSTOM = list(unit = c("mg/dL", "mmol/L", "g/L"))
     )
@@ -585,8 +585,8 @@ test_that("column_overrides vector is sampled into generated domain", {
 test_that("column_overrides scalar is broadcast to all rows", {
   set.seed(42)
   result <- generate_data_from_workflows(
-    lWorkflows       = make_override_workflows(),
-    n_participants   = 10,
+    lWorkflows = make_override_workflows(),
+    n_participants = 10,
     column_overrides = list(
       Raw_CUSTOM = list(category = "FIXED")
     )
@@ -598,8 +598,8 @@ test_that("column_overrides scalar is broadcast to all rows", {
 test_that("column_overrides replaces an existing column", {
   set.seed(42)
   result <- generate_data_from_workflows(
-    lWorkflows       = make_override_workflows(),
-    n_participants   = 10,
+    lWorkflows = make_override_workflows(),
+    n_participants = 10,
     column_overrides = list(
       Raw_CUSTOM = list(label = function(n) rep("OVERRIDE", n))
     )
@@ -611,8 +611,8 @@ test_that("column_overrides applies to multiple domains independently", {
   set.seed(42)
   wf <- list(
     wf1 = list(
-      meta  = list(),
-      spec  = list(
+      meta = list(),
+      spec = list(
         Raw_A = list(x = list(type = "numeric")),
         Raw_B = list(y = list(type = "character"))
       ),
@@ -620,8 +620,8 @@ test_that("column_overrides applies to multiple domains independently", {
     )
   )
   result <- generate_data_from_workflows(
-    lWorkflows       = wf,
-    n_participants   = 10,
+    lWorkflows = wf,
+    n_participants = 10,
     column_overrides = list(
       Raw_A = list(tag = "domain_a"),
       Raw_B = list(tag = "domain_b")
@@ -649,10 +649,10 @@ test_that("column_overrides NULL leaves output unchanged (backward compat)", {
 test_that("column_overrides are applied on every snapshot in multi-snapshot mode", {
   set.seed(42)
   result <- generate_data_from_workflows(
-    lWorkflows       = make_override_workflows(),
-    n_participants   = 20,
-    snapshot_count   = 3,
-    snapshot_width   = "months",
+    lWorkflows = make_override_workflows(),
+    n_participants = 20,
+    snapshot_count = 3,
+    snapshot_width = "months",
     column_overrides = list(
       Raw_CUSTOM = list(flag = "HOT")
     )
@@ -698,11 +698,11 @@ test_that("unknown spec column in workflow does not drop to type-based fallback 
   set.seed(42)
   wf <- list(
     wf1 = list(
-      meta  = list(),
-      spec  = list(
+      meta = list(),
+      spec = list(
         Raw_CUSTOM = list(
-          id_col       = list(type = "character"),
-          mystery_score = list(type = "numeric")  # no mystery_score() function exists
+          id_col = list(type = "character"),
+          mystery_score = list(type = "numeric") # no mystery_score() function exists
         )
       ),
       steps = list()
