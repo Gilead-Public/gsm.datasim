@@ -1,7 +1,8 @@
 #' Generate Raw VS (Vital Signs) Data
 #'
 #' Generate Raw VS based on `VS.yaml` from `gsm.mapping`.
-#' Wide format: one row per subject × visit with weight, sysbp, diabp columns.
+#' Wide format: one row per subject × visit with columns for all 8 vitals measures:
+#' weight, height, bmi, sysbp, diabp, pulse, temp, resp.
 #'
 #' @inheritParams Raw_STUDY
 #' @returns a data.frame pertaining to the raw dataset plugged into `VS.yaml`
@@ -51,8 +52,13 @@ Raw_VS <- function(data, previous_data, spec, startDate, ...) {
     vs_dt = list(all_n, startDate),
     vsperf_std = list(all_n),
     weight = list(all_n, subj_visits$subjid),
+    height = list(all_n, subj_visits$subjid),
+    bmi = list(all_n, subj_visits$subjid),
     sysbp = list(all_n, subj_visits$subjid),
     diabp = list(all_n, subj_visits$subjid),
+    pulse = list(all_n, subj_visits$subjid),
+    temp = list(all_n, subj_visits$subjid),
+    resp = list(all_n, subj_visits$subjid),
     default = list(all_n, subj_visits)
   )
 
@@ -88,9 +94,38 @@ sysbp <- function(n, subjects, ...) {
 
 
 diabp <- function(n, subjects, ...) {
-
   # Generate diastolic BP with ~10% duplicates per subject
   .generate_vital_with_duplicates(n, subjects, mean = 80, sd = 10, digits = 0)
+}
+
+
+height <- function(n, subjects, ...) {
+  # Generate height (cm) with ~10% duplicates per subject
+  .generate_vital_with_duplicates(n, subjects, mean = 170, sd = 10, digits = 1)
+}
+
+
+bmi <- function(n, subjects, ...) {
+  # Generate BMI with ~10% duplicates per subject
+  .generate_vital_with_duplicates(n, subjects, mean = 25, sd = 4, digits = 1)
+}
+
+
+pulse <- function(n, subjects, ...) {
+  # Generate pulse/heart rate with ~10% duplicates per subject
+  .generate_vital_with_duplicates(n, subjects, mean = 72, sd = 12, digits = 0)
+}
+
+
+temp <- function(n, subjects, ...) {
+  # Generate temperature (°C) with ~10% duplicates per subject
+  .generate_vital_with_duplicates(n, subjects, mean = 36.8, sd = 0.4, digits = 1)
+}
+
+
+resp <- function(n, subjects, ...) {
+  # Generate respiratory rate with ~10% duplicates per subject
+  .generate_vital_with_duplicates(n, subjects, mean = 16, sd = 3, digits = 0)
 }
 
 
