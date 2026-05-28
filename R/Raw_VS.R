@@ -3,6 +3,8 @@
 #' Generate Raw VS based on `VS.yaml` from `gsm.mapping`.
 #' Wide format: one row per subject × visit with columns for all 8 vitals measures:
 #' weight, height, bmi, sysbp, diabp, pulse, temp, resp.
+#' Wide format: one row per subject × visit with columns for all 8 vitals measures:
+#' weight, height, bmi, sysbp, diabp, pulse, temp, resp.
 #'
 #' Domain generation itself is registered in `domain_registry.R` (`Raw_VS`
 #' entry); the functions below are the per-column generators dispatched by
