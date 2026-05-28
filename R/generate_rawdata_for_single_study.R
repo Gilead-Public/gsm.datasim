@@ -75,6 +75,18 @@ generate_rawdata_for_single_study <- function(SnapshotCount,
       visit_dt = list(required = TRUE)
     )
   }
+  if (!("Raw_VS" %in% names(combined_specs))) {
+    combined_specs$Raw_VS <- list(
+      subjid = list(required = TRUE),
+      studyid = list(required = TRUE),
+      visnam = list(required = TRUE),
+      vs_dt = list(required = TRUE),
+      vsperf_std = list(required = TRUE),
+      weight = list(required = TRUE),
+      sysbp = list(required = TRUE),
+      diabp = list(required = TRUE)
+    )
+  }
   if (!("Visit" %in% names(combined_specs))) {
     combined_specs$Raw_VISIT <- list(
       subjid = list(required = TRUE),
@@ -198,6 +210,7 @@ generate_rawdata_for_single_study <- function(SnapshotCount,
         ),
         Raw_STUDCOMP = list(data, previous_data, combined_specs, n = n, startDate = start_dates[snapshot_idx], split_vars = list("subjid_invid_unique")),
         Raw_LB = list(data, previous_data, combined_specs, n = n, startDate = start_dates[snapshot_idx], split_vars = list("subj_visit_repeated")),
+        Raw_VS = list(data, previous_data, combined_specs, n = n, startDate = start_dates[snapshot_idx], split_vars = list("subj_visit_repeated")),
         Raw_DATACHG = list(data, previous_data, combined_specs, n = n, startDate = start_dates[snapshot_idx], split_vars = list("subject_nsv_visit_repeated")),
         Raw_DATAENT = list(data, previous_data, combined_specs, n = n, startDate = start_dates[snapshot_idx], split_vars = list("subject_nsv_visit_repeated")),
         Raw_QUERY = list(data, previous_data, combined_specs, n = n, startDate = start_dates[snapshot_idx], split_vars = list("subject_nsv_visit_repeated")),
