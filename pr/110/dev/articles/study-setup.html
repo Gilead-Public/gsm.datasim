@@ -124,6 +124,9 @@ configuration system:</p>
 <span>  site_count <span class="op">=</span> <span class="fl">5</span></span>
 <span><span class="op">)</span></span>
 <span></span>
+<span><span class="co"># Set to a single snapshot (the default is 5)</span></span>
+<span><span class="va">config</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/set_temporal_config.html">set_temporal_config</a></span><span class="op">(</span><span class="va">config</span>, snapshot_count <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span></span>
 <span><span class="co"># Add clinical domains (datasets)</span></span>
 <span><span class="va">config</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_dataset_config.html">add_dataset_config</a></span><span class="op">(</span><span class="va">config</span>, <span class="st">"Raw_AE"</span>, enabled <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="co"># Adverse Events</span></span>
 <span><span class="va">config</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_dataset_config.html">add_dataset_config</a></span><span class="op">(</span><span class="va">config</span>, <span class="st">"Raw_LB"</span>, enabled <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="co"># Laboratory Data</span></span>
