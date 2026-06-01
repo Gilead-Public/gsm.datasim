@@ -2,12 +2,6 @@
 # version: 0.1.0
 # Description: Generate qcthat quality control reports for pull requests and releases and manage user acceptance testing.
 on:
-  pull_request:
-    types: [opened, edited, reopened, synchronize, milestoned]
-  release:
-    types: [released]
-  issues:
-    types: [closed]
   workflow_dispatch:
     inputs:
       pr-number:
