@@ -21,3 +21,13 @@ get_snapshot_data(study, snapshot)
 ## Value
 
 Data for the specified snapshot
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+study <- create_longitudinal_study("STUDY-001", participants = 50, sites = 5, snapshots = 3)
+snap1 <- get_snapshot_data(study, snapshot = 1)
+names(snap1)
+} # }
+```

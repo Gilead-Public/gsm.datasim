@@ -38,3 +38,20 @@ A vector of length `n`.
 ## Lifecycle
 
 **\[experimental\]**
+
+## Examples
+
+``` r
+# Generate date values
+generate_column_by_type("ae_stdt", list(type = "date"), n = 5,
+  context = list(start_date = "2023-01-01", end_date = "2023-12-31"))
+#> [1] "2023-06-22" "2023-03-04" "2023-12-24" "2023-02-16" "2023-07-20"
+
+# Generate integer values using name-pattern inference
+generate_column_by_type("subject_count", n = 10)
+#>  [1] 69  5 24 79 77  2 62 55 43 62
+
+# Generate character values with explicit type
+generate_column_by_type("category", list(type = "character"), n = 5)
+#> [1] "CATE-0001" "CATE-0002" "CATE-0003" "CATE-0004" "CATE-0005"
+```

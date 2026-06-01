@@ -80,3 +80,20 @@ LongitudinalStudy object with generated data
 ## Details
 
 Creates a complete longitudinal study with multiple snapshots
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+study <- create_longitudinal_study(
+  study_id = "STUDY-001",
+  participants = 100,
+  sites = 10,
+  snapshots = 3,
+  interval = "1 month",
+  domains = c("AE", "LB", "VISIT")
+)
+study$study_id
+length(study$raw_data) # number of snapshots
+} # }
+```

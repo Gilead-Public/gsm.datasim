@@ -22,3 +22,12 @@ set_outlier_config(config, intensity = 1)
 ## Value
 
 Updated study configuration
+
+## Examples
+
+``` r
+config <- create_study_config("TRIAL001")
+config <- set_outlier_config(config, intensity = 2)
+config$study_params$outlier_intensity
+#> [1] 2
+```

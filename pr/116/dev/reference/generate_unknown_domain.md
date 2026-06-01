@@ -62,3 +62,22 @@ registry generators for longitudinal multi-snapshot generation.
 ## Lifecycle
 
 **\[experimental\]**
+
+## Examples
+
+``` r
+spec <- list(
+  subjid   = list(type = "character"),
+  measure_dt = list(type = "date"),
+  value    = list(type = "numeric")
+)
+domain_data <- generate_unknown_domain("Raw_CUSTOM", spec, n = 10)
+head(domain_data)
+#>      subjid measure_dt value
+#> 1 SUBJ-0001 2012-02-12 74.47
+#> 2 SUBJ-0002 2012-09-17 38.26
+#> 3 SUBJ-0003 2012-10-26 49.96
+#> 4 SUBJ-0004 2012-02-03 56.20
+#> 5 SUBJ-0005 2012-03-10 60.87
+#> 6 SUBJ-0006 2012-09-16 85.31
+```
