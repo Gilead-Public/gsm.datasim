@@ -43,6 +43,16 @@
 #'
 #' @return Invisibly returns the path to the top-level study folder (for a
 #'   single study) or a named list of paths (for multiple studies).
+#' @examples
+#' \dontrun{
+#' study <- create_longitudinal_study(
+#'   "STUDY-001", participants = 50, sites = 5, snapshots = 2
+#' )
+#' export_study_data(study, output_dir = tempdir(), overwrite = TRUE)
+#'
+#' # Export as parquet format
+#' export_study_data(study, output_dir = tempdir(), format = "parquet", overwrite = TRUE)
+#' }
 #' @export
 export_study_data <- function(study,
                               output_dir = ".",

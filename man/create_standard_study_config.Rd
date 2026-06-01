@@ -95,3 +95,16 @@ Study configuration with standard datasets
 \description{
 Convenience function to create a study configuration with standard clinical datasets.
 }
+\examples{
+# All default datasets
+config <- create_standard_study_config("TRIAL001", participant_count = 100, site_count = 10)
+names(config$dataset_configs)
+
+# Select a subset of domains
+config <- create_standard_study_config(
+  "TRIAL002",
+  participant_count = 50,
+  adverse_events = TRUE, lab_data = TRUE,
+  pharmacokinetics = FALSE, overall_response = FALSE
+)
+}

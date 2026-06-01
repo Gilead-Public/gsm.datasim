@@ -96,6 +96,16 @@ get_fk_mappings <- function() {
 #'
 #' @section Lifecycle:
 #' `r lifecycle::badge("experimental")`
+#' @examples
+#' # Generate date values
+#' generate_column_by_type("ae_stdt", list(type = "date"), n = 5,
+#'   context = list(start_date = "2023-01-01", end_date = "2023-12-31"))
+#'
+#' # Generate integer values using name-pattern inference
+#' generate_column_by_type("subject_count", n = 10)
+#'
+#' # Generate character values with explicit type
+#' generate_column_by_type("category", list(type = "character"), n = 5)
 #' @export
 generate_column_by_type <- function(col_name, col_spec = list(), n, context = list()) {
   # ── FK lookup ──────────────────────────────────────────────────────────────
@@ -170,6 +180,14 @@ generate_column_by_type <- function(col_name, col_spec = list(), n, context = li
 #'
 #' @section Lifecycle:
 #' `r lifecycle::badge("experimental")`
+#' @examples
+#' spec <- list(
+#'   subjid   = list(type = "character"),
+#'   measure_dt = list(type = "date"),
+#'   value    = list(type = "numeric")
+#' )
+#' domain_data <- generate_unknown_domain("Raw_CUSTOM", spec, n = 10)
+#' head(domain_data)
 #' @export
 generate_unknown_domain <- function(domain_name, domain_spec, n, context = list(),
                                     previous_data = NULL) {

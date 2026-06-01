@@ -35,3 +35,8 @@ Updated study configuration
 \description{
 Adds a dataset configuration to the study config.
 }
+\examples{
+config <- create_study_config("TRIAL001")
+config <- add_dataset_config(config, "Raw_AE", enabled = TRUE)
+"Raw_AE" \%in\% names(config$dataset_configs)
+}

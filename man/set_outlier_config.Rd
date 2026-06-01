@@ -18,3 +18,8 @@ Updated study configuration
 \description{
 Updates outlier generation intensity in a study config.
 }
+\examples{
+config <- create_study_config("TRIAL001")
+config <- set_outlier_config(config, intensity = 2)
+config$study_params$outlier_intensity
+}

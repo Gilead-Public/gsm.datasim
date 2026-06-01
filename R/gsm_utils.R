@@ -3,6 +3,16 @@
 #' @param config Study configuration object with enabled datasets
 #' @param domain_package_df Data frame mapping domains to packages
 #' @return List of raw data for enabled datasets
+#' @examples
+#' \dontrun{
+#' config <- create_standard_study_config("STUDY001", participant_count = 50, site_count = 5)
+#' domain_pkg_df <- data.frame(
+#'   domain  = c("AE", "LB"),
+#'   package = c("gsm.mapping", "gsm.mapping"),
+#'   stringsAsFactors = FALSE
+#' )
+#' raw <- generate_raw_data_for_endpoints(config, domain_pkg_df)
+#' }
 #' @export
 generate_raw_data_for_endpoints <- function(config, domain_package_df) {
   generate_snapshots_from_config(
@@ -309,6 +319,8 @@ generate_snapshots_from_config <- function(config,
 #' @param sites Number of sites
 #' @param snapshots Number of snapshots
 #' @param domains Domains to include
+#' @examples
+#' validate_study_inputs(participants = 100, sites = 10, snapshots = 5, domains = c("AE", "LB"))
 #' @export
 validate_study_inputs <- function(participants, sites, snapshots, domains) {
   if (participants <= 0) stop("Participants must be positive")
@@ -321,6 +333,8 @@ validate_study_inputs <- function(participants, sites, snapshots, domains) {
 #'
 #' @param domains Vector of domain names
 #' @return Vector with required core mappings added
+#' @examples
+#' ensure_core_mappings(c("AE", "LB", "VISIT"))
 #' @export
 ensure_core_mappings <- function(domains) {
   # Required core mappings for any study
@@ -347,6 +361,16 @@ ensure_core_mappings <- function(domains) {
 #' @param outlier_intensity Global multiplier for outlier-like values in domain generators.
 #' @param verbose Whether to print progress/output messages
 #' @return List of raw data for each snapshot
+#' @examples
+#' \dontrun{
+#' mappings <- ensure_core_mappings(c("AE", "LB"))
+#' snapshots <- generate_study_snapshots(
+#'   study_id = "STUDY-001",
+#'   participants = 100, sites = 10, snapshots = 3,
+#'   interval = "1 month", mappings = mappings
+#' )
+#' length(snapshots)
+#' }
 #' @export
 generate_study_snapshots <- function(study_id, participants, sites, snapshots, interval, mappings,
                                      base_date = NULL, outlier_intensity = 1, verbose = FALSE) {
@@ -421,6 +445,10 @@ generate_study_snapshots <- function(study_id, participants, sites, snapshots, i
 #'
 #' @param interval Interval string (e.g., "1 month", "2 weeks")
 #' @return Snapshot width for temporal configuration
+#' @examples
+#' parse_interval_to_snapshot_width("1 month")
+#' parse_interval_to_snapshot_width("2 weeks")
+#' parse_interval_to_snapshot_width("30 days")
 #' @export
 parse_interval_to_snapshot_width <- function(interval) {
   if (grepl("month", interval, ignore.case = TRUE)) {
@@ -439,6 +467,13 @@ parse_interval_to_snapshot_width <- function(interval) {
 #' @param raw_data Raw study data
 #' @param config Study configuration object
 #' @return Analytics pipeline results
+#' @examples
+#' \dontrun{
+#' config <- create_standard_study_config("STUDY001", participant_count = 50, site_count = 5)
+#' config <- set_temporal_config(config, snapshot_count = 1)
+#' raw_data <- generate_study_data(config)
+#' results <- execute_analytics_pipeline(raw_data, config)
+#' }
 #' @export
 execute_analytics_pipeline <- function(raw_data, config) {
   verbose <- if (!is.null(config$verbose)) isTRUE(config$verbose) else FALSE
@@ -690,6 +725,13 @@ organize_analytics_results <- function(pipeline_results, verbose = FALSE) {
 #' @param config Study configuration object
 #' @param verbose Whether to print progress/output messages
 #' @return Raw analytics pipeline results
+#' @examples
+#' \dontrun{
+#' config <- create_standard_study_config("STUDY001", participant_count = 50, site_count = 5)
+#' config <- set_temporal_config(config, snapshot_count = 1)
+#' raw_data <- generate_study_data(config)
+#' analytics <- generate_analytics_layers(raw_data, config, verbose = TRUE)
+#' }
 #' @export
 generate_analytics_layers <- function(raw_data, config, verbose = FALSE) {
   config$verbose <- verbose
@@ -705,6 +747,14 @@ generate_analytics_layers <- function(raw_data, config, verbose = FALSE) {
 #' @param analytics_results Output from \code{execute_analytics_pipeline}
 #' @param config Study configuration object
 #' @return Named list of reporting results per snapshot
+#' @examples
+#' \dontrun{
+#' config <- create_standard_study_config("STUDY001", participant_count = 50, site_count = 5)
+#' config <- set_temporal_config(config, snapshot_count = 1)
+#' raw_data <- generate_study_data(config)
+#' analytics <- generate_analytics_layers(raw_data, config)
+#' reporting <- execute_reporting_pipeline(analytics, config)
+#' }
 #' @export
 execute_reporting_pipeline <- function(analytics_results, config) {
   verbose <- if (!is.null(config$verbose)) isTRUE(config$verbose) else FALSE
@@ -808,6 +858,14 @@ execute_reporting_pipeline <- function(analytics_results, config) {
 #' @param config Study configuration object
 #' @param verbose Whether to print progress/output messages
 #' @return Named list of reporting results per snapshot
+#' @examples
+#' \dontrun{
+#' config <- create_standard_study_config("STUDY001", participant_count = 50, site_count = 5)
+#' config <- set_temporal_config(config, snapshot_count = 1)
+#' raw_data <- generate_study_data(config)
+#' analytics <- generate_analytics_layers(raw_data, config)
+#' reporting <- generate_reporting_layers(analytics, config, verbose = TRUE)
+#' }
 #' @export
 generate_reporting_layers <- function(analytics_results, config, verbose = FALSE) {
   config$verbose <- verbose
@@ -822,6 +880,13 @@ generate_reporting_layers <- function(analytics_results, config, verbose = FALSE
 #' @param config Study configuration object with enabled datasets.
 #' @param verbose Whether to print progress/output messages.
 #' @return List of raw data for enabled datasets.
+#' @examples
+#' \dontrun{
+#' config <- create_standard_study_config("STUDY001", participant_count = 50, site_count = 5)
+#' config <- set_temporal_config(config, snapshot_count = 2)
+#' raw <- generate_raw_data_from_config(config)
+#' names(raw)  # snapshot date keys
+#' }
 #' @export
 generate_raw_data_from_config <- function(config, verbose = FALSE) {
   generate_snapshots_from_config(
@@ -841,6 +906,13 @@ generate_raw_data_from_config <- function(config, verbose = FALSE) {
 #' @param package Package containing workflows (not used in new approach)
 #' @param verbose Whether to print progress/output messages
 #' @return List of generated study data
+#' @examples
+#' \dontrun{
+#' config <- create_standard_study_config("STUDY001", participant_count = 50, site_count = 5)
+#' config <- set_temporal_config(config, snapshot_count = 1)
+#' data <- generate_study_data(config)
+#' names(data[[1]])  # domain names in first snapshot
+#' }
 #' @export
 generate_study_data <- function(config, workflow_path = "workflow/1_mappings",
                                 mappings = NULL, package = "gsm.mapping",
