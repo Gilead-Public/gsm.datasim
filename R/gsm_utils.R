@@ -448,9 +448,13 @@ execute_analytics_pipeline <- function(raw_data, config) {
 
   tryCatch(
     {
-      # Check if gsm.core is available
-      if (!requireNamespace("gsm.core", quietly = TRUE)) {
-        if (isTRUE(verbose)) message("gsm.core package not available. Skipping analytics pipeline.")
+      # Check if workr is available
+      if (!requireNamespace("workr", quietly = TRUE)) {
+        if (isTRUE(verbose)) message("workr package not available. Skipping analytics pipeline.")
+        return(NULL)
+      }
+      if (!requireNamespace("gsm.mapping", quietly = TRUE)) {
+        if (isTRUE(verbose)) message("gsm.mapping package not available. Skipping analytics pipeline.")
         return(NULL)
       }
 
@@ -483,12 +487,12 @@ execute_analytics_pipeline <- function(raw_data, config) {
 
       # Determine workflow configuration once
       if (!is.null(analytics_wf)) {
-        lWorkflow <- gsm.core::MakeWorkflowList(
+        lWorkflow <- workr::MakeWorkflowList(
           strPackage = analytics_pkg,
           strNames   = analytics_wf
         )
       } else {
-        lWorkflow <- gsm.core::MakeWorkflowList(
+        lWorkflow <- workr::MakeWorkflowList(
           strPackage = analytics_pkg,
           strPath    = "workflow/2_metrics"
         )
@@ -532,7 +536,7 @@ execute_analytics_pipeline <- function(raw_data, config) {
 
         workflows_to_run <- unique(c(available_raw_names, derived_mapping_names))
 
-        all_mappings_wf <- gsm.core::MakeWorkflowList(
+        all_mappings_wf <- workr::MakeWorkflowList(
           strNames   = workflows_to_run,
           strPath    = "workflow/1_mappings",
           strPackage = "gsm.mapping"
@@ -542,7 +546,7 @@ execute_analytics_pipeline <- function(raw_data, config) {
         raw_backed_names <- intersect(names(all_mappings_wf), available_raw_names)
         raw_mappings_wf <- all_mappings_wf[raw_backed_names]
         mappings_spec <- CombineSpecs(raw_mappings_wf)
-        lRaw <- Ingest(snapshot_data, mappings_spec)
+        lRaw <- gsm.mapping::Ingest(snapshot_data, mappings_spec)
 
         # Run each workflow in order, accumulating results so derived mappings
         # (e.g. COUNTRY) can see the output of earlier ones (e.g. Mapped_SITE)
@@ -550,7 +554,7 @@ execute_analytics_pipeline <- function(raw_data, config) {
         for (mwf_name in names(all_mappings_wf)) {
           single_mwf <- all_mappings_wf[mwf_name]
           result <- tryCatch(
-            gsm.core::RunWorkflows(lWorkflow = single_mwf, lData = c(lRaw, mapped_data)),
+            workr::RunWorkflows(lWorkflow = single_mwf, lData = c(lRaw, mapped_data)),
             error = function(e) NULL
           )
           if (!is.null(result)) {
@@ -562,7 +566,7 @@ execute_analytics_pipeline <- function(raw_data, config) {
         for (wf_name in names(lWorkflow)) {
           single_wf <- lWorkflow[wf_name]
           wf_result <- tryCatch(
-            gsm.core::RunWorkflows(
+            workr::RunWorkflows(
               lWorkflow = single_wf,
               lData = mapped_data
             ),
@@ -712,8 +716,8 @@ execute_reporting_pipeline <- function(analytics_results, config) {
         if (isTRUE(verbose)) message("gsm.reporting package not available. Skipping reporting pipeline.")
         return(NULL)
       }
-      if (!requireNamespace("gsm.core", quietly = TRUE)) {
-        if (isTRUE(verbose)) message("gsm.core package not available. Skipping reporting pipeline.")
+      if (!requireNamespace("workr", quietly = TRUE)) {
+        if (isTRUE(verbose)) message("workr package not available. Skipping reporting pipeline.")
         return(NULL)
       }
       if (is.null(analytics_results)) {
@@ -725,13 +729,13 @@ execute_reporting_pipeline <- function(analytics_results, config) {
       reporting_workflows <- config$study_params$reporting_workflows
 
       if (!is.null(reporting_workflows)) {
-        reporting_wf <- gsm.core::MakeWorkflowList(
+        reporting_wf <- workr::MakeWorkflowList(
           strPackage = reporting_package,
           strNames   = reporting_workflows,
           strPath    = "workflow/3_reporting"
         )
       } else {
-        reporting_wf <- gsm.core::MakeWorkflowList(
+        reporting_wf <- workr::MakeWorkflowList(
           strPackage = reporting_package,
           strPath    = "workflow/3_reporting"
         )
@@ -763,7 +767,7 @@ execute_reporting_pipeline <- function(analytics_results, config) {
         vcat("Running reporting pipeline for snapshot: ", snapshot_name, "\n", sep = "")
 
         lReporting <- tryCatch(
-          gsm.core::RunWorkflows(
+          workr::RunWorkflows(
             lWorkflow = reporting_wf,
             lData     = c(mapped, list(lAnalyzed = lAnalyzed, lWorkflows = lWorkflow))
           ),

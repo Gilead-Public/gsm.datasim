@@ -26,3 +26,8 @@ resolved column type. For columns that look like foreign keys (e.g. \code{subjid
 \code{invid}), values are sampled from existing parent domain data when available
 in \code{context$data}.
 }
+\section{Lifecycle}{
+
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+}
+

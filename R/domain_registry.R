@@ -1,5 +1,7 @@
 #' Domain Registry (draft)
 #'
+#' `r lifecycle::badge("experimental")`
+#'
 #' Returns a named list that defines per-domain generation behavior for the
 #' registry-based migration path.
 #'

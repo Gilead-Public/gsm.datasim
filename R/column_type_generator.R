@@ -94,6 +94,8 @@ get_fk_mappings <- function() {
 #'
 #' @return A vector of length `n`.
 #'
+#' @section Lifecycle:
+#' `r lifecycle::badge("experimental")`
 #' @export
 generate_column_by_type <- function(col_name, col_spec = list(), n, context = list()) {
   # ── FK lookup ──────────────────────────────────────────────────────────────
@@ -166,6 +168,8 @@ generate_column_by_type <- function(col_name, col_spec = list(), n, context = li
 #' @return A `data.frame` with `n` rows and one column per spec entry (or more
 #'   rows if `previous_data` already exceeds `n`).
 #'
+#' @section Lifecycle:
+#' `r lifecycle::badge("experimental")`
 #' @export
 generate_unknown_domain <- function(domain_name, domain_spec, n, context = list(),
                                     previous_data = NULL) {

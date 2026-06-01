@@ -20,7 +20,7 @@ generate_data_from_workflows(
 }
 \arguments{
 \item{lWorkflows}{A named list of workflow objects, each containing a \verb{$spec}
-element (e.g. from \code{gsm.core::MakeWorkflowList()}).}
+element (e.g. from \code{workr::MakeWorkflowList()}).}
 
 \item{n_participants}{Integer. Target number of participants (default 100).}
 
@@ -83,7 +83,7 @@ domain). When \code{snapshot_count > 1}, a named list of snapshots keyed by
 snapshot end-date, each containing a named list of domain \code{data.frame}s.
 }
 \description{
-Takes a list of workflows (as returned by \code{gsm.core::MakeWorkflowList()}) and
+Takes a list of workflows (as returned by \code{workr::MakeWorkflowList()}) and
 generates simulated raw data for every \verb{Raw_*} domain found in the combined
 specification. Domains that already have a dedicated generator in the domain
 registry or a legacy \verb{Raw_*()} function are produced with those generators;
@@ -113,7 +113,7 @@ from previously generated domains.
 \examples{
 \dontrun{
 # Load workflows from gsm.mapping
-lWorkflows <- gsm.core::MakeWorkflowList(
+lWorkflows <- workr::MakeWorkflowList(
   strPath = "workflow/1_mappings",
   strPackage = "gsm.mapping"
 )

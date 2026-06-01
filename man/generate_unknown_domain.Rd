@@ -45,3 +45,8 @@ only generates \code{n - nrow(previous_data)} new rows, then binds them together
 This mirrors the behavior of the core domain registry generators for
 longitudinal multi-snapshot generation.
 }
+\section{Lifecycle}{
+
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+}
+

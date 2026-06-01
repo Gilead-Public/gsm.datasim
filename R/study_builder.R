@@ -442,6 +442,8 @@ get_domain_timeline <- function(study, domain_name) {
 
 #' Get Available Domain Names
 #'
+#' `r lifecycle::badge("experimental")`
+#'
 #' Return list of available domain names across all snapshots.
 #'
 #' @param study Longitudinal study data structure
