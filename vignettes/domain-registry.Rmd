@@ -107,7 +107,8 @@ print(lb_config$generate_fn)
 ## Available Domains
 
 ```{r available-domains}
-# Get all available domains from the registry
+# Get all available domains from the registry (no study object needed —
+# this is a standalone registry lookup, not a study-specific query)
 available_domains <- get_available_domains()
 print(available_domains)
 

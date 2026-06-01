@@ -46,6 +46,9 @@ config <- create_study_config(
   site_count = 5
 )
 
+# Set to a single snapshot (the default is 5)
+config <- set_temporal_config(config, snapshot_count = 1)
+
 # Add clinical domains (datasets)
 config <- add_dataset_config(config, "Raw_AE", enabled = TRUE) # Adverse Events
 config <- add_dataset_config(config, "Raw_LB", enabled = TRUE) # Laboratory Data

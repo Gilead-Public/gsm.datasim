@@ -456,21 +456,41 @@ execute_analytics_pipeline <- function(raw_data, config) {
 
       vcat("Running analytics pipeline on", length(raw_data), "snapshots...\n")
 
-      # Determine workflow configuration once
-      if (!is.null(config$study_params$analytics_package) && !is.null(config$study_params$analytics_workflows)) {
-        lWorkflow <- gsm.core::MakeWorkflowList(
-          strPackage = config$study_params$analytics_package,
-          strNames = config$study_params$analytics_workflows
+      # Resolve analytics package and workflows from either config format:
+      # - study configs (create_study_config) store these under config$study_params
+      # - longitudinal configs (create_longitudinal_study) store them at the top level
+      analytics_pkg <- config$study_params$analytics_package %||%
+        config$analytics_package %||%
+        "gsm.kri"
+      analytics_wf <- config$study_params$analytics_workflows %||%
+        config$analytics_workflows
+
+      # Verify the workflow directory is accessible before calling MakeWorkflowList.
+      # system.file() returns "" for packages that are loaded but not installed
+      # (e.g. via devtools::load_all()), which would produce the cryptic
+      # "[ strPath ] must exist." error from MakeWorkflowList.
+      pkg_wf_path <- system.file("workflow", package = analytics_pkg)
+      if (!nzchar(pkg_wf_path)) {
+        warning(
+          "Analytics pipeline skipped: workflow directory not found in package '",
+          analytics_pkg, "'. ",
+          "Ensure the package is installed (e.g. remotes::install_github()), ",
+          "not just loaded with devtools::load_all()."
         )
-      } else if (!is.null(config$study_params$analytics_package)) {
+        vcat("Analytics pipeline skipped: package workflows not accessible.\n")
+        return(NULL)
+      }
+
+      # Determine workflow configuration once
+      if (!is.null(analytics_wf)) {
         lWorkflow <- gsm.core::MakeWorkflowList(
-          strPackage = config$study_params$analytics_package,
-          strPath = "workflow/2_metrics"
+          strPackage = analytics_pkg,
+          strNames   = analytics_wf
         )
       } else {
         lWorkflow <- gsm.core::MakeWorkflowList(
-          strPackage = "gsm.kri",
-          strPath = "workflow/2_metrics"
+          strPackage = analytics_pkg,
+          strPath    = "workflow/2_metrics"
         )
       }
 
