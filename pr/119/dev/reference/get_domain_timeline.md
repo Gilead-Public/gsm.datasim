@@ -21,3 +21,14 @@ get_domain_timeline(study, domain_name)
 ## Value
 
 Timeline data for the specified domain
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+study <- create_longitudinal_study("STUDY-001", participants = 50, sites = 5,
+                                    snapshots = 3, domains = c("AE", "LB"))
+ae_timeline <- get_domain_timeline(study, "AE")
+length(ae_timeline) # one entry per snapshot
+} # }
+```

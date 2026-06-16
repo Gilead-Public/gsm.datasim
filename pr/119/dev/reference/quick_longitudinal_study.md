@@ -56,3 +56,18 @@ quick_longitudinal_study(
 ## Value
 
 LongitudinalStudy object with complete data and analytics
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+study <- quick_longitudinal_study(
+  study_name = "GS-US-123-4567",
+  participants = 200,
+  sites = 20,
+  months_duration = 12
+)
+study$study_id
+length(study$raw_data)
+} # }
+```

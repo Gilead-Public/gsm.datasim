@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gsm.datasim</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.1.3.9000</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">2.0.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -48,6 +48,101 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="gsmdatasim-development-version">gsm.datasim (development version)<a class="anchor" aria-label="anchor" href="#gsmdatasim-development-version"></a></h2>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.0.0" id="gsmdatasim-v200">gsm.datasim v2.0.0<a class="anchor" aria-label="anchor" href="#gsmdatasim-v200"></a></h2>
+<p>This major release introduces a comprehensive study builder API, longitudinal study support, workflow-driven data generation, a domain registry, and parquet export — representing a significant expansion of the package’s capabilities.</p>
+<div class="section level3">
+<h3 id="breaking-changes-2-0-0">Breaking Changes<a class="anchor" aria-label="anchor" href="#breaking-changes-2-0-0"></a></h3>
+<ul><li>
+<code><a href="../reference/generate_rawdata_for_single_study.html">generate_rawdata_for_single_study()</a></code> and <code><a href="../reference/raw_data_generator.html">raw_data_generator()</a></code> are now deprecated in favour of the new study builder API (<code><a href="../reference/create_study_config.html">create_study_config()</a></code> + <code><a href="../reference/generate_study_data.html">generate_study_data()</a></code>). Existing calls continue to work but will emit a deprecation warning.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="new-study-builder-api-2-0-0">New Study Builder API<a class="anchor" aria-label="anchor" href="#new-study-builder-api-2-0-0"></a></h3>
+<p>A composable, config-driven approach to study data generation:</p>
+<ul><li>
+<code><a href="../reference/create_study_config.html">create_study_config()</a></code> — create a study configuration object with participant count, site count, snapshot settings, and domain selections.</li>
+<li>
+<code><a href="../reference/create_standard_study_config.html">create_standard_study_config()</a></code> — convenience wrapper with sensible defaults for standard RBQM domains.</li>
+<li>
+<code><a href="../reference/set_outlier_config.html">set_outlier_config()</a></code> — add outlier injection settings to a config.</li>
+<li>
+<code><a href="../reference/set_temporal_config.html">set_temporal_config()</a></code> — configure snapshot count, interval, and start date.</li>
+<li>
+<code><a href="../reference/add_dataset_config.html">add_dataset_config()</a></code> / <code><a href="../reference/remove_dataset_config.html">remove_dataset_config()</a></code> — enable or disable individual domain datasets within a config.</li>
+<li>
+<code><a href="../reference/validate_study_config.html">validate_study_config()</a></code> — validate a config object before data generation.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="longitudinal-study-functions-2-0-0">Longitudinal Study Functions<a class="anchor" aria-label="anchor" href="#longitudinal-study-functions-2-0-0"></a></h3>
+<p>End-to-end support for generating and analysing longitudinal multi-snapshot studies:</p>
+<ul><li>
+<code><a href="../reference/create_longitudinal_study.html">create_longitudinal_study()</a></code> — generate a complete longitudinal study (raw data + optional analytics and reporting layers) from a config.</li>
+<li>
+<code><a href="../reference/quick_longitudinal_study.html">quick_longitudinal_study()</a></code> — one-call convenience wrapper for common longitudinal study setups.</li>
+<li>
+<code><a href="../reference/create_multiple_longitudinal_studies.html">create_multiple_longitudinal_studies()</a></code> / <code><a href="../reference/export_multiple_studies.html">export_multiple_studies()</a></code> — batch generation and export across a portfolio of studies.</li>
+<li>
+<code><a href="../reference/study_portfolio.html">study_portfolio()</a></code> — define a set of study variants for batch processing.</li>
+<li>
+<code><a href="../reference/summarize_longitudinal_study.html">summarize_longitudinal_study()</a></code> — print a summary of a longitudinal study object.</li>
+<li>
+<code><a href="../reference/run_longitudinal_analytics.html">run_longitudinal_analytics()</a></code> / <code><a href="../reference/run_longitudinal_reporting.html">run_longitudinal_reporting()</a></code> — run the analytics or reporting pipeline on an existing longitudinal study object.</li>
+<li>
+<code><a href="../reference/get_snapshot_data.html">get_snapshot_data()</a></code> / <code><a href="../reference/get_domain_timeline.html">get_domain_timeline()</a></code> / <code><a href="../reference/get_available_domains.html">get_available_domains()</a></code> — extract snapshot-level and domain-level data from a longitudinal study.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="analytics-and-reporting-pipelines-2-0-0">Analytics and Reporting Pipelines<a class="anchor" aria-label="anchor" href="#analytics-and-reporting-pipelines-2-0-0"></a></h3>
+<ul><li>
+<code><a href="../reference/generate_analytics_layers.html">generate_analytics_layers()</a></code> — run the gsm analytics pipeline across all snapshots.</li>
+<li>
+<code><a href="../reference/generate_reporting_layers.html">generate_reporting_layers()</a></code> — run the gsm reporting pipeline on analytics results.</li>
+<li>
+<code><a href="../reference/execute_analytics_pipeline.html">execute_analytics_pipeline()</a></code> / <code><a href="../reference/execute_reporting_pipeline.html">execute_reporting_pipeline()</a></code> — lower-level pipeline execution helpers.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="domain-registry-and-column-data-inference-2-0-0">Domain Registry and Column Data Inference<a class="anchor" aria-label="anchor" href="#domain-registry-and-column-data-inference-2-0-0"></a></h3>
+<ul><li>
+<code><a href="../reference/get_domain_registry.html">get_domain_registry()</a></code> — retrieve the built-in registry of known domains and their column specifications.</li>
+<li>
+<code><a href="../reference/generate_column_by_type.html">generate_column_by_type()</a></code> — generate a single column of data driven by its type specification.</li>
+<li>
+<code><a href="../reference/generate_unknown_domain.html">generate_unknown_domain()</a></code> — generate data for a domain not present in the registry using inferred column types.</li>
+<li>
+<code><a href="../reference/infer_column_type.html">infer_column_type()</a></code> — infer a column’s data type from its name and spec.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="workflow-driven-data-generation-2-0-0">Workflow-Driven Data Generation<a class="anchor" aria-label="anchor" href="#workflow-driven-data-generation-2-0-0"></a></h3>
+<ul><li>
+<code><a href="../reference/generate_data_from_workflows.html">generate_data_from_workflows()</a></code> — generate raw domain data directly from <code>gsm.mapping</code> workflow specifications, supporting custom workflow paths and spec overrides.</li>
+<li>
+<code><a href="../reference/generate_raw_data_for_endpoints.html">generate_raw_data_for_endpoints()</a></code> — generate raw data for endpoint-specific domains using workflow-driven specs.</li>
+<li>
+<code><a href="../reference/prepare_combined_specs_for_generation.html">prepare_combined_specs_for_generation()</a></code> — merge and prepare column specs from multiple workflow sources.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="export-enhancements-2-0-0">Export Enhancements<a class="anchor" aria-label="anchor" href="#export-enhancements-2-0-0"></a></h3>
+<ul><li>
+<code><a href="../reference/export_study_data.html">export_study_data()</a></code> — export study data to disk with support for <code>"csv"</code> (default), <code>"parquet"</code>, or <code>"both"</code> formats via the <code>format</code> argument (requires the <code>arrow</code> package).</li>
+<li>
+<code><a href="../reference/get_snapshot_data.html">get_snapshot_data()</a></code> — retrieve a specific snapshot’s data from an exported study.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="new-and-extended-domain-support-2-0-0">New and Extended Domain Support<a class="anchor" aria-label="anchor" href="#new-and-extended-domain-support-2-0-0"></a></h3>
+<ul><li>Added gradual enrollment simulation across all data generation functions.</li>
+<li>New domain generators: <code>Raw_VISIT</code>, <code>Raw_Death</code>, <code>Raw_Consents</code>, <code>Raw_Baseline</code>, <code>Raw_Randomization</code>, <code>Raw_GENERAL</code>, <code>Raw_gilda_STUDY</code>.</li>
+<li>Extended existing domain generators (<code>Raw_AE</code>, <code>Raw_LB</code>, <code>Raw_PD</code>, <code>Raw_PK</code>, <code>Raw_DATACHG</code>, <code>Raw_DATAENT</code>, <code>Raw_QUERY</code>, <code>Raw_SDRGCOMP</code>, <code>Raw_STUDCOMP</code>) with additional columns and timestamp support.</li>
+<li>
+<code><a href="../reference/ensure_core_mappings.html">ensure_core_mappings()</a></code> — guarantee that the required core mapping domains are always present in a domain list.</li>
+<li>Conditional <code>EXCLUSION</code> mapping: only included when <code>IE</code>, <code>ENROLL</code>, and <code>PD</code> are all present in the raw data.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="utilities-2-0-0">Utilities<a class="anchor" aria-label="anchor" href="#utilities-2-0-0"></a></h3>
+<ul><li>
+<code><a href="../reference/validate_study_inputs.html">validate_study_inputs()</a></code> — validate participant, site, snapshot, and domain inputs at the study boundary.</li>
+<li>
+<code><a href="../reference/parse_interval_to_snapshot_width.html">parse_interval_to_snapshot_width()</a></code> — convert interval strings (e.g. <code>"1 month"</code>) to numeric snapshot widths.</li>
+</ul></div>
 </div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.1.3" id="gsmdatasim-v113">gsm.datasim v1.1.3<a class="anchor" aria-label="anchor" href="#gsmdatasim-v113"></a></h2>

@@ -3,9 +3,6 @@
 ``` r
 
 library(gsm.datasim)
-#> Registered S3 method overwritten by 'logger':
-#>   method         from 
-#>   print.loglevel log4r
 ```
 
 ## Introduction
@@ -43,10 +40,13 @@ config <- create_study_config(
   site_count = 5
 )
 
+# Set to a single snapshot (the default is 5)
+config <- set_temporal_config(config, snapshot_count = 1)
+
 # Add clinical domains (datasets)
-config <- add_dataset_config(config, "Raw_AE", enabled = TRUE)     # Adverse Events
-config <- add_dataset_config(config, "Raw_LB", enabled = TRUE)     # Laboratory Data
-config <- add_dataset_config(config, "Raw_VISIT", enabled = TRUE)  # Visit Data
+config <- add_dataset_config(config, "Raw_AE", enabled = TRUE) # Adverse Events
+config <- add_dataset_config(config, "Raw_LB", enabled = TRUE) # Laboratory Data
+config <- add_dataset_config(config, "Raw_VISIT", enabled = TRUE) # Visit Data
 
 # Generate the study data
 raw_data <- generate_study_data(config, verbose = TRUE)
@@ -63,7 +63,7 @@ Even for single snapshots, you can control the temporal aspects:
 
 # Create configuration with specific temporal settings
 config <- create_study_config(
-  study_id = "STUDY002", 
+  study_id = "STUDY002",
   participant_count = 200,
   site_count = 10
 )
@@ -72,14 +72,16 @@ config <- create_study_config(
 config <- set_temporal_config(
   config,
   start_date = "2023-06-01",
-  snapshot_count = 1,           # Single snapshot
+  snapshot_count = 1, # Single snapshot
   snapshot_width = "months"
 )
 
 # Add domains with custom configurations
 config <- add_dataset_config(config, "Raw_AE", enabled = TRUE)
-config <- add_dataset_config(config, "Raw_LB", enabled = TRUE, 
-                            growth_pattern = "exponential")
+config <- add_dataset_config(config, "Raw_LB",
+  enabled = TRUE,
+  growth_pattern = "exponential"
+)
 
 # Generate data
 raw_data <- generate_study_data(config, verbose = TRUE)
@@ -117,7 +119,7 @@ names(analytics_results[[1]])
 
 # Access a specific metric result across all its data frames
 kri_result <- analytics_results[[1]]$results$Analysis_kri0001
-names(kri_result)  # e.g. Analysis_Summary, Analysis_Flagged, Analysis_Analyzed
+names(kri_result) # e.g. Analysis_Summary, Analysis_Flagged, Analysis_Analyzed
 ```
 
 ### Adding the Reporting Pipeline
@@ -161,23 +163,23 @@ study <- create_longitudinal_study(
   study_id = "LONG-001",
   participants = 100,
   sites = 5,
-  snapshots = 6,                    # 6 time points
-  interval = "1 month",             # Monthly snapshots
+  snapshots = 6, # 6 time points
+  interval = "1 month", # Monthly snapshots
   domains = c("AE", "LB", "VISIT"), # Clinical domains to include
-  run_analytics = TRUE,             # Run analytics pipeline
-  run_reporting = TRUE,             # Also run reporting pipeline
+  run_analytics = TRUE, # Run analytics pipeline
+  run_reporting = TRUE, # Also run reporting pipeline
   verbose = TRUE
 )
 
 # Examine the study structure
-names(study)  # includes $raw_data, $analytics, $reporting
+names(study) # includes $raw_data, $analytics, $reporting
 
 # View snapshot dates
 names(study$raw_data)
 
 # Analytics results: raw gsm.core output per snapshot
 if (!is.null(study$analytics)) {
-  names(study$analytics[[1]]$results)  # e.g. "Analysis_kri0001", ...
+  names(study$analytics[[1]]$results) # e.g. "Analysis_kri0001", ...
 }
 
 # Reporting results per snapshot
@@ -197,11 +199,11 @@ study <- create_longitudinal_study(
   study_id = "ADVANCED-001",
   participants = 500,
   sites = 25,
-  snapshots = 12,                               # 1 year of monthly data
+  snapshots = 12, # 1 year of monthly data
   interval = "1 month",
   domains = c("AE", "LB", "VISIT", "PD", "PK"), # Multiple domains
   run_analytics = TRUE,
-  analytics_package = "gsm.kri",           # Specify analytics package
+  analytics_package = "gsm.kri", # Specify analytics package
   verbose = TRUE
 )
 
@@ -224,9 +226,9 @@ raw_data <- generate_study_snapshots(
   participants = 100,
   sites = 8,
   snapshots = 6,
-  interval = "2 months",                        # Bi-monthly snapshots
+  interval = "2 months", # Bi-monthly snapshots
   mappings = mappings,
-  base_date = "2022-01-15",                    # Custom start date
+  base_date = "2022-01-15", # Custom start date
   verbose = TRUE
 )
 
@@ -258,18 +260,18 @@ weekly_study <- create_longitudinal_study(
   participants = 50,
   sites = 3,
   snapshots = 12,
-  interval = "1 week",              # Weekly intervals
+  interval = "1 week", # Weekly intervals
   domains = c("AE", "VISIT"),
   verbose = TRUE
 )
 
-# Quarterly snapshots  
+# Quarterly snapshots
 quarterly_study <- create_longitudinal_study(
   study_id = "QUARTERLY-001",
   participants = 300,
   sites = 15,
   snapshots = 8,
-  interval = "3 months",            # Quarterly intervals  
+  interval = "3 months", # Quarterly intervals
   domains = c("AE", "LB", "PD"),
   verbose = TRUE
 )
@@ -289,14 +291,14 @@ quick_study <- quick_longitudinal_study(
   study_name = "QUICK-PROTO-001",
   participants = 200,
   sites = 10,
-  months_duration = 18,             # 18-month study
+  months_duration = 18, # 18-month study
   study_type = "standard",
-  include_pipeline = TRUE,          # runs analytics + reporting
+  include_pipeline = TRUE, # runs analytics + reporting
   verbose = TRUE
 )
 
 # Analytics and reporting results are available on the study object
-names(quick_study)  # includes $analytics and $reporting
+names(quick_study) # includes $analytics and $reporting
 ```
 
 ## Study Configuration Best Practices
@@ -308,12 +310,16 @@ Choose clinical domains based on your study objectives:
 ``` r
 
 # Oncology study domains
-oncology_domains <- c("AE", "LB", "PD", "OverallResponse", 
-                     "VISIT", "DATACHG", "QUERY")
+oncology_domains <- c(
+  "AE", "LB", "PD", "OverallResponse",
+  "VISIT", "DATACHG", "QUERY"
+)
 
-# Safety study domains  
-safety_domains <- c("AE", "LB", "VISIT", "EXCLUSION",
-                   "Death", "STUDCOMP")
+# Safety study domains
+safety_domains <- c(
+  "AE", "LB", "VISIT", "EXCLUSION",
+  "Death", "STUDCOMP"
+)
 
 # PK/PD study domains
 pkpd_domains <- c("PK", "PD", "LB", "VISIT", "AE")
@@ -324,7 +330,7 @@ onc_study <- create_longitudinal_study(
   participants = 300,
   sites = 20,
   snapshots = 24,
-  interval = "1 month", 
+  interval = "1 month",
   domains = oncology_domains,
   verbose = TRUE
 )
@@ -363,15 +369,15 @@ if (!is.null(study$analytics)) {
 
   # Access a specific metric and its data frames
   kri <- first_snap$results[[metric_names[1]]]
-  kri$Analysis_Summary   # summary-level data frame
-  kri$Analysis_Flagged   # flagged entities
-  kri$Analysis_Analyzed  # full analyzed data
+  kri$Analysis_Summary # summary-level data frame
+  kri$Analysis_Flagged # flagged entities
+  kri$Analysis_Analyzed # full analyzed data
 }
 
 # Access reporting: keyed by snapshot date
 if (!is.null(study$reporting)) {
-  names(study$reporting)        # snapshot dates
-  study$reporting[[1]]          # reporting output for first snapshot
+  names(study$reporting) # snapshot dates
+  study$reporting[[1]] # reporting output for first snapshot
 }
 ```
 
@@ -387,7 +393,7 @@ study <- create_longitudinal_study(
   snapshots = 6,
   interval = "1 month",
   domains = c("AE", "LB"),
-  run_analytics = FALSE   # skip pipelines for now
+  run_analytics = FALSE # skip pipelines for now
 )
 
 # Run analytics when ready
@@ -429,8 +435,8 @@ studies <- create_multiple_longitudinal_studies(
 )
 
 # Examine the collection
-print(studies)  # Shows summary of all studies
-names(studies)  # Study names
+print(studies) # Shows summary of all studies
+names(studies) # Study names
 
 # Access individual studies
 study_1 <- studies[["PHASE2-001"]]
@@ -446,11 +452,11 @@ Customize individual studies while maintaining shared defaults:
 # Create studies with different characteristics
 studies <- create_multiple_longitudinal_studies(
   study_names = c("SMALL-PHASE2", "LARGE-PHASE3", "SAFETY-RUN"),
-  participants = c(80, 400, 50),     # Different participant counts
-  sites = c(8, 25, 3),               # Different site counts
-  snapshots = c(4, 12, 8),          # Different durations
-  interval = "1 month",              # Shared interval
-  domains = c("AE", "LB", "VISIT"),  # Base domains (can be overridden)
+  participants = c(80, 400, 50), # Different participant counts
+  sites = c(8, 25, 3), # Different site counts
+  snapshots = c(4, 12, 8), # Different durations
+  interval = "1 month", # Shared interval
+  domains = c("AE", "LB", "VISIT"), # Base domains (can be overridden)
   study_configs = list(
     "SMALL-PHASE2" = list(
       domains = c("AE", "LB", "VISIT"),
@@ -472,7 +478,7 @@ studies <- create_multiple_longitudinal_studies(
   verbose = TRUE
 )
 
-# Each study has different characteristics    
+# Each study has different characteristics
 summary(studies)
 ```
 
@@ -486,10 +492,10 @@ For large batches, enable parallel processing to speed up generation:
 large_batch <- create_multiple_longitudinal_studies(
   study_names = paste0("BATCH-", sprintf("%03d", 1:8)),
   participants = 200,
-  sites = 15,  
+  sites = 15,
   snapshots = 6,
   domains = c("AE", "LB", "VISIT"),
-  parallel = TRUE,     # Enable parallel processing
+  parallel = TRUE, # Enable parallel processing
   run_analytics = TRUE,
   verbose = TRUE
 )
@@ -513,8 +519,8 @@ studies <- create_multiple_longitudinal_studies(
   domains = c("AE", "LB"),
   run_analytics = TRUE,
   run_reporting = TRUE,
-  export_studies = TRUE,      # Auto-export to disk
-  export_dir = "./studies",   # Export directory
+  export_studies = TRUE, # Auto-export to disk
+  export_dir = "./studies", # Export directory
   verbose = TRUE
 )
 
@@ -567,7 +573,7 @@ safety_portfolio <- create_multiple_longitudinal_studies(
   domains = c("AE", "LB", "Death", "STUDCOMP"),
   study_configs = list(
     "LOW-RISK" = list(outlier_intensity = 0.5),
-    "MEDIUM-RISK" = list(outlier_intensity = 1.0), 
+    "MEDIUM-RISK" = list(outlier_intensity = 1.0),
     "HIGH-RISK" = list(outlier_intensity = 2.5)
   ),
   run_analytics = TRUE,
@@ -577,11 +583,11 @@ safety_portfolio <- create_multiple_longitudinal_studies(
 # Compare AE rates across studies
 for (study_name in names(safety_portfolio)) {
   study <- safety_portfolio[[study_name]]
-  
+
   # Get final snapshot AE data
   final_snapshot <- study$raw_data[[length(study$raw_data)]]
   ae_count <- if ("Raw_AE" %in% names(final_snapshot)) nrow(final_snapshot$Raw_AE) else 0
-  
+
   cat(sprintf("%s: %d total AEs\n", study_name, ae_count))
 }
 ```
@@ -608,16 +614,16 @@ study <- create_longitudinal_study(
 for (i in 1:length(study$raw_data)) {
   snapshot_name <- names(study$raw_data)[i]
   snapshot_data <- study$raw_data[[i]]
-  
+
   cat("Snapshot:", snapshot_name, "\n")
   cat("Datasets:", paste(names(snapshot_data), collapse = ", "), "\n")
-  
+
   # Check sample sizes
   if ("Raw_SUBJ" %in% names(snapshot_data)) {
     cat("Subjects:", nrow(snapshot_data$Raw_SUBJ), "\n")
   }
   if ("Raw_AE" %in% names(snapshot_data)) {
-    cat("AE Records:", nrow(snapshot_data$Raw_AE), "\n") 
+    cat("AE Records:", nrow(snapshot_data$Raw_AE), "\n")
   }
   cat("\n")
 }
@@ -630,14 +636,14 @@ for (i in 1:length(study$raw_data)) {
 # Function to validate study data
 validate_study_data <- function(study) {
   validation_results <- list()
-  
+
   for (snapshot_name in names(study$raw_data)) {
     snapshot <- study$raw_data[[snapshot_name]]
-    
+
     # Check required datasets
     required_datasets <- c("Raw_STUDY", "Raw_SITE", "Raw_SUBJ", "Raw_ENROLL")
     missing_required <- setdiff(required_datasets, names(snapshot))
-    
+
     validation_results[[snapshot_name]] <- list(
       datasets_present = names(snapshot),
       missing_required = missing_required,
@@ -645,7 +651,7 @@ validate_study_data <- function(study) {
       total_sites = if ("Raw_SITE" %in% names(snapshot)) nrow(snapshot$Raw_SITE) else 0
     )
   }
-  
+
   return(validation_results)
 }
 
@@ -678,22 +684,22 @@ snapshot.
 
 # Generate a small study to export
 study <- create_longitudinal_study(
-  study_id     = "EXPORT-001",
+  study_id = "EXPORT-001",
   participants = 100,
-  sites        = 5,
-  snapshots    = 3,
-  interval     = "1 month",
-  domains      = c("AE", "LB"),
+  sites = 5,
+  snapshots = 3,
+  interval = "1 month",
+  domains = c("AE", "LB"),
   run_analytics = TRUE,
   run_reporting = TRUE,
-  verbose       = FALSE
+  verbose = FALSE
 )
 
 # Export to a temporary directory — returns the path to the study folder invisibly
 study_path <- export_study_data(
   study      = study,
   output_dir = tempdir(),
-  verbose    = TRUE       # prints per-snapshot progress
+  verbose    = TRUE # prints per-snapshot progress
 )
 
 # Confirm the folder structure
@@ -707,9 +713,9 @@ list.dirs(study_path, full.names = FALSE, recursive = TRUE)
 # Write to a specific project folder
 study_path <- export_study_data(
   study        = study,
-  output_dir   = "~/my_studies",    # root folder
-  study_folder = "EXPORT-001-v2",   # override the auto-generated folder name
-  overwrite    = TRUE               # allow writing into an existing folder
+  output_dir   = "~/my_studies", # root folder
+  study_folder = "EXPORT-001-v2", # override the auto-generated folder name
+  overwrite    = TRUE # allow writing into an existing folder
 )
 ```
 
@@ -725,13 +731,15 @@ study_path <- export_study_data(
   study      = study,
   output_dir = tempdir(),
   overwrite  = TRUE,
-  save_rds   = TRUE   # also writes analytics_full.rds per snapshot
+  save_rds   = TRUE # also writes analytics_full.rds per snapshot
 )
 
 # Reload the full analytics object for a specific snapshot
-analytics_snap <- readRDS(file.path(study_path, names(study$raw_data)[1],
-                                    "analytics_full.rds"))
-names(analytics_snap)  # $results, $mapped, $lWorkflow, $summary
+analytics_snap <- readRDS(file.path(
+  study_path, names(study$raw_data)[1],
+  "analytics_full.rds"
+))
+names(analytics_snap) # $results, $mapped, $lWorkflow, $summary
 ```
 
 ### Inspecting the Exported Files
@@ -748,8 +756,8 @@ cat("Raw CSVs:", paste(basename(raw_csvs), collapse = ", "), "\n")
 
 # Read a specific snapshot's adverse event data back in
 snap_date <- names(study$raw_data)[1]
-ae_path   <- file.path(study_path, snap_date, "raw", "Raw_AE.csv")
-ae_df     <- read.csv(ae_path)
+ae_path <- file.path(study_path, snap_date, "raw", "Raw_AE.csv")
+ae_df <- read.csv(ae_path)
 nrow(ae_df)
 ```
 

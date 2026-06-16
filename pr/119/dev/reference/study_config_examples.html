@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gsm.datasim</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.1.3.9000</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">2.0.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -59,24 +59,30 @@
 <span class="r-in"><span><span class="co"># Simple study with standard datasets using config approach</span></span></span>
 <span class="r-in"><span><span class="va">config</span> <span class="op">&lt;-</span> <span class="fu"><a href="create_study_config.html">create_study_config</a></span><span class="op">(</span><span class="st">"ONCOLOGY001"</span>, participant_count <span class="op">=</span> <span class="fl">200</span>, site_count <span class="op">=</span> <span class="fl">15</span><span class="op">)</span> <span class="op"><a href="pipe.html">%&gt;%</a></span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="set_temporal_config.html">set_temporal_config</a></span><span class="op">(</span>start_date <span class="op">=</span> <span class="st">"2023-01-01"</span>, snapshot_count <span class="op">=</span> <span class="fl">12</span>, snapshot_width <span class="op">=</span> <span class="st">"months"</span><span class="op">)</span> <span class="op"><a href="pipe.html">%&gt;%</a></span></span></span>
-<span class="r-in"><span>  <span class="fu"><a href="add_dataset_config.html">add_dataset_config</a></span><span class="op">(</span><span class="st">"Raw_AE"</span>, enabled <span class="op">=</span> <span class="cn">TRUE</span>, </span></span>
-<span class="r-in"><span>                    count_formula <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">config</span>, <span class="va">snapshot_idx</span> <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">{</span></span></span>
-<span class="r-in"><span>                      <span class="va">base_count</span> <span class="op">&lt;-</span> <span class="va">config</span><span class="op">$</span><span class="va">study_params</span><span class="op">$</span><span class="va">participant_count</span> <span class="op">*</span> <span class="fl">2.5</span></span></span>
-<span class="r-in"><span>                      <span class="va">factor</span> <span class="op">&lt;-</span> <span class="va">snapshot_idx</span> <span class="op">/</span> <span class="va">config</span><span class="op">$</span><span class="va">temporal_config</span><span class="op">$</span><span class="va">snapshot_count</span></span></span>
-<span class="r-in"><span>                      <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">base_count</span> <span class="op">*</span> <span class="va">factor</span><span class="op">)</span></span></span>
-<span class="r-in"><span>                    <span class="op">}</span><span class="op">)</span> <span class="op"><a href="pipe.html">%&gt;%</a></span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="add_dataset_config.html">add_dataset_config</a></span><span class="op">(</span><span class="st">"Raw_AE"</span>,</span></span>
+<span class="r-in"><span>    enabled <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
+<span class="r-in"><span>    count_formula <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">config</span>, <span class="va">snapshot_idx</span> <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>      <span class="va">base_count</span> <span class="op">&lt;-</span> <span class="va">config</span><span class="op">$</span><span class="va">study_params</span><span class="op">$</span><span class="va">participant_count</span> <span class="op">*</span> <span class="fl">2.5</span></span></span>
+<span class="r-in"><span>      <span class="va">factor</span> <span class="op">&lt;-</span> <span class="va">snapshot_idx</span> <span class="op">/</span> <span class="va">config</span><span class="op">$</span><span class="va">temporal_config</span><span class="op">$</span><span class="va">snapshot_count</span></span></span>
+<span class="r-in"><span>      <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">base_count</span> <span class="op">*</span> <span class="va">factor</span><span class="op">)</span></span></span>
+<span class="r-in"><span>    <span class="op">}</span></span></span>
+<span class="r-in"><span>  <span class="op">)</span> <span class="op"><a href="pipe.html">%&gt;%</a></span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="add_dataset_config.html">add_dataset_config</a></span><span class="op">(</span><span class="st">"Raw_VISIT"</span>, enabled <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">study_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="generate_study_data.html">generate_study_data</a></span><span class="op">(</span><span class="va">config</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Using convenience function for standard datasets</span></span></span>
-<span class="r-in"><span><span class="va">config</span> <span class="op">&lt;-</span> <span class="fu"><a href="create_standard_study_config.html">create_standard_study_config</a></span><span class="op">(</span><span class="st">"TRIAL002"</span>, participant_count <span class="op">=</span> <span class="fl">100</span>, site_count <span class="op">=</span> <span class="fl">10</span>,</span></span>
-<span class="r-in"><span>                                       adverse_events <span class="op">=</span> <span class="cn">TRUE</span>, lab_data <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">config</span> <span class="op">&lt;-</span> <span class="fu"><a href="create_standard_study_config.html">create_standard_study_config</a></span><span class="op">(</span><span class="st">"TRIAL002"</span>,</span></span>
+<span class="r-in"><span>  participant_count <span class="op">=</span> <span class="fl">100</span>, site_count <span class="op">=</span> <span class="fl">10</span>,</span></span>
+<span class="r-in"><span>  adverse_events <span class="op">=</span> <span class="cn">TRUE</span>, lab_data <span class="op">=</span> <span class="cn">TRUE</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Custom dataset configuration</span></span></span>
 <span class="r-in"><span><span class="va">config</span> <span class="op">&lt;-</span> <span class="fu"><a href="create_study_config.html">create_study_config</a></span><span class="op">(</span><span class="st">"CUSTOM001"</span>, participant_count <span class="op">=</span> <span class="fl">300</span>, site_count <span class="op">=</span> <span class="fl">20</span><span class="op">)</span> <span class="op"><a href="pipe.html">%&gt;%</a></span></span></span>
-<span class="r-in"><span>  <span class="fu"><a href="add_dataset_config.html">add_dataset_config</a></span><span class="op">(</span><span class="st">"Raw_Biomarker"</span>, enabled <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
-<span class="r-in"><span>                    count_formula <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">config</span><span class="op">)</span> <span class="va">config</span><span class="op">$</span><span class="va">study_params</span><span class="op">$</span><span class="va">participant_count</span> <span class="op">*</span> <span class="fl">5</span>,</span></span>
-<span class="r-in"><span>                    dependencies <span class="op">=</span> <span class="st">"Raw_SUBJ"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="add_dataset_config.html">add_dataset_config</a></span><span class="op">(</span><span class="st">"Raw_Biomarker"</span>,</span></span>
+<span class="r-in"><span>    enabled <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
+<span class="r-in"><span>    count_formula <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">config</span><span class="op">)</span> <span class="va">config</span><span class="op">$</span><span class="va">study_params</span><span class="op">$</span><span class="va">participant_count</span> <span class="op">*</span> <span class="fl">5</span>,</span></span>
+<span class="r-in"><span>    dependencies <span class="op">=</span> <span class="st">"Raw_SUBJ"</span></span></span>
+<span class="r-in"><span>  <span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">study_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="generate_study_data.html">generate_study_data</a></span><span class="op">(</span><span class="va">config</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>

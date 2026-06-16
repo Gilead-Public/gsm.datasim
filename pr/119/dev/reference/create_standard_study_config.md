@@ -150,3 +150,26 @@ create_standard_study_config(
 ## Value
 
 Study configuration with standard datasets
+
+## Examples
+
+``` r
+# All default datasets
+config <- create_standard_study_config("TRIAL001", participant_count = 100, site_count = 10)
+names(config$dataset_configs)
+#>  [1] "Raw_STUDY"           "Raw_SITE"            "Raw_SUBJ"           
+#>  [4] "Raw_ENROLL"          "Raw_AE"              "Raw_PD"             
+#>  [7] "Raw_LB"              "Raw_VISIT"           "Raw_DATACHG"        
+#> [10] "Raw_DATAENT"         "Raw_QUERY"           "Raw_PK"             
+#> [13] "Raw_SDRGCOMP"        "Raw_STUDCOMP"        "Raw_IE"             
+#> [16] "Raw_EXCLUSION"       "Raw_COUNTRY"         "Raw_Death"          
+#> [19] "Raw_Randomization"   "Raw_OverallResponse"
+
+# Select a subset of domains
+config <- create_standard_study_config(
+  "TRIAL002",
+  participant_count = 50,
+  adverse_events = TRUE, lab_data = TRUE,
+  pharmacokinetics = FALSE, overall_response = FALSE
+)
+```
