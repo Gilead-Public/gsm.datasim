@@ -1,7 +1,7 @@
 ---
 title: "Workflow-Driven Data Generation"
 author: "[gsm.datasim](https://gilead-biostats.github.io/gsm.datasim) Example"
-description: "Generate simulated raw data directly from an lWorkflows spec — the same structure returned by gsm.core::MakeWorkflowList(). Covers single-snapshot, longitudinal, domain subsetting, and custom/unknown domains."
+description: "Generate simulated raw data directly from an lWorkflows spec — the same structure returned by workr::MakeWorkflowList(). Covers single-snapshot, longitudinal, domain subsetting, and custom/unknown domains."
 index: 4
 date: "`r format(Sys.time(), '%B %d, %Y %H:%M:%S %Z')`"
 output: html_document
@@ -19,7 +19,7 @@ library(gsm.datasim)
 ## Overview
 
 `generate_data_from_workflows()` accepts an `lWorkflows` list — the same
-structure returned by `gsm.core::MakeWorkflowList()` — and produces `Raw_*`
+structure returned by `workr::MakeWorkflowList()` — and produces `Raw_*`
 data frames for every domain defined in those specs.
 
 Domains with dedicated generators (`Raw_AE`, `Raw_SUBJ`, etc.) use curated
@@ -30,7 +30,7 @@ without extra code.
 ## Load Workflows from gsm.mapping
 
 ```{r load-workflows}
-lWorkflows <- gsm.core::MakeWorkflowList(
+lWorkflows <- workr::MakeWorkflowList(
   strPath    = "workflow/1_mappings",
   strPackage = "gsm.mapping"
 )

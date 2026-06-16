@@ -2,14 +2,14 @@
 #
 # This example demonstrates how to generate simulated raw data directly from
 # an lWorkflows list — the same structure returned by
-# gsm.core::MakeWorkflowList(). Domains with existing generators (Raw_AE,
+# workr::MakeWorkflowList(). Domains with existing generators (Raw_AE,
 # Raw_SUBJ, etc.) use the curated logic; unknown domains fall back to
 # type-based column generation driven by the spec metadata.
 
 library(gsm.datasim)
 
 # ── 1. Load workflows from gsm.mapping ──────────────────────────────────────
-lWorkflows <- gsm.core::MakeWorkflowList(
+lWorkflows <- workr::MakeWorkflowList(
   strPath    = "workflow/1_mappings",
   strPackage = "gsm.mapping"
 )
