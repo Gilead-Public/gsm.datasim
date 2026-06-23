@@ -402,6 +402,7 @@ get_domain_registry <- function() {
                           replace = FALSE),
           studyid  = list(d$n, context$data$Raw_STUDY$protocol_number[[1]]),
           death_dt = list(d$n, context$start_date),
+          deathcls = list(d$n),
           default  = list(d$n)
         )
         as.data.frame(add_new_var_data(d$dataset, curr_spec, args, spec$Raw_Death))
