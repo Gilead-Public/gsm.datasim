@@ -1,6 +1,6 @@
 Package: gsm.datasim
 Title: Synthetic Test Data Generator
-Version: 2.0.0.9000
+Version: 1.1.3.9000
 Authors@R: c(
     person("Laura", "Maxwell", , "laura.maxwell@atorusresearch.com", role = c("aut", "cre")),
     person("Zelos", "Zhu", , "zelos.zhu@atorusresearch.com", role = "aut"),
