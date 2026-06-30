@@ -27,12 +27,12 @@ logic. Unknown domains fall back to **type-based column generation** driven
 by the spec metadata, so any custom workflow produces a usable data frame
 without extra code.
 
-## Load Workflows from gsm.mapping
+## Load Workflows
 
 ```{r load-workflows}
 lWorkflows <- workr::MakeWorkflowList(
   strPath    = "workflow/1_mappings",
-  strPackage = "gsm.mapping"
+  strPackage = "gsm.mapping"  # or any package with workr-compatible workflow specs
 )
 ```
 
