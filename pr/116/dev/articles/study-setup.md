@@ -90,7 +90,7 @@ raw_data <- generate_study_data(config, verbose = TRUE)
 ### Adding Analytics Pipeline
 
 You can run analytics on your single snapshot study. Results are
-returned as-is from the gsm.core pipeline — a named list where each
+returned from the `workr`-powered pipeline — a named list where each
 snapshot contains `$results` (named by workflow,
 e.g. `Analysis_kri0001`), `$mapped`, `$lWorkflow`, and `$summary`:
 
@@ -111,7 +111,7 @@ config <- add_dataset_config(config, "Raw_LB", enabled = TRUE)
 # Generate data
 raw_data <- generate_study_data(config, verbose = TRUE)
 
-# Run analytics pipeline — returns raw gsm.core results per snapshot
+# Run analytics pipeline — returns workr results per snapshot
 analytics_results <- generate_analytics_layers(raw_data, config, verbose = TRUE)
 
 # Each snapshot contains $results, $mapped, $lWorkflow, $summary
@@ -124,8 +124,8 @@ names(kri_result) # e.g. Analysis_Summary, Analysis_Flagged, Analysis_Analyzed
 
 ### Adding the Reporting Pipeline
 
-The reporting pipeline runs gsm.reporting workflows on top of the
-analytics results. Pass the analytics output directly to
+The reporting pipeline runs reporting workflows on top of the analytics
+results. Pass the analytics output directly to
 [`generate_reporting_layers()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_reporting_layers.md):
 
 ``` r
@@ -177,7 +177,7 @@ names(study) # includes $raw_data, $analytics, $reporting
 # View snapshot dates
 names(study$raw_data)
 
-# Analytics results: raw gsm.core output per snapshot
+# Analytics results: workr output per snapshot
 if (!is.null(study$analytics)) {
   names(study$analytics[[1]]$results) # e.g. "Analysis_kri0001", ...
 }
@@ -339,9 +339,8 @@ onc_study <- create_longitudinal_study(
 ### Analytics and Reporting Configuration
 
 Configure the analytics package and specific workflows, and optionally
-customise the reporting package. The analytics pipeline returns raw
-gsm.core results per snapshot; pass them directly to the reporting
-pipeline.
+customise the reporting package. The analytics pipeline returns `workr`
+results per snapshot; pass them directly to the reporting pipeline.
 
 ``` r
 
