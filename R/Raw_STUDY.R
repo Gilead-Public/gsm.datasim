@@ -58,7 +58,7 @@ est_lpfv <- function(date_min, date_lim, prev_data, ...) {
   generate_random_fpfv(date_min, date_lim, FALSE, prev_data)
 }
 db_lock_dt <- function(n, GlobalMaxDate, ...) {
-  if(n == 1) {
+  if (n == 1) {
     unlist(GlobalMaxDate)
   }
   return(rep(GlobalMaxDate, n))

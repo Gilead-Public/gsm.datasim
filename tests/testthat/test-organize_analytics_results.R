@@ -25,7 +25,7 @@ test_that("organize_analytics_results respects verbose flag and organizes Analys
   expect_true(is.list(organized))
   expect_equal(length(organized), 1)
   expect_true("cou0001" %in% names(organized))
-  
+
   metric_output <- organized$cou0001
   expect_true(is.list(metric_output))
   expect_equal(metric_output$metric_id, "cou0001")

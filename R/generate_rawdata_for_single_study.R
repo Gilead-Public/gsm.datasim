@@ -83,9 +83,9 @@ dispatch_legacy_domain_generator <- function(data_type, data, previous_data, com
       endDate = end_date, split_vars = list("aest_dt_aeen_dt")
     ),
     Raw_AntiCancer = list(data, previous_data, combined_specs, n = n, startDate = start_date),
-    Raw_Baseline   = list(data, previous_data, combined_specs, n = n, startDate = start_date),
-    Raw_Consents   = list(data, previous_data, combined_specs, n = n, startDate = start_date),
-    Raw_Death      = list(data, previous_data, combined_specs, n = n, startDate = start_date),
+    Raw_Baseline = list(data, previous_data, combined_specs, n = n, startDate = start_date),
+    Raw_Consents = list(data, previous_data, combined_specs, n = n, startDate = start_date),
+    Raw_Death = list(data, previous_data, combined_specs, n = n, startDate = start_date),
     Raw_Randomization = list(data, previous_data, combined_specs,
       n = n,
       startDate = start_date,
@@ -212,13 +212,13 @@ generate_snapshots_from_combined_specs <- function(SnapshotCount,
       }
 
       data[[data_type]] <- dispatch_legacy_domain_generator(
-        data_type     = data_type,
-        data          = data,
+        data_type = data_type,
+        data = data,
         previous_data = previous_data,
         combined_specs = combined_specs,
-        n             = n,
-        start_date    = start_dates[snapshot_idx],
-        end_date      = end_dates[snapshot_idx],
+        n = n,
+        start_date = start_dates[snapshot_idx],
+        end_date = end_dates[snapshot_idx],
         SnapshotCount = SnapshotCount,
         SnapshotWidth = SnapshotWidth
       )
@@ -288,16 +288,17 @@ generate_snapshots_from_combined_specs <- function(SnapshotCount,
 #' @keywords internal
 #' @export
 #' @seealso [create_study_config()], [add_dataset_config()], [generate_study_data()]
-generate_rawdata_for_single_study <- function(SnapshotCount,
-  SnapshotWidth,
-  ParticipantCount,
-  SiteCount,
-  StudyID,
-  workflow_path,
-  mappings,
-  package,
-  strStartDate = "2012-01-01",
-  desired_specs = NULL) {
+generate_rawdata_for_single_study <- function(
+    SnapshotCount,
+    SnapshotWidth,
+    ParticipantCount,
+    SiteCount,
+    StudyID,
+    workflow_path,
+    mappings,
+    package,
+    strStartDate = "2012-01-01",
+    desired_specs = NULL) {
   lifecycle::deprecate_warn(
     when = "1.1.3",
     what = "generate_rawdata_for_single_study()",

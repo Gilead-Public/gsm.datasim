@@ -167,7 +167,7 @@ raw_data <- generate_data_from_workflows(
   lWorkflows,
   column_overrides = list(
     Raw_LB = list(
-      lbstnrhi  = function(n, df) round(df$lbstresn * 1.2, 2),
+      lbstnrhi = function(n, df) round(df$lbstresn * 1.2, 2),
       visit_flag = function(n, df) ifelse(df$visnam == "SCREENING", "S", "F")
     )
   )

@@ -27,7 +27,12 @@ test_that("generate_rawdata_for_single_study works", {
 
 test_that("raw_data_generator supports explicit legacy generation mode", {
   old_warned <- .gsm_datasim_runtime_state$legacy_mode_warned
-  on.exit({ .gsm_datasim_runtime_state$legacy_mode_warned <- old_warned }, add = TRUE)
+  on.exit(
+    {
+      .gsm_datasim_runtime_state$legacy_mode_warned <- old_warned
+    },
+    add = TRUE
+  )
   .gsm_datasim_runtime_state$legacy_mode_warned <- FALSE
 
   expect_warning(

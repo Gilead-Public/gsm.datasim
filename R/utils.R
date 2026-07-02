@@ -179,7 +179,7 @@ sample_categorical_with_hotspots <- function(values,
   baseline_draw <- sample(values, n, replace = TRUE, prob = base_prob)
 
   if (intensity <= 1 || is.null(row_keys) || is.null(key_map) ||
-      !(key_col %in% names(key_map)) || !(site_col %in% names(key_map))) {
+    !(key_col %in% names(key_map)) || !(site_col %in% names(key_map))) {
     return(baseline_draw)
   }
 
