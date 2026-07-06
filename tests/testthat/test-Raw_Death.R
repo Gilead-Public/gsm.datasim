@@ -22,7 +22,7 @@ make_death_test_data <- function(n_subjects = 30) {
   )
 }
 
-test_that("death_dt generates dates within the 28-day window from start", {
+test_that("death_dt generates dates within the 28-day window from start (#120)", {
   set.seed(101)
   start <- as.Date("2020-06-15")
 
@@ -33,7 +33,7 @@ test_that("death_dt generates dates within the 28-day window from start", {
   expect_true(all(d >= start & d <= start + 27))
 })
 
-test_that("deathcls samples only the expected death classifications", {
+test_that("deathcls samples only the expected death classifications (#120)", {
   set.seed(101)
 
   x <- deathcls(1000)
@@ -44,7 +44,7 @@ test_that("deathcls samples only the expected death classifications", {
   expect_equal(names(which.max(table(x))), "Progressive Disease")
 })
 
-test_that("deathcls handles edge-case sizes", {
+test_that("deathcls handles edge-case sizes (#120)", {
   expect_length(deathcls(0), 0)
 
   single <- deathcls(1)
@@ -52,7 +52,7 @@ test_that("deathcls handles edge-case sizes", {
   expect_true(single %in% death_classes)
 })
 
-test_that("Raw_Death generates a complete dataset from scratch", {
+test_that("Raw_Death generates a complete dataset from scratch (#120)", {
   set.seed(42)
   spec <- make_death_test_spec()
   data <- make_death_test_data()
@@ -72,7 +72,7 @@ test_that("Raw_Death generates a complete dataset from scratch", {
   expect_true(all(res$deathcls %in% death_classes))
 })
 
-test_that("Raw_Death appends only the delta rows to previous data", {
+test_that("Raw_Death appends only the delta rows to previous data (#120)", {
   set.seed(42)
   spec <- make_death_test_spec()
   data <- make_death_test_data()
@@ -92,7 +92,7 @@ test_that("Raw_Death appends only the delta rows to previous data", {
   expect_true(all(second$deathcls %in% death_classes))
 })
 
-test_that("Raw_Death returns previous data unchanged when target count is met", {
+test_that("Raw_Death returns previous data unchanged when target count is met (#120)", {
   set.seed(42)
   spec <- make_death_test_spec()
   data <- make_death_test_data()
@@ -110,7 +110,7 @@ test_that("Raw_Death returns previous data unchanged when target count is met", 
   expect_identical(again, first)
 })
 
-test_that("Raw_Death renames columns per source_col in the spec", {
+test_that("Raw_Death renames columns per source_col in the spec (#120)", {
   set.seed(42)
   spec <- make_death_test_spec()
   spec$Raw_Death$deathcls$source_col <- "DEATHCLS"
@@ -123,7 +123,7 @@ test_that("Raw_Death renames columns per source_col in the spec", {
   expect_true(all(res$DEATHCLS %in% death_classes))
 })
 
-test_that("domain registry exposes Raw_Death with expected schema and count function", {
+test_that("domain registry exposes Raw_Death with expected schema and count function (#120)", {
   registry <- get_domain_registry()
 
   expect_true("Raw_Death" %in% names(registry))
@@ -140,7 +140,7 @@ test_that("domain registry exposes Raw_Death with expected schema and count func
   expect_equal(entry$count_fn(counts, 3), 3)
 })
 
-test_that("Raw_Death registry adapter generates and increments data", {
+test_that("Raw_Death registry adapter generates and increments data (#120)", {
   set.seed(42)
   context <- list(
     data = make_death_test_data(),
