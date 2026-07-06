@@ -1,4 +1,4 @@
-test_that("generate_rawdata_for_single_study works", {
+test_that("raw_data_generator works with a template file", {
   result <- raw_data_generator(
     template_path = system.file("small_template.csv", package = "gsm.datasim"),
     mappings = c("AE")
@@ -8,7 +8,7 @@ test_that("generate_rawdata_for_single_study works", {
   expect_equal(names(result), c("S0001", "S0004", "S0006"))
 })
 
-test_that("generate_rawdata_for_single_study works", {
+test_that("raw_data_generator works with explicit study parameters", {
   result <- raw_data_generator(
     SnapshotCount = 2,
     SnapshotWidth = "months",
