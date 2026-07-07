@@ -45,3 +45,17 @@ only generates \code{n - nrow(previous_data)} new rows, then binds them together
 This mirrors the behavior of the core domain registry generators for
 longitudinal multi-snapshot generation.
 }
+\section{Lifecycle}{
+
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+}
+
+\examples{
+spec <- list(
+  subjid   = list(type = "character"),
+  measure_dt = list(type = "date"),
+  value    = list(type = "numeric")
+)
+domain_data <- generate_unknown_domain("Raw_CUSTOM", spec, n = 10)
+head(domain_data)
+}

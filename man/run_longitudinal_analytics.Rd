@@ -17,3 +17,13 @@ Updated study structure with analytics results
 \description{
 Execute full analytics pipeline on study data.
 }
+\examples{
+\dontrun{
+study <- create_longitudinal_study(
+  "STUDY-001", participants = 50, sites = 5, snapshots = 2,
+  analytics_package = "gsm.kri"
+)
+study <- run_longitudinal_analytics(study)
+names(study$analytics)
+}
+}

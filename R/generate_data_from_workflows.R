@@ -1,6 +1,6 @@
 #' Generate Raw Data from Workflow Specifications
 #'
-#' Takes a list of workflows (as returned by `gsm.core::MakeWorkflowList()`) and
+#' Takes a list of workflows (as returned by `workr::MakeWorkflowList()`) and
 #' generates simulated raw data for every `Raw_*` domain found in the combined
 #' specification. Domains that already have a dedicated generator in the domain
 #' registry or a legacy `Raw_*()` function are produced with those generators;
@@ -13,7 +13,7 @@
 #' via `count_gen()`, and dates advance by `snapshot_width`.
 #'
 #' @param lWorkflows A named list of workflow objects, each containing a `$spec`
-#'   element (e.g. from `gsm.core::MakeWorkflowList()`).
+#'   element (e.g. from `workr::MakeWorkflowList()`).
 #' @param n_participants Integer. Target number of participants (default 100).
 #' @param n_sites Integer. Target number of sites (default 10).
 #' @param study_id Character. Study identifier (default `"STUDY-001"`).
@@ -82,7 +82,7 @@
 #' @examples
 #' \dontrun{
 #' # Load workflows from gsm.mapping
-#' lWorkflows <- gsm.core::MakeWorkflowList(
+#' lWorkflows <- workr::MakeWorkflowList(
 #'   strPath = "workflow/1_mappings",
 #'   strPackage = "gsm.mapping"
 #' )

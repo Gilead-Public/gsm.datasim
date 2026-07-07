@@ -17,3 +17,9 @@ Updated study configuration
 \description{
 Removes a dataset configuration from the study config.
 }
+\examples{
+config <- create_study_config("TRIAL001")
+config <- add_dataset_config(config, "Raw_AE", enabled = TRUE)
+config <- remove_dataset_config(config, "Raw_AE")
+"Raw_AE" \%in\% names(config$dataset_configs)
+}

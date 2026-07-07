@@ -13,5 +13,14 @@ get_available_domains(study)
 Character vector of domain names
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+}
+\details{
 Return list of available domain names across all snapshots.
+}
+\examples{
+\dontrun{
+study <- create_longitudinal_study("STUDY-001", participants = 50, sites = 5, snapshots = 2)
+get_available_domains(study)
+}
 }

@@ -20,3 +20,13 @@ Execute the gsm.reporting pipeline on study analytics results, producing a
 The study must already have analytics results (run \code{run_longitudinal_analytics}
 first, or call \code{create_longitudinal_study} with \code{run_analytics = TRUE}).
 }
+\examples{
+\dontrun{
+study <- create_longitudinal_study(
+  "STUDY-001", participants = 50, sites = 5, snapshots = 2,
+  run_analytics = TRUE, analytics_package = "gsm.kri"
+)
+study <- run_longitudinal_reporting(study)
+names(study$reporting)
+}
+}

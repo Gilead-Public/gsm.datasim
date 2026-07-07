@@ -29,3 +29,8 @@ Updated study configuration
 \description{
 Updates temporal configuration settings in a study config.
 }
+\examples{
+config <- create_study_config("TRIAL001")
+config <- set_temporal_config(config, start_date = "2023-06-01", snapshot_count = 6)
+config$temporal_config$snapshot_count
+}

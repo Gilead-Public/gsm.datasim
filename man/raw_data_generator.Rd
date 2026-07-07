@@ -56,7 +56,7 @@ Accepts "days", "weeks", "months" and "years". User can also place a number and 
 \item{generation_mode}{Generation backend to use: "core" (default) or "legacy".}
 
 \item{lWorkflows}{Optional named list of workflow objects (from
-\code{gsm.core::MakeWorkflowList()}). When supplied the function routes to
+\code{workr::MakeWorkflowList()}). When supplied the function routes to
 \code{\link[=generate_data_from_workflows]{generate_data_from_workflows()}} to produce a single-snapshot dataset
 driven entirely by the workflow spec. \code{SnapshotCount} and \code{SnapshotWidth}
 are ignored in this mode.}
@@ -96,7 +96,7 @@ data <- raw_data_generator(
 data <- raw_data_generator()
 
 # Generate raw data from workflows
-wf <- gsm.core::MakeWorkflowList(
+wf <- workr::MakeWorkflowList(
   strPath = "workflow/1_mappings",
   strPackage = "gsm.mapping"
 )

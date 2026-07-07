@@ -1,9 +1,15 @@
 #' Domain Registry (draft)
 #'
+#' `r lifecycle::badge("experimental")`
+#'
 #' Returns a named list that defines per-domain generation behavior for the
 #' registry-based migration path.
 #'
 #' @return Named list of domain registry entries.
+#' @examples
+#' registry <- get_domain_registry()
+#' names(registry)              # all supported domain keys
+#' names(registry[["Raw_AE"]]) # structure of a single entry
 #' @export
 get_domain_registry <- function() {
   # ---------------------------------------------------------------------------

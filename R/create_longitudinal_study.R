@@ -19,6 +19,19 @@
 #' @param outlier_intensity Global multiplier for outlier-like values in domain generators.
 #' @param verbose Whether to print progress/output messages
 #' @return LongitudinalStudy object with generated data
+#' @examples
+#' \dontrun{
+#' study <- create_longitudinal_study(
+#'   study_id = "STUDY-001",
+#'   participants = 100,
+#'   sites = 10,
+#'   snapshots = 3,
+#'   interval = "1 month",
+#'   domains = c("AE", "LB", "VISIT")
+#' )
+#' study$study_id
+#' length(study$raw_data) # number of snapshots
+#' }
 #' @export
 create_longitudinal_study <- function(study_id = "STUDY-001",
                                       participants = 100,
@@ -116,6 +129,17 @@ create_longitudinal_study <- function(study_id = "STUDY-001",
 #' @param outlier_intensity Global multiplier for outlier-like values in domain generators.
 #' @param verbose Whether to print progress/output messages
 #' @return LongitudinalStudy object with complete data and analytics
+#' @examples
+#' \dontrun{
+#' study <- quick_longitudinal_study(
+#'   study_name = "GS-US-123-4567",
+#'   participants = 200,
+#'   sites = 20,
+#'   months_duration = 12
+#' )
+#' study$study_id
+#' length(study$raw_data)
+#' }
 #' @export
 quick_longitudinal_study <- function(study_name = "GS-US-000-0001",
                                      participants = 1000,
@@ -480,6 +504,14 @@ create_multiple_longitudinal_studies <- function(study_names,
 #' @param x A multiple_longitudinal_studies object
 #' @param ... Additional arguments (unused)
 #' @method print multiple_longitudinal_studies
+#' @examples
+#' \dontrun{
+#' studies <- create_multiple_longitudinal_studies(
+#'   study_names = c("TRIAL-001", "TRIAL-002"),
+#'   participants = 50, sites = 5, snapshots = 2
+#' )
+#' print(studies)
+#' }
 #' @export
 print.multiple_longitudinal_studies <- function(x, ...) {
   cat("Multiple Longitudinal Studies Collection\n")
@@ -512,6 +544,14 @@ print.multiple_longitudinal_studies <- function(x, ...) {
 #' @param save_rds Whether to save RDS files alongside CSVs (default FALSE)
 #' @param verbose Whether to print progress messages (default FALSE)
 #' @return Invisible list of study export paths
+#' @examples
+#' \dontrun{
+#' studies <- create_multiple_longitudinal_studies(
+#'   study_names = c("TRIAL-001", "TRIAL-002"),
+#'   participants = 50, sites = 5, snapshots = 2
+#' )
+#' export_multiple_studies(studies, output_dir = tempdir(), overwrite = TRUE)
+#' }
 #' @export
 export_multiple_studies <- function(studies,
                                     output_dir = ".",
@@ -555,6 +595,14 @@ export_multiple_studies <- function(studies,
 #' @param object A multiple_longitudinal_studies object
 #' @param ... Additional arguments (unused)
 #' @method summary multiple_longitudinal_studies
+#' @examples
+#' \dontrun{
+#' studies <- create_multiple_longitudinal_studies(
+#'   study_names = c("TRIAL-001", "TRIAL-002"),
+#'   participants = 50, sites = 5, snapshots = 2
+#' )
+#' summary(studies)
+#' }
 #' @export
 summary.multiple_longitudinal_studies <- function(object, ...) {
   n_studies <- length(object)
@@ -599,6 +647,14 @@ summary.multiple_longitudinal_studies <- function(object, ...) {
 #' @param x A summary.multiple_longitudinal_studies object
 #' @param ... Additional arguments (unused)
 #' @method print summary.multiple_longitudinal_studies
+#' @examples
+#' \dontrun{
+#' studies <- create_multiple_longitudinal_studies(
+#'   study_names = c("TRIAL-001", "TRIAL-002"),
+#'   participants = 50, sites = 5, snapshots = 2
+#' )
+#' print(summary(studies))
+#' }
 #' @export
 print.summary.multiple_longitudinal_studies <- function(x, ...) {
   cat("Summary: Multiple Longitudinal Studies\n")
