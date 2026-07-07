@@ -2,9 +2,19 @@
 
 Generate study data with configuration
 
+Generate study data with configuration
+
 ## Usage
 
 ``` r
+generate_study_data(
+  config,
+  workflow_path = "workflow/1_mappings",
+  mappings = NULL,
+  package = "gsm.mapping",
+  verbose = FALSE
+)
+
 generate_study_data(
   config,
   workflow_path = "workflow/1_mappings",
@@ -39,3 +49,16 @@ generate_study_data(
 ## Value
 
 List of generated study data
+
+List of generated study data
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+config <- create_standard_study_config("STUDY001", participant_count = 50, site_count = 5)
+config <- set_temporal_config(config, snapshot_count = 1)
+data <- generate_study_data(config)
+names(data[[1]])  # domain names in first snapshot
+} # }
+```

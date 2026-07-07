@@ -3,9 +3,6 @@
 ``` r
 
 library(gsm.datasim)
-#> Registered S3 method overwritten by 'logger':
-#>   method         from 
-#>   print.loglevel log4r
 ```
 
 ## Introduction
@@ -65,8 +62,8 @@ str(registry$Raw_AE)
 
 ### Adverse Events (Raw_AE)
 
-Adverse Events are a critical domain in clinical trials and RBQM,
-specifically:
+Adverse Events are a critical domain in clinical trials and clinical
+monitoring, specifically:
 
 ``` r
 
@@ -75,7 +72,7 @@ ae_config <- registry$Raw_AE
 
 # Key components:
 # - dataset: "Raw_AE"
-# - package: "gsm.mapping"
+# - package: "gsm.datasim"
 # - required_inputs: data, previous_data, combined_specs, etc.
 # - count_fn: Uses ae_count from snapshot configuration
 # - generate_fn: Calls Raw_AE() function
@@ -113,8 +110,8 @@ available_domains <- get_available_domains()
 print(available_domains)
 
 # Get domains for a specific package
-mapping_domains <- get_available_domains(package = "gsm.mapping")
-print(mapping_domains)
+custom_domains <- get_available_domains(package = "gsm.datasim")
+print(custom_domains)
 ```
 
 ## Using the Registry System
@@ -183,7 +180,7 @@ The registry supports domains from different packages:
 # Create a domain-package mapping
 domain_package_df <- data.frame(
   domain = c("AE", "LB", "VISIT", "CustomDomain"),
-  package = c("gsm.mapping", "gsm.mapping", "gsm.mapping", "custom.package"),
+  package = c("gsm.datasim", "gsm.datasim", "gsm.datasim", "custom.package"),
   stringsAsFactors = FALSE
 )
 

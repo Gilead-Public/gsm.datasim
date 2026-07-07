@@ -43,9 +43,9 @@
 - [`generate_unknown_domain()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_unknown_domain.md)
   : Generate Data for an Unknown Domain
 - [`get_available_domains()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/get_available_domains.md)
-  : Get Available Domain Names
+  **\[experimental\]** : Get Available Domain Names
 - [`get_domain_registry()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/get_domain_registry.md)
-  : Domain Registry (draft)
+  **\[experimental\]** : Domain Registry (draft)
 - [`get_domain_timeline()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/get_domain_timeline.md)
   : Get Domain Timeline Data
 - [`get_snapshot_data()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/get_snapshot_data.md)

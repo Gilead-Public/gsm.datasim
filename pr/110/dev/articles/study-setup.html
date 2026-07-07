@@ -79,10 +79,7 @@
     
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/Gilead-BioStats/gsm.datasim" class="external-link">gsm.datasim</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Registered S3 method overwritten by 'logger':</span></span>
-<span><span class="co">#&gt;   method         from </span></span>
-<span><span class="co">#&gt;   print.loglevel log4r</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/Gilead-BioStats/gsm.datasim" class="external-link">gsm.datasim</a></span><span class="op">)</span></span></code></pre></div>
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
@@ -172,8 +169,8 @@ configuration system:</p>
 <h3 id="adding-analytics-pipeline">Adding Analytics Pipeline<a class="anchor" aria-label="anchor" href="#adding-analytics-pipeline"></a>
 </h3>
 <p>You can run analytics on your single snapshot study. Results are
-returned as-is from the gsm.core pipeline — a named list where each
-snapshot contains <code>$results</code> (named by workflow,
+returned from the <code>workr</code>-powered pipeline — a named list
+where each snapshot contains <code>$results</code> (named by workflow,
 e.g. <code>Analysis_kri0001</code>), <code>$mapped</code>,
 <code>$lWorkflow</code>, and <code>$summary</code>:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
@@ -192,7 +189,7 @@ e.g. <code>Analysis_kri0001</code>), <code>$mapped</code>,
 <span><span class="co"># Generate data</span></span>
 <span><span class="va">raw_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generate_study_data.html">generate_study_data</a></span><span class="op">(</span><span class="va">config</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Run analytics pipeline — returns raw gsm.core results per snapshot</span></span>
+<span><span class="co"># Run analytics pipeline — returns workr results per snapshot</span></span>
 <span><span class="va">analytics_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generate_analytics_layers.html">generate_analytics_layers</a></span><span class="op">(</span><span class="va">raw_data</span>, <span class="va">config</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Each snapshot contains $results, $mapped, $lWorkflow, $summary</span></span>
@@ -205,7 +202,7 @@ e.g. <code>Analysis_kri0001</code>), <code>$mapped</code>,
 <div class="section level3">
 <h3 id="adding-the-reporting-pipeline">Adding the Reporting Pipeline<a class="anchor" aria-label="anchor" href="#adding-the-reporting-pipeline"></a>
 </h3>
-<p>The reporting pipeline runs gsm.reporting workflows on top of the
+<p>The reporting pipeline runs reporting workflows on top of the
 analytics results. Pass the analytics output directly to
 <code><a href="../reference/generate_reporting_layers.html">generate_reporting_layers()</a></code>:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
@@ -254,7 +251,7 @@ pipeline:</p>
 <span><span class="co"># View snapshot dates</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">study</span><span class="op">$</span><span class="va">raw_data</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Analytics results: raw gsm.core output per snapshot</span></span>
+<span><span class="co"># Analytics results: workr output per snapshot</span></span>
 <span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">study</span><span class="op">$</span><span class="va">analytics</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">study</span><span class="op">$</span><span class="va">analytics</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">results</span><span class="op">)</span> <span class="co"># e.g. "Analysis_kri0001", ...</span></span>
 <span><span class="op">}</span></span>
@@ -411,8 +408,8 @@ reporting pipelines:</p>
 </h3>
 <p>Configure the analytics package and specific workflows, and
 optionally customise the reporting package. The analytics pipeline
-returns raw gsm.core results per snapshot; pass them directly to the
-reporting pipeline.</p>
+returns <code>workr</code> results per snapshot; pass them directly to
+the reporting pipeline.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create study with specific analytics workflows</span></span>
 <span><span class="va">study</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_longitudinal_study.html">create_longitudinal_study</a></span><span class="op">(</span></span>

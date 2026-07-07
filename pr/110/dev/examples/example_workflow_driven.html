@@ -352,7 +352,7 @@ display: none;
 <h1 class="title toc-ignore">Workflow-Driven Data Generation</h1>
 <h4 class="author"><a href="https://gilead-biostats.github.io/gsm.datasim">gsm.datasim</a>
 Example</h4>
-<h4 class="date">July 06, 2026 13:37:57 UTC</h4>
+<h4 class="date">July 07, 2026 18:04:26 UTC</h4>
 
 </div>
 
@@ -361,20 +361,19 @@ Example</h4>
 <h2>Overview</h2>
 <p><code>generate_data_from_workflows()</code> accepts an
 <code>lWorkflows</code> list — the same structure returned by
-<code>gsm.core::MakeWorkflowList()</code> — and produces
-<code>Raw_*</code> data frames for every domain defined in those
-specs.</p>
+<code>workr::MakeWorkflowList()</code> — and produces <code>Raw_*</code>
+data frames for every domain defined in those specs.</p>
 <p>Domains with dedicated generators (<code>Raw_AE</code>,
 <code>Raw_SUBJ</code>, etc.) use curated logic. Unknown domains fall
 back to <strong>type-based column generation</strong> driven by the spec
 metadata, so any custom workflow produces a usable data frame without
 extra code.</p>
 </div>
-<div id="load-workflows-from-gsm.mapping" class="section level2">
-<h2>Load Workflows from gsm.mapping</h2>
-<pre class="r"><code>lWorkflows &lt;- gsm.core::MakeWorkflowList(
+<div id="load-workflows" class="section level2">
+<h2>Load Workflows</h2>
+<pre class="r"><code>lWorkflows &lt;- workr::MakeWorkflowList(
   strPath    = &quot;workflow/1_mappings&quot;,
-  strPackage = &quot;gsm.mapping&quot;
+  strPackage = &quot;gsm.mapping&quot;  # or any package with workr-compatible workflow specs
 )</code></pre>
 </div>
 <div id="single-snapshot-generation" class="section level2">

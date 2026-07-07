@@ -95,7 +95,7 @@ raw_data_generator(
 - lWorkflows:
 
   Optional named list of workflow objects (from
-  [`gsm.core::MakeWorkflowList()`](https://gilead-biostats.github.io/gsm.core/reference/MakeWorkflowList.html)).
+  [`workr::MakeWorkflowList()`](https://gilead-biostats.github.io/workr/reference/MakeWorkflowList.html)).
   When supplied the function routes to
   [`generate_data_from_workflows()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_data_from_workflows.md)
   to produce a single-snapshot dataset driven entirely by the workflow
@@ -140,7 +140,7 @@ data <- raw_data_generator(
 data <- raw_data_generator()
 
 # Generate raw data from workflows
-wf <- gsm.core::MakeWorkflowList(
+wf <- workr::MakeWorkflowList(
   strPath = "workflow/1_mappings",
   strPackage = "gsm.mapping"
 )

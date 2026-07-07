@@ -49,3 +49,12 @@ add_dataset_config(
 ## Value
 
 Updated study configuration
+
+## Examples
+
+``` r
+config <- create_study_config("TRIAL001")
+config <- add_dataset_config(config, "Raw_AE", enabled = TRUE)
+"Raw_AE" %in% names(config$dataset_configs)
+#> [1] TRUE
+```
