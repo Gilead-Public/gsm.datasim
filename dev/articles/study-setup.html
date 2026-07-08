@@ -79,10 +79,7 @@
     
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/Gilead-BioStats/gsm.datasim" class="external-link">gsm.datasim</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Registered S3 method overwritten by 'logger':</span></span>
-<span><span class="co">#&gt;   method         from </span></span>
-<span><span class="co">#&gt;   print.loglevel log4r</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/Gilead-BioStats/gsm.datasim" class="external-link">gsm.datasim</a></span><span class="op">)</span></span></code></pre></div>
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
@@ -124,10 +121,13 @@ configuration system:</p>
 <span>  site_count <span class="op">=</span> <span class="fl">5</span></span>
 <span><span class="op">)</span></span>
 <span></span>
+<span><span class="co"># Set to a single snapshot (the default is 5)</span></span>
+<span><span class="va">config</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/set_temporal_config.html">set_temporal_config</a></span><span class="op">(</span><span class="va">config</span>, snapshot_count <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span></span>
 <span><span class="co"># Add clinical domains (datasets)</span></span>
-<span><span class="va">config</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_dataset_config.html">add_dataset_config</a></span><span class="op">(</span><span class="va">config</span>, <span class="st">"Raw_AE"</span>, enabled <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>     <span class="co"># Adverse Events</span></span>
-<span><span class="va">config</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_dataset_config.html">add_dataset_config</a></span><span class="op">(</span><span class="va">config</span>, <span class="st">"Raw_LB"</span>, enabled <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>     <span class="co"># Laboratory Data</span></span>
-<span><span class="va">config</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_dataset_config.html">add_dataset_config</a></span><span class="op">(</span><span class="va">config</span>, <span class="st">"Raw_VISIT"</span>, enabled <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>  <span class="co"># Visit Data</span></span>
+<span><span class="va">config</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_dataset_config.html">add_dataset_config</a></span><span class="op">(</span><span class="va">config</span>, <span class="st">"Raw_AE"</span>, enabled <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="co"># Adverse Events</span></span>
+<span><span class="va">config</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_dataset_config.html">add_dataset_config</a></span><span class="op">(</span><span class="va">config</span>, <span class="st">"Raw_LB"</span>, enabled <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="co"># Laboratory Data</span></span>
+<span><span class="va">config</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_dataset_config.html">add_dataset_config</a></span><span class="op">(</span><span class="va">config</span>, <span class="st">"Raw_VISIT"</span>, enabled <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="co"># Visit Data</span></span>
 <span></span>
 <span><span class="co"># Generate the study data</span></span>
 <span><span class="va">raw_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generate_study_data.html">generate_study_data</a></span><span class="op">(</span><span class="va">config</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -142,7 +142,7 @@ configuration system:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create configuration with specific temporal settings</span></span>
 <span><span class="va">config</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_study_config.html">create_study_config</a></span><span class="op">(</span></span>
-<span>  study_id <span class="op">=</span> <span class="st">"STUDY002"</span>, </span>
+<span>  study_id <span class="op">=</span> <span class="st">"STUDY002"</span>,</span>
 <span>  participant_count <span class="op">=</span> <span class="fl">200</span>,</span>
 <span>  site_count <span class="op">=</span> <span class="fl">10</span></span>
 <span><span class="op">)</span></span>
@@ -151,14 +151,16 @@ configuration system:</p>
 <span><span class="va">config</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/set_temporal_config.html">set_temporal_config</a></span><span class="op">(</span></span>
 <span>  <span class="va">config</span>,</span>
 <span>  start_date <span class="op">=</span> <span class="st">"2023-06-01"</span>,</span>
-<span>  snapshot_count <span class="op">=</span> <span class="fl">1</span>,           <span class="co"># Single snapshot</span></span>
+<span>  snapshot_count <span class="op">=</span> <span class="fl">1</span>, <span class="co"># Single snapshot</span></span>
 <span>  snapshot_width <span class="op">=</span> <span class="st">"months"</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Add domains with custom configurations</span></span>
 <span><span class="va">config</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_dataset_config.html">add_dataset_config</a></span><span class="op">(</span><span class="va">config</span>, <span class="st">"Raw_AE"</span>, enabled <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="va">config</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_dataset_config.html">add_dataset_config</a></span><span class="op">(</span><span class="va">config</span>, <span class="st">"Raw_LB"</span>, enabled <span class="op">=</span> <span class="cn">TRUE</span>, </span>
-<span>                            growth_pattern <span class="op">=</span> <span class="st">"exponential"</span><span class="op">)</span></span>
+<span><span class="va">config</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_dataset_config.html">add_dataset_config</a></span><span class="op">(</span><span class="va">config</span>, <span class="st">"Raw_LB"</span>,</span>
+<span>  enabled <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  growth_pattern <span class="op">=</span> <span class="st">"exponential"</span></span>
+<span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Generate data</span></span>
 <span><span class="va">raw_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generate_study_data.html">generate_study_data</a></span><span class="op">(</span><span class="va">config</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
@@ -167,8 +169,8 @@ configuration system:</p>
 <h3 id="adding-analytics-pipeline">Adding Analytics Pipeline<a class="anchor" aria-label="anchor" href="#adding-analytics-pipeline"></a>
 </h3>
 <p>You can run analytics on your single snapshot study. Results are
-returned as-is from the gsm.core pipeline — a named list where each
-snapshot contains <code>$results</code> (named by workflow,
+returned from the <code>workr</code>-powered pipeline — a named list
+where each snapshot contains <code>$results</code> (named by workflow,
 e.g. <code>Analysis_kri0001</code>), <code>$mapped</code>,
 <code>$lWorkflow</code>, and <code>$summary</code>:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
@@ -187,7 +189,7 @@ e.g. <code>Analysis_kri0001</code>), <code>$mapped</code>,
 <span><span class="co"># Generate data</span></span>
 <span><span class="va">raw_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generate_study_data.html">generate_study_data</a></span><span class="op">(</span><span class="va">config</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Run analytics pipeline — returns raw gsm.core results per snapshot</span></span>
+<span><span class="co"># Run analytics pipeline — returns workr results per snapshot</span></span>
 <span><span class="va">analytics_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generate_analytics_layers.html">generate_analytics_layers</a></span><span class="op">(</span><span class="va">raw_data</span>, <span class="va">config</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Each snapshot contains $results, $mapped, $lWorkflow, $summary</span></span>
@@ -195,12 +197,12 @@ e.g. <code>Analysis_kri0001</code>), <code>$mapped</code>,
 <span></span>
 <span><span class="co"># Access a specific metric result across all its data frames</span></span>
 <span><span class="va">kri_result</span> <span class="op">&lt;-</span> <span class="va">analytics_results</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">results</span><span class="op">$</span><span class="va">Analysis_kri0001</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">kri_result</span><span class="op">)</span>  <span class="co"># e.g. Analysis_Summary, Analysis_Flagged, Analysis_Analyzed</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">kri_result</span><span class="op">)</span> <span class="co"># e.g. Analysis_Summary, Analysis_Flagged, Analysis_Analyzed</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="adding-the-reporting-pipeline">Adding the Reporting Pipeline<a class="anchor" aria-label="anchor" href="#adding-the-reporting-pipeline"></a>
 </h3>
-<p>The reporting pipeline runs gsm.reporting workflows on top of the
+<p>The reporting pipeline runs reporting workflows on top of the
 analytics results. Pass the analytics output directly to
 <code><a href="../reference/generate_reporting_layers.html">generate_reporting_layers()</a></code>:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
@@ -235,23 +237,23 @@ pipeline:</p>
 <span>  study_id <span class="op">=</span> <span class="st">"LONG-001"</span>,</span>
 <span>  participants <span class="op">=</span> <span class="fl">100</span>,</span>
 <span>  sites <span class="op">=</span> <span class="fl">5</span>,</span>
-<span>  snapshots <span class="op">=</span> <span class="fl">6</span>,                    <span class="co"># 6 time points</span></span>
-<span>  interval <span class="op">=</span> <span class="st">"1 month"</span>,             <span class="co"># Monthly snapshots</span></span>
+<span>  snapshots <span class="op">=</span> <span class="fl">6</span>, <span class="co"># 6 time points</span></span>
+<span>  interval <span class="op">=</span> <span class="st">"1 month"</span>, <span class="co"># Monthly snapshots</span></span>
 <span>  domains <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"AE"</span>, <span class="st">"LB"</span>, <span class="st">"VISIT"</span><span class="op">)</span>, <span class="co"># Clinical domains to include</span></span>
-<span>  run_analytics <span class="op">=</span> <span class="cn">TRUE</span>,             <span class="co"># Run analytics pipeline</span></span>
-<span>  run_reporting <span class="op">=</span> <span class="cn">TRUE</span>,             <span class="co"># Also run reporting pipeline</span></span>
+<span>  run_analytics <span class="op">=</span> <span class="cn">TRUE</span>, <span class="co"># Run analytics pipeline</span></span>
+<span>  run_reporting <span class="op">=</span> <span class="cn">TRUE</span>, <span class="co"># Also run reporting pipeline</span></span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Examine the study structure</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">study</span><span class="op">)</span>  <span class="co"># includes $raw_data, $analytics, $reporting</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">study</span><span class="op">)</span> <span class="co"># includes $raw_data, $analytics, $reporting</span></span>
 <span></span>
 <span><span class="co"># View snapshot dates</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">study</span><span class="op">$</span><span class="va">raw_data</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Analytics results: raw gsm.core output per snapshot</span></span>
+<span><span class="co"># Analytics results: workr output per snapshot</span></span>
 <span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">study</span><span class="op">$</span><span class="va">analytics</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">study</span><span class="op">$</span><span class="va">analytics</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">results</span><span class="op">)</span>  <span class="co"># e.g. "Analysis_kri0001", ...</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">study</span><span class="op">$</span><span class="va">analytics</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">results</span><span class="op">)</span> <span class="co"># e.g. "Analysis_kri0001", ...</span></span>
 <span><span class="op">}</span></span>
 <span></span>
 <span><span class="co"># Reporting results per snapshot</span></span>
@@ -269,11 +271,11 @@ pipeline:</p>
 <span>  study_id <span class="op">=</span> <span class="st">"ADVANCED-001"</span>,</span>
 <span>  participants <span class="op">=</span> <span class="fl">500</span>,</span>
 <span>  sites <span class="op">=</span> <span class="fl">25</span>,</span>
-<span>  snapshots <span class="op">=</span> <span class="fl">12</span>,                               <span class="co"># 1 year of monthly data</span></span>
+<span>  snapshots <span class="op">=</span> <span class="fl">12</span>, <span class="co"># 1 year of monthly data</span></span>
 <span>  interval <span class="op">=</span> <span class="st">"1 month"</span>,</span>
 <span>  domains <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"AE"</span>, <span class="st">"LB"</span>, <span class="st">"VISIT"</span>, <span class="st">"PD"</span>, <span class="st">"PK"</span><span class="op">)</span>, <span class="co"># Multiple domains</span></span>
 <span>  run_analytics <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  analytics_package <span class="op">=</span> <span class="st">"gsm.kri"</span>,           <span class="co"># Specify analytics package</span></span>
+<span>  analytics_package <span class="op">=</span> <span class="st">"gsm.kri"</span>, <span class="co"># Specify analytics package</span></span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -295,9 +297,9 @@ study:</p>
 <span>  participants <span class="op">=</span> <span class="fl">100</span>,</span>
 <span>  sites <span class="op">=</span> <span class="fl">8</span>,</span>
 <span>  snapshots <span class="op">=</span> <span class="fl">6</span>,</span>
-<span>  interval <span class="op">=</span> <span class="st">"2 months"</span>,                        <span class="co"># Bi-monthly snapshots</span></span>
+<span>  interval <span class="op">=</span> <span class="st">"2 months"</span>, <span class="co"># Bi-monthly snapshots</span></span>
 <span>  mappings <span class="op">=</span> <span class="va">mappings</span>,</span>
-<span>  base_date <span class="op">=</span> <span class="st">"2022-01-15"</span>,                    <span class="co"># Custom start date</span></span>
+<span>  base_date <span class="op">=</span> <span class="st">"2022-01-15"</span>, <span class="co"># Custom start date</span></span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -328,18 +330,18 @@ studies:</p>
 <span>  participants <span class="op">=</span> <span class="fl">50</span>,</span>
 <span>  sites <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>  snapshots <span class="op">=</span> <span class="fl">12</span>,</span>
-<span>  interval <span class="op">=</span> <span class="st">"1 week"</span>,              <span class="co"># Weekly intervals</span></span>
+<span>  interval <span class="op">=</span> <span class="st">"1 week"</span>, <span class="co"># Weekly intervals</span></span>
 <span>  domains <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"AE"</span>, <span class="st">"VISIT"</span><span class="op">)</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Quarterly snapshots  </span></span>
+<span><span class="co"># Quarterly snapshots</span></span>
 <span><span class="va">quarterly_study</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_longitudinal_study.html">create_longitudinal_study</a></span><span class="op">(</span></span>
 <span>  study_id <span class="op">=</span> <span class="st">"QUARTERLY-001"</span>,</span>
 <span>  participants <span class="op">=</span> <span class="fl">300</span>,</span>
 <span>  sites <span class="op">=</span> <span class="fl">15</span>,</span>
 <span>  snapshots <span class="op">=</span> <span class="fl">8</span>,</span>
-<span>  interval <span class="op">=</span> <span class="st">"3 months"</span>,            <span class="co"># Quarterly intervals  </span></span>
+<span>  interval <span class="op">=</span> <span class="st">"3 months"</span>, <span class="co"># Quarterly intervals</span></span>
 <span>  domains <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"AE"</span>, <span class="st">"LB"</span>, <span class="st">"PD"</span><span class="op">)</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -357,14 +359,14 @@ reporting pipelines:</p>
 <span>  study_name <span class="op">=</span> <span class="st">"QUICK-PROTO-001"</span>,</span>
 <span>  participants <span class="op">=</span> <span class="fl">200</span>,</span>
 <span>  sites <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>  months_duration <span class="op">=</span> <span class="fl">18</span>,             <span class="co"># 18-month study</span></span>
+<span>  months_duration <span class="op">=</span> <span class="fl">18</span>, <span class="co"># 18-month study</span></span>
 <span>  study_type <span class="op">=</span> <span class="st">"standard"</span>,</span>
-<span>  include_pipeline <span class="op">=</span> <span class="cn">TRUE</span>,          <span class="co"># runs analytics + reporting</span></span>
+<span>  include_pipeline <span class="op">=</span> <span class="cn">TRUE</span>, <span class="co"># runs analytics + reporting</span></span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Analytics and reporting results are available on the study object</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">quick_study</span><span class="op">)</span>  <span class="co"># includes $analytics and $reporting</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">quick_study</span><span class="op">)</span> <span class="co"># includes $analytics and $reporting</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -376,12 +378,16 @@ reporting pipelines:</p>
 <p>Choose clinical domains based on your study objectives:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Oncology study domains</span></span>
-<span><span class="va">oncology_domains</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"AE"</span>, <span class="st">"LB"</span>, <span class="st">"PD"</span>, <span class="st">"OverallResponse"</span>, </span>
-<span>                     <span class="st">"VISIT"</span>, <span class="st">"DATACHG"</span>, <span class="st">"QUERY"</span><span class="op">)</span></span>
+<span><span class="va">oncology_domains</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>  <span class="st">"AE"</span>, <span class="st">"LB"</span>, <span class="st">"PD"</span>, <span class="st">"OverallResponse"</span>,</span>
+<span>  <span class="st">"VISIT"</span>, <span class="st">"DATACHG"</span>, <span class="st">"QUERY"</span></span>
+<span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Safety study domains  </span></span>
-<span><span class="va">safety_domains</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"AE"</span>, <span class="st">"LB"</span>, <span class="st">"VISIT"</span>, <span class="st">"EXCLUSION"</span>,</span>
-<span>                   <span class="st">"Death"</span>, <span class="st">"STUDCOMP"</span><span class="op">)</span></span>
+<span><span class="co"># Safety study domains</span></span>
+<span><span class="va">safety_domains</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>  <span class="st">"AE"</span>, <span class="st">"LB"</span>, <span class="st">"VISIT"</span>, <span class="st">"EXCLUSION"</span>,</span>
+<span>  <span class="st">"Death"</span>, <span class="st">"STUDCOMP"</span></span>
+<span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># PK/PD study domains</span></span>
 <span><span class="va">pkpd_domains</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"PK"</span>, <span class="st">"PD"</span>, <span class="st">"LB"</span>, <span class="st">"VISIT"</span>, <span class="st">"AE"</span><span class="op">)</span></span>
@@ -392,7 +398,7 @@ reporting pipelines:</p>
 <span>  participants <span class="op">=</span> <span class="fl">300</span>,</span>
 <span>  sites <span class="op">=</span> <span class="fl">20</span>,</span>
 <span>  snapshots <span class="op">=</span> <span class="fl">24</span>,</span>
-<span>  interval <span class="op">=</span> <span class="st">"1 month"</span>, </span>
+<span>  interval <span class="op">=</span> <span class="st">"1 month"</span>,</span>
 <span>  domains <span class="op">=</span> <span class="va">oncology_domains</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -402,8 +408,8 @@ reporting pipelines:</p>
 </h3>
 <p>Configure the analytics package and specific workflows, and
 optionally customise the reporting package. The analytics pipeline
-returns raw gsm.core results per snapshot; pass them directly to the
-reporting pipeline.</p>
+returns <code>workr</code> results per snapshot; pass them directly to
+the reporting pipeline.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create study with specific analytics workflows</span></span>
 <span><span class="va">study</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_longitudinal_study.html">create_longitudinal_study</a></span><span class="op">(</span></span>
@@ -429,15 +435,15 @@ reporting pipeline.</p>
 <span></span>
 <span>  <span class="co"># Access a specific metric and its data frames</span></span>
 <span>  <span class="va">kri</span> <span class="op">&lt;-</span> <span class="va">first_snap</span><span class="op">$</span><span class="va">results</span><span class="op">[[</span><span class="va">metric_names</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">]</span></span>
-<span>  <span class="va">kri</span><span class="op">$</span><span class="va">Analysis_Summary</span>   <span class="co"># summary-level data frame</span></span>
-<span>  <span class="va">kri</span><span class="op">$</span><span class="va">Analysis_Flagged</span>   <span class="co"># flagged entities</span></span>
-<span>  <span class="va">kri</span><span class="op">$</span><span class="va">Analysis_Analyzed</span>  <span class="co"># full analyzed data</span></span>
+<span>  <span class="va">kri</span><span class="op">$</span><span class="va">Analysis_Summary</span> <span class="co"># summary-level data frame</span></span>
+<span>  <span class="va">kri</span><span class="op">$</span><span class="va">Analysis_Flagged</span> <span class="co"># flagged entities</span></span>
+<span>  <span class="va">kri</span><span class="op">$</span><span class="va">Analysis_Analyzed</span> <span class="co"># full analyzed data</span></span>
 <span><span class="op">}</span></span>
 <span></span>
 <span><span class="co"># Access reporting: keyed by snapshot date</span></span>
 <span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">study</span><span class="op">$</span><span class="va">reporting</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">study</span><span class="op">$</span><span class="va">reporting</span><span class="op">)</span>        <span class="co"># snapshot dates</span></span>
-<span>  <span class="va">study</span><span class="op">$</span><span class="va">reporting</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>          <span class="co"># reporting output for first snapshot</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">study</span><span class="op">$</span><span class="va">reporting</span><span class="op">)</span> <span class="co"># snapshot dates</span></span>
+<span>  <span class="va">study</span><span class="op">$</span><span class="va">reporting</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span> <span class="co"># reporting output for first snapshot</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p>You can also run the pipelines separately on an existing study
 object:</p>
@@ -450,7 +456,7 @@ object:</p>
 <span>  snapshots <span class="op">=</span> <span class="fl">6</span>,</span>
 <span>  interval <span class="op">=</span> <span class="st">"1 month"</span>,</span>
 <span>  domains <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"AE"</span>, <span class="st">"LB"</span><span class="op">)</span>,</span>
-<span>  run_analytics <span class="op">=</span> <span class="cn">FALSE</span>   <span class="co"># skip pipelines for now</span></span>
+<span>  run_analytics <span class="op">=</span> <span class="cn">FALSE</span> <span class="co"># skip pipelines for now</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Run analytics when ready</span></span>
@@ -491,8 +497,8 @@ provides an efficient approach. This is particularly useful for:</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Examine the collection</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">studies</span><span class="op">)</span>  <span class="co"># Shows summary of all studies</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">studies</span><span class="op">)</span>  <span class="co"># Study names</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">studies</span><span class="op">)</span> <span class="co"># Shows summary of all studies</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">studies</span><span class="op">)</span> <span class="co"># Study names</span></span>
 <span></span>
 <span><span class="co"># Access individual studies</span></span>
 <span><span class="va">study_1</span> <span class="op">&lt;-</span> <span class="va">studies</span><span class="op">[[</span><span class="st">"PHASE2-001"</span><span class="op">]</span><span class="op">]</span></span>
@@ -506,11 +512,11 @@ provides an efficient approach. This is particularly useful for:</p>
 <code class="sourceCode R"><span><span class="co"># Create studies with different characteristics</span></span>
 <span><span class="va">studies</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_multiple_longitudinal_studies.html">create_multiple_longitudinal_studies</a></span><span class="op">(</span></span>
 <span>  study_names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"SMALL-PHASE2"</span>, <span class="st">"LARGE-PHASE3"</span>, <span class="st">"SAFETY-RUN"</span><span class="op">)</span>,</span>
-<span>  participants <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">80</span>, <span class="fl">400</span>, <span class="fl">50</span><span class="op">)</span>,     <span class="co"># Different participant counts</span></span>
-<span>  sites <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">8</span>, <span class="fl">25</span>, <span class="fl">3</span><span class="op">)</span>,               <span class="co"># Different site counts</span></span>
-<span>  snapshots <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">12</span>, <span class="fl">8</span><span class="op">)</span>,          <span class="co"># Different durations</span></span>
-<span>  interval <span class="op">=</span> <span class="st">"1 month"</span>,              <span class="co"># Shared interval</span></span>
-<span>  domains <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"AE"</span>, <span class="st">"LB"</span>, <span class="st">"VISIT"</span><span class="op">)</span>,  <span class="co"># Base domains (can be overridden)</span></span>
+<span>  participants <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">80</span>, <span class="fl">400</span>, <span class="fl">50</span><span class="op">)</span>, <span class="co"># Different participant counts</span></span>
+<span>  sites <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">8</span>, <span class="fl">25</span>, <span class="fl">3</span><span class="op">)</span>, <span class="co"># Different site counts</span></span>
+<span>  snapshots <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">12</span>, <span class="fl">8</span><span class="op">)</span>, <span class="co"># Different durations</span></span>
+<span>  interval <span class="op">=</span> <span class="st">"1 month"</span>, <span class="co"># Shared interval</span></span>
+<span>  domains <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"AE"</span>, <span class="st">"LB"</span>, <span class="st">"VISIT"</span><span class="op">)</span>, <span class="co"># Base domains (can be overridden)</span></span>
 <span>  study_configs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>    <span class="st">"SMALL-PHASE2"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>      domains <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"AE"</span>, <span class="st">"LB"</span>, <span class="st">"VISIT"</span><span class="op">)</span>,</span>
@@ -532,7 +538,7 @@ provides an efficient approach. This is particularly useful for:</p>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Each study has different characteristics    </span></span>
+<span><span class="co"># Each study has different characteristics</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">studies</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
@@ -545,10 +551,10 @@ generation:</p>
 <span><span class="va">large_batch</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_multiple_longitudinal_studies.html">create_multiple_longitudinal_studies</a></span><span class="op">(</span></span>
 <span>  study_names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"BATCH-"</span>, <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"%03d"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">8</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  participants <span class="op">=</span> <span class="fl">200</span>,</span>
-<span>  sites <span class="op">=</span> <span class="fl">15</span>,  </span>
+<span>  sites <span class="op">=</span> <span class="fl">15</span>,</span>
 <span>  snapshots <span class="op">=</span> <span class="fl">6</span>,</span>
 <span>  domains <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"AE"</span>, <span class="st">"LB"</span>, <span class="st">"VISIT"</span><span class="op">)</span>,</span>
-<span>  parallel <span class="op">=</span> <span class="cn">TRUE</span>,     <span class="co"># Enable parallel processing</span></span>
+<span>  parallel <span class="op">=</span> <span class="cn">TRUE</span>, <span class="co"># Enable parallel processing</span></span>
 <span>  run_analytics <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
@@ -570,8 +576,8 @@ generation:</p>
 <span>  domains <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"AE"</span>, <span class="st">"LB"</span><span class="op">)</span>,</span>
 <span>  run_analytics <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  run_reporting <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  export_studies <span class="op">=</span> <span class="cn">TRUE</span>,      <span class="co"># Auto-export to disk</span></span>
-<span>  export_dir <span class="op">=</span> <span class="st">"./studies"</span>,   <span class="co"># Export directory</span></span>
+<span>  export_studies <span class="op">=</span> <span class="cn">TRUE</span>, <span class="co"># Auto-export to disk</span></span>
+<span>  export_dir <span class="op">=</span> <span class="st">"./studies"</span>, <span class="co"># Export directory</span></span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -620,7 +626,7 @@ generation:</p>
 <span>  domains <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"AE"</span>, <span class="st">"LB"</span>, <span class="st">"Death"</span>, <span class="st">"STUDCOMP"</span><span class="op">)</span>,</span>
 <span>  study_configs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>    <span class="st">"LOW-RISK"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>outlier_intensity <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span>,</span>
-<span>    <span class="st">"MEDIUM-RISK"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>outlier_intensity <span class="op">=</span> <span class="fl">1.0</span><span class="op">)</span>, </span>
+<span>    <span class="st">"MEDIUM-RISK"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>outlier_intensity <span class="op">=</span> <span class="fl">1.0</span><span class="op">)</span>,</span>
 <span>    <span class="st">"HIGH-RISK"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>outlier_intensity <span class="op">=</span> <span class="fl">2.5</span><span class="op">)</span></span>
 <span>  <span class="op">)</span>,</span>
 <span>  run_analytics <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -630,11 +636,11 @@ generation:</p>
 <span><span class="co"># Compare AE rates across studies</span></span>
 <span><span class="kw">for</span> <span class="op">(</span><span class="va">study_name</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">safety_portfolio</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">study</span> <span class="op">&lt;-</span> <span class="va">safety_portfolio</span><span class="op">[[</span><span class="va">study_name</span><span class="op">]</span><span class="op">]</span></span>
-<span>  </span>
+<span></span>
 <span>  <span class="co"># Get final snapshot AE data</span></span>
 <span>  <span class="va">final_snapshot</span> <span class="op">&lt;-</span> <span class="va">study</span><span class="op">$</span><span class="va">raw_data</span><span class="op">[[</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">study</span><span class="op">$</span><span class="va">raw_data</span><span class="op">)</span><span class="op">]</span><span class="op">]</span></span>
 <span>  <span class="va">ae_count</span> <span class="op">&lt;-</span> <span class="kw">if</span> <span class="op">(</span><span class="st">"Raw_AE"</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">final_snapshot</span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">final_snapshot</span><span class="op">$</span><span class="va">Raw_AE</span><span class="op">)</span> <span class="kw">else</span> <span class="fl">0</span></span>
-<span>  </span>
+<span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"%s: %d total AEs\n"</span>, <span class="va">study_name</span>, <span class="va">ae_count</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 </div>
@@ -662,16 +668,16 @@ generation:</p>
 <span><span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">study</span><span class="op">$</span><span class="va">raw_data</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">snapshot_name</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">study</span><span class="op">$</span><span class="va">raw_data</span><span class="op">)</span><span class="op">[</span><span class="va">i</span><span class="op">]</span></span>
 <span>  <span class="va">snapshot_data</span> <span class="op">&lt;-</span> <span class="va">study</span><span class="op">$</span><span class="va">raw_data</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span></span>
-<span>  </span>
+<span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Snapshot:"</span>, <span class="va">snapshot_name</span>, <span class="st">"\n"</span><span class="op">)</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Datasets:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">snapshot_data</span><span class="op">)</span>, collapse <span class="op">=</span> <span class="st">", "</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
-<span>  </span>
+<span></span>
 <span>  <span class="co"># Check sample sizes</span></span>
 <span>  <span class="kw">if</span> <span class="op">(</span><span class="st">"Raw_SUBJ"</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">snapshot_data</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Subjects:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">snapshot_data</span><span class="op">$</span><span class="va">Raw_SUBJ</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
 <span>  <span class="op">}</span></span>
 <span>  <span class="kw">if</span> <span class="op">(</span><span class="st">"Raw_AE"</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">snapshot_data</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"AE Records:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">snapshot_data</span><span class="op">$</span><span class="va">Raw_AE</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span> </span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"AE Records:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">snapshot_data</span><span class="op">$</span><span class="va">Raw_AE</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
 <span>  <span class="op">}</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"\n"</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
@@ -683,14 +689,14 @@ generation:</p>
 <code class="sourceCode R"><span><span class="co"># Function to validate study data</span></span>
 <span><span class="va">validate_study_data</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">study</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">validation_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
-<span>  </span>
+<span></span>
 <span>  <span class="kw">for</span> <span class="op">(</span><span class="va">snapshot_name</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">study</span><span class="op">$</span><span class="va">raw_data</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="va">snapshot</span> <span class="op">&lt;-</span> <span class="va">study</span><span class="op">$</span><span class="va">raw_data</span><span class="op">[[</span><span class="va">snapshot_name</span><span class="op">]</span><span class="op">]</span></span>
-<span>    </span>
+<span></span>
 <span>    <span class="co"># Check required datasets</span></span>
 <span>    <span class="va">required_datasets</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Raw_STUDY"</span>, <span class="st">"Raw_SITE"</span>, <span class="st">"Raw_SUBJ"</span>, <span class="st">"Raw_ENROLL"</span><span class="op">)</span></span>
 <span>    <span class="va">missing_required</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sets.html" class="external-link">setdiff</a></span><span class="op">(</span><span class="va">required_datasets</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">snapshot</span><span class="op">)</span><span class="op">)</span></span>
-<span>    </span>
+<span></span>
 <span>    <span class="va">validation_results</span><span class="op">[[</span><span class="va">snapshot_name</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>      datasets_present <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">snapshot</span><span class="op">)</span>,</span>
 <span>      missing_required <span class="op">=</span> <span class="va">missing_required</span>,</span>
@@ -698,7 +704,7 @@ generation:</p>
 <span>      total_sites <span class="op">=</span> <span class="kw">if</span> <span class="op">(</span><span class="st">"Raw_SITE"</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">snapshot</span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">snapshot</span><span class="op">$</span><span class="va">Raw_SITE</span><span class="op">)</span> <span class="kw">else</span> <span class="fl">0</span></span>
 <span>    <span class="op">)</span></span>
 <span>  <span class="op">}</span></span>
-<span>  </span>
+<span></span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">validation_results</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>
@@ -728,22 +734,22 @@ snapshot.</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Generate a small study to export</span></span>
 <span><span class="va">study</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_longitudinal_study.html">create_longitudinal_study</a></span><span class="op">(</span></span>
-<span>  study_id     <span class="op">=</span> <span class="st">"EXPORT-001"</span>,</span>
+<span>  study_id <span class="op">=</span> <span class="st">"EXPORT-001"</span>,</span>
 <span>  participants <span class="op">=</span> <span class="fl">100</span>,</span>
-<span>  sites        <span class="op">=</span> <span class="fl">5</span>,</span>
-<span>  snapshots    <span class="op">=</span> <span class="fl">3</span>,</span>
-<span>  interval     <span class="op">=</span> <span class="st">"1 month"</span>,</span>
-<span>  domains      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"AE"</span>, <span class="st">"LB"</span><span class="op">)</span>,</span>
+<span>  sites <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  snapshots <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  interval <span class="op">=</span> <span class="st">"1 month"</span>,</span>
+<span>  domains <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"AE"</span>, <span class="st">"LB"</span><span class="op">)</span>,</span>
 <span>  run_analytics <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  run_reporting <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  verbose       <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Export to a temporary directory — returns the path to the study folder invisibly</span></span>
 <span><span class="va">study_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/export_study_data.html">export_study_data</a></span><span class="op">(</span></span>
 <span>  study      <span class="op">=</span> <span class="va">study</span>,</span>
 <span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  verbose    <span class="op">=</span> <span class="cn">TRUE</span>       <span class="co"># prints per-snapshot progress</span></span>
+<span>  verbose    <span class="op">=</span> <span class="cn">TRUE</span> <span class="co"># prints per-snapshot progress</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Confirm the folder structure</span></span>
@@ -756,9 +762,9 @@ snapshot.</p>
 <code class="sourceCode R"><span><span class="co"># Write to a specific project folder</span></span>
 <span><span class="va">study_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/export_study_data.html">export_study_data</a></span><span class="op">(</span></span>
 <span>  study        <span class="op">=</span> <span class="va">study</span>,</span>
-<span>  output_dir   <span class="op">=</span> <span class="st">"~/my_studies"</span>,    <span class="co"># root folder</span></span>
-<span>  study_folder <span class="op">=</span> <span class="st">"EXPORT-001-v2"</span>,   <span class="co"># override the auto-generated folder name</span></span>
-<span>  overwrite    <span class="op">=</span> <span class="cn">TRUE</span>               <span class="co"># allow writing into an existing folder</span></span>
+<span>  output_dir   <span class="op">=</span> <span class="st">"~/my_studies"</span>, <span class="co"># root folder</span></span>
+<span>  study_folder <span class="op">=</span> <span class="st">"EXPORT-001-v2"</span>, <span class="co"># override the auto-generated folder name</span></span>
+<span>  overwrite    <span class="op">=</span> <span class="cn">TRUE</span> <span class="co"># allow writing into an existing folder</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
@@ -773,13 +779,15 @@ objects that cannot be flattened to CSV. Set
 <span>  study      <span class="op">=</span> <span class="va">study</span>,</span>
 <span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  overwrite  <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  save_rds   <span class="op">=</span> <span class="cn">TRUE</span>   <span class="co"># also writes analytics_full.rds per snapshot</span></span>
+<span>  save_rds   <span class="op">=</span> <span class="cn">TRUE</span> <span class="co"># also writes analytics_full.rds per snapshot</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Reload the full analytics object for a specific snapshot</span></span>
-<span><span class="va">analytics_snap</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">study_path</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">study</span><span class="op">$</span><span class="va">raw_data</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span>
-<span>                                    <span class="st">"analytics_full.rds"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">analytics_snap</span><span class="op">)</span>  <span class="co"># $results, $mapped, $lWorkflow, $summary</span></span></code></pre></div>
+<span><span class="va">analytics_snap</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span></span>
+<span>  <span class="va">study_path</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">study</span><span class="op">$</span><span class="va">raw_data</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span>
+<span>  <span class="st">"analytics_full.rds"</span></span>
+<span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">analytics_snap</span><span class="op">)</span> <span class="co"># $results, $mapped, $lWorkflow, $summary</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="inspecting-the-exported-files">Inspecting the Exported Files<a class="anchor" aria-label="anchor" href="#inspecting-the-exported-files"></a>
@@ -795,8 +803,8 @@ objects that cannot be flattened to CSV. Set
 <span></span>
 <span><span class="co"># Read a specific snapshot's adverse event data back in</span></span>
 <span><span class="va">snap_date</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">study</span><span class="op">$</span><span class="va">raw_data</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span></span>
-<span><span class="va">ae_path</span>   <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">study_path</span>, <span class="va">snap_date</span>, <span class="st">"raw"</span>, <span class="st">"Raw_AE.csv"</span><span class="op">)</span></span>
-<span><span class="va">ae_df</span>     <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.csv</a></span><span class="op">(</span><span class="va">ae_path</span><span class="op">)</span></span>
+<span><span class="va">ae_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">study_path</span>, <span class="va">snap_date</span>, <span class="st">"raw"</span>, <span class="st">"Raw_AE.csv"</span><span class="op">)</span></span>
+<span><span class="va">ae_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.csv</a></span><span class="op">(</span><span class="va">ae_path</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">ae_df</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
@@ -834,7 +842,7 @@ generation scenarios.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

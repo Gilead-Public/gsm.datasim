@@ -1,7 +1,7 @@
 # Generate Raw Data from Workflow Specifications
 
 Takes a list of workflows (as returned by
-[`gsm.core::MakeWorkflowList()`](https://gilead-biostats.github.io/gsm.core/reference/MakeWorkflowList.html))
+[`workr::MakeWorkflowList()`](https://gilead-biostats.github.io/workr/reference/MakeWorkflowList.html))
 and generates simulated raw data for every `Raw_*` domain found in the
 combined specification. Domains that already have a dedicated generator
 in the domain registry or a legacy `Raw_*()` function are produced with
@@ -33,7 +33,7 @@ generate_data_from_workflows(
 
   A named list of workflow objects, each containing a `$spec` element
   (e.g. from
-  [`gsm.core::MakeWorkflowList()`](https://gilead-biostats.github.io/gsm.core/reference/MakeWorkflowList.html)).
+  [`workr::MakeWorkflowList()`](https://gilead-biostats.github.io/workr/reference/MakeWorkflowList.html)).
 
 - n_participants:
 
@@ -159,7 +159,7 @@ foreign key columns from previously generated domains.
 ``` r
 if (FALSE) { # \dontrun{
 # Load workflows from gsm.mapping
-lWorkflows <- gsm.core::MakeWorkflowList(
+lWorkflows <- workr::MakeWorkflowList(
   strPath = "workflow/1_mappings",
   strPackage = "gsm.mapping"
 )
@@ -213,7 +213,7 @@ raw_data <- generate_data_from_workflows(
   lWorkflows,
   column_overrides = list(
     Raw_LB = list(
-      lbstnrhi  = function(n, df) round(df$lbstresn * 1.2, 2),
+      lbstnrhi = function(n, df) round(df$lbstresn * 1.2, 2),
       visit_flag = function(n, df) ifelse(df$visnam == "SCREENING", "S", "F")
     )
   )

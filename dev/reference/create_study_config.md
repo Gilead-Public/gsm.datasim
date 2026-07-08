@@ -57,3 +57,13 @@ create_study_config(
 ## Value
 
 A list containing study configuration
+
+## Examples
+
+``` r
+config <- create_study_config("STUDY001", participant_count = 200, site_count = 15)
+config$study_params$study_id
+#> [1] "STUDY001"
+config$temporal_config$snapshot_count
+#> [1] 5
+```

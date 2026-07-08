@@ -39,3 +39,12 @@ set_temporal_config(
 ## Value
 
 Updated study configuration
+
+## Examples
+
+``` r
+config <- create_study_config("TRIAL001")
+config <- set_temporal_config(config, start_date = "2023-06-01", snapshot_count = 6)
+config$temporal_config$snapshot_count
+#> [1] 6
+```

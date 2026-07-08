@@ -3,11 +3,12 @@
 ## Overview
 
 [gsm.datasim](https://github.com/Gilead-BioStats/gsm.datasim) generates
-synthetic clinical trial data for testing and development of Risk-Based
-Quality Monitoring (RBQM) applications and packages. It produces
-multi-snapshot longitudinal datasets across a configurable set of
-clinical domains and runs the full gsm analytics and reporting pipelines
-on the generated data.
+synthetic clinical trial data for testing and development of clinical
+monitoring applications. It produces multi-snapshot longitudinal
+datasets across a configurable set of clinical domains (SDTM-style and
+custom) and can run configurable analytics and reporting pipelines on
+the generated data via the
+[`workr`](https://github.com/Gilead-BioStats/workr) workflow engine.
 
 ## Installation
 
@@ -82,8 +83,8 @@ ae_counts <- sapply(get_domain_timeline(study, "AE"), nrow)
 
 | Function | Description |
 |----|----|
-| [`run_longitudinal_analytics()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/run_longitudinal_analytics.md) | Run (or re-run) the gsm.kri analytics pipeline |
-| [`run_longitudinal_reporting()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/run_longitudinal_reporting.md) | Run (or re-run) the gsm.reporting pipeline |
+| [`run_longitudinal_analytics()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/run_longitudinal_analytics.md) | Run (or re-run) the analytics pipeline (powered by `workr`) |
+| [`run_longitudinal_reporting()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/run_longitudinal_reporting.md) | Run (or re-run) the reporting pipeline |
 | [`generate_analytics_layers()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_analytics_layers.md) | Run analytics on already-generated raw data |
 | [`generate_reporting_layers()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_reporting_layers.md) | Run reporting on analytics results |
 
@@ -262,9 +263,9 @@ can be migrated incrementally.
 - [`generate_unknown_domain()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_unknown_domain.md)
   : Generate Data for an Unknown Domain
 - [`get_available_domains()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/get_available_domains.md)
-  : Get Available Domain Names
+  **\[experimental\]** : Get Available Domain Names
 - [`get_domain_registry()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/get_domain_registry.md)
-  : Domain Registry (draft)
+  **\[experimental\]** : Domain Registry (draft)
 - [`get_domain_timeline()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/get_domain_timeline.md)
   : Get Domain Timeline Data
 - [`get_snapshot_data()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/get_snapshot_data.md)
