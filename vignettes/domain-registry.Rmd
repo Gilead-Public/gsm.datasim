@@ -111,10 +111,6 @@ print(lb_config$generate_fn)
 # this is a standalone registry lookup, not a study-specific query)
 available_domains <- get_available_domains()
 print(available_domains)
-
-# Get domains for a specific package
-custom_domains <- get_available_domains(package = "gsm.datasim")
-print(custom_domains)
 ```
 
 # Using the Registry System

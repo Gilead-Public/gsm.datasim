@@ -522,18 +522,29 @@ get_domain_timeline <- function(study, domain_name) {
 #'
 #' `r lifecycle::badge("experimental")`
 #'
-#' Return list of available domain names across all snapshots.
+#' Return list of available domain names.
 #'
-#' @param study Longitudinal study data structure
+#' When `study` is `NULL` (the default), returns all domain names defined in the
+#' domain registry (a standalone registry lookup). When a study is supplied,
+#' returns the domain names present across that study's snapshots.
+#'
+#' @param study Longitudinal study data structure, or `NULL` to look up all
+#'   registry domain names.
 #'
 #' @return Character vector of domain names
 #' @examples
+#' # All registry domain names (no study needed)
+#' get_available_domains()
+#'
 #' \dontrun{
 #' study <- create_longitudinal_study("STUDY-001", participants = 50, sites = 5, snapshots = 2)
 #' get_available_domains(study)
 #' }
 #' @export
-get_available_domains <- function(study) {
+get_available_domains <- function(study = NULL) {
+  if (is.null(study)) {
+    return(names(get_domain_registry()))
+  }
   if (length(study$raw_data) > 0) {
     return(unique(unlist(lapply(study$raw_data, names))))
   }

@@ -4,10 +4,11 @@
 \alias{get_available_domains}
 \title{Get Available Domain Names}
 \usage{
-get_available_domains(study)
+get_available_domains(study = NULL)
 }
 \arguments{
-\item{study}{Longitudinal study data structure}
+\item{study}{Longitudinal study data structure, or \code{NULL} to look up all
+registry domain names.}
 }
 \value{
 Character vector of domain names
@@ -16,9 +17,16 @@ Character vector of domain names
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
 }
 \details{
-Return list of available domain names across all snapshots.
+Return list of available domain names.
+
+When \code{study} is \code{NULL} (the default), returns all domain names defined in the
+domain registry (a standalone registry lookup). When a study is supplied,
+returns the domain names present across that study's snapshots.
 }
 \examples{
+# All registry domain names (no study needed)
+get_available_domains()
+
 \dontrun{
 study <- create_longitudinal_study("STUDY-001", participants = 50, sites = 5, snapshots = 2)
 get_available_domains(study)
