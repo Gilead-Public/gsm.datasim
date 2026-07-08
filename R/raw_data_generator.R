@@ -29,7 +29,7 @@
 #' @param save A boolean, specifying whether or not this should be saved out as an RDS
 #' @param generation_mode Generation backend to use: "core" (default) or "legacy".
 #' @param lWorkflows Optional named list of workflow objects (from
-#'   `gsm.core::MakeWorkflowList()`). When supplied the function routes to
+#'   `workr::MakeWorkflowList()`). When supplied the function routes to
 #'   [generate_data_from_workflows()] to produce a single-snapshot dataset
 #'   driven entirely by the workflow spec. `SnapshotCount` and `SnapshotWidth`
 #'   are ignored in this mode.
@@ -62,7 +62,7 @@
 #' data <- raw_data_generator()
 #'
 #' # Generate raw data from workflows
-#' wf <- gsm.core::MakeWorkflowList(
+#' wf <- workr::MakeWorkflowList(
 #'   strPath = "workflow/1_mappings",
 #'   strPackage = "gsm.mapping"
 #' )
@@ -71,21 +71,20 @@
 #'
 #' @export
 raw_data_generator <- function(
-  ParticipantCount = NULL,
-  SiteCount = NULL,
-  StudyID = NULL,
-  SnapshotCount = NULL,
-  SnapshotWidth = NULL,
-  template_path = system.file("template.csv", package = "gsm.datasim"),
-  workflow_path = "workflow/1_mappings",
-  generate_reports = FALSE,
-  mappings = NULL,
-  package = "gsm.mapping",
-  strStartDate = "2012-01-01",
-  save = FALSE,
-  generation_mode = c("core", "legacy"),
-  lWorkflows = NULL
-) {
+    ParticipantCount = NULL,
+    SiteCount = NULL,
+    StudyID = NULL,
+    SnapshotCount = NULL,
+    SnapshotWidth = NULL,
+    template_path = system.file("template.csv", package = "gsm.datasim"),
+    workflow_path = "workflow/1_mappings",
+    generate_reports = FALSE,
+    mappings = NULL,
+    package = "gsm.mapping",
+    strStartDate = "2012-01-01",
+    save = FALSE,
+    generation_mode = c("core", "legacy"),
+    lWorkflows = NULL) {
   generation_mode <- match.arg(generation_mode)
 
   # ── Workflow-driven generation path ──────────────────────────────────────
@@ -151,7 +150,7 @@ raw_data_generator <- function(
 
     mapping_names <- mappings
     if (is.null(mapping_names) || length(mapping_names) == 0) {
-      wf_all <- gsm.core::MakeWorkflowList(
+      wf_all <- workr::MakeWorkflowList(
         strPath = workflow_path,
         strPackage = package
       )

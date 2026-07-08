@@ -69,7 +69,7 @@ str(registry$Raw_AE)
 
 ## Adverse Events (Raw_AE)
 
-Adverse Events are a critical domain in clinical trials and RBQM, specifically: 
+Adverse Events are a critical domain in clinical trials and clinical monitoring, specifically: 
 
 ```{r ae-domain}
 # View AE domain configuration
@@ -77,7 +77,7 @@ ae_config <- registry$Raw_AE
 
 # Key components:
 # - dataset: "Raw_AE"
-# - package: "gsm.mapping" 
+# - package: "gsm.datasim"
 # - required_inputs: data, previous_data, combined_specs, etc.
 # - count_fn: Uses ae_count from snapshot configuration
 # - generate_fn: Calls Raw_AE() function
@@ -92,7 +92,7 @@ print(ae_config$required_inputs)
 Laboratory data represents test results over time:
 
 ```{r lb-domain}
-# View LB domain configuration  
+# View LB domain configuration
 lb_config <- registry$Raw_LB
 
 # Key characteristics:
@@ -107,13 +107,10 @@ print(lb_config$generate_fn)
 ## Available Domains
 
 ```{r available-domains}
-# Get all available domains from the registry
+# Get all available domains from the registry (no study object needed —
+# this is a standalone registry lookup, not a study-specific query)
 available_domains <- get_available_domains()
 print(available_domains)
-
-# Get domains for a specific package
-mapping_domains <- get_available_domains(package = "gsm.mapping")
-print(mapping_domains)
 ```
 
 # Using the Registry System
@@ -139,7 +136,7 @@ raw_data <- generate_study_data(config, verbose = TRUE)
 
 # The registry handles:
 # - Loading appropriate generation functions
-# - Managing dependencies between domains  
+# - Managing dependencies between domains
 # - Applying correct count formulas
 # - Handling multi-package scenarios
 ```
@@ -153,7 +150,7 @@ Some domains depend on others. The registry manages this automatically:
 check_domain_dependencies <- function(domain_name) {
   registry <- get_domain_registry()
   domain_config <- registry[[domain_name]]
-  
+
   if (!is.null(domain_config$dependencies)) {
     return(domain_config$dependencies)
   } else {
@@ -179,7 +176,7 @@ The registry supports domains from different packages:
 # Create a domain-package mapping
 domain_package_df <- data.frame(
   domain = c("AE", "LB", "VISIT", "CustomDomain"),
-  package = c("gsm.mapping", "gsm.mapping", "gsm.mapping", "custom.package"),
+  package = c("gsm.datasim", "gsm.datasim", "gsm.datasim", "custom.package"),
   stringsAsFactors = FALSE
 )
 
@@ -208,7 +205,7 @@ Different domains have different temporal patterns:
 ae_timeline <- get_domain_timeline("Raw_AE")
 print(ae_timeline)
 
-lb_timeline <- get_domain_timeline("Raw_LB") 
+lb_timeline <- get_domain_timeline("Raw_LB")
 print(lb_timeline)
 
 # Timeline shows:
@@ -226,22 +223,30 @@ The registry handles different growth patterns:
 # Domains have different growth patterns:
 
 # Linear growth (steady increase)
-config <- add_dataset_config(config, "Raw_AE", enabled = TRUE, 
-                           growth_pattern = "linear")
+config <- add_dataset_config(config, "Raw_AE",
+  enabled = TRUE,
+  growth_pattern = "linear"
+)
 
-# Exponential growth (accelerating increase)  
-config <- add_dataset_config(config, "Raw_QUERY", enabled = TRUE,
-                           growth_pattern = "exponential")
+# Exponential growth (accelerating increase)
+config <- add_dataset_config(config, "Raw_QUERY",
+  enabled = TRUE,
+  growth_pattern = "exponential"
+)
 
 # Constant (same amount each snapshot)
-config <- add_dataset_config(config, "Raw_VISIT", enabled = TRUE, 
-                           growth_pattern = "constant")
+config <- add_dataset_config(config, "Raw_VISIT",
+  enabled = TRUE,
+  growth_pattern = "constant"
+)
 
 # Custom formulas
-config <- add_dataset_config(config, "Raw_LB", enabled = TRUE,
-                           count_formula = function(config) {
-                             config$study_params$participant_count * 3  # 3 per participant
-                           })
+config <- add_dataset_config(config, "Raw_LB",
+  enabled = TRUE,
+  count_formula = function(config) {
+    config$study_params$participant_count * 3 # 3 per participant
+  }
+)
 ```
 
 # Working with Domain Generation Functions  
@@ -253,7 +258,7 @@ Each domain has a specific generation function (e.g., `Raw_AE()`, `Raw_LB()`):
 ```{r generation-functions}
 # Domain generation functions typically take these parameters:
 # - data: Current snapshot data
-# - previous_data: Previous snapshot(s) for continuity  
+# - previous_data: Previous snapshot(s) for continuity
 # - combined_specs: Data generation specifications
 # - n: Number of records to generate
 # - startDate/endDate: Time boundaries
@@ -262,7 +267,7 @@ Each domain has a specific generation function (e.g., `Raw_AE()`, `Raw_LB()`):
 # Example: AE generation function signature
 # Raw_AE(data, previous_data, combined_specs, n, startDate, endDate, split_vars)
 
-# Example: LB generation function signature  
+# Example: LB generation function signature
 # Raw_LB(data, previous_data, combined_specs, n, startDate, split_vars)
 ```
 
@@ -280,12 +285,12 @@ config <- create_study_config(
 
 # Custom AE count: more AEs at larger sites
 config <- add_dataset_config(
-  config, 
-  "Raw_AE", 
+  config,
+  "Raw_AE",
   enabled = TRUE,
   count_formula = function(config) {
     # Complex formula based on site size distribution
-    base_ae_rate <- 0.8  # 80% of participants have AEs
+    base_ae_rate <- 0.8 # 80% of participants have AEs
     site_size_factor <- config$study_params$participant_count / config$study_params$site_count
     round(config$study_params$participant_count * base_ae_rate * (site_size_factor / 10))
   }
@@ -299,7 +304,7 @@ config <- add_dataset_config(
   count_formula = function(config) {
     participants <- config$study_params$participant_count
     # Assuming monthly snapshots
-    participants * 4  # 4 lab visits per participant per month
+    participants * 4 # 4 lab visits per participant per month
   }
 )
 ```
@@ -315,14 +320,14 @@ You can extend the registry with custom domains:
 add_custom_domain_to_registry <- function() {
   # Get current registry
   current_registry <- get_domain_registry()
-  
+
   # Add custom domain
   current_registry$Raw_CUSTOM <- list(
     dataset = "Raw_CUSTOM",
     required_inputs = c("data", "combined_specs", "n", "start_date"),
     count_fn = function(counts, snapshot_idx) {
       # Custom count logic
-      counts$subject_count[snapshot_idx] * 2  # 2 records per participant
+      counts$subject_count[snapshot_idx] * 2 # 2 records per participant
     },
     generate_fn = function(context) {
       # All generation logic lives here — no separate Raw_CUSTOM() function needed.
@@ -336,7 +341,7 @@ add_custom_domain_to_registry <- function() {
       data.frame()
     }
   )
-  
+
   return(current_registry)
 }
 
@@ -352,25 +357,26 @@ If you create new domains, you'll need generation functions:
 # Example structure for a custom domain generation function
 Raw_CUSTOM <- function(data, combined_specs, n, startDate, custom_param = NULL) {
   # Your custom data generation logic here
-  
+
   # Basic structure:
   custom_data <- data.frame(
     studyid = rep(data$Raw_STUDY$studyid[1], n),
     usubjid = sample(data$Raw_SUBJ$usubjid, n, replace = TRUE),
     custom_field = paste("CUSTOM", 1:n, sep = "_"),
-    custom_date = seq(as.Date(startDate), 
-                      as.Date(startDate) + n - 1, 
-                      by = "day")[1:n],
+    custom_date = seq(as.Date(startDate),
+      as.Date(startDate) + n - 1,
+      by = "day"
+    )[1:n],
     custom_value = runif(n, 0, 100),
     stringsAsFactors = FALSE
   )
-  
+
   return(custom_data)
 }
 
 # To use this in the registry:
 # 1. Define the function in your package
-# 2. Add registry entry as shown above  
+# 2. Add registry entry as shown above
 # 3. Include the domain in your study configuration
 ```
 
@@ -391,7 +397,7 @@ print(available_for_migration)
 
 # Migration typically involves:
 # 1. Updating study configurations to use registry
-# 2. Converting custom domain logic to registry format  
+# 2. Converting custom domain logic to registry format
 # 3. Testing compatibility with existing workflows
 ```
 
@@ -403,27 +409,27 @@ validate_domain_registry <- function(registry = NULL) {
   if (is.null(registry)) {
     registry <- get_domain_registry()
   }
-  
+
   validation_results <- list()
-  
+
   for (domain_name in names(registry)) {
     domain_config <- registry[[domain_name]]
-    
+
     # Check required fields
     required_fields <- c("dataset", "package", "generate_fn")
     missing_fields <- setdiff(required_fields, names(domain_config))
-    
+
     # Check function availability
     package_available <- requireNamespace(domain_config$package, quietly = TRUE)
-    
+
     validation_results[[domain_name]] <- list(
       missing_fields = missing_fields,
       package_available = package_available,
-      has_count_fn    = !is.null(domain_config$count_fn),
+      has_count_fn = !is.null(domain_config$count_fn),
       has_generate_fn = !is.null(domain_config$generate_fn)
     )
   }
-  
+
   return(validation_results)
 }
 
@@ -486,7 +492,7 @@ if (length(missing_packages) > 0) {
   cat("Missing packages:", paste(missing_packages, collapse = ", "), "\n")
 }
 
-# Issue: Generation function errors  
+# Issue: Generation function errors
 # Solution: Check function parameters and data availability
 # Use verbose mode to see detailed error messages
 ```

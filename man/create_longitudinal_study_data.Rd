@@ -20,3 +20,9 @@ A longitudinal study data structure
 Creates a longitudinal study data structure that encapsulates study data
 and provides intuitive access methods for different analysis perspectives.
 }
+\examples{
+config <- list(participants = 50, sites = 5, snapshots = 2, interval = "1 month",
+               domains = c("AE", "LB"))
+study <- create_longitudinal_study_data("MY-STUDY", raw_data = list(), config = config)
+study$study_id
+}

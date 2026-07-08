@@ -56,24 +56,30 @@ list so you never have to maintain a parallel vector alongside \code{study_confi
 # Define shared defaults; each variant only specifies what changes
 studies <- study_portfolio(
   variants = list(
-    "PHASE2-SMALL" = list(participants = 80,  sites = 8,  snapshots = 4,
-                          domains = c("AE", "LB")),
-    "PHASE3-LARGE" = list(participants = 400, sites = 25, snapshots = 12,
-                          domains = c("AE", "LB", "VISIT", "PD")),
-    "SAFETY-RUN"   = list(participants = 50,  sites = 3,  snapshots = 8,
-                          outlier_intensity = 2)
+    "PHASE2-SMALL" = list(
+      participants = 80, sites = 8, snapshots = 4,
+      domains = c("AE", "LB")
+    ),
+    "PHASE3-LARGE" = list(
+      participants = 400, sites = 25, snapshots = 12,
+      domains = c("AE", "LB", "VISIT", "PD")
+    ),
+    "SAFETY-RUN" = list(
+      participants = 50, sites = 3, snapshots = 8,
+      outlier_intensity = 2
+    )
   ),
   # Shared defaults (used when a variant does not override)
   participants = 100,
-  sites        = 10,
-  snapshots    = 6,
-  interval     = "1 month",
-  domains      = c("AE", "LB", "VISIT"),
+  sites = 10,
+  snapshots = 6,
+  interval = "1 month",
+  domains = c("AE", "LB", "VISIT"),
   run_analytics = FALSE,
-  verbose       = TRUE
+  verbose = TRUE
 )
 
-names(studies)                         # "PHASE2-SMALL" "PHASE3-LARGE" "SAFETY-RUN"
-studies[["PHASE3-LARGE"]]$config       # inspect per-study config
+names(studies) # "PHASE2-SMALL" "PHASE3-LARGE" "SAFETY-RUN"
+studies[["PHASE3-LARGE"]]$config # inspect per-study config
 }
 }

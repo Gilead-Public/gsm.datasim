@@ -1,6 +1,6 @@
 #' Generate Raw Data from Workflow Specifications
 #'
-#' Takes a list of workflows (as returned by `gsm.core::MakeWorkflowList()`) and
+#' Takes a list of workflows (as returned by `workr::MakeWorkflowList()`) and
 #' generates simulated raw data for every `Raw_*` domain found in the combined
 #' specification. Domains that already have a dedicated generator in the domain
 #' registry or a legacy `Raw_*()` function are produced with those generators;
@@ -13,7 +13,7 @@
 #' via `count_gen()`, and dates advance by `snapshot_width`.
 #'
 #' @param lWorkflows A named list of workflow objects, each containing a `$spec`
-#'   element (e.g. from `gsm.core::MakeWorkflowList()`).
+#'   element (e.g. from `workr::MakeWorkflowList()`).
 #' @param n_participants Integer. Target number of participants (default 100).
 #' @param n_sites Integer. Target number of sites (default 10).
 #' @param study_id Character. Study identifier (default `"STUDY-001"`).
@@ -82,7 +82,7 @@
 #' @examples
 #' \dontrun{
 #' # Load workflows from gsm.mapping
-#' lWorkflows <- gsm.core::MakeWorkflowList(
+#' lWorkflows <- workr::MakeWorkflowList(
 #'   strPath = "workflow/1_mappings",
 #'   strPackage = "gsm.mapping"
 #' )
@@ -136,7 +136,7 @@
 #'   lWorkflows,
 #'   column_overrides = list(
 #'     Raw_LB = list(
-#'       lbstnrhi  = function(n, df) round(df$lbstresn * 1.2, 2),
+#'       lbstnrhi = function(n, df) round(df$lbstresn * 1.2, 2),
 #'       visit_flag = function(n, df) ifelse(df$visnam == "SCREENING", "S", "F")
 #'     )
 #'   )
@@ -170,34 +170,33 @@
 #'
 #' @export
 generate_data_from_workflows <- function(
-  lWorkflows,
-  n_participants = 100,
-  n_sites = 10,
-  study_id = "STUDY-001",
-  start_date = "2012-01-01",
-  end_date = "2012-12-31",
-  snapshot_count = 1L,
-  snapshot_width = "months",
-  domain_counts = NULL,
-  desired_domains = NULL,
-  column_overrides = NULL
-) {
+    lWorkflows,
+    n_participants = 100,
+    n_sites = 10,
+    study_id = "STUDY-001",
+    start_date = "2012-01-01",
+    end_date = "2012-12-31",
+    snapshot_count = 1L,
+    snapshot_width = "months",
+    domain_counts = NULL,
+    desired_domains = NULL,
+    column_overrides = NULL) {
   # -- Validate inputs -------------------------------------------------------
   workflow_names <- names(lWorkflows)
   if (
     !is.list(lWorkflows) ||
-    length(lWorkflows) == 0 ||
-    is.null(workflow_names) ||
-    length(workflow_names) != length(lWorkflows) ||
-    any(is.na(workflow_names)) ||
-    any(!nzchar(workflow_names))
+      length(lWorkflows) == 0 ||
+      is.null(workflow_names) ||
+      length(workflow_names) != length(lWorkflows) ||
+      any(is.na(workflow_names)) ||
+      any(!nzchar(workflow_names))
   ) {
     stop("`lWorkflows` must be a non-empty named list of workflow objects.", call. = FALSE)
   }
 
   snapshot_count <- as.integer(snapshot_count)
-  start_date     <- as.Date(start_date)
-  end_date       <- as.Date(end_date)
+  start_date <- as.Date(start_date)
+  end_date <- as.Date(end_date)
 
   # -- Combine specs from all workflows -------------------------------------
   combined_specs <- CombineSpecs(lWorkflows, bIsWorkflow = TRUE)
@@ -249,8 +248,8 @@ generate_data_from_workflows <- function(
 
   # -- Multi-snapshot longitudinal generation ---------------------------------
   snapshot_start_dates <- seq(start_date, length.out = snapshot_count, by = snapshot_width)
-  snapshot_end_dates   <- c(snapshot_start_dates[-1] - 1, end_date)
-  snapshot_end_dates   <- pmin(snapshot_end_dates, end_date)
+  snapshot_end_dates <- c(snapshot_start_dates[-1] - 1, end_date)
+  snapshot_end_dates <- pmin(snapshot_end_dates, end_date)
 
   # Build per-snapshot counts using count_gen() for realistic ramp-up
   domain_count_vectors <- stats::setNames(
@@ -265,7 +264,7 @@ generate_data_from_workflows <- function(
     names(domain_max_n)
   )
 
-  snapshots     <- list()
+  snapshots <- list()
   previous_data <- list()
 
   for (snapshot_idx in seq_len(snapshot_count)) {
@@ -291,7 +290,7 @@ generate_data_from_workflows <- function(
     )
 
     snapshots[[snapshot_idx]] <- snapshot_data
-    previous_data             <- snapshot_data
+    previous_data <- snapshot_data
     logger::log_info("-- Snapshot {snapshot_idx} complete --")
   }
 
@@ -358,19 +357,22 @@ generate_data_from_workflows <- function(
     # -- Tier 2: Legacy Raw_*() function ----------------------------------------
     legacy_fn <- tryCatch(match.fun(domain), error = function(e) NULL)
     if (!is.null(legacy_fn)) {
-      legacy_result <- tryCatch({
-        legacy_fn(
-          data          = data,
-          previous_data = previous_data,
-          spec          = combined_specs,
-          n             = n,
-          startDate     = start_date,
-          endDate       = end_date
-        )
-      }, error = function(e) {
-        logger::log_debug("Legacy function failed for {domain}: {conditionMessage(e)}")
-        NULL
-      })
+      legacy_result <- tryCatch(
+        {
+          legacy_fn(
+            data          = data,
+            previous_data = previous_data,
+            spec          = combined_specs,
+            n             = n,
+            startDate     = start_date,
+            endDate       = end_date
+          )
+        },
+        error = function(e) {
+          logger::log_debug("Legacy function failed for {domain}: {conditionMessage(e)}")
+          NULL
+        }
+      )
 
       if (!is.null(legacy_result)) {
         data[[domain]] <- as.data.frame(legacy_result)
@@ -416,7 +418,9 @@ generate_data_from_workflows <- function(
 #'
 #' @keywords internal
 .apply_column_overrides <- function(df, domain, column_overrides) {
-  if (is.null(column_overrides) || !domain %in% names(column_overrides)) return(df)
+  if (is.null(column_overrides) || !domain %in% names(column_overrides)) {
+    return(df)
+  }
 
   overrides <- column_overrides[[domain]]
   n <- nrow(df)
@@ -453,28 +457,28 @@ generate_data_from_workflows <- function(
 .resolve_domain_counts <- function(domain_names, n_participants, n_sites, user_counts = NULL) {
   # Heuristic: map domain name patterns to multipliers of n_participants
   multipliers <- list(
-    Raw_STUDY      = function(np, ns) 1L,
-    Raw_SITE       = function(np, ns) ns,
-    Raw_SUBJ       = function(np, ns) np,
-    Raw_ENROLL     = function(np, ns) np,
-    Raw_IE         = function(np, ns) np,
-    Raw_VISIT      = function(np, ns) np,
-    Raw_STUDCOMP   = function(np, ns) ceiling(np / 10),
-    Raw_AE         = function(np, ns) np * 3L,
-    Raw_PD         = function(np, ns) np * 3L,
-    Raw_LB         = function(np, ns) np,
-    Raw_SDRGCOMP   = function(np, ns) ceiling(np / 2),
-    Raw_DATACHG    = function(np, ns) np,
-    Raw_DATAENT    = function(np, ns) np,
-    Raw_QUERY      = function(np, ns) np,
-    Raw_Consents   = function(np, ns) ceiling(np / 75),
-    Raw_Death      = function(np, ns) ceiling(np / 85),
+    Raw_STUDY = function(np, ns) 1L,
+    Raw_SITE = function(np, ns) ns,
+    Raw_SUBJ = function(np, ns) np,
+    Raw_ENROLL = function(np, ns) np,
+    Raw_IE = function(np, ns) np,
+    Raw_VISIT = function(np, ns) np,
+    Raw_STUDCOMP = function(np, ns) ceiling(np / 10),
+    Raw_AE = function(np, ns) np * 3L,
+    Raw_PD = function(np, ns) np * 3L,
+    Raw_LB = function(np, ns) np,
+    Raw_SDRGCOMP = function(np, ns) ceiling(np / 2),
+    Raw_DATACHG = function(np, ns) np,
+    Raw_DATAENT = function(np, ns) np,
+    Raw_QUERY = function(np, ns) np,
+    Raw_Consents = function(np, ns) ceiling(np / 75),
+    Raw_Death = function(np, ns) ceiling(np / 85),
     Raw_AntiCancer = function(np, ns) ceiling(np / 10),
-    Raw_Randomization    = function(np, ns) np,
-    Raw_OverallResponse  = function(np, ns) np,
-    Raw_PK         = function(np, ns) np,
-    Raw_Baseline   = function(np, ns) np,
-    Raw_EXCLUSION  = function(np, ns) np
+    Raw_Randomization = function(np, ns) np,
+    Raw_OverallResponse = function(np, ns) np,
+    Raw_PK = function(np, ns) np,
+    Raw_Baseline = function(np, ns) np,
+    Raw_EXCLUSION = function(np, ns) np
   )
 
   counts <- stats::setNames(

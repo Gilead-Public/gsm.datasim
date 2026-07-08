@@ -17,3 +17,5 @@
 ^inst/README\.md$
 ^\.positai$
 ^\.claude$
+^DEMO-
+^TRIAL-

@@ -10,6 +10,14 @@ get_domain_registry()
 Named list of domain registry entries.
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+}
+\details{
 Returns a named list that defines per-domain generation behavior for the
 registry-based migration path.
+}
+\examples{
+registry <- get_domain_registry()
+names(registry)              # all supported domain keys
+names(registry[["Raw_AE"]]) # structure of a single entry
 }

@@ -15,3 +15,8 @@ TRUE if valid, stops with error if invalid
 \description{
 Validates study configuration parameters.
 }
+\examples{
+config <- create_study_config("TRIAL001", participant_count = 100, site_count = 10)
+config <- set_temporal_config(config, snapshot_count = 3)
+validate_study_config(config)
+}

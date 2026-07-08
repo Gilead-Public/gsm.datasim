@@ -40,3 +40,8 @@ A list containing study configuration
 Creates a study configuration list with study parameters, temporal configuration,
 and dataset specifications for clinical trial data generation.
 }
+\examples{
+config <- create_study_config("STUDY001", participant_count = 200, site_count = 15)
+config$study_params$study_id
+config$temporal_config$snapshot_count
+}

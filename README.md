@@ -23,10 +23,11 @@
 ## Overview
 
 `{gsm.datasim}` generates synthetic clinical trial data for testing and
-development of Risk-Based Quality Monitoring (RBQM) applications and
-packages. It produces multi-snapshot longitudinal datasets across a
-configurable set of clinical domains and runs the full gsm analytics and
-reporting pipelines on the generated data.
+development of clinical monitoring applications. It produces multi-snapshot
+longitudinal datasets across a configurable set of clinical domains
+(SDTM-style and custom) and can run configurable analytics and reporting
+pipelines on the generated data via the
+[`workr`](https://github.com/Gilead-BioStats/workr) workflow engine.
 
 ## Installation
 
@@ -101,8 +102,8 @@ ae_counts <- sapply(get_domain_timeline(study, "AE"), nrow)
 
 | Function | Description |
 |---|---|
-| `run_longitudinal_analytics()` | Run (or re-run) the gsm.kri analytics pipeline |
-| `run_longitudinal_reporting()` | Run (or re-run) the gsm.reporting pipeline |
+| `run_longitudinal_analytics()` | Run (or re-run) the analytics pipeline (powered by `workr`) |
+| `run_longitudinal_reporting()` | Run (or re-run) the reporting pipeline |
 | `generate_analytics_layers()` | Run analytics on already-generated raw data |
 | `generate_reporting_layers()` | Run reporting on analytics results |
 

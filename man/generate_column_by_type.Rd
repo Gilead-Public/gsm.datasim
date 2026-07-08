@@ -26,3 +26,19 @@ resolved column type. For columns that look like foreign keys (e.g. \code{subjid
 \code{invid}), values are sampled from existing parent domain data when available
 in \code{context$data}.
 }
+\section{Lifecycle}{
+
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+}
+
+\examples{
+# Generate date values
+generate_column_by_type("ae_stdt", list(type = "date"), n = 5,
+  context = list(start_date = "2023-01-01", end_date = "2023-12-31"))
+
+# Generate integer values using name-pattern inference
+generate_column_by_type("subject_count", n = 10)
+
+# Generate character values with explicit type
+generate_column_by_type("category", list(type = "character"), n = 5)
+}

@@ -179,7 +179,7 @@ sample_categorical_with_hotspots <- function(values,
   baseline_draw <- sample(values, n, replace = TRUE, prob = base_prob)
 
   if (intensity <= 1 || is.null(row_keys) || is.null(key_map) ||
-      !(key_col %in% names(key_map)) || !(site_col %in% names(key_map))) {
+    !(key_col %in% names(key_map)) || !(site_col %in% names(key_map))) {
     return(baseline_draw)
   }
 
@@ -330,15 +330,15 @@ load_specs <- function(workflow_path, mappings, package, use_cache = TRUE) {
     return(get(cache_key, envir = .gsm_datasim_spec_cache, inherits = FALSE))
   }
 
-  wf_mapping <- gsm.core::MakeWorkflowList(strPath = workflow_path, strNames = mappings, strPackage = package)
-  wf_req <- gsm.core::MakeWorkflowList(strPath = "workflow/1_mappings", strNames = c("SUBJ", "STUDY", "SITE", "ENROLL"), strPackage = "gsm.mapping")
+  wf_mapping <- workr::MakeWorkflowList(strPath = workflow_path, strNames = mappings, strPackage = package)
+  wf_req <- workr::MakeWorkflowList(strPath = "workflow/1_mappings", strNames = c("SUBJ", "STUDY", "SITE", "ENROLL"), strPackage = "gsm.mapping")
   wf_all <- modifyList(wf_mapping, wf_req)
   if (any(c("OverallResponse") %in% mappings)) {
-    wf_visit <- gsm.core::MakeWorkflowList(strPath = "workflow/1_mappings", strNames = c("VISIT"), strPackage = "gsm.mapping")
+    wf_visit <- workr::MakeWorkflowList(strPath = "workflow/1_mappings", strNames = c("VISIT"), strPackage = "gsm.mapping")
     wf_all <- modifyList(wf_all, wf_visit)
   }
   if (any(c("Consents", "Death") %in% mappings)) {
-    wf_studcomp <- gsm.core::MakeWorkflowList(strPath = "workflow/1_mappings", strNames = c("STUDCOMP"), strPackage = "gsm.mapping")
+    wf_studcomp <- workr::MakeWorkflowList(strPath = "workflow/1_mappings", strNames = c("STUDCOMP"), strPackage = "gsm.mapping")
     wf_all <- modifyList(wf_all, wf_studcomp)
   }
   combined_specs <- CombineSpecs(wf_all)

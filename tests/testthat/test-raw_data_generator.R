@@ -1,4 +1,4 @@
-test_that("generate_rawdata_for_single_study works", {
+test_that("raw_data_generator works with a template file", {
   result <- raw_data_generator(
     template_path = system.file("small_template.csv", package = "gsm.datasim"),
     mappings = c("AE")
@@ -8,7 +8,7 @@ test_that("generate_rawdata_for_single_study works", {
   expect_equal(names(result), c("S0001", "S0004", "S0006"))
 })
 
-test_that("generate_rawdata_for_single_study works", {
+test_that("raw_data_generator works with explicit study parameters", {
   result <- raw_data_generator(
     SnapshotCount = 2,
     SnapshotWidth = "months",
@@ -27,7 +27,12 @@ test_that("generate_rawdata_for_single_study works", {
 
 test_that("raw_data_generator supports explicit legacy generation mode", {
   old_warned <- .gsm_datasim_runtime_state$legacy_mode_warned
-  on.exit({ .gsm_datasim_runtime_state$legacy_mode_warned <- old_warned }, add = TRUE)
+  on.exit(
+    {
+      .gsm_datasim_runtime_state$legacy_mode_warned <- old_warned
+    },
+    add = TRUE
+  )
   .gsm_datasim_runtime_state$legacy_mode_warned <- FALSE
 
   expect_warning(

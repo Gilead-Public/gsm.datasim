@@ -17,3 +17,9 @@ Invisibly returns the study structure
 \description{
 Display comprehensive study summary.
 }
+\examples{
+\dontrun{
+study <- create_longitudinal_study("STUDY-001", participants = 50, sites = 5, snapshots = 2)
+summarize_longitudinal_study(study)
+}
+}

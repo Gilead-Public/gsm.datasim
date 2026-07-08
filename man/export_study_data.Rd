@@ -67,3 +67,14 @@ Non-data.frame leaves inside \code{analytics} are silently skipped; they can be
 preserved alongside the CSVs by setting \code{save_rds = TRUE}, which writes a
 companion \code{analytics_full.rds} per snapshot.
 }
+\examples{
+\dontrun{
+study <- create_longitudinal_study(
+  "STUDY-001", participants = 50, sites = 5, snapshots = 2
+)
+export_study_data(study, output_dir = tempdir(), overwrite = TRUE)
+
+# Export as parquet format
+export_study_data(study, output_dir = tempdir(), format = "parquet", overwrite = TRUE)
+}
+}
