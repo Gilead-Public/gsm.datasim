@@ -19,6 +19,39 @@ test_that("domain registry exposes required schema for migrated domains", {
   expect_true(is.function(lb_entry$generate_fn))
 })
 
+test_that("every domain registry entry conforms to the required schema (#124)", {
+  registry <- get_domain_registry()
+
+  expect_gt(length(registry), 0)
+
+  expected_fields <- sort(c("dataset", "required_inputs", "count_fn", "generate_fn"))
+
+  for (domain_name in names(registry)) {
+    entry <- registry[[domain_name]]
+
+    expect_equal(
+      sort(names(entry)), expected_fields,
+      info = paste("fields for", domain_name)
+    )
+    expect_identical(
+      entry$dataset, domain_name,
+      info = paste("dataset key for", domain_name)
+    )
+    expect_true(
+      is.function(entry$count_fn),
+      info = paste("count_fn for", domain_name)
+    )
+    expect_true(
+      is.function(entry$generate_fn),
+      info = paste("generate_fn for", domain_name)
+    )
+    expect_true(
+      is.character(entry$required_inputs) && length(entry$required_inputs) > 0,
+      info = paste("required_inputs for", domain_name)
+    )
+  }
+})
+
 test_that("Raw_AE migrated domain adapter generates data frame", {
   set.seed(123)
 
