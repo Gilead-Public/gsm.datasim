@@ -158,7 +158,7 @@ sex <- function(n, ...) {
 race <- function(n, ...) {
   sample(c("White", "Asian", "Black", "Other"), n, replace = T)
 }
-enrollyn_enrolldt_timeonstudy_firstparticipantdate_firstdosedate_timeontreatment <- function(n, startDate, endDate, ...) {
+enrollyn_enrolldt_timeonstudy_firstparticipantdate_firstdosedate_timeontreatment <- function(n, startDate, endDate, nonstarter_rate = 0.1, ...) {
   enrollyn_dat <- enrollyn(n, ...)
   enrolldt_dat <- enrolldt(n, startDate, endDate, enrollyn_dat, ...)
   timeonstudy_dat <- timeonstudy(n, enrolldt_dat, endDate, ...)
@@ -166,6 +166,18 @@ enrollyn_enrolldt_timeonstudy_firstparticipantdate_firstdosedate_timeontreatment
   firstparticipantdate_dat <- enrolldt_dat
   firstdosedate_dat <- enrolldt_dat
   timeontreatment_dat <- timeonstudy_dat
+
+  # IP non-starter scenario (#122): a deterministic subset of enrolled subjects
+  # are enrolled but never dosed, so their firstdosedate is NA. Drawn after the
+  # existing draws above, so with nonstarter_rate = 0 the other columns are
+  # left unchanged.
+  enrolled_idx <- which(enrollyn_dat == "Y")
+  if (nonstarter_rate > 0 && length(enrolled_idx) > 0) {
+    k <- min(max(1L, round(nonstarter_rate * length(enrolled_idx))), length(enrolled_idx))
+    nonstarter_idx <- sample(enrolled_idx, size = k, replace = FALSE)
+    firstdosedate_dat[nonstarter_idx] <- as.Date(NA)
+  }
+
   return(list(
     enrollyn = enrollyn_dat,
     enrolldt = enrolldt_dat,

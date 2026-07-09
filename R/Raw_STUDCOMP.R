@@ -41,6 +41,8 @@ Raw_STUDCOMP <- function(data, previous_data, spec, startDate, ...) {
 
   res <- add_new_var_data(dataset, curr_spec, args, spec$Raw_STUDCOMP, ...)
 
+  res <- apply_nonstarter_colendat(res, data$Raw_SUBJ)
+
   return(res)
 }
 
@@ -107,4 +109,26 @@ compreas <- function(n, ...) {
 
 completion_date <- function(n, ...) {
   rep(as.Date(Sys.Date()), n)
+}
+
+#' Mark study-completion collection-end date for IP non-starters
+#'
+#' Gives the non-starter subset (see `nonstarter_subjids()`) a present
+#' `colendat` and leaves it `NA` for everyone else, so a confirmed non-starter
+#' has either this date or the coded `sdrgreas` reason.
+#'
+#' @param df a generated `Raw_STUDCOMP` data.frame (must carry `subjid`).
+#' @param raw_subj the `Raw_SUBJ` frame used to identify non-starters.
+#' @returns `df` with a `colendat` (`Date`) column.
+#' @family internal
+#' @keywords internal
+#' @noRd
+apply_nonstarter_colendat <- function(df, raw_subj) {
+  if (is.null(df) || nrow(df) == 0 || !("subjid" %in% names(df))) {
+    return(df)
+  }
+  ns <- nonstarter_subjids(raw_subj)
+  df$colendat <- as.Date(NA)
+  df$colendat[as.character(df$subjid) %in% ns] <- Sys.Date()
+  df
 }
