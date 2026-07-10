@@ -77,8 +77,6 @@ create_standard_study_config(
 
 \item{inclusion_exclusion}{Include inclusion/exclusion criteria (Raw_IE)}
 
-\item{exclusions}{Include exclusion tracking (Raw_EXCLUSION)}
-
 \item{country}{Include country mapping}
 
 \item{death}{Include death events (Raw_Death)}
