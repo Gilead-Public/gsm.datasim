@@ -113,14 +113,13 @@ generate_data_from_workflows(
   Example:
 
 
-        column_overrides = list(
-          Raw_LB = list(
-            score_val  = function(n)    round(runif(n, 0, 10), 1),
-            lbstresu   = c("mg/dL", "mmol/L", "g/L"),
-            visit_flag = function(n, df) ifelse(df$visnam == "SCREENING", "S", "F")
-          )
+      column_overrides = list(
+        Raw_LB = list(
+          score_val  = function(n)    round(runif(n, 0, 10), 1),
+          lbstresu   = c("mg/dL", "mmol/L", "g/L"),
+          visit_flag = function(n, df) ifelse(df$visnam == "SCREENING", "S", "F")
         )
-        
+      )
 
 ## Value
 

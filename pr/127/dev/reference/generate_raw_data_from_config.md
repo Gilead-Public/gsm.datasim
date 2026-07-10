@@ -3,14 +3,9 @@
 Convenience wrapper for generating snapshot raw data directly from a
 configured study object.
 
-Convenience wrapper for generating snapshot raw data directly from a
-configured study object.
-
 ## Usage
 
 ``` r
-generate_raw_data_from_config(config, verbose = FALSE)
-
 generate_raw_data_from_config(config, verbose = FALSE)
 ```
 
@@ -25,8 +20,6 @@ generate_raw_data_from_config(config, verbose = FALSE)
   Whether to print progress/output messages.
 
 ## Value
-
-List of raw data for enabled datasets.
 
 List of raw data for enabled datasets.
 

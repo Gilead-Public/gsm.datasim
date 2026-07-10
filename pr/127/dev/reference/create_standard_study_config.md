@@ -123,10 +123,6 @@ create_standard_study_config(
 
   Include inclusion/exclusion criteria (Raw_IE)
 
-- exclusions:
-
-  Include exclusion tracking (Raw_EXCLUSION)
-
 - country:
 
   Include country mapping

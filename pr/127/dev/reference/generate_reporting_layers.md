@@ -3,14 +3,9 @@
 Convenience wrapper that runs the gsm.reporting pipeline and returns the
 raw reporting results per snapshot.
 
-Convenience wrapper that runs the gsm.reporting pipeline and returns the
-raw reporting results per snapshot.
-
 ## Usage
 
 ``` r
-generate_reporting_layers(analytics_results, config, verbose = FALSE)
-
 generate_reporting_layers(analytics_results, config, verbose = FALSE)
 ```
 
@@ -30,8 +25,6 @@ generate_reporting_layers(analytics_results, config, verbose = FALSE)
   Whether to print progress/output messages
 
 ## Value
-
-Named list of reporting results per snapshot
 
 Named list of reporting results per snapshot
 

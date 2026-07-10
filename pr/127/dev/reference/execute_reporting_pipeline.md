@@ -5,16 +5,9 @@ snapshot using the mapped data, analytics results, and workflow list
 from the analytics pipeline output. Returns a named list of reporting
 results per snapshot.
 
-Runs the gsm.reporting workflow layer (workflow/3_reporting) for each
-snapshot using the mapped data, analytics results, and workflow list
-from the analytics pipeline output. Returns a named list of reporting
-results per snapshot.
-
 ## Usage
 
 ``` r
-execute_reporting_pipeline(analytics_results, config)
-
 execute_reporting_pipeline(analytics_results, config)
 ```
 
@@ -29,8 +22,6 @@ execute_reporting_pipeline(analytics_results, config)
   Study configuration object
 
 ## Value
-
-Named list of reporting results per snapshot
 
 Named list of reporting results per snapshot
 

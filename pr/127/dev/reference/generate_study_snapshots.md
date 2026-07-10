@@ -2,23 +2,9 @@
 
 Generate study data across multiple snapshots
 
-Generate study data across multiple snapshots
-
 ## Usage
 
 ``` r
-generate_study_snapshots(
-  study_id,
-  participants,
-  sites,
-  snapshots,
-  interval,
-  mappings,
-  base_date = NULL,
-  outlier_intensity = 1,
-  verbose = FALSE
-)
-
 generate_study_snapshots(
   study_id,
   participants,
@@ -71,8 +57,6 @@ generate_study_snapshots(
   Whether to print progress/output messages
 
 ## Value
-
-List of raw data for each snapshot
 
 List of raw data for each snapshot
 
