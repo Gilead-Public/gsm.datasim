@@ -317,7 +317,7 @@ oncology_domains <- c(
 
 # Safety study domains
 safety_domains <- c(
-  "AE", "LB", "VISIT", "EXCLUSION",
+  "AE", "LB", "VISIT",
   "Death", "STUDCOMP"
 )
 
@@ -468,7 +468,7 @@ studies <- create_multiple_longitudinal_studies(
       analytics_workflows = c("kri0001", "kri0002", "kri0005")
     ),
     "SAFETY-RUN" = list(
-      domains = c("AE", "LB", "Death", "EXCLUSION"),
+      domains = c("AE", "LB", "Death"),
       outlier_intensity = 2.0,
       interval = "1 week"
     )

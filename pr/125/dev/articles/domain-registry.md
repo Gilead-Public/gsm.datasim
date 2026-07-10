@@ -72,13 +72,11 @@ ae_config <- registry$Raw_AE
 
 # Key components:
 # - dataset: "Raw_AE"
-# - package: "gsm.datasim"
 # - required_inputs: data, previous_data, combined_specs, etc.
-# - count_fn: Uses ae_count from snapshot configuration
-# - generate_fn: Calls Raw_AE() function
+# - count_fn: Determines how many records to generate per snapshot
+# - generate_fn: Calls the Raw_AE() generator function
 
 print(ae_config$dataset)
-print(ae_config$package)
 print(ae_config$required_inputs)
 ```
 
@@ -426,17 +424,15 @@ validate_domain_registry <- function(registry = NULL) {
     domain_config <- registry[[domain_name]]
 
     # Check required fields
-    required_fields <- c("dataset", "package", "generate_fn")
+    required_fields <- c("dataset", "required_inputs", "count_fn", "generate_fn")
     missing_fields <- setdiff(required_fields, names(domain_config))
-
-    # Check function availability
-    package_available <- requireNamespace(domain_config$package, quietly = TRUE)
 
     validation_results[[domain_name]] <- list(
       missing_fields = missing_fields,
-      package_available = package_available,
-      has_count_fn = !is.null(domain_config$count_fn),
-      has_generate_fn = !is.null(domain_config$generate_fn)
+      has_count_fn = is.function(domain_config$count_fn),
+      has_generate_fn = is.function(domain_config$generate_fn),
+      has_required_inputs = is.character(domain_config$required_inputs) &&
+        length(domain_config$required_inputs) > 0
     )
   }
 
@@ -495,18 +491,16 @@ str(validation, max.level = 2)
 available <- get_available_domains()
 print(available)
 
-# Issue: Package not available
-# Solution: Install required packages
-missing_packages <- c()
+# Issue: Registry entry missing required fields
+# Solution: Validate entries have dataset, required_inputs, count_fn, generate_fn
 registry <- get_domain_registry()
 for (domain in names(registry)) {
-  pkg <- registry[[domain]]$package
-  if (!requireNamespace(pkg, quietly = TRUE)) {
-    missing_packages <- c(missing_packages, pkg)
+  entry <- registry[[domain]]
+  expected <- c("dataset", "required_inputs", "count_fn", "generate_fn")
+  missing <- setdiff(expected, names(entry))
+  if (length(missing) > 0) {
+    cat("Domain", domain, "missing:", paste(missing, collapse = ", "), "\n")
   }
-}
-if (length(missing_packages) > 0) {
-  cat("Missing packages:", paste(missing_packages, collapse = ", "), "\n")
 }
 
 # Issue: Generation function errors

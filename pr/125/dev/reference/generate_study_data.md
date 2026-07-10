@@ -2,19 +2,9 @@
 
 Generate study data with configuration
 
-Generate study data with configuration
-
 ## Usage
 
 ``` r
-generate_study_data(
-  config,
-  workflow_path = "workflow/1_mappings",
-  mappings = NULL,
-  package = "gsm.mapping",
-  verbose = FALSE
-)
-
 generate_study_data(
   config,
   workflow_path = "workflow/1_mappings",
@@ -47,8 +37,6 @@ generate_study_data(
   Whether to print progress/output messages
 
 ## Value
-
-List of generated study data
 
 List of generated study data
 

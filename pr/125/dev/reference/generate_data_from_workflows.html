@@ -27,8 +27,7 @@ generate_unknown_domain()."><meta name="robots" content="noindex"></head><body>
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/addnewdomain.html">addnewdomain</a></li>
-    <li><a class="dropdown-item" href="../articles/domain-registry.html">Understanding the Domain Registry</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/domain-registry.html">Understanding the Domain Registry</a></li>
     <li><a class="dropdown-item" href="../articles/study-setup.html">Setting up Clinical Studies with gsm.datasim</a></li>
   </ul></li>
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
@@ -162,14 +161,13 @@ for custom distributions or categorical values.</p></dd>
 
 
 </dl><p>Example:</p><div class="sourceCode"><pre><code><span></span>
-<span>  <span class="va">column_overrides</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    Raw_LB <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>      score_val  <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">n</span><span class="op">)</span>    <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">n</span>, <span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span>, <span class="fl">1</span><span class="op">)</span>,</span>
-<span>      lbstresu   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mg/dL"</span>, <span class="st">"mmol/L"</span>, <span class="st">"g/L"</span><span class="op">)</span>,</span>
-<span>      visit_flag <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">n</span>, <span class="va">df</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">visnam</span> <span class="op">==</span> <span class="st">"SCREENING"</span>, <span class="st">"S"</span>, <span class="st">"F"</span><span class="op">)</span></span>
-<span>    <span class="op">)</span></span>
+<span><span class="va">column_overrides</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  Raw_LB <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    score_val  <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">n</span><span class="op">)</span>    <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">n</span>, <span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span>, <span class="fl">1</span><span class="op">)</span>,</span>
+<span>    lbstresu   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mg/dL"</span>, <span class="st">"mmol/L"</span>, <span class="st">"g/L"</span><span class="op">)</span>,</span>
+<span>    visit_flag <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">n</span>, <span class="va">df</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">visnam</span> <span class="op">==</span> <span class="st">"SCREENING"</span>, <span class="st">"S"</span>, <span class="st">"F"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
-<span>  </span></code></pre></div></dd>
+<span><span class="op">)</span></span></code></pre></div></dd>
 
 </dl></div>
     <div class="section level2">
