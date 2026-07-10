@@ -477,8 +477,7 @@ generate_data_from_workflows <- function(
     Raw_Randomization = function(np, ns) np,
     Raw_OverallResponse = function(np, ns) np,
     Raw_PK = function(np, ns) np,
-    Raw_Baseline = function(np, ns) np,
-    Raw_EXCLUSION = function(np, ns) np
+    Raw_Baseline = function(np, ns) np
   )
 
   counts <- stats::setNames(
