@@ -250,7 +250,7 @@ create_standard_study_config <- function(study_id = "STUDY001", participant_coun
                                          data_changes = TRUE, data_entry = TRUE,
                                          queries = TRUE, pharmacokinetics = TRUE,
                                          study_drug_completion = TRUE, study_completion = TRUE,
-                                         inclusion_exclusion = TRUE, exclusions = TRUE,
+                                         inclusion_exclusion = TRUE,
                                          country = TRUE,
                                          death = TRUE, randomization = TRUE, overall_response = TRUE,
                                          outlier_intensity = 1) {

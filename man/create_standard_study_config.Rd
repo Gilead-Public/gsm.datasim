@@ -26,7 +26,6 @@ create_standard_study_config(
   study_drug_completion = TRUE,
   study_completion = TRUE,
   inclusion_exclusion = TRUE,
-  exclusions = TRUE,
   country = TRUE,
   death = TRUE,
   randomization = TRUE,
