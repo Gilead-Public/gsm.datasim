@@ -162,8 +162,8 @@ names(config$dataset_configs)
 #>  [7] "Raw_LB"              "Raw_VISIT"           "Raw_DATACHG"        
 #> [10] "Raw_DATAENT"         "Raw_QUERY"           "Raw_PK"             
 #> [13] "Raw_SDRGCOMP"        "Raw_STUDCOMP"        "Raw_IE"             
-#> [16] "Raw_EXCLUSION"       "Raw_COUNTRY"         "Raw_Death"          
-#> [19] "Raw_Randomization"   "Raw_OverallResponse"
+#> [16] "Raw_COUNTRY"         "Raw_Death"           "Raw_Randomization"  
+#> [19] "Raw_OverallResponse"
 
 # Select a subset of domains
 config <- create_standard_study_config(
