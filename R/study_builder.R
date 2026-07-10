@@ -221,7 +221,6 @@ validate_study_config <- function(config) {
 #' @param study_drug_completion Include study drug completion (Raw_SDRGCOMP)
 #' @param study_completion Include overall study completion (Raw_STUDCOMP)
 #' @param inclusion_exclusion Include inclusion/exclusion criteria (Raw_IE)
-#' @param exclusions Include exclusion tracking (Raw_EXCLUSION)
 #' @param country Include country mapping
 #' @param death Include death events (Raw_Death)
 #' @param randomization Include randomization data (Raw_Randomization)
@@ -281,7 +280,6 @@ create_standard_study_config <- function(study_id = "STUDY001", participant_coun
   if (study_drug_completion) config <- add_dataset_config(config, "Raw_SDRGCOMP", enabled = TRUE)
   if (study_completion) config <- add_dataset_config(config, "Raw_STUDCOMP", enabled = TRUE)
   if (inclusion_exclusion) config <- add_dataset_config(config, "Raw_IE", enabled = TRUE)
-  if (exclusions) config <- add_dataset_config(config, "Raw_EXCLUSION", enabled = TRUE)
   if (country) config <- add_dataset_config(config, "Raw_COUNTRY", enabled = TRUE)
   if (death) config <- add_dataset_config(config, "Raw_Death", enabled = TRUE)
   if (randomization) config <- add_dataset_config(config, "Raw_Randomization", enabled = TRUE)
