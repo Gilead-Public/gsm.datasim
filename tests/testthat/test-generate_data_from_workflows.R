@@ -2,7 +2,7 @@
 
 # ── infer_column_type ─────────────────────────────────────────────────────────
 
-test_that("infer_column_type uses explicit spec type when available (#89, #95)", {  expect_equal(infer_column_type("foo", list(type = "date")), "date")
+test_that("infer_column_type uses explicit spec type when available (#89, #95, #106)", {  expect_equal(infer_column_type("foo", list(type = "date")), "date")
   expect_equal(infer_column_type("foo", list(type = "numeric")), "numeric")
   expect_equal(infer_column_type("foo", list(type = "integer")), "integer")
   expect_equal(infer_column_type("foo", list(type = "logical")), "logical")
@@ -10,7 +10,7 @@ test_that("infer_column_type uses explicit spec type when available (#89, #95)",
   expect_equal(infer_column_type("foo", list(type = "timestamp")), "timestamp")
 })
 
-test_that("infer_column_type falls back to name patterns (#89, #95)", {  expect_equal(infer_column_type("enroll_dt"), "date")
+test_that("infer_column_type falls back to name patterns (#89, #95, #106)", {  expect_equal(infer_column_type("enroll_dt"), "date")
   expect_equal(infer_column_type("start_date"), "date")
   expect_equal(infer_column_type("act_fpfv"), "date")
   expect_equal(infer_column_type("my_yn"), "yn")
@@ -24,14 +24,14 @@ test_that("infer_column_type falls back to name patterns (#89, #95)", {  expect_
   expect_equal(infer_column_type("has_consent"), "logical")
 })
 
-test_that("infer_column_type defaults to character (#89, #95)", {  expect_equal(infer_column_type("sitename"), "character")
+test_that("infer_column_type defaults to character (#89, #95, #106)", {  expect_equal(infer_column_type("sitename"), "character")
   expect_equal(infer_column_type("protocol"), "character")
   expect_equal(infer_column_type("unknown_column"), "character")
 })
 
 # ── generate_column_by_type ───────────────────────────────────────────────────
 
-test_that("generate_column_by_type produces correct types and lengths (#89, #95)", {  set.seed(42)
+test_that("generate_column_by_type produces correct types and lengths (#89, #95, #106)", {  set.seed(42)
   ctx <- list(
     data       = list(),
     start_date = "2012-01-01",
@@ -63,7 +63,7 @@ test_that("generate_column_by_type produces correct types and lengths (#89, #95)
   expect_type(chars, "character")
 })
 
-test_that("generate_column_by_type respects explicit spec type over name pattern (#89, #95)", {  set.seed(42)
+test_that("generate_column_by_type respects explicit spec type over name pattern (#89, #95, #106)", {  set.seed(42)
   ctx <- list(data = list(), start_date = "2012-01-01", end_date = "2012-12-31")
 
   # Column name suggests date (_dt), but spec says numeric
@@ -71,7 +71,7 @@ test_that("generate_column_by_type respects explicit spec type over name pattern
   expect_type(result, "double")
 })
 
-test_that("generate_column_by_type samples FK from parent domain (#89, #95)", {  set.seed(42)
+test_that("generate_column_by_type samples FK from parent domain (#89, #95, #106)", {  set.seed(42)
   parent_subj <- data.frame(subjid = paste0("SUBJ-", 1:5), stringsAsFactors = FALSE)
   ctx <- list(
     data = list(Raw_SUBJ = parent_subj),
@@ -86,7 +86,7 @@ test_that("generate_column_by_type samples FK from parent domain (#89, #95)", { 
 
 # ── generate_unknown_domain ───────────────────────────────────────────────────
 
-test_that("generate_unknown_domain creates data.frame with correct shape (#89, #95)", {  set.seed(42)
+test_that("generate_unknown_domain creates data.frame with correct shape (#89, #95, #106)", {  set.seed(42)
   spec <- list(
     patient_id = list(type = "character"),
     visit_dt   = list(type = "date"),
@@ -104,7 +104,7 @@ test_that("generate_unknown_domain creates data.frame with correct shape (#89, #
   expect_true(all(result$flag_yn %in% c("Y", "N")))
 })
 
-test_that("generate_unknown_domain applies source_col renames (#89, #95)", {  set.seed(42)
+test_that("generate_unknown_domain applies source_col renames (#89, #95, #106)", {  set.seed(42)
   spec <- list(
     visit = list(required = TRUE, source_col = "foldername"),
     score = list(type = "numeric")
@@ -116,13 +116,13 @@ test_that("generate_unknown_domain applies source_col renames (#89, #95)", {  se
   expect_false("visit" %in% names(result))
 })
 
-test_that("generate_unknown_domain returns empty data.frame for n=0 (#89, #95)", {  spec <- list(col1 = list(type = "character"))
+test_that("generate_unknown_domain returns empty data.frame for n=0 (#89, #95, #106)", {  spec <- list(col1 = list(type = "character"))
   result <- generate_unknown_domain("Raw_X", spec, 0, list())
   expect_s3_class(result, "data.frame")
   expect_equal(nrow(result), 0)
 })
 
-test_that("generate_unknown_domain uses FK from parent data (#89, #95)", {  set.seed(42)
+test_that("generate_unknown_domain uses FK from parent data (#89, #95, #106)", {  set.seed(42)
   parent_subj <- data.frame(subjid = paste0("S", 1:3), stringsAsFactors = FALSE)
   spec <- list(
     subjid = list(required = TRUE),
@@ -140,13 +140,13 @@ test_that("generate_unknown_domain uses FK from parent data (#89, #95)", {  set.
 
 # ── generate_data_from_workflows ──────────────────────────────────────────────
 
-test_that("generate_data_from_workflows rejects empty input (#89, #95)", {  expect_error(
+test_that("generate_data_from_workflows rejects empty input (#89, #95, #106)", {  expect_error(
     generate_data_from_workflows(list()),
     "non-empty named list"
   )
 })
 
-test_that("generate_data_from_workflows handles pure-unknown workflows (#89, #95)", {  set.seed(42)
+test_that("generate_data_from_workflows handles pure-unknown workflows (#89, #95, #106)", {  set.seed(42)
 
   # Create a minimal fake workflow with unknown domains
   fake_workflows <- list(
@@ -189,7 +189,7 @@ test_that("generate_data_from_workflows handles pure-unknown workflows (#89, #95
   expect_equal(nrow(result$Raw_CUSTOM2), 20)
 })
 
-test_that("generate_data_from_workflows respects domain_counts (#89, #95)", {  set.seed(42)
+test_that("generate_data_from_workflows respects domain_counts (#89, #95, #106)", {  set.seed(42)
 
   fake_workflows <- list(
     wf1 = list(
@@ -213,7 +213,7 @@ test_that("generate_data_from_workflows respects domain_counts (#89, #95)", {  s
   expect_equal(nrow(result$Raw_MYDOM), 25)
 })
 
-test_that("generate_data_from_workflows respects desired_domains filter (#89, #95)", {  set.seed(42)
+test_that("generate_data_from_workflows respects desired_domains filter (#89, #95, #106)", {  set.seed(42)
 
   fake_workflows <- list(
     wf1 = list(
@@ -239,7 +239,7 @@ test_that("generate_data_from_workflows respects desired_domains filter (#89, #9
 
 # ── .resolve_domain_counts ────────────────────────────────────────────────────
 
-test_that(".resolve_domain_counts uses heuristics for known domains (#89, #95)", {  counts <- .resolve_domain_counts(
+test_that(".resolve_domain_counts uses heuristics for known domains (#89, #95, #106)",  {  counts <- .resolve_domain_counts(
     domain_names   = c("Raw_STUDY", "Raw_SITE", "Raw_SUBJ", "Raw_AE"),
     n_participants = 100,
     n_sites        = 10
@@ -251,7 +251,7 @@ test_that(".resolve_domain_counts uses heuristics for known domains (#89, #95)",
   expect_equal(counts$Raw_AE, 300L)
 })
 
-test_that(".resolve_domain_counts uses participant count for unknown domains (#89, #95)", {  counts <- .resolve_domain_counts(
+test_that(".resolve_domain_counts uses participant count for unknown domains (#89, #95, #106)", {  counts <- .resolve_domain_counts(
     domain_names   = c("Raw_UNKNOWN"),
     n_participants = 42,
     n_sites        = 5
@@ -260,7 +260,7 @@ test_that(".resolve_domain_counts uses participant count for unknown domains (#8
   expect_equal(counts$Raw_UNKNOWN, 42L)
 })
 
-test_that(".resolve_domain_counts respects user overrides (#89, #95)", {  counts <- .resolve_domain_counts(
+test_that(".resolve_domain_counts respects user overrides (#89, #95, #106)", {  counts <- .resolve_domain_counts(
     domain_names   = c("Raw_AE", "Raw_SUBJ"),
     n_participants = 100,
     n_sites        = 10,
@@ -273,7 +273,7 @@ test_that(".resolve_domain_counts respects user overrides (#89, #95)", {  counts
 
 # ── Longitudinal / multi-snapshot ─────────────────────────────────────────────
 
-test_that("generate_data_from_workflows produces multiple snapshots (#89, #95)", {  set.seed(42)
+test_that("generate_data_from_workflows produces multiple snapshots (#89, #95, #106)", {  set.seed(42)
 
   fake_workflows <- list(
     wf1 = list(
@@ -315,7 +315,7 @@ test_that("generate_data_from_workflows produces multiple snapshots (#89, #95)",
   expect_equal(unname(row_counts[3]), 30L)
 })
 
-test_that("longitudinal snapshots have cumulative rows for unknown domains (#89, #95)", {  set.seed(123)
+test_that("longitudinal snapshots have cumulative rows for unknown domains (#89, #95, #106)", {  set.seed(123)
 
   fake_workflows <- list(
     wf1 = list(
@@ -345,7 +345,7 @@ test_that("longitudinal snapshots have cumulative rows for unknown domains (#89,
   }
 })
 
-test_that("snapshot names are end-date strings (#89, #95)", {  set.seed(42)
+test_that("snapshot names are end-date strings (#89, #95, #106)", {  set.seed(42)
 
   fake_workflows <- list(
     wf1 = list(
@@ -374,7 +374,7 @@ test_that("snapshot names are end-date strings (#89, #95)", {  set.seed(42)
   expect_true(all(diff(parsed) > 0))
 })
 
-test_that("single snapshot returns flat list (backward compatible) (#89, #95)", {  set.seed(42)
+test_that("single snapshot returns flat list (backward compatible) (#89, #95, #106)", {  set.seed(42)
 
   fake_workflows <- list(
     wf1 = list(
@@ -399,7 +399,7 @@ test_that("single snapshot returns flat list (backward compatible) (#89, #95)", 
 
 # ── generate_unknown_domain with previous_data ─────────────────────────────
 
-test_that("generate_unknown_domain uses cumulative delta with previous_data (#89, #95)", {  set.seed(42)
+test_that("generate_unknown_domain uses cumulative delta with previous_data (#89, #95, #106)", {  set.seed(42)
   spec <- list(
     col_a = list(type = "character"),
     col_b = list(type = "numeric")
@@ -418,7 +418,7 @@ test_that("generate_unknown_domain uses cumulative delta with previous_data (#89
   expect_equal(cumulative[1:5, ], initial)
 })
 
-test_that("generate_unknown_domain returns previous_data when delta <= 0 (#89, #95)", {  set.seed(42)
+test_that("generate_unknown_domain returns previous_data when delta <= 0 (#89, #95, #106)", {  set.seed(42)
   spec <- list(col_a = list(type = "character"))
   ctx <- list(data = list(), start_date = "2012-01-01", end_date = "2012-12-31")
 
@@ -432,38 +432,38 @@ test_that("generate_unknown_domain returns previous_data when delta <= 0 (#89, #
 
 # ── .apply_column_overrides ───────────────────────────────────────────────────
 
-test_that(".apply_column_overrides returns df unchanged when overrides is NULL (#89, #95)", {  df <- data.frame(a = 1:5, b = letters[1:5], stringsAsFactors = FALSE)
+test_that(".apply_column_overrides returns df unchanged when overrides is NULL (#89, #95, #106)", {  df <- data.frame(a = 1:5, b = letters[1:5], stringsAsFactors = FALSE)
   result <- .apply_column_overrides(df, "Raw_X", NULL)
   expect_equal(result, df)
 })
 
-test_that(".apply_column_overrides returns df unchanged when domain not in overrides (#89, #95)", {  df <- data.frame(a = 1:5, stringsAsFactors = FALSE)
+test_that(".apply_column_overrides returns df unchanged when domain not in overrides (#89, #95, #106)", {  df <- data.frame(a = 1:5, stringsAsFactors = FALSE)
   overrides <- list(Raw_OTHER = list(a = function(n) rep(99L, n)))
   result <- .apply_column_overrides(df, "Raw_X", overrides)
   expect_equal(result, df)
 })
 
-test_that(".apply_column_overrides adds new column via function(n) (#89, #95)", {  df <- data.frame(a = 1:10, stringsAsFactors = FALSE)
+test_that(".apply_column_overrides adds new column via function(n) (#89, #95, #106)", {  df <- data.frame(a = 1:10, stringsAsFactors = FALSE)
   overrides <- list(Raw_X = list(score = function(n) rep(7.5, n)))
   result <- .apply_column_overrides(df, "Raw_X", overrides)
   expect_true("score" %in% names(result))
   expect_equal(result$score, rep(7.5, 10))
 })
 
-test_that(".apply_column_overrides replaces existing column via function(n) (#89, #95)", {  df <- data.frame(val = 1:5, stringsAsFactors = FALSE)
+test_that(".apply_column_overrides replaces existing column via function(n) (#89, #95, #106)", {  df <- data.frame(val = 1:5, stringsAsFactors = FALSE)
   overrides <- list(Raw_X = list(val = function(n) rep(0L, n)))
   result <- .apply_column_overrides(df, "Raw_X", overrides)
   expect_equal(result$val, rep(0L, 5))
 })
 
-test_that(".apply_column_overrides passes df to function(n, df) (#89, #95)", {  df <- data.frame(base_val = c(1, 2, 3, 4, 5), stringsAsFactors = FALSE)
+test_that(".apply_column_overrides passes df to function(n, df) (#89, #95, #106)", {  df <- data.frame(base_val = c(1, 2, 3, 4, 5), stringsAsFactors = FALSE)
   overrides <- list(Raw_X = list(double_val = function(n, df) df$base_val * 2))
   result <- .apply_column_overrides(df, "Raw_X", overrides)
   expect_true("double_val" %in% names(result))
   expect_equal(result$double_val, c(2, 4, 6, 8, 10))
 })
 
-test_that(".apply_column_overrides samples vector with replacement (#89, #95)", {  set.seed(42)
+test_that(".apply_column_overrides samples vector with replacement (#89, #95, #106)", {  set.seed(42)
   df <- data.frame(x = 1:20, stringsAsFactors = FALSE)
   overrides <- list(Raw_X = list(unit = c("mg/dL", "mmol/L")))
   result <- .apply_column_overrides(df, "Raw_X", overrides)
@@ -471,13 +471,13 @@ test_that(".apply_column_overrides samples vector with replacement (#89, #95)", 
   expect_true(all(result$unit %in% c("mg/dL", "mmol/L")))
 })
 
-test_that(".apply_column_overrides broadcasts scalar to all rows (#89, #95)", {  df <- data.frame(x = 1:8, stringsAsFactors = FALSE)
+test_that(".apply_column_overrides broadcasts scalar to all rows (#89, #95, #106)", {  df <- data.frame(x = 1:8, stringsAsFactors = FALSE)
   overrides <- list(Raw_X = list(category = "CHEMISTRY"))
   result <- .apply_column_overrides(df, "Raw_X", overrides)
   expect_equal(result$category, rep("CHEMISTRY", 8))
 })
 
-test_that(".apply_column_overrides handles multiple columns in one call (#89, #95)", {  df <- data.frame(a = 1:5, stringsAsFactors = FALSE)
+test_that(".apply_column_overrides handles multiple columns in one call (#89, #95, #106)", {  df <- data.frame(a = 1:5, stringsAsFactors = FALSE)
   overrides <- list(
     Raw_X = list(
       col1 = function(n) rep("A", n),
@@ -509,7 +509,7 @@ make_override_workflows <- function() {
   )
 }
 
-test_that("column_overrides function(n) adds new column to generated domain (#89, #95)", {  set.seed(42)
+test_that("column_overrides function(n) adds new column to generated domain (#89, #95, #106)", {  set.seed(42)
   result <- generate_data_from_workflows(
     lWorkflows = make_override_workflows(),
     n_participants = 20,
@@ -522,7 +522,7 @@ test_that("column_overrides function(n) adds new column to generated domain (#89
   expect_true(all(result$Raw_CUSTOM$score_val >= 0 & result$Raw_CUSTOM$score_val <= 10))
 })
 
-test_that("column_overrides function(n, df) can derive from existing columns (#89, #95)", {  set.seed(42)
+test_that("column_overrides function(n, df) can derive from existing columns (#89, #95, #106)", {  set.seed(42)
   result <- generate_data_from_workflows(
     lWorkflows = make_override_workflows(),
     n_participants = 15,
@@ -536,7 +536,7 @@ test_that("column_overrides function(n, df) can derive from existing columns (#8
   expect_equal(result$Raw_CUSTOM$double_val, result$Raw_CUSTOM$base_val * 2)
 })
 
-test_that("column_overrides vector is sampled into generated domain (#89, #95)", {  set.seed(42)
+test_that("column_overrides vector is sampled into generated domain (#89, #95, #106)", {  set.seed(42)
   result <- generate_data_from_workflows(
     lWorkflows = make_override_workflows(),
     n_participants = 30,
@@ -548,7 +548,7 @@ test_that("column_overrides vector is sampled into generated domain (#89, #95)",
   expect_true(all(result$Raw_CUSTOM$unit %in% c("mg/dL", "mmol/L", "g/L")))
 })
 
-test_that("column_overrides scalar is broadcast to all rows (#89, #95)", {  set.seed(42)
+test_that("column_overrides scalar is broadcast to all rows (#89, #95, #106)", {  set.seed(42)
   result <- generate_data_from_workflows(
     lWorkflows = make_override_workflows(),
     n_participants = 10,
@@ -560,7 +560,7 @@ test_that("column_overrides scalar is broadcast to all rows (#89, #95)", {  set.
   expect_true(all(result$Raw_CUSTOM$category == "FIXED"))
 })
 
-test_that("column_overrides replaces an existing column (#89, #95)", {  set.seed(42)
+test_that("column_overrides replaces an existing column (#89, #95, #106)", {  set.seed(42)
   result <- generate_data_from_workflows(
     lWorkflows = make_override_workflows(),
     n_participants = 10,
@@ -571,7 +571,7 @@ test_that("column_overrides replaces an existing column (#89, #95)", {  set.seed
   expect_true(all(result$Raw_CUSTOM$label == "OVERRIDE"))
 })
 
-test_that("column_overrides applies to multiple domains independently (#89, #95)", {  set.seed(42)
+test_that("column_overrides applies to multiple domains independently (#89, #95, #106)", {  set.seed(42)
   wf <- list(
     wf1 = list(
       meta = list(),
@@ -594,7 +594,7 @@ test_that("column_overrides applies to multiple domains independently (#89, #95)
   expect_equal(unique(result$Raw_B$tag), "domain_b")
 })
 
-test_that("column_overrides NULL leaves output unchanged (backward compat) (#89, #95)", {  set.seed(42)
+test_that("column_overrides NULL leaves output unchanged (backward compat) (#89, #95, #106)", {  set.seed(42)
   result_no_override <- generate_data_from_workflows(
     lWorkflows     = make_override_workflows(),
     n_participants = 10
