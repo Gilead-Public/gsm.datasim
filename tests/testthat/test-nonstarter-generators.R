@@ -76,6 +76,43 @@ test_that("apply_nonstarter_colendat gives non-starters a present Date and other
   expect_true(is.na(out$colendat[out$subjid == "S2"]))
 })
 
+test_that("apply_nonstarter_sdrgreas keeps carried-forward rows stable across incremental snapshots (#122; PR #126 review r3577643601)", {
+  # The cumulative-delta generators carry every previously generated SDRGCOMP row
+  # forward and append only new rows, so re-running this helper on a later snapshot
+  # must not silently rewrite a subject's already-recorded sdrgreas.
+  subj_ids <- sprintf("S%02d", 0:20)
+  raw_subj <- data.frame(
+    subjid = subj_ids,
+    enrollyn = "Y",
+    firstdosedate = as.Date(rep("2020-02-01", length(subj_ids))),
+    stringsAsFactors = FALSE
+  )
+  raw_subj$firstdosedate[raw_subj$subjid == "S00"] <- NA # one non-starter
+
+  # Snapshot 1: SDRGCOMP rows for the first 15 subjects.
+  set.seed(123)
+  snap1 <- apply_nonstarter_sdrgreas(
+    data.frame(subjid = subj_ids[1:15], stringsAsFactors = FALSE), raw_subj
+  )
+
+  # Snapshot 2 (incremental): snapshot-1 rows carried forward + newly appended rows,
+  # exactly as add_new_var_data() -> bind_rows(dataset, new_rows) feeds this helper.
+  combined <- rbind(
+    snap1[, c("subjid", "sdrgreas")],
+    data.frame(subjid = subj_ids[16:21], sdrgreas = NA_character_, stringsAsFactors = FALSE)
+  )
+  snap2 <- apply_nonstarter_sdrgreas(combined, raw_subj)
+
+  # Every subject present in snapshot 1 must keep its exact sdrgreas value.
+  carried <- snap2$sdrgreas[match(snap1$subjid, snap2$subjid)]
+  expect_equal(carried, snap1$sdrgreas)
+
+  # Newly appended benign rows still receive a real benign reason (not NA/never-dosed).
+  new_reasons <- snap2$sdrgreas[snap2$subjid %in% subj_ids[16:21]]
+  expect_false(any(is.na(new_reasons)))
+  expect_true(all(new_reasons %in% c("Study Drug Completed", "Study Drug Discontinued")))
+})
+
 test_that("cross-domain consistency: sdrgreas 'never dosed' and colendat-present agree on the same subjids (#122)", {
   raw_subj <- data.frame(
     subjid = c("S1", "S2", "S3", "S4"),
