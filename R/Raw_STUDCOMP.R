@@ -114,8 +114,13 @@ completion_date <- function(n, ...) {
 #' Mark study-completion collection-end date for IP non-starters
 #'
 #' Gives the non-starter subset (see `nonstarter_subjids()`) a present
-#' `colendat` and leaves it `NA` for everyone else, so a confirmed non-starter
-#' has either this date or the coded `sdrgreas` reason.
+#' `colendat` and leaves it `NA` for everyone else. Together with the coded
+#' `sdrgreas` reason from `apply_nonstarter_sdrgreas()`, a confirmed non-starter
+#' carries both markers on the same subjids (either presence confirms it
+#' downstream in `gsm.mapping::complete_non_starter()`).
+#'
+#' A collection-end date recorded by an earlier snapshot is preserved rather than
+#' re-stamped, so carried-forward rows stay stable across incremental generation.
 #'
 #' @param df a generated `Raw_STUDCOMP` data.frame (must carry `subjid`).
 #' @param raw_subj the `Raw_SUBJ` frame used to identify non-starters.
@@ -127,8 +132,14 @@ apply_nonstarter_colendat <- function(df, raw_subj) {
   if (is.null(df) || nrow(df) == 0 || !("subjid" %in% names(df))) {
     return(df)
   }
-  ns <- nonstarter_subjids(raw_subj)
-  df$colendat <- as.Date(NA)
-  df$colendat[as.character(df$subjid) %in% ns] <- Sys.Date()
+  ns <- as.character(df$subjid) %in% nonstarter_subjids(raw_subj)
+  if (!("colendat" %in% names(df))) {
+    df$colendat <- as.Date(NA)
+  }
+  # Fill a non-starter's collection-end date once; never overwrite a value an
+  # earlier snapshot already recorded. Everyone else stays NA. Presence (not the
+  # exact date) is what marks a confirmed non-starter downstream.
+  df$colendat[ns & is.na(df$colendat)] <- Sys.Date()
+  df$colendat[!ns] <- as.Date(NA)
   df
 }

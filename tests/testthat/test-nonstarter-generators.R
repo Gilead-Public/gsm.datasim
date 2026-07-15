@@ -76,6 +76,29 @@ test_that("apply_nonstarter_colendat gives non-starters a present Date and other
   expect_true(is.na(out$colendat[out$subjid == "S2"]))
 })
 
+test_that("apply_nonstarter_colendat preserves a colendat a previous snapshot recorded (#122; PR #126 review r3577643679)", {
+  raw_subj <- data.frame(
+    subjid = c("S1", "S2"),
+    enrollyn = c("Y", "Y"),
+    firstdosedate = as.Date(c(NA, "2020-02-01")), # S1 non-starter, S2 dosed
+    stringsAsFactors = FALSE
+  )
+  # A carried-forward frame: S1's collection-end date was recorded in an earlier
+  # snapshot; re-running the helper must not rewrite it (idempotent).
+  carried <- data.frame(
+    subjid = c("S1", "S2"),
+    colendat = as.Date(c("2012-03-31", NA)),
+    stringsAsFactors = FALSE
+  )
+  out <- apply_nonstarter_colendat(carried, raw_subj)
+  expect_equal(out$colendat[out$subjid == "S1"], as.Date("2012-03-31"))
+  expect_true(is.na(out$colendat[out$subjid == "S2"]))
+
+  # A new non-starter row with no date yet still receives a present date.
+  fresh <- data.frame(subjid = "S1", colendat = as.Date(NA), stringsAsFactors = FALSE)
+  expect_false(is.na(apply_nonstarter_colendat(fresh, raw_subj)$colendat[1]))
+})
+
 test_that("apply_nonstarter_sdrgreas keeps carried-forward rows stable across incremental snapshots (#122; PR #126 review r3577643601)", {
   # The cumulative-delta generators carry every previously generated SDRGCOMP row
   # forward and append only new rows, so re-running this helper on a later snapshot
