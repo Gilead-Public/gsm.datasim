@@ -101,19 +101,6 @@ get_domain_registry <- function() {
         )
       }
     ),
-    Raw_EXCLUSION = list(
-      dataset = "Raw_EXCLUSION",
-      required_inputs = c("data", "previous_data", "combined_specs", "n"),
-      count_fn = function(counts, snapshot_idx) counts$subject_count[snapshot_idx],
-      generate_fn = function(context) {
-        Raw_EXCLUSION(
-          data          = context$data,
-          previous_data = context$previous_data,
-          spec          = context$combined_specs,
-          n_EXCLUSION   = context$n
-        )
-      }
-    ),
 
     # ── Visit / time-on-study datasets ───────────────────────────────────────
     Raw_VISIT = list(
