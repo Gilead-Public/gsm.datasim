@@ -1,4 +1,4 @@
-test_that("create_multiple_longitudinal_studies works with basic configuration (#95)", {
+test_that("create_multiple_longitudinal_studies works with basic configuration (#89, #95)", {
   skip_if_not_installed("gsm.mapping")
 
   studies <- create_multiple_longitudinal_studies(
@@ -28,7 +28,7 @@ test_that("create_multiple_longitudinal_studies works with basic configuration (
   }
 })
 
-test_that("create_multiple_longitudinal_studies works with per-study configuration (#95)", {
+test_that("create_multiple_longitudinal_studies works with per-study configuration (#89, #95)", {
   skip_if_not_installed("gsm.mapping")
 
   studies <- create_multiple_longitudinal_studies(
