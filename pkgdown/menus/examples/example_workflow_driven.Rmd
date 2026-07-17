@@ -1,0 +1,264 @@
+---
+title: "Workflow-Driven Data Generation"
+author: "[gsm.datasim](https://gilead-biostats.github.io/gsm.datasim) Example"
+description: "Generate simulated raw data directly from an lWorkflows spec — the same structure returned by workr::MakeWorkflowList(). Covers single-snapshot, longitudinal, domain subsetting, and custom/unknown domains."
+index: 4
+date: "`r format(Sys.time(), '%B %d, %Y %H:%M:%S %Z')`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment  = "#>",
+  eval     = FALSE
+)
+library(gsm.datasim)
+```
+
+## Overview
+
+`generate_data_from_workflows()` accepts an `lWorkflows` list — the same
+structure returned by `workr::MakeWorkflowList()` — and produces `Raw_*`
+data frames for every domain defined in those specs.
+
+Domains with dedicated generators (`Raw_AE`, `Raw_SUBJ`, etc.) use curated
+logic. Unknown domains fall back to **type-based column generation** driven
+by the spec metadata, so any custom workflow produces a usable data frame
+without extra code.
+
+## Load Workflows
+
+```{r load-workflows}
+lWorkflows <- workr::MakeWorkflowList(
+  strPath    = "workflow/1_mappings",
+  strPackage = "gsm.mapping"  # or any package with workr-compatible workflow specs
+)
+```
+
+## Single-Snapshot Generation
+
+Generate raw data for all domains in the spec in one call.
+
+```{r single-snapshot}
+raw_data <- generate_data_from_workflows(
+  lWorkflows     = lWorkflows,
+  n_participants = 200,
+  n_sites        = 20,
+  study_id       = "WF-DEMO-001",
+  start_date     = "2012-01-01",
+  end_date       = "2012-12-31"
+)
+
+cat("Generated domains:\n")
+for (nm in names(raw_data)) {
+  cat(sprintf("  %-25s %d rows x %d cols\n", nm, nrow(raw_data[[nm]]), ncol(raw_data[[nm]])))
+}
+```
+
+## Custom Domain Counts
+
+Override the default row-count formula for specific domains.
+
+```{r custom-counts}
+raw_data_custom <- generate_data_from_workflows(
+  lWorkflows     = lWorkflows,
+  n_participants = 100,
+  domain_counts  = list(Raw_AE = 500, Raw_PD = 150)
+)
+```
+
+## Longitudinal Multi-Snapshot Generation
+
+Generate 6 monthly snapshots. Row counts ramp up via `count_gen()` so early
+snapshots have fewer participants than later ones. Each snapshot's data is
+cumulative — rows from snapshot N are preserved in snapshot N+1.
+
+```{r longitudinal}
+snapshots <- generate_data_from_workflows(
+  lWorkflows     = lWorkflows,
+  n_participants = 200,
+  n_sites        = 20,
+  study_id       = "WF-LONG-001",
+  start_date     = "2012-01-01",
+  snapshot_count = 6,
+  snapshot_width = "months"
+)
+
+cat("Longitudinal snapshots:\n")
+for (snap_name in names(snapshots)) {
+  snap   <- snapshots[[snap_name]]
+  n_subj <- if ("Raw_SUBJ" %in% names(snap)) nrow(snap$Raw_SUBJ) else NA
+  cat(sprintf("  %s: %d domains, Raw_SUBJ = %s rows\n",
+              snap_name, length(snap), n_subj))
+}
+```
+
+## Selecting a Domain Subset
+
+Pass `desired_domains` to generate only the domains you need.
+
+```{r subset}
+raw_data_subset <- generate_data_from_workflows(
+  lWorkflows      = lWorkflows,
+  n_participants  = 50,
+  desired_domains = c("Raw_SUBJ", "Raw_AE", "Raw_SITE")
+)
+```
+
+## Custom Workflows and Unknown Domains
+
+For domains without a dedicated generator, columns are produced based on
+their spec `type` or name pattern. This means any custom workflow produces
+a usable data frame without extra code.
+
+```{r custom-domain}
+custom_workflows <- list(
+  custom_disease = list(
+    meta  = list(Description = "Custom disease assessment"),
+    spec  = list(
+      Raw_DISEASE = list(
+        subjid      = list(required = TRUE),
+        assess_dt   = list(type = "date"),
+        score_val   = list(type = "numeric"),
+        category    = list(type = "character"),
+        resolved_yn = list(required = TRUE)
+      )
+    ),
+    steps = list()
+  )
+)
+
+raw_custom <- generate_data_from_workflows(
+  lWorkflows     = custom_workflows,
+  n_participants = 30,
+  n_sites        = 5,
+  study_id       = "CUSTOM-001"
+)
+
+cat("Custom domain columns:\n")
+str(raw_custom$Raw_DISEASE)
+```
+
+## On-the-Fly Column Overrides
+
+`column_overrides` lets you add new columns or replace existing ones in any
+generated domain without modifying workflow specs or generator functions.
+Overrides are applied **after** the domain is generated, so all curated
+structure (e.g. `Raw_LB`'s test panel / subject-visit cross-join) is preserved.
+
+Each column value can be a function, a vector to sample from, or a scalar.
+
+### Add a new column with a custom distribution
+
+If a preexisting workflow spec references a column that has no named generator
+(e.g. `score_val` in an LB workflow), `gsm.datasim` auto-fills it via
+type inference. Use `column_overrides` when you need a specific distribution
+instead of the generic fallback.
+
+```{r overrides-function}
+raw_lb_scored <- generate_data_from_workflows(
+  lWorkflows     = lWorkflows,
+  n_participants = 200,
+  column_overrides = list(
+    Raw_LB = list(
+      score_val = function(n) round(runif(n, 0, 10), 1)
+    )
+  )
+)
+
+summary(raw_lb_scored$Raw_LB$score_val)
+```
+
+### Sample from a fixed set of values
+
+Pass a vector and each row is drawn with replacement.
+
+```{r overrides-vector}
+raw_lb_units <- generate_data_from_workflows(
+  lWorkflows     = lWorkflows,
+  n_participants = 200,
+  column_overrides = list(
+    Raw_LB = list(
+      lbstresu = c("mg/dL", "mmol/L", "g/L")
+    )
+  )
+)
+
+table(raw_lb_units$Raw_LB$lbstresu)
+```
+
+### Broadcast a scalar to every row
+
+A length-1 value is repeated to fill all rows.
+
+```{r overrides-scalar}
+raw_lb_cat <- generate_data_from_workflows(
+  lWorkflows     = lWorkflows,
+  n_participants = 200,
+  column_overrides = list(
+    Raw_LB = list(lbcat = "CHEMISTRY")
+  )
+)
+
+unique(raw_lb_cat$Raw_LB$lbcat)
+```
+
+### Derive a column from the generated data frame
+
+Use `function(n, df)` (two parameters) to access the fully-generated domain
+data frame and compute a column from existing columns.
+
+```{r overrides-derive}
+raw_lb_derived <- generate_data_from_workflows(
+  lWorkflows     = lWorkflows,
+  n_participants = 200,
+  column_overrides = list(
+    Raw_LB = list(
+      lbstnrhi  = function(n, df) round(df$lbstresn * 1.2, 2),
+      visit_flag = function(n, df) ifelse(df$visnam == "SCREENING", "S", "F")
+    )
+  )
+)
+
+head(raw_lb_derived$Raw_LB[, c("lbstresn", "lbstnrhi", "visnam", "visit_flag")])
+```
+
+### Combine overrides across multiple domains
+
+```{r overrides-multi}
+raw_multi <- generate_data_from_workflows(
+  lWorkflows     = lWorkflows,
+  n_participants = 200,
+  column_overrides = list(
+    Raw_LB = list(
+      lbcat     = "CHEMISTRY",
+      score_val = function(n) round(runif(n, 0, 10), 1)
+    ),
+    Raw_AE = list(
+      severity_score = function(n) sample(1:5, n, replace = TRUE)
+    )
+  )
+)
+```
+
+### Overrides in multi-snapshot mode
+
+`column_overrides` are applied on every snapshot automatically.
+
+```{r overrides-longitudinal}
+snapshots_scored <- generate_data_from_workflows(
+  lWorkflows     = lWorkflows,
+  n_participants = 200,
+  snapshot_count = 6,
+  snapshot_width = "months",
+  column_overrides = list(
+    Raw_LB = list(
+      score_val = function(n) round(runif(n, 0, 10), 1)
+    )
+  )
+)
+
+# score_val is present in every snapshot
+sapply(snapshots_scored, function(s) !is.null(s$Raw_LB$score_val))
+```

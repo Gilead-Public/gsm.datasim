@@ -44,7 +44,7 @@ Raw_STUDCOMP <- function(data, previous_data, spec, startDate, ...) {
   return(res)
 }
 
-Raw_StudyCompletion <- function(data, previous_data, spec, ...) {
+Raw_StudyCompletion <- function(data, previous_data, spec, startDate = Sys.Date(), ...) {
   # Function body for Raw_StudyCompletion
   inps <- list(...)
 

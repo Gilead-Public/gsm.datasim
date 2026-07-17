@@ -16,7 +16,9 @@ raw_data_generator(
   mappings = NULL,
   package = "gsm.mapping",
   strStartDate = "2012-01-01",
-  save = FALSE
+  save = FALSE,
+  generation_mode = c("core", "legacy"),
+  lWorkflows = NULL
 )
 }
 \arguments{
@@ -50,6 +52,14 @@ Accepts "days", "weeks", "months" and "years". User can also place a number and 
 \item{strStartDate}{A string to denote when the first snapshot of simulated data occurs}
 
 \item{save}{A boolean, specifying whether or not this should be saved out as an RDS}
+
+\item{generation_mode}{Generation backend to use: "core" (default) or "legacy".}
+
+\item{lWorkflows}{Optional named list of workflow objects (from
+\code{workr::MakeWorkflowList()}). When supplied the function routes to
+\code{\link[=generate_data_from_workflows]{generate_data_from_workflows()}} to produce a single-snapshot dataset
+driven entirely by the workflow spec. \code{SnapshotCount} and \code{SnapshotWidth}
+are ignored in this mode.}
 }
 \value{
 A list of raw data generated for each study snapshot, saved as an RDS file in \code{"data-raw/raw_data.RDS"}.
@@ -63,6 +73,8 @@ is saved as an RDS file.
 \details{
 The function performs the following steps:
 \enumerate{
+\item If \code{lWorkflows} is provided, delegates to \code{\link[=generate_data_from_workflows]{generate_data_from_workflows()}}
+to produce a spec-driven single snapshot.
 \item If \code{ParticipantCount}, \code{SiteCount}, \code{StudyID}, or \code{SnapshotCount} is \code{NULL}, the function reads
 the \code{template.csv} file to get the necessary parameters for multiple studies.
 \item It generates raw data for study snapshots based on either provided parameters or the template file.
@@ -72,11 +84,23 @@ the \code{template.csv} file to get the necessary parameters for multiple studie
 \examples{
 \dontrun{
 # Generate raw data using specified parameters
-data <- raw_data_generator(ParticipantCount = 100, SiteCount = 10, StudyID = "Study01", SnapshotCount = 5, SnapshotWidth = "months")
-
+data <- raw_data_generator(
+  ParticipantCount = 100,
+  SiteCount = 10,
+  StudyID = "Study01",
+  SnapshotCount = 5,
+  SnapshotWidth = "months"
+)
 
 # Generate raw data using a template file
 data <- raw_data_generator()
+
+# Generate raw data from workflows
+wf <- workr::MakeWorkflowList(
+  strPath = "workflow/1_mappings",
+  strPackage = "gsm.mapping"
+)
+data <- raw_data_generator(lWorkflows = wf, ParticipantCount = 200, SiteCount = 20)
 }
 
 }

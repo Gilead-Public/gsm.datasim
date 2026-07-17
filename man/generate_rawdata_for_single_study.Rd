@@ -2,7 +2,7 @@
 % Please edit documentation in R/generate_rawdata_for_single_study.R
 \name{generate_rawdata_for_single_study}
 \alias{generate_rawdata_for_single_study}
-\title{Generate Snapshots for Single Study Data}
+\title{Generate raw data for a single study (Deprecated)}
 \usage{
 generate_rawdata_for_single_study(
   SnapshotCount,
@@ -18,58 +18,38 @@ generate_rawdata_for_single_study(
 )
 }
 \arguments{
-\item{SnapshotCount}{An integer specifying the number of snapshots to generate.}
+\item{SnapshotCount}{Number of snapshots to generate.}
 
-\item{SnapshotWidth}{A character specifying the frequency of snapshots, defaults to "months".
-Accepts "days", "weeks", "months" and "years". User can also place a number and unit such as "3 months".}
+\item{SnapshotWidth}{Width of each snapshot interval (in days).}
 
-\item{ParticipantCount}{An integer specifying the number of participants in the study.}
+\item{ParticipantCount}{Number of participants.}
 
-\item{SiteCount}{An integer specifying the number of sites for the study.}
+\item{SiteCount}{Number of sites.}
 
-\item{StudyID}{A string specifying the study identifier.}
+\item{StudyID}{Study identifier string.}
 
-\item{workflow_path}{A string specifying the path to the workflow mappings.}
+\item{workflow_path}{Path to the workflow YAML files.}
 
-\item{mappings}{A string specifying the names of the workflows to run.}
+\item{mappings}{Named list of column mappings.}
 
-\item{package}{A string specifying the package in which the workflows used in \code{MakeWorkflowList()} are located.}
+\item{package}{Package name used to locate specs.}
 
-\item{strStartDate}{A string to denote when the first snapshot of simulated data occurs}
+\item{strStartDate}{Study start date as a string (default \code{"2012-01-01"}).}
 
-\item{desired_specs}{A list of specifications of the data types that should be included.}
+\item{desired_specs}{Optional character vector of dataset names to keep.}
 }
 \value{
-A list of data snapshots, where each element contains simulated data for a particular snapshot
-period (typically a month), with variables populated according to the provided specifications.
+A named list of snapshot data frames, named by snapshot end date.
 }
 \description{
-This function generates a list of study data snapshots based on the provided specifications,
-including participant count, site count, study ID, and the number of snapshots to be generated.
-The data is simulated over a series of months, with key variables such as subject enrollment,
-adverse events, and time on study being populated according to the study's specifications.
-}
-\details{
-The function generates snapshots over a sequence of months, starting from \code{"2012-01-01"}. For each snapshot:
-\enumerate{
-\item The number of adverse events (\code{ae_num}) is simulated.
-\item The number of participants screened is determined.
-\item Key variables (such as subject ID, enrollment date, time on study, etc.) are populated for each data type
-specified in \code{combined_specs}.
-}
-}
-\examples{
-snapshots <- generate_rawdata_for_single_study(
-  SnapshotCount = 3,
-  SnapshotWidth = "months",
-  ParticipantCount = 50,
-  SiteCount = 5,
-  StudyID = "ABC",
-  workflow_path = "workflow/1_mappings",
-  mappings = "AE",
-  package = "gsm.mapping",
-  strStartDate = "2012-01-01",
-  desired_specs = NULL
-)
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
 
+This function is deprecated. Please use the study configuration approach
+instead: \code{\link[=create_study_config]{create_study_config()}}, \code{\link[=add_dataset_config]{add_dataset_config()}}, and
+\code{\link[=generate_study_data]{generate_study_data()}}. See \code{vignette("study-setup", package = "gsm.datasim")}
+for a full walkthrough.
 }
+\seealso{
+\code{\link[=create_study_config]{create_study_config()}}, \code{\link[=add_dataset_config]{add_dataset_config()}}, \code{\link[=generate_study_data]{generate_study_data()}}
+}
+\keyword{internal}
