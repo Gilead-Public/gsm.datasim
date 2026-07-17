@@ -27,3 +27,9 @@ validate_study_inputs(participants, sites, snapshots, domains)
 - domains:
 
   Domains to include
+
+## Examples
+
+``` r
+validate_study_inputs(participants = 100, sites = 10, snapshots = 5, domains = c("AE", "LB"))
+```

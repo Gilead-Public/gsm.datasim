@@ -59,3 +59,17 @@ generate_study_snapshots(
 ## Value
 
 List of raw data for each snapshot
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+mappings <- ensure_core_mappings(c("AE", "LB"))
+snapshots <- generate_study_snapshots(
+  study_id = "STUDY-001",
+  participants = 100, sites = 10, snapshots = 3,
+  interval = "1 month", mappings = mappings
+)
+length(snapshots)
+} # }
+```

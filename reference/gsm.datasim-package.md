@@ -1,7 +1,10 @@
 # gsm.datasim: Synthetic Test Data Generator
 
-Generates synthetic test data for the RBQM of Clinical Trials based on
-several parameters.
+Generates synthetic clinical trial data for testing and development of
+clinical monitoring applications. Produces configurable multi-snapshot
+longitudinal datasets across SDTM-style and custom domains, with
+optional analytics and reporting pipelines powered by the 'workr'
+workflow engine.
 
 ## See also
 
@@ -15,13 +18,15 @@ Useful links:
 
 ## Author
 
-**Maintainer**: Roman Rogoza <roman.rogoza@atorusresearch.com>
+**Maintainer**: Laura Maxwell <laura.maxwell@atorusresearch.com>
 
 Authors:
 
 - Laura Maxwell <laura.maxwell@atorusresearch.com>
 
 - Zelos Zhu <zelos.zhu@atorusresearch.com>
+
+- Roman Rogoza <roman.rogoza@atorusresearch.com>
 
 Other contributors:
 

@@ -1,5 +1,83 @@
 # Changelog
 
+## gsm.datasim (development version)
+
+## gsm.datasim v2.0.0
+
+This major release introduces a composable study builder API,
+longitudinal multi-snapshot study support, workflow-driven data
+generation, a domain registry, and parquet export. Analytics and
+reporting are now powered by the `workr` workflow engine.
+
+### Breaking Changes
+
+- [`generate_rawdata_for_single_study()`](https://gilead-biostats.github.io/gsm.datasim/reference/generate_rawdata_for_single_study.md)
+  and
+  [`raw_data_generator()`](https://gilead-biostats.github.io/gsm.datasim/reference/raw_data_generator.md)
+  are deprecated in favour of the study builder API
+  ([`create_study_config()`](https://gilead-biostats.github.io/gsm.datasim/reference/create_study_config.md) +
+  [`generate_study_data()`](https://gilead-biostats.github.io/gsm.datasim/reference/generate_study_data.md)).
+  Existing calls still work but emit a deprecation warning.
+- `gsm.core`, `gsm.kri`, `gsm.mapping`, and `gsm.reporting` moved from
+  hard dependencies to `Suggests`, as pipelines now run on the `workr`
+  engine. Install those packages only if you run the analytics/reporting
+  pipelines.
+
+### New Features
+
+- **Study builder API:** build study configs with
+  [`create_study_config()`](https://gilead-biostats.github.io/gsm.datasim/reference/create_study_config.md)
+  (or
+  [`create_standard_study_config()`](https://gilead-biostats.github.io/gsm.datasim/reference/create_standard_study_config.md)),
+  refine them with
+  [`set_outlier_config()`](https://gilead-biostats.github.io/gsm.datasim/reference/set_outlier_config.md),
+  [`set_temporal_config()`](https://gilead-biostats.github.io/gsm.datasim/reference/set_temporal_config.md),
+  and
+  [`add_dataset_config()`](https://gilead-biostats.github.io/gsm.datasim/reference/add_dataset_config.md)
+  /
+  [`remove_dataset_config()`](https://gilead-biostats.github.io/gsm.datasim/reference/remove_dataset_config.md),
+  validate with
+  [`validate_study_config()`](https://gilead-biostats.github.io/gsm.datasim/reference/validate_study_config.md),
+  and generate data via
+  [`generate_study_data()`](https://gilead-biostats.github.io/gsm.datasim/reference/generate_study_data.md).
+- **Longitudinal studies:**
+  [`create_longitudinal_study()`](https://gilead-biostats.github.io/gsm.datasim/reference/create_longitudinal_study.md)
+  and
+  [`quick_longitudinal_study()`](https://gilead-biostats.github.io/gsm.datasim/reference/quick_longitudinal_study.md)
+  generate complete multi-snapshot studies with optional
+  analytics/reporting;
+  [`create_multiple_longitudinal_studies()`](https://gilead-biostats.github.io/gsm.datasim/reference/create_multiple_longitudinal_studies.md)
+  and
+  [`export_multiple_studies()`](https://gilead-biostats.github.io/gsm.datasim/reference/export_multiple_studies.md)
+  handle portfolios. Extract results with
+  [`get_snapshot_data()`](https://gilead-biostats.github.io/gsm.datasim/reference/get_snapshot_data.md),
+  [`get_domain_timeline()`](https://gilead-biostats.github.io/gsm.datasim/reference/get_domain_timeline.md),
+  and
+  [`get_available_domains()`](https://gilead-biostats.github.io/gsm.datasim/reference/get_available_domains.md)
+  (the latter also serves as a standalone registry lookup when called
+  with no arguments), and run pipelines on existing studies with
+  [`run_longitudinal_analytics()`](https://gilead-biostats.github.io/gsm.datasim/reference/run_longitudinal_analytics.md)
+  /
+  [`run_longitudinal_reporting()`](https://gilead-biostats.github.io/gsm.datasim/reference/run_longitudinal_reporting.md).
+- **Domain registry & workflow-driven generation:**
+  [`get_domain_registry()`](https://gilead-biostats.github.io/gsm.datasim/reference/get_domain_registry.md)
+  exposes known domains;
+  [`generate_data_from_workflows()`](https://gilead-biostats.github.io/gsm.datasim/reference/generate_data_from_workflows.md)
+  and
+  [`generate_raw_data_for_endpoints()`](https://gilead-biostats.github.io/gsm.datasim/reference/generate_raw_data_for_endpoints.md)
+  generate data directly from `gsm.mapping` workflow specs;
+  [`generate_unknown_domain()`](https://gilead-biostats.github.io/gsm.datasim/reference/generate_unknown_domain.md)
+  handles domains outside the registry via inferred column types.
+- **Parquet export:**
+  [`export_study_data()`](https://gilead-biostats.github.io/gsm.datasim/reference/export_study_data.md)
+  now supports `"csv"` (default), `"parquet"`, or `"both"` via the
+  `format` argument (parquet requires the `arrow` package).
+- **New domains:** added `Raw_VISIT`, `Raw_Death` (including a
+  `deathcls` classification column), `Raw_Consents`, `Raw_Baseline`,
+  `Raw_Randomization`, `Raw_OverallResponse`, and `Raw_GENERAL`, plus
+  gradual enrollment simulation and timestamp support across existing
+  domains.
+
 ## gsm.datasim v1.1.3
 
 This patch release makes the following updates:

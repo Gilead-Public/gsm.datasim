@@ -21,3 +21,16 @@ run_longitudinal_analytics(study, verbose = FALSE)
 ## Value
 
 Updated study structure with analytics results
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+study <- create_longitudinal_study(
+  "STUDY-001", participants = 50, sites = 5, snapshots = 2,
+  analytics_package = "gsm.kri"
+)
+study <- run_longitudinal_analytics(study)
+names(study$analytics)
+} # }
+```

@@ -12,7 +12,7 @@ quick_longitudinal_study(
   sites = 150,
   months_duration = 24,
   study_type = "standard",
-  include_pipeline = TRUE,
+  include_pipeline = FALSE,
   outlier_intensity = 1,
   verbose = FALSE
 )
@@ -43,7 +43,7 @@ quick_longitudinal_study(
 - include_pipeline:
 
   Whether to run both the analytics and reporting pipelines (default
-  TRUE)
+  FALSE)
 
 - outlier_intensity:
 
@@ -56,3 +56,18 @@ quick_longitudinal_study(
 ## Value
 
 LongitudinalStudy object with complete data and analytics
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+study <- quick_longitudinal_study(
+  study_name = "GS-US-123-4567",
+  participants = 200,
+  sites = 20,
+  months_duration = 12
+)
+study$study_id
+length(study$raw_data)
+} # }
+```

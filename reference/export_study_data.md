@@ -81,3 +81,17 @@ Folders are only created when the corresponding data actually exists.
 Non-data.frame leaves inside `analytics` are silently skipped; they can
 be preserved alongside the CSVs by setting `save_rds = TRUE`, which
 writes a companion `analytics_full.rds` per snapshot.
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+study <- create_longitudinal_study(
+  "STUDY-001", participants = 50, sites = 5, snapshots = 2
+)
+export_study_data(study, output_dir = tempdir(), overwrite = TRUE)
+
+# Export as parquet format
+export_study_data(study, output_dir = tempdir(), format = "parquet", overwrite = TRUE)
+} # }
+```

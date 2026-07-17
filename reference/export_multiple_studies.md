@@ -40,3 +40,15 @@ export_multiple_studies(
 ## Value
 
 Invisible list of study export paths
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+studies <- create_multiple_longitudinal_studies(
+  study_names = c("TRIAL-001", "TRIAL-002"),
+  participants = 50, sites = 5, snapshots = 2
+)
+export_multiple_studies(studies, output_dir = tempdir(), overwrite = TRUE)
+} # }
+```

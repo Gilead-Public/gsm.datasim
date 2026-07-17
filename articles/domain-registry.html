@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Understanding the Domain Registry • gsm.datasim</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Understanding the Domain Registry">
 </head>
@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gsm.datasim</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -32,12 +32,21 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/addnewdomain.html">addnewdomain</a></li>
-    <li><a class="dropdown-item" href="../articles/domain-registry.html">Understanding the Domain Registry</a></li>
+<li><a class="dropdown-item" href="../articles/domain-registry.html">Understanding the Domain Registry</a></li>
     <li><a class="dropdown-item" href="../articles/study-setup.html">Setting up Clinical Studies with gsm.datasim</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-examples" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Examples</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-examples">
+<li><a class="dropdown-item" href="../examples/example_demo.html">gsm.datasim Demo</a></li>
+    <li><a class="dropdown-item" href="../examples/example_longitudinal.html">Longitudinal Data Generation</a></li>
+    <li><a class="dropdown-item" href="../examples/example_domain_registry.html">Domain Registry</a></li>
+    <li><a class="dropdown-item" href="../examples/example_multiple_studies.html">Generating Multiple Studies</a></li>
+    <li><a class="dropdown-item" href="../examples/example_workflow_driven.html">Workflow-Driven Data Generation</a></li>
+  </ul>
+</li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
@@ -61,17 +70,14 @@
       <h1>Understanding the Domain Registry</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/Gilead-BioStats/gsm.datasim/blob/fix-95-alt/vignettes/domain-registry.Rmd" class="external-link"><code>vignettes/domain-registry.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/Gilead-BioStats/gsm.datasim/blob/main/vignettes/domain-registry.Rmd" class="external-link"><code>vignettes/domain-registry.Rmd</code></a></small>
       <div class="d-none name"><code>domain-registry.Rmd</code></div>
     </div>
 
     
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/Gilead-BioStats/gsm.datasim" class="external-link">gsm.datasim</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Registered S3 method overwritten by 'logger':</span></span>
-<span><span class="co">#&gt;   method         from </span></span>
-<span><span class="co">#&gt;   print.loglevel log4r</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/Gilead-BioStats/gsm.datasim" class="external-link">gsm.datasim</a></span><span class="op">)</span></span></code></pre></div>
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
@@ -155,21 +161,19 @@ arguments</li>
 <div class="section level3">
 <h3 id="adverse-events-raw_ae">Adverse Events (Raw_AE)<a class="anchor" aria-label="anchor" href="#adverse-events-raw_ae"></a>
 </h3>
-<p>Adverse Events are a critical domain in clinical trials and RBQM,
-specifically:</p>
+<p>Adverse Events are a critical domain in clinical trials and clinical
+monitoring, specifically:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># View AE domain configuration</span></span>
 <span><span class="va">ae_config</span> <span class="op">&lt;-</span> <span class="va">registry</span><span class="op">$</span><span class="va">Raw_AE</span></span>
 <span></span>
 <span><span class="co"># Key components:</span></span>
 <span><span class="co"># - dataset: "Raw_AE"</span></span>
-<span><span class="co"># - package: "gsm.mapping" </span></span>
 <span><span class="co"># - required_inputs: data, previous_data, combined_specs, etc.</span></span>
-<span><span class="co"># - count_fn: Uses ae_count from snapshot configuration</span></span>
-<span><span class="co"># - generate_fn: Calls Raw_AE() function</span></span>
+<span><span class="co"># - count_fn: Determines how many records to generate per snapshot</span></span>
+<span><span class="co"># - generate_fn: Calls the Raw_AE() generator function</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">ae_config</span><span class="op">$</span><span class="va">dataset</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">ae_config</span><span class="op">$</span><span class="va">package</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">ae_config</span><span class="op">$</span><span class="va">required_inputs</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
@@ -177,7 +181,7 @@ specifically:</p>
 </h3>
 <p>Laboratory data represents test results over time:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># View LB domain configuration  </span></span>
+<code class="sourceCode R"><span><span class="co"># View LB domain configuration</span></span>
 <span><span class="va">lb_config</span> <span class="op">&lt;-</span> <span class="va">registry</span><span class="op">$</span><span class="va">Raw_LB</span></span>
 <span></span>
 <span><span class="co"># Key characteristics:</span></span>
@@ -192,13 +196,10 @@ specifically:</p>
 <h3 id="available-domains">Available Domains<a class="anchor" aria-label="anchor" href="#available-domains"></a>
 </h3>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Get all available domains from the registry</span></span>
+<code class="sourceCode R"><span><span class="co"># Get all available domains from the registry (no study object needed —</span></span>
+<span><span class="co"># this is a standalone registry lookup, not a study-specific query)</span></span>
 <span><span class="va">available_domains</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_available_domains.html">get_available_domains</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">available_domains</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Get domains for a specific package</span></span>
-<span><span class="va">mapping_domains</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_available_domains.html">get_available_domains</a></span><span class="op">(</span>package <span class="op">=</span> <span class="st">"gsm.mapping"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">mapping_domains</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">available_domains</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -226,7 +227,7 @@ studies:</p>
 <span></span>
 <span><span class="co"># The registry handles:</span></span>
 <span><span class="co"># - Loading appropriate generation functions</span></span>
-<span><span class="co"># - Managing dependencies between domains  </span></span>
+<span><span class="co"># - Managing dependencies between domains</span></span>
 <span><span class="co"># - Applying correct count formulas</span></span>
 <span><span class="co"># - Handling multi-package scenarios</span></span></code></pre></div>
 </div>
@@ -240,7 +241,7 @@ automatically:</p>
 <span><span class="va">check_domain_dependencies</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">domain_name</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">registry</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_domain_registry.html">get_domain_registry</a></span><span class="op">(</span><span class="op">)</span></span>
 <span>  <span class="va">domain_config</span> <span class="op">&lt;-</span> <span class="va">registry</span><span class="op">[[</span><span class="va">domain_name</span><span class="op">]</span><span class="op">]</span></span>
-<span>  </span>
+<span></span>
 <span>  <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">domain_config</span><span class="op">$</span><span class="va">dependencies</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">domain_config</span><span class="op">$</span><span class="va">dependencies</span><span class="op">)</span></span>
 <span>  <span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
@@ -265,7 +266,7 @@ automatically:</p>
 <code class="sourceCode R"><span><span class="co"># Create a domain-package mapping</span></span>
 <span><span class="va">domain_package_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  domain <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"AE"</span>, <span class="st">"LB"</span>, <span class="st">"VISIT"</span>, <span class="st">"CustomDomain"</span><span class="op">)</span>,</span>
-<span>  package <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"gsm.mapping"</span>, <span class="st">"gsm.mapping"</span>, <span class="st">"gsm.mapping"</span>, <span class="st">"custom.package"</span><span class="op">)</span>,</span>
+<span>  package <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"gsm.datasim"</span>, <span class="st">"gsm.datasim"</span>, <span class="st">"gsm.datasim"</span>, <span class="st">"custom.package"</span><span class="op">)</span>,</span>
 <span>  stringsAsFactors <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -295,7 +296,7 @@ automatically:</p>
 <span><span class="va">ae_timeline</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_domain_timeline.html">get_domain_timeline</a></span><span class="op">(</span><span class="st">"Raw_AE"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">ae_timeline</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">lb_timeline</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_domain_timeline.html">get_domain_timeline</a></span><span class="op">(</span><span class="st">"Raw_LB"</span><span class="op">)</span> </span>
+<span><span class="va">lb_timeline</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_domain_timeline.html">get_domain_timeline</a></span><span class="op">(</span><span class="st">"Raw_LB"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">lb_timeline</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Timeline shows:</span></span>
@@ -312,22 +313,30 @@ automatically:</p>
 <code class="sourceCode R"><span><span class="co"># Domains have different growth patterns:</span></span>
 <span></span>
 <span><span class="co"># Linear growth (steady increase)</span></span>
-<span><span class="va">config</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_dataset_config.html">add_dataset_config</a></span><span class="op">(</span><span class="va">config</span>, <span class="st">"Raw_AE"</span>, enabled <span class="op">=</span> <span class="cn">TRUE</span>, </span>
-<span>                           growth_pattern <span class="op">=</span> <span class="st">"linear"</span><span class="op">)</span></span>
+<span><span class="va">config</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_dataset_config.html">add_dataset_config</a></span><span class="op">(</span><span class="va">config</span>, <span class="st">"Raw_AE"</span>,</span>
+<span>  enabled <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  growth_pattern <span class="op">=</span> <span class="st">"linear"</span></span>
+<span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Exponential growth (accelerating increase)  </span></span>
-<span><span class="va">config</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_dataset_config.html">add_dataset_config</a></span><span class="op">(</span><span class="va">config</span>, <span class="st">"Raw_QUERY"</span>, enabled <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>                           growth_pattern <span class="op">=</span> <span class="st">"exponential"</span><span class="op">)</span></span>
+<span><span class="co"># Exponential growth (accelerating increase)</span></span>
+<span><span class="va">config</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_dataset_config.html">add_dataset_config</a></span><span class="op">(</span><span class="va">config</span>, <span class="st">"Raw_QUERY"</span>,</span>
+<span>  enabled <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  growth_pattern <span class="op">=</span> <span class="st">"exponential"</span></span>
+<span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Constant (same amount each snapshot)</span></span>
-<span><span class="va">config</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_dataset_config.html">add_dataset_config</a></span><span class="op">(</span><span class="va">config</span>, <span class="st">"Raw_VISIT"</span>, enabled <span class="op">=</span> <span class="cn">TRUE</span>, </span>
-<span>                           growth_pattern <span class="op">=</span> <span class="st">"constant"</span><span class="op">)</span></span>
+<span><span class="va">config</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_dataset_config.html">add_dataset_config</a></span><span class="op">(</span><span class="va">config</span>, <span class="st">"Raw_VISIT"</span>,</span>
+<span>  enabled <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  growth_pattern <span class="op">=</span> <span class="st">"constant"</span></span>
+<span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Custom formulas</span></span>
-<span><span class="va">config</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_dataset_config.html">add_dataset_config</a></span><span class="op">(</span><span class="va">config</span>, <span class="st">"Raw_LB"</span>, enabled <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>                           count_formula <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">config</span><span class="op">)</span> <span class="op">{</span></span>
-<span>                             <span class="va">config</span><span class="op">$</span><span class="va">study_params</span><span class="op">$</span><span class="va">participant_count</span> <span class="op">*</span> <span class="fl">3</span>  <span class="co"># 3 per participant</span></span>
-<span>                           <span class="op">}</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">config</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_dataset_config.html">add_dataset_config</a></span><span class="op">(</span><span class="va">config</span>, <span class="st">"Raw_LB"</span>,</span>
+<span>  enabled <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  count_formula <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">config</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">config</span><span class="op">$</span><span class="va">study_params</span><span class="op">$</span><span class="va">participant_count</span> <span class="op">*</span> <span class="fl">3</span> <span class="co"># 3 per participant</span></span>
+<span>  <span class="op">}</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -341,7 +350,7 @@ automatically:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Domain generation functions typically take these parameters:</span></span>
 <span><span class="co"># - data: Current snapshot data</span></span>
-<span><span class="co"># - previous_data: Previous snapshot(s) for continuity  </span></span>
+<span><span class="co"># - previous_data: Previous snapshot(s) for continuity</span></span>
 <span><span class="co"># - combined_specs: Data generation specifications</span></span>
 <span><span class="co"># - n: Number of records to generate</span></span>
 <span><span class="co"># - startDate/endDate: Time boundaries</span></span>
@@ -350,7 +359,7 @@ automatically:</p>
 <span><span class="co"># Example: AE generation function signature</span></span>
 <span><span class="co"># Raw_AE(data, previous_data, combined_specs, n, startDate, endDate, split_vars)</span></span>
 <span></span>
-<span><span class="co"># Example: LB generation function signature  </span></span>
+<span><span class="co"># Example: LB generation function signature</span></span>
 <span><span class="co"># Raw_LB(data, previous_data, combined_specs, n, startDate, split_vars)</span></span></code></pre></div>
 </div>
 <div class="section level3">
@@ -367,12 +376,12 @@ automatically:</p>
 <span></span>
 <span><span class="co"># Custom AE count: more AEs at larger sites</span></span>
 <span><span class="va">config</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_dataset_config.html">add_dataset_config</a></span><span class="op">(</span></span>
-<span>  <span class="va">config</span>, </span>
-<span>  <span class="st">"Raw_AE"</span>, </span>
+<span>  <span class="va">config</span>,</span>
+<span>  <span class="st">"Raw_AE"</span>,</span>
 <span>  enabled <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  count_formula <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">config</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="co"># Complex formula based on site size distribution</span></span>
-<span>    <span class="va">base_ae_rate</span> <span class="op">&lt;-</span> <span class="fl">0.8</span>  <span class="co"># 80% of participants have AEs</span></span>
+<span>    <span class="va">base_ae_rate</span> <span class="op">&lt;-</span> <span class="fl">0.8</span> <span class="co"># 80% of participants have AEs</span></span>
 <span>    <span class="va">site_size_factor</span> <span class="op">&lt;-</span> <span class="va">config</span><span class="op">$</span><span class="va">study_params</span><span class="op">$</span><span class="va">participant_count</span> <span class="op">/</span> <span class="va">config</span><span class="op">$</span><span class="va">study_params</span><span class="op">$</span><span class="va">site_count</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">config</span><span class="op">$</span><span class="va">study_params</span><span class="op">$</span><span class="va">participant_count</span> <span class="op">*</span> <span class="va">base_ae_rate</span> <span class="op">*</span> <span class="op">(</span><span class="va">site_size_factor</span> <span class="op">/</span> <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="op">}</span></span>
@@ -386,7 +395,7 @@ automatically:</p>
 <span>  count_formula <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">config</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="va">participants</span> <span class="op">&lt;-</span> <span class="va">config</span><span class="op">$</span><span class="va">study_params</span><span class="op">$</span><span class="va">participant_count</span></span>
 <span>    <span class="co"># Assuming monthly snapshots</span></span>
-<span>    <span class="va">participants</span> <span class="op">*</span> <span class="fl">4</span>  <span class="co"># 4 lab visits per participant per month</span></span>
+<span>    <span class="va">participants</span> <span class="op">*</span> <span class="fl">4</span> <span class="co"># 4 lab visits per participant per month</span></span>
 <span>  <span class="op">}</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </div>
@@ -403,14 +412,14 @@ automatically:</p>
 <span><span class="va">add_custom_domain_to_registry</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="co"># Get current registry</span></span>
 <span>  <span class="va">current_registry</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_domain_registry.html">get_domain_registry</a></span><span class="op">(</span><span class="op">)</span></span>
-<span>  </span>
+<span></span>
 <span>  <span class="co"># Add custom domain</span></span>
 <span>  <span class="va">current_registry</span><span class="op">$</span><span class="va">Raw_CUSTOM</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>    dataset <span class="op">=</span> <span class="st">"Raw_CUSTOM"</span>,</span>
 <span>    required_inputs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"data"</span>, <span class="st">"combined_specs"</span>, <span class="st">"n"</span>, <span class="st">"start_date"</span><span class="op">)</span>,</span>
 <span>    count_fn <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">counts</span>, <span class="va">snapshot_idx</span><span class="op">)</span> <span class="op">{</span></span>
 <span>      <span class="co"># Custom count logic</span></span>
-<span>      <span class="va">counts</span><span class="op">$</span><span class="va">subject_count</span><span class="op">[</span><span class="va">snapshot_idx</span><span class="op">]</span> <span class="op">*</span> <span class="fl">2</span>  <span class="co"># 2 records per participant</span></span>
+<span>      <span class="va">counts</span><span class="op">$</span><span class="va">subject_count</span><span class="op">[</span><span class="va">snapshot_idx</span><span class="op">]</span> <span class="op">*</span> <span class="fl">2</span> <span class="co"># 2 records per participant</span></span>
 <span>    <span class="op">}</span>,</span>
 <span>    generate_fn <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">context</span><span class="op">)</span> <span class="op">{</span></span>
 <span>      <span class="co"># All generation logic lives here — no separate Raw_CUSTOM() function needed.</span></span>
@@ -424,7 +433,7 @@ automatically:</p>
 <span>      <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="op">)</span></span>
 <span>    <span class="op">}</span></span>
 <span>  <span class="op">)</span></span>
-<span>  </span>
+<span></span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">current_registry</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>
@@ -439,25 +448,26 @@ automatically:</p>
 <code class="sourceCode R"><span><span class="co"># Example structure for a custom domain generation function</span></span>
 <span><span class="va">Raw_CUSTOM</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">data</span>, <span class="va">combined_specs</span>, <span class="va">n</span>, <span class="va">startDate</span>, <span class="va">custom_param</span> <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="co"># Your custom data generation logic here</span></span>
-<span>  </span>
+<span></span>
 <span>  <span class="co"># Basic structure:</span></span>
 <span>  <span class="va">custom_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>    studyid <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">Raw_STUDY</span><span class="op">$</span><span class="va">studyid</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="va">n</span><span class="op">)</span>,</span>
 <span>    usubjid <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">Raw_SUBJ</span><span class="op">$</span><span class="va">usubjid</span>, <span class="va">n</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
 <span>    custom_field <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"CUSTOM"</span>, <span class="fl">1</span><span class="op">:</span><span class="va">n</span>, sep <span class="op">=</span> <span class="st">"_"</span><span class="op">)</span>,</span>
-<span>    custom_date <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="va">startDate</span><span class="op">)</span>, </span>
-<span>                      <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="va">startDate</span><span class="op">)</span> <span class="op">+</span> <span class="va">n</span> <span class="op">-</span> <span class="fl">1</span>, </span>
-<span>                      by <span class="op">=</span> <span class="st">"day"</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="va">n</span><span class="op">]</span>,</span>
+<span>    custom_date <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="va">startDate</span><span class="op">)</span>,</span>
+<span>      <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="va">startDate</span><span class="op">)</span> <span class="op">+</span> <span class="va">n</span> <span class="op">-</span> <span class="fl">1</span>,</span>
+<span>      by <span class="op">=</span> <span class="st">"day"</span></span>
+<span>    <span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="va">n</span><span class="op">]</span>,</span>
 <span>    custom_value <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">n</span>, <span class="fl">0</span>, <span class="fl">100</span><span class="op">)</span>,</span>
 <span>    stringsAsFactors <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span>  <span class="op">)</span></span>
-<span>  </span>
+<span></span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">custom_data</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>
 <span><span class="co"># To use this in the registry:</span></span>
 <span><span class="co"># 1. Define the function in your package</span></span>
-<span><span class="co"># 2. Add registry entry as shown above  </span></span>
+<span><span class="co"># 2. Add registry entry as shown above</span></span>
 <span><span class="co"># 3. Include the domain in your study configuration</span></span></code></pre></div>
 </div>
 </div>
@@ -480,7 +490,7 @@ approaches:</p>
 <span></span>
 <span><span class="co"># Migration typically involves:</span></span>
 <span><span class="co"># 1. Updating study configurations to use registry</span></span>
-<span><span class="co"># 2. Converting custom domain logic to registry format  </span></span>
+<span><span class="co"># 2. Converting custom domain logic to registry format</span></span>
 <span><span class="co"># 3. Testing compatibility with existing workflows</span></span></code></pre></div>
 </div>
 <div class="section level3">
@@ -492,27 +502,25 @@ approaches:</p>
 <span>  <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">registry</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="va">registry</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_domain_registry.html">get_domain_registry</a></span><span class="op">(</span><span class="op">)</span></span>
 <span>  <span class="op">}</span></span>
-<span>  </span>
+<span></span>
 <span>  <span class="va">validation_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
-<span>  </span>
+<span></span>
 <span>  <span class="kw">for</span> <span class="op">(</span><span class="va">domain_name</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">registry</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="va">domain_config</span> <span class="op">&lt;-</span> <span class="va">registry</span><span class="op">[[</span><span class="va">domain_name</span><span class="op">]</span><span class="op">]</span></span>
-<span>    </span>
+<span></span>
 <span>    <span class="co"># Check required fields</span></span>
-<span>    <span class="va">required_fields</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"dataset"</span>, <span class="st">"package"</span>, <span class="st">"generate_fn"</span><span class="op">)</span></span>
+<span>    <span class="va">required_fields</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"dataset"</span>, <span class="st">"required_inputs"</span>, <span class="st">"count_fn"</span>, <span class="st">"generate_fn"</span><span class="op">)</span></span>
 <span>    <span class="va">missing_fields</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sets.html" class="external-link">setdiff</a></span><span class="op">(</span><span class="va">required_fields</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">domain_config</span><span class="op">)</span><span class="op">)</span></span>
-<span>    </span>
-<span>    <span class="co"># Check function availability</span></span>
-<span>    <span class="va">package_available</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="va">domain_config</span><span class="op">$</span><span class="va">package</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span>    </span>
+<span></span>
 <span>    <span class="va">validation_results</span><span class="op">[[</span><span class="va">domain_name</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>      missing_fields <span class="op">=</span> <span class="va">missing_fields</span>,</span>
-<span>      package_available <span class="op">=</span> <span class="va">package_available</span>,</span>
-<span>      has_count_fn    <span class="op">=</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">domain_config</span><span class="op">$</span><span class="va">count_fn</span><span class="op">)</span>,</span>
-<span>      has_generate_fn <span class="op">=</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">domain_config</span><span class="op">$</span><span class="va">generate_fn</span><span class="op">)</span></span>
+<span>      has_count_fn <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/is.function.html" class="external-link">is.function</a></span><span class="op">(</span><span class="va">domain_config</span><span class="op">$</span><span class="va">count_fn</span><span class="op">)</span>,</span>
+<span>      has_generate_fn <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/is.function.html" class="external-link">is.function</a></span><span class="op">(</span><span class="va">domain_config</span><span class="op">$</span><span class="va">generate_fn</span><span class="op">)</span>,</span>
+<span>      has_required_inputs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">is.character</a></span><span class="op">(</span><span class="va">domain_config</span><span class="op">$</span><span class="va">required_inputs</span><span class="op">)</span> <span class="op">&amp;&amp;</span></span>
+<span>        <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">domain_config</span><span class="op">$</span><span class="va">required_inputs</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span></span>
 <span>    <span class="op">)</span></span>
 <span>  <span class="op">}</span></span>
-<span>  </span>
+<span></span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">validation_results</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>
@@ -567,21 +575,19 @@ for any custom domains you add.</p></li>
 <span><span class="va">available</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_available_domains.html">get_available_domains</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">available</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Issue: Package not available</span></span>
-<span><span class="co"># Solution: Install required packages</span></span>
-<span><span class="va">missing_packages</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co"># Issue: Registry entry missing required fields</span></span>
+<span><span class="co"># Solution: Validate entries have dataset, required_inputs, count_fn, generate_fn</span></span>
 <span><span class="va">registry</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_domain_registry.html">get_domain_registry</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="kw">for</span> <span class="op">(</span><span class="va">domain</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">registry</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">pkg</span> <span class="op">&lt;-</span> <span class="va">registry</span><span class="op">[[</span><span class="va">domain</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">package</span></span>
-<span>  <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="va">pkg</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="va">missing_packages</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">missing_packages</span>, <span class="va">pkg</span><span class="op">)</span></span>
+<span>  <span class="va">entry</span> <span class="op">&lt;-</span> <span class="va">registry</span><span class="op">[[</span><span class="va">domain</span><span class="op">]</span><span class="op">]</span></span>
+<span>  <span class="va">expected</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"dataset"</span>, <span class="st">"required_inputs"</span>, <span class="st">"count_fn"</span>, <span class="st">"generate_fn"</span><span class="op">)</span></span>
+<span>  <span class="va">missing</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sets.html" class="external-link">setdiff</a></span><span class="op">(</span><span class="va">expected</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">entry</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">missing</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Domain"</span>, <span class="va">domain</span>, <span class="st">"missing:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="va">missing</span>, collapse <span class="op">=</span> <span class="st">", "</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
 <span>  <span class="op">}</span></span>
 <span><span class="op">}</span></span>
-<span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">missing_packages</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Missing packages:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="va">missing_packages</span>, collapse <span class="op">=</span> <span class="st">", "</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
-<span><span class="op">}</span></span>
 <span></span>
-<span><span class="co"># Issue: Generation function errors  </span></span>
+<span><span class="co"># Issue: Generation function errors</span></span>
 <span><span class="co"># Solution: Check function parameters and data availability</span></span>
 <span><span class="co"># Use verbose mode to see detailed error messages</span></span></code></pre></div>
 </div>
@@ -624,11 +630,11 @@ maintaining backward compatibility and ease of use.</p>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Roman Rogoza, Laura Maxwell, Zelos Zhu.</p>
+  <p>Developed by Laura Maxwell, Zelos Zhu, Roman Rogoza.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>
