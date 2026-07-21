@@ -1,4 +1,4 @@
-test_that("generate_rawdata_for_single_study works", {
+test_that("generate_rawdata_for_single_study works (#96)", {
   snapshots <- generate_rawdata_for_single_study(
     SnapshotCount = 2,
     SnapshotWidth = "months",

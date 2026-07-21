@@ -1,4 +1,4 @@
-test_that("organize_analytics_results respects verbose flag and organizes Analysis_* results", {
+test_that("organize_analytics_results respects verbose flag and organizes Analysis_* results (#95)", {
   pipeline_results <- list(
     results = list(
       Analysis_cou0001 = list(
@@ -38,7 +38,7 @@ test_that("organize_analytics_results respects verbose flag and organizes Analys
   expect_equal(metric_output$data_frames$Analysis_Summary$Metric_ID[[1]], "cou0001")
 })
 
-test_that("organize_analytics_results preserves snapshot date keys for per-snapshot analytics", {
+test_that("organize_analytics_results preserves snapshot date keys for per-snapshot analytics (#95)", {
   pipeline_results <- list(
     "2012-01-31" = list(
       results = list(
@@ -85,7 +85,7 @@ test_that("organize_analytics_results preserves snapshot date keys for per-snaps
   expect_equal(organized[["2012-02-29"]]$cou0002$metric_id, "cou0002")
 })
 
-test_that("generate_analytics_layers returns organized analytics for all snapshots", {
+test_that("generate_analytics_layers returns organized analytics for all snapshots (#95)", {
   skip_if_not_installed("testthat", minimum_version = "3.1.0")
 
   raw_data <- list("2012-01-31" = list(), "2012-02-29" = list())

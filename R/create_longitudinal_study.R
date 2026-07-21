@@ -161,7 +161,7 @@ quick_longitudinal_study <- function(study_name = "GS-US-000-0001",
 
   if (study_type == "standard") {
     # Only include standard domains, no endpoints-only domains
-    domains <- c("AE", "LB", "VISIT", "PD", "PK", "QUERY", "DATACHG", "DATAENT", "STUDCOMP", "SDRGCOMP", "IE", "EXCLUSION", "Death", "Randomization", "OverallResponse")
+    domains <- c("AE", "LB", "VISIT", "PD", "PK", "QUERY", "DATACHG", "DATAENT", "STUDCOMP", "SDRGCOMP", "IE", "Death", "Randomization", "OverallResponse")
     pkg <- "gsm.kri"
     study <- create_longitudinal_study(
       study_id = study_id,
