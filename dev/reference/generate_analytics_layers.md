@@ -3,14 +3,9 @@
 Convenience wrapper that executes the analytics pipeline and returns the
 raw analytics results.
 
-Convenience wrapper that executes the analytics pipeline and returns the
-raw analytics results.
-
 ## Usage
 
 ``` r
-generate_analytics_layers(raw_data, config, verbose = FALSE)
-
 generate_analytics_layers(raw_data, config, verbose = FALSE)
 ```
 
@@ -29,8 +24,6 @@ generate_analytics_layers(raw_data, config, verbose = FALSE)
   Whether to print progress/output messages
 
 ## Value
-
-Raw analytics pipeline results
 
 Raw analytics pipeline results
 

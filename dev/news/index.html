@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gsm.datasim</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.1.3.9000</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -17,8 +17,7 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/addnewdomain.html">addnewdomain</a></li>
-    <li><a class="dropdown-item" href="../articles/domain-registry.html">Understanding the Domain Registry</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/domain-registry.html">Understanding the Domain Registry</a></li>
     <li><a class="dropdown-item" href="../articles/study-setup.html">Setting up Clinical Studies with gsm.datasim</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
@@ -48,6 +47,30 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="gsmdatasim-development-version">gsm.datasim (development version)<a class="anchor" aria-label="anchor" href="#gsmdatasim-development-version"></a></h2>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.0.0" id="gsmdatasim-v200">gsm.datasim v2.0.0<a class="anchor" aria-label="anchor" href="#gsmdatasim-v200"></a></h2>
+<p>This major release introduces a composable study builder API, longitudinal multi-snapshot study support, workflow-driven data generation, a domain registry, and parquet export. Analytics and reporting are now powered by the <code>workr</code> workflow engine.</p>
+<div class="section level3">
+<h3 id="breaking-changes-2-0-0">Breaking Changes<a class="anchor" aria-label="anchor" href="#breaking-changes-2-0-0"></a></h3>
+<ul><li>
+<code><a href="../reference/generate_rawdata_for_single_study.html">generate_rawdata_for_single_study()</a></code> and <code><a href="../reference/raw_data_generator.html">raw_data_generator()</a></code> are deprecated in favour of the study builder API (<code><a href="../reference/create_study_config.html">create_study_config()</a></code> + <code><a href="../reference/generate_study_data.html">generate_study_data()</a></code>). Existing calls still work but emit a deprecation warning.</li>
+<li>
+<code>gsm.core</code>, <code>gsm.kri</code>, <code>gsm.mapping</code>, and <code>gsm.reporting</code> moved from hard dependencies to <code>Suggests</code>, as pipelines now run on the <code>workr</code> engine. Install those packages only if you run the analytics/reporting pipelines.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="new-features-2-0-0">New Features<a class="anchor" aria-label="anchor" href="#new-features-2-0-0"></a></h3>
+<ul><li>
+<strong>Study builder API:</strong> build study configs with <code><a href="../reference/create_study_config.html">create_study_config()</a></code> (or <code><a href="../reference/create_standard_study_config.html">create_standard_study_config()</a></code>), refine them with <code><a href="../reference/set_outlier_config.html">set_outlier_config()</a></code>, <code><a href="../reference/set_temporal_config.html">set_temporal_config()</a></code>, and <code><a href="../reference/add_dataset_config.html">add_dataset_config()</a></code> / <code><a href="../reference/remove_dataset_config.html">remove_dataset_config()</a></code>, validate with <code><a href="../reference/validate_study_config.html">validate_study_config()</a></code>, and generate data via <code><a href="../reference/generate_study_data.html">generate_study_data()</a></code>.</li>
+<li>
+<strong>Longitudinal studies:</strong> <code><a href="../reference/create_longitudinal_study.html">create_longitudinal_study()</a></code> and <code><a href="../reference/quick_longitudinal_study.html">quick_longitudinal_study()</a></code> generate complete multi-snapshot studies with optional analytics/reporting; <code><a href="../reference/create_multiple_longitudinal_studies.html">create_multiple_longitudinal_studies()</a></code> and <code><a href="../reference/export_multiple_studies.html">export_multiple_studies()</a></code> handle portfolios. Extract results with <code><a href="../reference/get_snapshot_data.html">get_snapshot_data()</a></code>, <code><a href="../reference/get_domain_timeline.html">get_domain_timeline()</a></code>, and <code><a href="../reference/get_available_domains.html">get_available_domains()</a></code> (the latter also serves as a standalone registry lookup when called with no arguments), and run pipelines on existing studies with <code><a href="../reference/run_longitudinal_analytics.html">run_longitudinal_analytics()</a></code> / <code><a href="../reference/run_longitudinal_reporting.html">run_longitudinal_reporting()</a></code>.</li>
+<li>
+<strong>Domain registry &amp; workflow-driven generation:</strong> <code><a href="../reference/get_domain_registry.html">get_domain_registry()</a></code> exposes known domains; <code><a href="../reference/generate_data_from_workflows.html">generate_data_from_workflows()</a></code> and <code><a href="../reference/generate_raw_data_for_endpoints.html">generate_raw_data_for_endpoints()</a></code> generate data directly from <code>gsm.mapping</code> workflow specs; <code><a href="../reference/generate_unknown_domain.html">generate_unknown_domain()</a></code> handles domains outside the registry via inferred column types.</li>
+<li>
+<strong>Parquet export:</strong> <code><a href="../reference/export_study_data.html">export_study_data()</a></code> now supports <code>"csv"</code> (default), <code>"parquet"</code>, or <code>"both"</code> via the <code>format</code> argument (parquet requires the <code>arrow</code> package).</li>
+<li>
+<strong>New domains:</strong> added <code>Raw_VISIT</code>, <code>Raw_Death</code> (including a <code>deathcls</code> classification column), <code>Raw_Consents</code>, <code>Raw_Baseline</code>, <code>Raw_Randomization</code>, <code>Raw_OverallResponse</code>, and <code>Raw_GENERAL</code>, plus gradual enrollment simulation and timestamp support across existing domains.</li>
+</ul></div>
 </div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.1.3" id="gsmdatasim-v113">gsm.datasim v1.1.3<a class="anchor" aria-label="anchor" href="#gsmdatasim-v113"></a></h2>

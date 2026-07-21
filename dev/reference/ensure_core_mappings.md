@@ -2,13 +2,9 @@
 
 Ensure core mappings are included
 
-Ensure core mappings are included
-
 ## Usage
 
 ``` r
-ensure_core_mappings(domains)
-
 ensure_core_mappings(domains)
 ```
 
@@ -19,8 +15,6 @@ ensure_core_mappings(domains)
   Vector of domain names
 
 ## Value
-
-Vector with required core mappings added
 
 Vector with required core mappings added
 

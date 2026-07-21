@@ -28,7 +28,6 @@ create_standard_study_config(
   study_drug_completion = TRUE,
   study_completion = TRUE,
   inclusion_exclusion = TRUE,
-  exclusions = TRUE,
   country = TRUE,
   death = TRUE,
   randomization = TRUE,
@@ -123,10 +122,6 @@ create_standard_study_config(
 
   Include inclusion/exclusion criteria (Raw_IE)
 
-- exclusions:
-
-  Include exclusion tracking (Raw_EXCLUSION)
-
 - country:
 
   Include country mapping
@@ -162,8 +157,8 @@ names(config$dataset_configs)
 #>  [7] "Raw_LB"              "Raw_VISIT"           "Raw_DATACHG"        
 #> [10] "Raw_DATAENT"         "Raw_QUERY"           "Raw_PK"             
 #> [13] "Raw_SDRGCOMP"        "Raw_STUDCOMP"        "Raw_IE"             
-#> [16] "Raw_EXCLUSION"       "Raw_COUNTRY"         "Raw_Death"          
-#> [19] "Raw_Randomization"   "Raw_OverallResponse"
+#> [16] "Raw_COUNTRY"         "Raw_Death"           "Raw_Randomization"  
+#> [19] "Raw_OverallResponse"
 
 # Select a subset of domains
 config <- create_standard_study_config(
