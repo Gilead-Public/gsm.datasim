@@ -15,3 +15,9 @@
 ^inst/snapshots$
 ^inst/demo$
 ^inst/README\.md$
+^\.positai$
+^\.claude$
+^DEMO-
+^TRIAL-
+^AGENTS\.md$
+^\.posit$
