@@ -48,6 +48,7 @@ Raw_OverallResponse <- function(data, previous_data, spec, ...) {
       Raw_VISIT_data = data$Raw_VISIT
     ),
     studyid = list(n, data$Raw_STUDY$protocol_number[[1]]),
+    ovrlresp = list(n, data$Raw_SUBJ),
     default = list(n)
   )
 
@@ -58,8 +59,23 @@ Raw_OverallResponse <- function(data, previous_data, spec, ...) {
 response_folder <- function(n, ...) {
   rep("final response", n, replace = TRUE)
 }
-ovrlresp <- function(n, ...) {
-  sample(c("NE", "PD", "SD", "PR", "CR"), n, replace = TRUE, prob = c(0.05, 0.65, 0.2, 0.05, 0.05))
+ovrlresp <- function(n, Raw_SUBJ_data = NULL, ...) {
+  row_keys <- if (is.data.frame(Raw_SUBJ_data) && "subjid" %in% names(Raw_SUBJ_data)) {
+    sample(Raw_SUBJ_data$subjid, n, replace = TRUE)
+  } else {
+    NULL
+  }
+
+  sample_categorical_with_hotspots(
+    values = c("NE", "PD", "SD", "PR", "CR"),
+    n = n,
+    base_prob = c(0.05, 0.65, 0.2, 0.05, 0.05),
+    outlier_idx = 2,
+    row_keys = row_keys,
+    key_map = Raw_SUBJ_data,
+    key_col = "subjid",
+    site_col = "invid"
+  )
 }
 
 subjid_rs_dt <- function(n, subjids, Raw_VISIT_data, ...) {

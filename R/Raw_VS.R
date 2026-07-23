@@ -1,75 +1,36 @@
-#' Generate Raw VS (Vital Signs) Data
+#' Column generators for Raw VS (Vital Signs) Data
 #'
 #' Generate Raw VS based on `VS.yaml` from `gsm.mapping`.
 #' Wide format: one row per subject × visit with columns for all 8 vitals measures:
 #' weight, height, bmi, sysbp, diabp, pulse, temp, resp.
 #'
-#' @inheritParams Raw_STUDY
-#' @returns a data.frame pertaining to the raw dataset plugged into `VS.yaml`
+#' Domain generation itself is registered in `domain_registry.R` (`Raw_VS`
+#' entry); the functions below are the per-column generators dispatched by
+#' `add_new_var_data()` based on `spec$Raw_VS` column names.
+#'
 #' @family internal
 #' @keywords internal
 #' @noRd
 
-Raw_VS <- function(data, previous_data, spec, startDate, ...) {
-  inps <- list(...)
 
-  curr_spec <- spec$Raw_VS
-
-  if ("Raw_VS" %in% names(previous_data)) {
-    dataset <- previous_data$Raw_VS
-    previous_row_num <- length(unique(dataset$subjid))
-  } else {
-    dataset <- NULL
-    previous_row_num <- 0
-  }
-
-  n <- inps$n - previous_row_num
-  if (n == 0) {
-    return(dataset)
-  }
-
-  # Ensure required fields are in spec
-  if (!("visnam" %in% names(curr_spec))) {
-    curr_spec$visnam <- list(required = TRUE)
-  }
-
-  if (all(c("subjid", "visnam") %in% names(curr_spec))) {
-    curr_spec$subj_visit_repeated <- list(required = TRUE)
-    curr_spec$subjid <- NULL
-    curr_spec$visnam <- NULL
-  }
-
-  subjs <- subjid(n, external_subjid = data$Raw_SUBJ$subjid, replace = FALSE)
-  subj_visits <- data$Raw_SV %>%
-    dplyr::filter(subjid %in% subjs) %>%
-    dplyr::select(subjid, instancename)
-
-  all_n <- nrow(subj_visits)
-
-  args <- list(
-    subj_visit_repeated = list(1, subj_visits),
-    studyid = list(all_n, data$Raw_STUDY$protocol_number[[1]]),
-    vs_dt = list(all_n, startDate),
-    vsperf_std = list(all_n),
-    weight = list(all_n, subj_visits$subjid),
-    height = list(all_n, subj_visits$subjid),
-    bmi = list(all_n, subj_visits$subjid),
-    sysbp = list(all_n, subj_visits$subjid),
-    diabp = list(all_n, subj_visits$subjid),
-    pulse = list(all_n, subj_visits$subjid),
-    temp = list(all_n, subj_visits$subjid),
-    resp = list(all_n, subj_visits$subjid),
-    default = list(all_n, subj_visits)
-  )
-
-  res <- add_new_var_data(dataset, curr_spec, args, spec$Raw_VS, ...)
-
-  return(res)
+# Note: parallels `subj_visit_repeated()` in Raw_LB.R (n=1, one row per
+# subject-visit, no test repeat factor), but retains the `instancename`
+# column name per the VS.yaml spec (Raw_LB uses `visnam`). Named distinctly
+# from Raw_LB's `subj_visit_repeated()` to avoid colliding in the package
+# namespace (generator functions are dispatched by bare name via `do.call()`).
+vs_subj_visit_repeated <- function(n, data, ...) {
+  res <- repeat_rows(n, data)
+  return(list(
+    subjid = res$subjid,
+    instancename = res$instancename
+  ))
 }
 
-
-# Note: uses the existing `subj_visit_repeated` function from Raw_LB.R
-# with n=1 (one row per subject-visit, no test repeat factor)
+vs_invid_repeated <- function(n, invids, ...) {
+  return(list(
+    invid = repeat_rows(n, invids)
+  ))
+}
 
 
 vs_dt <- generic_date

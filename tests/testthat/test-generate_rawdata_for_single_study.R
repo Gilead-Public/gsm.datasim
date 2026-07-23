@@ -1,4 +1,4 @@
-test_that("generate_rawdata_for_single_study works", {
+test_that("generate_rawdata_for_single_study works (#96)", {
   snapshots <- generate_rawdata_for_single_study(
     SnapshotCount = 2,
     SnapshotWidth = "months",
@@ -11,5 +11,5 @@ test_that("generate_rawdata_for_single_study works", {
     desired_specs = NULL
   )
   expect_equal(length(snapshots), 2)
-  expect_equal(names(snapshots[[1]]), c("Raw_STUDY", "Raw_SITE", "Raw_SUBJ", "Raw_ENROLL", "Raw_SV", "Raw_VISIT", "Raw_AE", "Raw_DATAENT", "Raw_VS"))
+  expect_equal(names(snapshots[[1]]), c("Raw_STUDY", "Raw_SITE", "Raw_SUBJ", "Raw_ENROLL", "Raw_VISIT", "Raw_AE", "Raw_DATAENT"))
 })

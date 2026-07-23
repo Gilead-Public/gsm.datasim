@@ -15,7 +15,7 @@ create_snapshot_reports <- function(study_data) {
       lReporting_site <- purrr::imap(previous_snapshot$lReporting_site[grep("Reporting", names(previous_snapshot$lReporting_site))], \(x, idx)
       dplyr::bind_rows(x, current_snapshot$lReporting_site[[idx]]))
       lReporting_country <- purrr::imap(previous_snapshot$lReporting_country[grep("Reporting", names(previous_snapshot$lReporting_country))], \(x, idx)
-      dplyr::bind_rows(x, current_snapshot$reporting_country[[idx]]))
+      dplyr::bind_rows(x, current_snapshot$lReporting_country[[idx]]))
 
       current_snapshot <- list(
         lAnalysis_site = lAnalysis_site,

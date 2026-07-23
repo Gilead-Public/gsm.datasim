@@ -1,0 +1,227 @@
+---
+title: "Generating Multiple Studies"
+author: "[gsm.datasim](https://gilead-biostats.github.io/gsm.datasim) Example"
+description: "Shows three approaches to generating a portfolio of studies: identical configs, per-study vectors, and the study_portfolio() wrapper for variant-based configs."
+index: 4
+date: "`r format(Sys.time(), '%B %d, %Y %H:%M:%S %Z')`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment  = "#>",
+  eval     = FALSE
+)
+library(gsm.datasim)
+```
+
+## Overview
+
+`gsm.datasim` provides two functions for generating multiple studies in a
+single call:
+
+| Function | Best for |
+|---|---|
+| `create_multiple_longitudinal_studies()` | Full control; vectorised params + `study_configs` overrides |
+| `study_portfolio()` | Variant-first design — define only what differs per study |
+
+Both return a `multiple_longitudinal_studies` object (a named list of
+`longitudinal_study` objects) with `print()` and `summary()` methods.
+
+---
+
+## 1. Identical configuration across all studies
+
+When every study shares the same design, pass a single value for each
+parameter and a vector of names.
+
+```{r identical}
+studies <- create_multiple_longitudinal_studies(
+  study_names   = c("TRIAL-001", "TRIAL-002", "TRIAL-003"),
+  participants  = 150,
+  sites         = 12,
+  snapshots     = 6,
+  interval      = "1 month",
+  domains       = c("AE", "LB", "VISIT", "PD"),
+  run_analytics = FALSE,
+  verbose       = TRUE
+)
+
+print(studies)          # collection-level summary
+summary(studies)        # aggregate statistics
+
+# Access a single study
+trial_1 <- studies[["TRIAL-001"]]
+names(trial_1$raw_data)                         # snapshot dates
+nrow(trial_1$raw_data[[1]][["Raw_AE"]])         # AE rows in snapshot 1
+```
+
+---
+
+## 2. Per-study parameters via vectors and `study_configs`
+
+Pass parallel vectors for scalar parameters and use `study_configs` for
+anything that can't be vectorised (e.g. `domains`).
+
+```{r per-study-vectors}
+studies <- create_multiple_longitudinal_studies(
+  study_names  = c("PHASE2-SMALL", "PHASE3-LARGE", "SAFETY-RUN"),
+  # Scalar params as vectors -- one value per study
+  participants = c(80,  400, 50),
+  sites        = c(8,   25,  3),
+  snapshots    = c(4,   12,  8),
+  interval     = "1 month",              # shared
+  domains      = c("AE", "LB", "VISIT"), # default; overridden below
+  # Non-scalar overrides per study
+  study_configs = list(
+    "PHASE2-SMALL" = list(
+      domains           = c("AE", "LB"),
+      outlier_intensity = 0.8
+    ),
+    "PHASE3-LARGE" = list(
+      domains           = c("AE", "LB", "VISIT", "PD", "PK"),
+      outlier_intensity = 1.0
+    ),
+    "SAFETY-RUN" = list(
+      domains           = c("AE", "LB", "VISIT"),
+      outlier_intensity = 2.0   # amplify outliers for safety monitoring testing
+    )
+  ),
+  run_analytics = FALSE,
+  verbose       = TRUE
+)
+
+# Confirm each study got its own config
+for (nm in names(studies)) {
+  cat(nm, "-- participants:", studies[[nm]]$config$participants,
+      "| domains:", paste(studies[[nm]]$config$domains, collapse = ", "), "\n")
+}
+```
+
+---
+
+## 3. `study_portfolio()` -- variant-first interface
+
+Define a single named list of variants.  Each entry contains only what
+differs from the shared defaults; everything else falls back automatically.
+
+```{r portfolio}
+studies <- study_portfolio(
+  variants = list(
+    "PHASE2-SMALL" = list(
+      participants      = 80,
+      sites             = 8,
+      snapshots         = 4,
+      domains           = c("AE", "LB"),
+      outlier_intensity = 0.8
+    ),
+    "PHASE3-LARGE" = list(
+      participants = 400,
+      sites        = 25,
+      snapshots    = 12,
+      domains      = c("AE", "LB", "VISIT", "PD", "PK")
+    ),
+    "SAFETY-RUN" = list(
+      participants      = 50,
+      sites             = 3,
+      snapshots         = 8,
+      outlier_intensity = 2.0
+    )
+  ),
+  # Shared defaults -- used when a variant does not specify its own value
+  participants  = 100,
+  sites         = 10,
+  snapshots     = 6,
+  interval      = "1 month",
+  domains       = c("AE", "LB", "VISIT"),
+  run_analytics = FALSE,
+  verbose       = TRUE
+)
+
+print(studies)
+```
+
+---
+
+## 4. Inspecting and comparing studies
+
+```{r inspect}
+# Snapshot dates for each study
+lapply(studies, function(s) names(s$raw_data))
+
+# Row counts for Raw_AE at the final snapshot, across all studies
+sapply(studies, function(s) {
+  last_snap <- tail(s$raw_data, 1)[[1]]
+  if ("Raw_AE" %in% names(last_snap)) nrow(last_snap$Raw_AE) else NA_integer_
+})
+
+# Domains present in each study
+lapply(studies, get_available_domains)
+
+# Timeline of a single domain across snapshots for one study
+ae_timeline <- get_domain_timeline(studies[["PHASE3-LARGE"]], "Raw_AE")
+sapply(ae_timeline, nrow)   # row count per snapshot
+```
+
+---
+
+## 5. Running analytics and reporting
+
+Pass `run_analytics = TRUE` (and optionally `run_reporting = TRUE`) to run
+the full pipeline for every study in one call.
+
+```{r with-analytics}
+studies <- study_portfolio(
+  variants = list(
+    "PHASE2-SMALL" = list(participants = 80,  sites = 8,  snapshots = 4,
+                          domains = c("AE", "LB")),
+    "PHASE3-LARGE" = list(participants = 400, sites = 25, snapshots = 12,
+                          domains = c("AE", "LB", "VISIT", "PD"))
+  ),
+  participants  = 100,
+  sites         = 10,
+  snapshots     = 6,
+  interval      = "1 month",
+  domains       = c("AE", "LB", "VISIT"),
+  run_analytics = TRUE,
+  run_reporting = FALSE,
+  verbose       = TRUE
+)
+
+# Analytics results are nested: study -> snapshot -> results
+has_analytics <- sapply(studies, function(s) !is.null(s$analytics))
+cat("Analytics completed:", sum(has_analytics), "of", length(studies), "studies\n")
+
+# Drill into one study's latest snapshot analytics
+latest  <- tail(names(studies[["PHASE3-LARGE"]]$analytics), 1)
+results <- studies[["PHASE3-LARGE"]]$analytics[[latest]]$results
+cat("Result tables in latest snapshot:", paste(names(results), collapse = ", "), "\n")
+```
+
+---
+
+## 6. Exporting all studies
+
+```{r export}
+# Export to separate sub-folders under ./output/
+export_multiple_studies(
+  studies    = studies,
+  output_dir = "./output",
+  overwrite  = TRUE,
+  verbose    = TRUE
+)
+
+# Or generate and export in one step via create_multiple_longitudinal_studies()
+studies <- create_multiple_longitudinal_studies(
+  study_names    = c("TRIAL-001", "TRIAL-002"),
+  participants   = 150,
+  sites          = 12,
+  snapshots      = 6,
+  domains        = c("AE", "LB", "VISIT"),
+  run_analytics  = FALSE,
+  export_studies = TRUE,
+  export_dir     = "./output",
+  verbose        = TRUE
+)
+```

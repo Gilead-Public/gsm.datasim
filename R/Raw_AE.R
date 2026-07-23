@@ -41,6 +41,8 @@ Raw_AE <- function(data, previous_data, spec, startDate, endDate, ...) {
   args <- list(
     subjid = list(n, external_subjid = data$Raw_SUBJ$subjid),
     aest_dt_aeen_dt = list(n, startDate, endDate),
+    aeser = list(n, data$Raw_SUBJ),
+    aetoxgr = list(n, data$Raw_SUBJ),
     studyid = list(n, data$Raw_STUDY$protocol_number[[1]]),
     default = list(n, startDate)
   )
@@ -50,9 +52,23 @@ Raw_AE <- function(data, previous_data, spec, startDate, endDate, ...) {
   return(res)
 }
 
-aeser <- function(n, ...) {
-  # Function body for aeser
-  sample(c("Y", "N"), n, replace = TRUE)
+aeser <- function(n, Raw_SUBJ_data = NULL, ...) {
+  # Favor serious AEs in hotspot sites so z-score metrics can separate entities.
+  row_keys <- if (is.data.frame(Raw_SUBJ_data) && "subjid" %in% names(Raw_SUBJ_data)) {
+    sample(Raw_SUBJ_data$subjid, n, replace = TRUE)
+  } else {
+    NULL
+  }
+  sample_categorical_with_hotspots(
+    values = c("Y", "N"),
+    n = n,
+    base_prob = c(0.15, 0.85),
+    outlier_idx = 1,
+    row_keys = row_keys,
+    key_map = Raw_SUBJ_data,
+    key_col = "subjid",
+    site_col = "invid"
+  )
 }
 
 aeongo <- function(n, ...) {
@@ -77,8 +93,22 @@ mdrpt_nsv <- function(n, ...) {
 mdrsoc_nsv <- function(n, ...) {
   sample(c("soc1", "soc2"), n, replace = TRUE)
 }
-aetoxgr <- function(n, ...) {
-  sample(1:5, n, replace = TRUE)
+aetoxgr <- function(n, Raw_SUBJ_data = NULL, ...) {
+  row_keys <- if (is.data.frame(Raw_SUBJ_data) && "subjid" %in% names(Raw_SUBJ_data)) {
+    sample(Raw_SUBJ_data$subjid, n, replace = TRUE)
+  } else {
+    NULL
+  }
+  sample_categorical_with_hotspots(
+    values = 1:5,
+    n = n,
+    base_prob = c(0.45, 0.30, 0.15, 0.07, 0.03),
+    outlier_idx = 4:5,
+    row_keys = row_keys,
+    key_map = Raw_SUBJ_data,
+    key_col = "subjid",
+    site_col = "invid"
+  )
 }
 
 aest_dt_aeen_dt <- function(n, startDate, endDate, ...) {

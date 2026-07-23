@@ -44,7 +44,7 @@ Raw_STUDCOMP <- function(data, previous_data, spec, startDate, ...) {
   return(res)
 }
 
-Raw_StudyCompletion <- function(data, previous_data, spec, ...) {
+Raw_StudyCompletion <- function(data, previous_data, spec, startDate = Sys.Date(), ...) {
   # Function body for Raw_StudyCompletion
   inps <- list(...)
 
@@ -90,16 +90,17 @@ subjid_invid_unique <- function(n, Raw_SUBJ_data, previous_STUDCOMP_data, replac
 
 compyn <- function(n, ...) {
   # Function body for compyn
-  sample(c("", "N"),
-    prob = c(0.1, 0.9),
-    n,
+  sample(c(NA, "N", "Y"),
+    size = n,
+    prob = c(0.7, 0.1, 0.2),
     replace = TRUE
   )
 }
 
 compreas <- function(n, ...) {
-  sample(c("Lost to Follow-Up", "Death", "Withdrew Consent"),
+  sample(c("", "Lost to Follow-Up", "Death", "Withdrew Consent"),
     size = n,
+    prob = c(0.85, 0.05, 0.05, 0.05),
     replace = TRUE
   )
 }

@@ -33,6 +33,7 @@ Raw_STUDY <- function(data, previous_data, spec, ...) {
     est_fpfv = list(inps$MinDate, inps$MaxDate, dataset$est_fpfv),
     est_lpfv = list(inps$GlobalMaxDate - 30, inps$GlobalMaxDate, dataset$est_lpfv),
     est_lplv = list(inps$GlobalMaxDate + 30, inps$GlobalMaxDate + 120, dataset$est_lplv),
+    db_lock_dt = list(1, inps$GlobalMaxDate),
     phase = list(1, external_phase = c("P1", "P2", "P3", "P4")),
     default = list(1)
   )
@@ -55,6 +56,12 @@ est_lplv <- function(date_min, date_lim, prev_data, ...) {
 
 est_lpfv <- function(date_min, date_lim, prev_data, ...) {
   generate_random_fpfv(date_min, date_lim, FALSE, prev_data)
+}
+db_lock_dt <- function(n, GlobalMaxDate, ...) {
+  if (n == 1) {
+    unlist(GlobalMaxDate)
+  }
+  return(rep(GlobalMaxDate, n))
 }
 
 studyid <- function(n, stid, ...) {

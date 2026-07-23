@@ -1,0 +1,14 @@
+{
+  "permission": {
+    "bash": {
+      "git show *": "allow",
+      "sed *": "allow",
+      "git add *": "allow",
+      "git status *": "allow",
+      "head *": "allow"
+    },
+    "executeCode": {
+      "*": "allow"
+    }
+  }
+}
