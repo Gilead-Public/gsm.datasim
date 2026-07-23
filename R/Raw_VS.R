@@ -121,9 +121,12 @@ resp <- function(n, subjects, ...) {
     dup_positions <- sample(subsequent_idx, size = min(n_dups, length(subsequent_idx)))
 
     for (pos in dup_positions) {
-      # Copy a previous value for this subject
+      # Copy a previous value for this subject. `sample()` treats a
+      # length-1 numeric argument as `1:x` rather than a single value to
+      # choose from, so guard the single-candidate case explicitly.
       prior_idx <- idx[idx < pos]
-      values[pos] <- values[sample(prior_idx, 1)]
+      chosen_idx <- if (length(prior_idx) == 1) prior_idx else sample(prior_idx, 1)
+      values[pos] <- values[chosen_idx]
     }
   }
 
