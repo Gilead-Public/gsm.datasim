@@ -79,10 +79,10 @@ ovrlresp <- function(n, Raw_SUBJ_data = NULL, ...) {
 }
 
 subjid_rs_dt <- function(n, subjids, Raw_VISIT_data, ...) {
-  filtered_visit_data <- Raw_VISIT_data %>%
-    select(subjid, visit_dt) %>%
+  filtered_visit_data <- Raw_VISIT_data |>
+    select(subjid, visit_dt) |>
     filter(subjid %in% subjids)
-  res <- filtered_visit_data[sample(nrow(filtered_visit_data), n, replace = TRUE), ] %>%
+  res <- filtered_visit_data[sample(nrow(filtered_visit_data), n, replace = TRUE), ] |>
     rename("rs_dt" = "visit_dt")
   return(list(
     subjid = res$subjid,

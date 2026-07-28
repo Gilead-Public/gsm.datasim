@@ -226,11 +226,11 @@ generate_snapshots_from_combined_specs <- function(SnapshotCount,
     }
 
     if (nrow(data$Raw_ENROLL) > 0) {
-      to_subj <- data$Raw_ENROLL %>%
+      to_subj <- data$Raw_ENROLL |>
         dplyr::select(subjid, enrollyn)
 
-      data$Raw_SUBJ <- data$Raw_SUBJ %>%
-        dplyr::rows_upsert(to_subj, by = "subjid") %>%
+      data$Raw_SUBJ <- data$Raw_SUBJ |>
+        dplyr::rows_upsert(to_subj, by = "subjid") |>
         dplyr::mutate(
           enrolldt = dplyr::if_else(enrollyn == "N", as.Date(NA), enrolldt),
           timeonstudy = dplyr::if_else(enrollyn == "N", NA, timeonstudy)
@@ -240,17 +240,17 @@ generate_snapshots_from_combined_specs <- function(SnapshotCount,
       data$raw_gilda_study_data <- NULL
     }
     if ("Raw_IE" %in% names(data)) {
-      unenrolled <- data$Raw_SUBJ %>%
-        filter(enrollyn == "N") %>%
+      unenrolled <- data$Raw_SUBJ |>
+        filter(enrollyn == "N") |>
         pull(subjid)
-      data$Raw_IE <- data$Raw_IE %>%
-        slice_sample(n = round(ParticipantCount / 3)) %>%
+      data$Raw_IE <- data$Raw_IE |>
+        slice_sample(n = round(ParticipantCount / 3)) |>
         filter(!(subjid %in% unenrolled))
     }
     if ("Raw_Randomization" %in% names(data)) {
-      data$Raw_Randomization <- data$Raw_Randomization %>%
-        group_by(subjid) %>%
-        filter(rgmn_dt == min(rgmn_dt, na.rm = TRUE)) %>%
+      data$Raw_Randomization <- data$Raw_Randomization |>
+        group_by(subjid) |>
+        filter(rgmn_dt == min(rgmn_dt, na.rm = TRUE)) |>
         ungroup()
     }
     snapshots[[snapshot_idx]] <- data

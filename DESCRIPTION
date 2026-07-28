@@ -7,14 +7,17 @@ Authors@R: c(
     person("Roman", "Rogoza", , "roman.rogoza@atorusresearch.com", role = "aut"),
     person("Gilead Sciences", role = "cph")
   )
-Description: Generates synthetic clinical trial data for testing and development
-    of clinical monitoring applications. Produces configurable multi-snapshot
-    longitudinal datasets across SDTM-style and custom domains, with optional
-    analytics and reporting pipelines powered by the 'workr' workflow engine.
+Description: Generates synthetic clinical trial data for testing and
+    development of clinical monitoring applications. Produces configurable
+    multi-snapshot longitudinal datasets across SDTM-style and custom
+    domains, with optional analytics and reporting pipelines powered by
+    the 'workr' workflow engine.
 License: Apache License (>= 2)
 URL: https://github.com/Gilead-BioStats/gsm.datasim,
     https://gilead-biostats.github.io/gsm.datasim
 BugReports: https://github.com/Gilead-BioStats/gsm.datasim/issues
+Depends:
+    R (>= 4.1)
 Imports:
     arrow,
     dplyr,
@@ -22,7 +25,6 @@ Imports:
     lifecycle,
     logger,
     lubridate,
-    magrittr,
     purrr,
     rlang,
     stringr,
@@ -40,9 +42,9 @@ VignetteBuilder:
     knitr
 Remotes:
     gsm.kri=Gilead-BioStats/gsm.kri@dev,
-    gsm.mapping=Gilead-BioStats/gsm.mapping@dev,
+    gsm.mapping=Gilead-BioStats/gsm.mapping@feature/129-lb-rptresn-lbtstnam,
     gsm.reporting=Gilead-BioStats/gsm.reporting@dev,
     workr=Gilead-BioStats/workr@main
+Config/roxygen2/version: 8.0.0
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-Config/roxygen2/version: 8.0.0

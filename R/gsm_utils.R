@@ -207,27 +207,27 @@ run_domain_generation_loop <- function(combined_specs, config, source_domains) {
 
     # --- Post-processing ---
     if (!is.null(data$Raw_ENROLL) && nrow(data$Raw_ENROLL) > 0) {
-      to_subj <- data$Raw_ENROLL %>%
+      to_subj <- data$Raw_ENROLL |>
         dplyr::select(subjid, enrollyn)
-      data$Raw_SUBJ <- data$Raw_SUBJ %>%
-        dplyr::rows_upsert(to_subj, by = "subjid") %>%
+      data$Raw_SUBJ <- data$Raw_SUBJ |>
+        dplyr::rows_upsert(to_subj, by = "subjid") |>
         dplyr::mutate(
           enrolldt    = dplyr::if_else(enrollyn == "N", as.Date(NA), enrolldt),
           timeonstudy = dplyr::if_else(enrollyn == "N", NA, timeonstudy)
         )
     }
     if ("Raw_IE" %in% names(data)) {
-      unenrolled <- data$Raw_SUBJ %>%
-        dplyr::filter(enrollyn == "N") %>%
+      unenrolled <- data$Raw_SUBJ |>
+        dplyr::filter(enrollyn == "N") |>
         dplyr::pull(subjid)
-      data$Raw_IE <- data$Raw_IE %>%
-        dplyr::slice_sample(n = round(participant_count / 3)) %>%
+      data$Raw_IE <- data$Raw_IE |>
+        dplyr::slice_sample(n = round(participant_count / 3)) |>
         dplyr::filter(!(subjid %in% unenrolled))
     }
     if ("Raw_Randomization" %in% names(data)) {
-      data$Raw_Randomization <- data$Raw_Randomization %>%
-        dplyr::group_by(subjid) %>%
-        dplyr::filter(rgmn_dt == min(rgmn_dt, na.rm = TRUE)) %>%
+      data$Raw_Randomization <- data$Raw_Randomization |>
+        dplyr::group_by(subjid) |>
+        dplyr::filter(rgmn_dt == min(rgmn_dt, na.rm = TRUE)) |>
         dplyr::ungroup()
     }
 

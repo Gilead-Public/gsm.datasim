@@ -7,9 +7,9 @@ get_endpoints_domains <- function() {
     strPath = endpoints_mapping_path,
     strPackage = NULL
   )
-  endpoint_domains <- lEndpointMappings %>%
-    CombineSpecs() %>%
-    names() %>%
+  endpoint_domains <- lEndpointMappings |>
+    CombineSpecs() |>
+    names() |>
     stringr::str_replace("Mapped_", "")
 
   # Domains from gsm.endpoints

@@ -277,8 +277,8 @@ add_new_var_data <- function(dataset, vars, args, orig_curr_spec, ...) {
     variable_data <- combination_var_splitter(variable_data, internal_args$split_vars)
   }
 
-  variable_data <- variable_data %>%
-    as.data.frame() %>%
+  variable_data <- variable_data |>
+    as.data.frame() |>
     rename_raw_data_vars_per_spec(orig_curr_spec)
 
 
