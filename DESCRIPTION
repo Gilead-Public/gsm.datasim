@@ -30,7 +30,6 @@ Imports:
     utils,
     workr (>= 1.0.0)
 Suggests:
-    gsm.core,
     gsm.kri,
     gsm.mapping,
     gsm.reporting,
@@ -40,7 +39,6 @@ Suggests:
 VignetteBuilder: 
     knitr
 Remotes:
-    gsm.core=Gilead-BioStats/gsm.core@main,
     gsm.kri=Gilead-BioStats/gsm.kri@main,
     gsm.mapping=Gilead-BioStats/gsm.mapping@main,
     gsm.reporting=Gilead-BioStats/gsm.reporting@main,
