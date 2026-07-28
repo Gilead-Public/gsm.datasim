@@ -172,10 +172,10 @@ config <- create_study_config(
   participant_count = 300,
   site_count        = 20,
   analytics_package = "gsm.kri"
-) %>%
-  set_temporal_config(start_date = "2023-01-01", snapshot_count = 12, snapshot_width = "months") %>%
-  add_dataset_config("Raw_AE",    enabled = TRUE) %>%
-  add_dataset_config("Raw_LB",    enabled = TRUE) %>%
+) |>
+  set_temporal_config(start_date = "2023-01-01", snapshot_count = 12, snapshot_width = "months") |>
+  add_dataset_config("Raw_AE",    enabled = TRUE) |>
+  add_dataset_config("Raw_LB",    enabled = TRUE) |>
   add_dataset_config("Raw_VISIT", enabled = TRUE)
 
 raw_data  <- generate_study_data(config)
