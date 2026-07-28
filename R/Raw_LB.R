@@ -218,7 +218,15 @@ rptresn <- function(n, subj_visits, tests, dDuplicateRate = 0.10, ...) {
 
     subsequent_idx <- idx[-1]
     n_dups <- max(1, round(length(subsequent_idx) * dDuplicateRate))
-    dup_positions <- sample(subsequent_idx, size = min(n_dups, length(subsequent_idx)))
+    n_dups <- min(n_dups, length(subsequent_idx))
+    # `sample()` treats a length-1 numeric argument as `1:x` rather than a
+    # single value to choose from, so guard the single-candidate case
+    # explicitly (mirrors `.generate_vital_with_duplicates()` in Raw_VS.R).
+    dup_positions <- if (length(subsequent_idx) == 1) {
+      subsequent_idx
+    } else {
+      sample(subsequent_idx, size = n_dups)
+    }
 
     for (pos in dup_positions) {
       prior_idx <- idx[idx < pos]
