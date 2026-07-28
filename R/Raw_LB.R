@@ -182,9 +182,11 @@ lbtstnam <- function(n, subj_visits, tests, ...) {
 #' Generate reported numeric lab results (`rptresn`)
 #'
 #' Produces test-specific numeric distributions for each `lbtstnam`, with a
-#' configurable probability of injecting a duplicate value matching a prior
-#' visit's `rptresn` for the same subject/test, consistent with the
-#' vitals-duplication approach in `Raw_VS.R`.
+#' configurable rate of injecting a duplicate value matching a prior visit's
+#' `rptresn` for the same subject/test, consistent with the
+#' vitals-duplication approach in `Raw_VS.R`. At least one duplicate is
+#' forced whenever a subject/test combination has more than one subsequent
+#' record, so real duplicate-detection logic always has a case to find.
 #'
 #' @param n Total number of values to generate (`nrow(subj_visits) * nrow(tests)`)
 #' @param subj_visits Data frame of subject/visit rows (repeated once per test),
