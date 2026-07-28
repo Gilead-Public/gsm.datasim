@@ -211,16 +211,16 @@ custom_study <- create_study_config(
   analytics_package   = "gsm.kri",
   analytics_workflows = c("kri0001", "kri0002", "kri0003"),
   reporting_package   = "gsm.reporting"
-) %>%
+) |>
   set_temporal_config(
     start_date     = "2023-06-01",
     snapshot_count = 12,
     snapshot_width = "months"
-  ) %>%
-  add_dataset_config("Raw_AE",    enabled = TRUE) %>%
-  add_dataset_config("Raw_LB",    enabled = TRUE) %>%
-  add_dataset_config("Raw_VISIT", enabled = TRUE) %>%
-  add_dataset_config("Raw_QUERY", enabled = TRUE) %>%
+  ) |>
+  add_dataset_config("Raw_AE",    enabled = TRUE) |>
+  add_dataset_config("Raw_LB",    enabled = TRUE) |>
+  add_dataset_config("Raw_VISIT", enabled = TRUE) |>
+  add_dataset_config("Raw_QUERY", enabled = TRUE) |>
   add_dataset_config("Raw_DATACHG", enabled = TRUE,
     count_formula = function(config, snapshot_idx = 1) {
       round(config$study_params$participant_count * 0.4 * snapshot_idx /
