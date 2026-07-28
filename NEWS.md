@@ -1,9 +1,5 @@
 # gsm.datasim (development version)
 
-## Breaking Changes
-
-- The exported `%>%` (magrittr pipe) operator has been removed. Internal code now uses the base R native pipe (`%>%`) exclusively, and `magrittr` is no longer a dependency. Downstream code calling `gsm.datasim::%>%` should switch to `%>%` or `magrittr::%>%` directly.
-
 # gsm.datasim v2.0.0
 
 This major release introduces a composable study builder API, longitudinal multi-snapshot study support, workflow-driven data generation, a domain registry, and parquet export. Analytics and reporting are now powered by the `workr` workflow engine.
