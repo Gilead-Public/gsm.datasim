@@ -301,8 +301,8 @@ get_domain_registry <- function() {
         }
 
         subjs <- subjid(n, external_subjid = data$Raw_SUBJ$subjid, replace = FALSE)
-        subj_visits <- data$Raw_VISIT |>
-          dplyr::filter(subjid %in% subjs) |>
+        subj_visits <- data$Raw_VISIT %>%
+          dplyr::filter(subjid %in% subjs) %>%
           dplyr::select(subjid, instancename)
         all_n <- nrow(subj_visits) * nrow(tests)
 
@@ -533,12 +533,12 @@ get_domain_registry <- function() {
         }
 
         subjs <- subjid(n, external_subjid = data$Raw_SUBJ$subjid, replace = FALSE)
-        subj_visits <- data$Raw_VISIT |>
-          dplyr::filter(subjid %in% subjs) |>
+        subj_visits <- data$Raw_VISIT %>%
+          dplyr::filter(subjid %in% subjs) %>%
           dplyr::select(subjid, instancename)
 
-        invids <- data.frame(subjid = subj_visits$subjid) |>
-          dplyr::left_join(dplyr::select(data$Raw_SUBJ, subjid, invid), by = "subjid") |>
+        invids <- data.frame(subjid = subj_visits$subjid) %>%
+          dplyr::left_join(dplyr::select(data$Raw_SUBJ, subjid, invid), by = "subjid") %>%
           dplyr::pull(invid)
 
         all_n <- nrow(subj_visits)

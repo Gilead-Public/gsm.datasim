@@ -61,7 +61,7 @@ subject_to_enrollment <- function(n, data, previous_data, ...) {
   res <- data_pool[
     sample_subset,
     c("subjid", "invid", "country", "enrollyn")
-  ] |>
+  ] %>%
     dplyr::mutate(subjectid = paste0("XX-", subjid))
 
   return(res)

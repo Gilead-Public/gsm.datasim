@@ -25,6 +25,7 @@ Imports:
     lifecycle,
     logger,
     lubridate,
+    magrittr,
     purrr,
     rlang,
     stringr,

@@ -135,10 +135,10 @@ product <- function(n, ...) {
 
 num_plan_site <- function(num_pl_site, ...) {
   # Function body for num_plan_site
-  unlist(num_pl_site) |> as.integer()
+  unlist(num_pl_site) %>% as.integer()
 }
 
 num_plan_subj <- function(num_pl_subj, ...) {
   # Function body for num_plan_subj
-  unlist(num_pl_subj) |> as.integer()
+  unlist(num_pl_subj) %>% as.integer()
 }

@@ -131,7 +131,7 @@ State <- function(n, ...) {
     indices <- match(args$cities, Country_State_City_data$city)
     states <- Country_State_City_data$state[indices]
   } else {
-    states <- Country_State_City_data$state |>
+    states <- Country_State_City_data$state %>%
       sample(n,
         replace = TRUE
       )
@@ -145,7 +145,7 @@ Country <- function(n, ...) {
     indices <- match(args$cities, Country_State_City_data$city)
     countries <- Country_State_City_data$country[indices]
   } else {
-    countries <- Country_State_City_data$country |>
+    countries <- Country_State_City_data$country %>%
       sample(n, replace = TRUE)
   }
   return(countries)

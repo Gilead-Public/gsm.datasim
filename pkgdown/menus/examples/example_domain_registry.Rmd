@@ -94,14 +94,14 @@ config <- create_study_config(
   study_id          = "REG-DEMO-001",
   participant_count = 50,
   site_count        = 5
-) |>
+) %>%
   set_temporal_config(
     start_date     = "2023-01-01",
     snapshot_count = 3,
     snapshot_width = "months"
-  ) |>
-  add_dataset_config("Raw_AE",    enabled = TRUE) |>
-  add_dataset_config("Raw_LB",    enabled = TRUE) |>
+  ) %>%
+  add_dataset_config("Raw_AE",    enabled = TRUE) %>%
+  add_dataset_config("Raw_LB",    enabled = TRUE) %>%
   add_dataset_config("Raw_VISIT", enabled = TRUE)
 
 raw_data <- generate_raw_data_from_config(config, verbose = TRUE)
@@ -163,7 +163,7 @@ config <- create_study_config(
   study_id          = "REGISTRY-EXAMPLE-001",
   participant_count = 80,
   site_count        = 8
-) |>
+) %>%
   set_temporal_config(
     start_date     = "2012-01-01",
     snapshot_count = 2,

@@ -85,7 +85,7 @@ pkperf <- function(n, subjs, possible_visits, Raw_SUBJ_data = NULL, ...) {
 }
 
 subjid_visit_pkdat <- function(n, subjs, visit_data, ...) {
-  df <- visit_data[which(visit_data$subjid %in% subjs), ] |>
+  df <- visit_data[which(visit_data$subjid %in% subjs), ] %>%
     dplyr::select(subjid, foldername, visit_dt)
   total_n <- n * length(subjs)
   df <- df[sample(nrow(df), total_n, replace = TRUE), ]

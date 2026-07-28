@@ -110,7 +110,7 @@ subject_site_synq <- function(n, Raw_SITE_data, ...) {
   Raw_SITE_data[
     sample(nrow(Raw_SITE_data), n, replace = TRUE),
     c("pi_number", "country")
-  ] |>
+  ] %>%
     dplyr::rename("invid" = "pi_number")
 }
 
@@ -145,7 +145,7 @@ enrolldt <- function(n, startDate, endDate, enrollyn_dat, ...) {
 
 timeonstudy <- function(n, enrolldt, endDate, ...) {
   # Function body for timeonstudy
-  as.numeric(as.Date(endDate) - as.Date(enrolldt)) |> as.integer()
+  as.numeric(as.Date(endDate) - as.Date(enrolldt)) %>% as.integer()
 }
 
 agerep <- function(n, ...) {

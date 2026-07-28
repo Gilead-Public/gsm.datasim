@@ -57,8 +57,8 @@ subject_to_ie <- function(n, data, previous_data, ...) {
     data_pool <- data$Raw_SUBJ
   }
 
-  res <- data_pool |>
-    # filter(enrollyn == "N") |>
+  res <- data_pool %>%
+    # filter(enrollyn == "N") %>%
     select(subjid)
   return(res)
 }
