@@ -352,7 +352,7 @@ display: none;
 <h1 class="title toc-ignore">Domain Registry</h1>
 <h4 class="author"><a href="https://gilead-biostats.github.io/gsm.datasim">gsm.datasim</a>
 Example</h4>
-<h4 class="date">July 28, 2026 20:51:39 UTC</h4>
+<h4 class="date">July 28, 2026 20:59:58 UTC</h4>
 
 </div>
 
@@ -454,14 +454,14 @@ study:</p>
   study_id          = &quot;REG-DEMO-001&quot;,
   participant_count = 50,
   site_count        = 5
-) |&gt;
+) %&gt;%
   set_temporal_config(
     start_date     = &quot;2023-01-01&quot;,
     snapshot_count = 3,
     snapshot_width = &quot;months&quot;
-  ) |&gt;
-  add_dataset_config(&quot;Raw_AE&quot;,    enabled = TRUE) |&gt;
-  add_dataset_config(&quot;Raw_LB&quot;,    enabled = TRUE) |&gt;
+  ) %&gt;%
+  add_dataset_config(&quot;Raw_AE&quot;,    enabled = TRUE) %&gt;%
+  add_dataset_config(&quot;Raw_LB&quot;,    enabled = TRUE) %&gt;%
   add_dataset_config(&quot;Raw_VISIT&quot;, enabled = TRUE)
 
 raw_data &lt;- generate_raw_data_from_config(config, verbose = TRUE)
@@ -519,7 +519,7 @@ new_entry &lt;- list(
   study_id          = &quot;REGISTRY-EXAMPLE-001&quot;,
   participant_count = 80,
   site_count        = 8
-) |&gt;
+) %&gt;%
   set_temporal_config(
     start_date     = &quot;2012-01-01&quot;,
     snapshot_count = 2,

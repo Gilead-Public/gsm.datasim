@@ -352,7 +352,7 @@ display: none;
 <h1 class="title toc-ignore">Longitudinal Data Generation</h1>
 <h4 class="author"><a href="https://gilead-biostats.github.io/gsm.datasim">gsm.datasim</a>
 Example</h4>
-<h4 class="date">July 28, 2026 20:51:40 UTC</h4>
+<h4 class="date">July 28, 2026 20:59:58 UTC</h4>
 
 </div>
 
@@ -416,22 +416,22 @@ cat(&quot;Datasets in snapshot 1:&quot;, paste(names(snapshot_1_data), collapse 
   &quot;COMPLEX-TRIAL-001&quot;,
   participant_count = 300,
   site_count        = 20
-) |&gt;
+) %&gt;%
   set_temporal_config(
     start_date     = &quot;2023-01-01&quot;,
     snapshot_count = 8,
     snapshot_width = &quot;6 weeks&quot;
-  ) |&gt;
+  ) %&gt;%
   add_dataset_config(&quot;Raw_AE&quot;, enabled = TRUE,
     count_formula = function(config, snapshot_idx = 1) {
       base_count &lt;- config$study_params$participant_count * 2.5
       factor     &lt;- snapshot_idx / config$temporal_config$snapshot_count
       round(base_count * factor)
     }
-  ) |&gt;
-  add_dataset_config(&quot;Raw_VISIT&quot;,      enabled = TRUE) |&gt;
-  add_dataset_config(&quot;Raw_LB&quot;,      enabled = TRUE) |&gt;
-  add_dataset_config(&quot;Raw_QUERY&quot;,   enabled = TRUE) |&gt;
+  ) %&gt;%
+  add_dataset_config(&quot;Raw_VISIT&quot;,      enabled = TRUE) %&gt;%
+  add_dataset_config(&quot;Raw_LB&quot;,      enabled = TRUE) %&gt;%
+  add_dataset_config(&quot;Raw_QUERY&quot;,   enabled = TRUE) %&gt;%
   add_dataset_config(&quot;Raw_DATACHG&quot;, enabled = TRUE)
 
 cat(&quot;Study:&quot;, complex_study$study_params$study_id, &quot;\n&quot;)
@@ -448,13 +448,13 @@ cat(&quot;Enabled datasets:&quot;, paste(names(complex_study$dataset_configs), c
   study_id          = &quot;ADVANCED-001&quot;,
   participant_count = 200,
   site_count        = 15
-) |&gt;
+) %&gt;%
   set_temporal_config(
     start_date     = &quot;2024-01-01&quot;,
     snapshot_count = 10,
     snapshot_width = &quot;months&quot;
-  ) |&gt;
-  add_dataset_config(&quot;Raw_AE&quot;, enabled = TRUE) |&gt;
+  ) %&gt;%
+  add_dataset_config(&quot;Raw_AE&quot;, enabled = TRUE) %&gt;%
   add_dataset_config(&quot;Raw_LB&quot;, enabled = TRUE)
 
 validate_study_config(config)

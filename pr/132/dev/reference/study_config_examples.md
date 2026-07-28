@@ -7,8 +7,8 @@ Example of config interface usage
 ``` r
 if (FALSE) { # \dontrun{
 # Simple study with standard datasets using config approach
-config <- create_study_config("ONCOLOGY001", participant_count = 200, site_count = 15) |>
-  set_temporal_config(start_date = "2023-01-01", snapshot_count = 12, snapshot_width = "months") |>
+config <- create_study_config("ONCOLOGY001", participant_count = 200, site_count = 15) %>%
+  set_temporal_config(start_date = "2023-01-01", snapshot_count = 12, snapshot_width = "months") %>%
   add_dataset_config("Raw_AE",
     enabled = TRUE,
     count_formula = function(config, snapshot_idx = 1) {
@@ -16,7 +16,7 @@ config <- create_study_config("ONCOLOGY001", participant_count = 200, site_count
       factor <- snapshot_idx / config$temporal_config$snapshot_count
       round(base_count * factor)
     }
-  ) |>
+  ) %>%
   add_dataset_config("Raw_VISIT", enabled = TRUE)
 study_data <- generate_study_data(config)
 
@@ -27,7 +27,7 @@ config <- create_standard_study_config("TRIAL002",
 )
 
 # Custom dataset configuration
-config <- create_study_config("CUSTOM001", participant_count = 300, site_count = 20) |>
+config <- create_study_config("CUSTOM001", participant_count = 300, site_count = 20) %>%
   add_dataset_config("Raw_Biomarker",
     enabled = TRUE,
     count_formula = function(config) config$study_params$participant_count * 5,
