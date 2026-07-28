@@ -42,7 +42,7 @@ VignetteBuilder:
     knitr
 Remotes:
     gsm.kri=Gilead-BioStats/gsm.kri@dev,
-    gsm.mapping=Gilead-BioStats/gsm.mapping@feature/129-lb-rptresn-lbtstnam,
+    gsm.mapping=Gilead-BioStats/gsm.mapping@dev,
     gsm.reporting=Gilead-BioStats/gsm.reporting@dev,
     workr=Gilead-BioStats/workr@main
 Config/roxygen2/version: 8.0.0
