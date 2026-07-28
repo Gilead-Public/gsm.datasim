@@ -223,26 +223,6 @@ test_that("Raw_VS generates the full 8-vitals superset (height/bmi/pulse/temp/re
   }
 })
 
-test_that("prepare_combined_specs_for_generation injects a fallback Raw_VS spec when Raw_VS is requested without a full spec (#113)", {
-  combined_specs <- list(
-    Raw_STUDY = list(),
-    Raw_SITE = list(),
-    Raw_SUBJ = list(subjid = list(required = TRUE)),
-    Raw_VS = list(weight = list(required = TRUE))
-  )
-
-  prepared <- prepare_combined_specs_for_generation(combined_specs)
-
-  expect_true("Raw_VS" %in% names(prepared))
-  expect_true(all(c(
-    "subjid", "invid", "studyid", "instancename",
-    "vs_dt", "vsperf_std", "weight", "sysbp", "diabp"
-  ) %in% names(prepared$Raw_VS)))
-  # The user-supplied weight entry should be preserved by modifyList(),
-  # not silently overwritten with the fallback default.
-  expect_equal(prepared$Raw_VS$weight, list(required = TRUE))
-})
-
 test_that("prepare_combined_specs_for_generation leaves an already-complete Raw_VS spec untouched (#113)", {
   complete_spec <- list(
     subjid = list(required = TRUE),

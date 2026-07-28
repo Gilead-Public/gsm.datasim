@@ -38,22 +38,6 @@ prepare_combined_specs_for_generation <- function(combined_specs, desired_specs 
       visit_dt = list(required = TRUE)
     )
   }
-  if ("Raw_VS" %in% names(combined_specs) && !("instancename" %in% names(combined_specs$Raw_VS))) {
-    combined_specs$Raw_VS <- utils::modifyList(
-      combined_specs$Raw_VS,
-      list(
-        subjid = list(required = TRUE),
-        invid = list(required = TRUE),
-        studyid = list(required = TRUE),
-        instancename = list(required = TRUE),
-        vs_dt = list(required = TRUE),
-        vsperf_std = list(required = TRUE),
-        weight = list(required = TRUE),
-        sysbp = list(required = TRUE),
-        diabp = list(required = TRUE)
-      )
-    )
-  }
   desired_order <- desired_order[desired_order %in% names(combined_specs)]
 
   # Rearrange the elements
