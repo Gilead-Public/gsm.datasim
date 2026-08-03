@@ -128,19 +128,14 @@ test_that("apply_nonstarter_sdrgreas keeps carried-forward rows stable across in
   # Snapshot 1: SDRGCOMP rows for the first 15 subjects.
   set.seed(123)
   snap1 <- apply_nonstarter_sdrgreas(
-    data.frame(subjid = subj_ids[1:15], stringsAsFactors = FALSE),
-    raw_subj
+    data.frame(subjid = subj_ids[1:15], stringsAsFactors = FALSE), raw_subj
   )
 
   # Snapshot 2 (incremental): snapshot-1 rows carried forward + newly appended rows,
   # exactly as add_new_var_data() -> bind_rows(dataset, new_rows) feeds this helper.
   combined <- rbind(
     snap1[, c("subjid", "sdrgreas")],
-    data.frame(
-      subjid = subj_ids[16:21],
-      sdrgreas = NA_character_,
-      stringsAsFactors = FALSE
-    )
+    data.frame(subjid = subj_ids[16:21], sdrgreas = NA_character_, stringsAsFactors = FALSE)
   )
   snap2 <- apply_nonstarter_sdrgreas(combined, raw_subj)
 
@@ -151,9 +146,7 @@ test_that("apply_nonstarter_sdrgreas keeps carried-forward rows stable across in
   # Newly appended benign rows still receive a real benign reason (not NA/never-dosed).
   new_reasons <- snap2$sdrgreas[snap2$subjid %in% subj_ids[16:21]]
   expect_false(any(is.na(new_reasons)))
-  expect_true(all(
-    new_reasons %in% c("Study Drug Completed", "Study Drug Discontinued")
-  ))
+  expect_true(all(new_reasons %in% c("Study Drug Completed", "Study Drug Discontinued")))
 })
 
 test_that("cross-domain consistency: sdrgreas 'never dosed' subjids are a subset of compreas-present (#122)", {
@@ -176,9 +169,7 @@ test_that("cross-domain consistency: sdrgreas 'never dosed' subjids are a subset
   sdrg <- apply_nonstarter_sdrgreas(df_sdrg, raw_subj)
   stud <- apply_nonstarter_compreas(df_stud, raw_subj)
   never <- sort(sdrg$subjid[sdrg$sdrgreas == NEVER_DOSED])
-  present <- sort(stud$subjid[
-    !is.na(stud$compreas) & trimws(stud$compreas) != ""
-  ])
+  present <- sort(stud$subjid[!is.na(stud$compreas) & trimws(stud$compreas) != ""])
   expect_true(all(never %in% present))
   expect_equal(never, c("S1", "S3"))
   expect_setequal(present, c("S1", "S2", "S3"))
