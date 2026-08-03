@@ -1,4 +1,4 @@
-test_that("create_multiple_longitudinal_studies works with basic configuration", {
+test_that("create_multiple_longitudinal_studies works with basic configuration (#89, #95)", {
   skip_if_not_installed("gsm.mapping")
 
   studies <- create_multiple_longitudinal_studies(
@@ -28,7 +28,7 @@ test_that("create_multiple_longitudinal_studies works with basic configuration",
   }
 })
 
-test_that("create_multiple_longitudinal_studies works with per-study configuration", {
+test_that("create_multiple_longitudinal_studies works with per-study configuration (#89, #95)", {
   skip_if_not_installed("gsm.mapping")
 
   studies <- create_multiple_longitudinal_studies(
@@ -54,7 +54,7 @@ test_that("create_multiple_longitudinal_studies works with per-study configurati
   expect_equal(studies[["LARGE-001"]]$config$domains, c("AE", "LB"))
 })
 
-test_that("create_multiple_longitudinal_studies validates inputs", {
+test_that("create_multiple_longitudinal_studies validates inputs (#95)", {
   # Empty study names
   expect_error(
     create_multiple_longitudinal_studies(study_names = character(0)),
@@ -68,7 +68,7 @@ test_that("create_multiple_longitudinal_studies validates inputs", {
   )
 })
 
-test_that("print method works for multiple_longitudinal_studies", {
+test_that("print method works for multiple_longitudinal_studies (#95)", {
   skip_if_not_installed("gsm.mapping")
 
   studies <- create_multiple_longitudinal_studies(
@@ -87,7 +87,7 @@ test_that("print method works for multiple_longitudinal_studies", {
   expect_output(print(studies), "Study: PRINT-TEST")
 })
 
-test_that("summary method works for multiple_longitudinal_studies", {
+test_that("summary method works for multiple_longitudinal_studies (#95)", {
   skip_if_not_installed("gsm.mapping")
 
   studies <- create_multiple_longitudinal_studies(

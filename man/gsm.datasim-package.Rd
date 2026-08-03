@@ -6,7 +6,7 @@
 \alias{gsm.datasim-package}
 \title{gsm.datasim: Synthetic Test Data Generator}
 \description{
-Generates synthetic test data for the RBQM of Clinical Trials based on several parameters.
+Generates synthetic clinical trial data for testing and development of clinical monitoring applications. Produces configurable multi-snapshot longitudinal datasets across SDTM-style and custom domains, with optional analytics and reporting pipelines powered by the 'workr' workflow engine.
 }
 \seealso{
 Useful links:
@@ -22,6 +22,7 @@ Useful links:
 
 Authors:
 \itemize{
+  \item Laura Maxwell \email{laura.maxwell@atorusresearch.com}
   \item Zelos Zhu \email{zelos.zhu@atorusresearch.com}
   \item Roman Rogoza \email{roman.rogoza@atorusresearch.com}
 }

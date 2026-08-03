@@ -7,9 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(workr)
-library(gsm.core)
-library(gsm.mapping)
 library(gsm.datasim)
 
 test_check("gsm.datasim")

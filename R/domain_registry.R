@@ -101,19 +101,6 @@ get_domain_registry <- function() {
         )
       }
     ),
-    Raw_EXCLUSION = list(
-      dataset = "Raw_EXCLUSION",
-      required_inputs = c("data", "previous_data", "combined_specs", "n"),
-      count_fn = function(counts, snapshot_idx) counts$subject_count[snapshot_idx],
-      generate_fn = function(context) {
-        Raw_EXCLUSION(
-          data          = context$data,
-          previous_data = context$previous_data,
-          spec          = context$combined_specs,
-          n_EXCLUSION   = context$n
-        )
-      }
-    ),
 
     # ── Visit / time-on-study datasets ───────────────────────────────────────
     Raw_VISIT = list(
@@ -506,6 +493,75 @@ get_domain_registry <- function() {
           n             = context$n,
           split_vars    = list("subjid_visit_pkdat")
         )
+      }
+    ),
+    Raw_VS = list(
+      dataset = "Raw_VS",
+      required_inputs = c("data", "previous_data", "combined_specs", "n", "start_date"),
+      count_fn = function(counts, snapshot_idx) counts$subject_count[snapshot_idx],
+      generate_fn = function(context) {
+        spec <- context$combined_specs
+        curr_spec <- spec$Raw_VS
+        data <- context$data
+        previous_data <- context$previous_data
+
+        if ("Raw_VS" %in% names(previous_data)) {
+          dataset <- previous_data$Raw_VS
+          previous_row_num <- length(unique(dataset$subjid))
+        } else {
+          dataset <- NULL
+          previous_row_num <- 0
+        }
+
+        n <- context$n - previous_row_num
+        if (n <= 0) {
+          return(dataset)
+        }
+
+        if (!("instancename" %in% names(curr_spec))) curr_spec$instancename <- list(required = TRUE)
+
+        if (all(c("subjid", "instancename") %in% names(curr_spec))) {
+          curr_spec$vs_subj_visit_repeated <- list(required = TRUE)
+          curr_spec$subjid <- NULL
+          curr_spec$instancename <- NULL
+        }
+
+        if ("invid" %in% names(curr_spec)) {
+          curr_spec$vs_invid_repeated <- list(required = TRUE)
+          curr_spec$invid <- NULL
+        }
+
+        subjs <- subjid(n, external_subjid = data$Raw_SUBJ$subjid, replace = FALSE)
+        subj_visits <- data$Raw_VISIT %>%
+          dplyr::filter(subjid %in% subjs) %>%
+          dplyr::select(subjid, instancename)
+
+        invids <- data.frame(subjid = subj_visits$subjid) %>%
+          dplyr::left_join(dplyr::select(data$Raw_SUBJ, subjid, invid), by = "subjid") %>%
+          dplyr::pull(invid)
+
+        all_n <- nrow(subj_visits)
+
+        args <- list(
+          vs_subj_visit_repeated = list(1, subj_visits),
+          vs_invid_repeated      = list(1, invids),
+          studyid              = list(all_n, data$Raw_STUDY$protocol_number[[1]]),
+          vs_dt                = list(all_n, context$start_date),
+          vsperf_std           = list(all_n),
+          weight               = list(all_n, subj_visits$subjid),
+          height               = list(all_n, subj_visits$subjid),
+          bmi                  = list(all_n, subj_visits$subjid),
+          sysbp                = list(all_n, subj_visits$subjid),
+          diabp                = list(all_n, subj_visits$subjid),
+          pulse                = list(all_n, subj_visits$subjid),
+          temp                 = list(all_n, subj_visits$subjid),
+          resp                 = list(all_n, subj_visits$subjid),
+          default              = list(all_n, subj_visits)
+        )
+
+        as.data.frame(add_new_var_data(dataset, curr_spec, args, spec$Raw_VS,
+          split_vars = list("vs_subj_visit_repeated", "vs_invid_repeated")
+        ))
       }
     ),
     Raw_Baseline = list(

@@ -49,10 +49,3 @@ act_lplv <- function(date_min, date_lim, prev_data, ...) {
   generate_random_fpfv(date_min, date_lim, FALSE, prev_data)
 }
 
-status <- function(n, stat = c("Active"), ...) {
-  # Function body for status
-  sample(stat,
-    n,
-    replace = TRUE
-  )
-}

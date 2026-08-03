@@ -68,14 +68,14 @@ for custom distributions or categorical values.}
 }
 Example:
 \preformatted{
-  column_overrides = list(
-    Raw_LB = list(
-      score_val  = function(n)    round(runif(n, 0, 10), 1),
-      lbstresu   = c("mg/dL", "mmol/L", "g/L"),
-      visit_flag = function(n, df) ifelse(df$visnam == "SCREENING", "S", "F")
-    )
+column_overrides = list(
+  Raw_LB = list(
+    score_val  = function(n)    round(runif(n, 0, 10), 1),
+    lbstresu   = c("mg/dL", "mmol/L", "g/L"),
+    visit_flag = function(n, df) ifelse(df$visnam == "SCREENING", "S", "F")
   )
-  }}
+)
+}}
 }
 \value{
 When \code{snapshot_count == 1}, a named list of \code{data.frame}s (one per

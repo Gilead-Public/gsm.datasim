@@ -26,7 +26,6 @@ create_standard_study_config(
   study_drug_completion = TRUE,
   study_completion = TRUE,
   inclusion_exclusion = TRUE,
-  exclusions = TRUE,
   country = TRUE,
   death = TRUE,
   randomization = TRUE,
@@ -76,8 +75,6 @@ create_standard_study_config(
 \item{study_completion}{Include overall study completion (Raw_STUDCOMP)}
 
 \item{inclusion_exclusion}{Include inclusion/exclusion criteria (Raw_IE)}
-
-\item{exclusions}{Include exclusion tracking (Raw_EXCLUSION)}
 
 \item{country}{Include country mapping}
 
