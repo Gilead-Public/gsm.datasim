@@ -27,7 +27,11 @@ Raw_SDRGCOMP <- function(data, previous_data, spec, startDate, ...) {
     return(dataset)
   }
 
-  existing_subjs <- if (is.null(dataset)) unique(character(0)) else unique(dataset$subjid)
+  existing_subjs <- if (is.null(dataset)) {
+    unique(character(0))
+  } else {
+    unique(dataset$subjid)
+  }
   available_subjs <- setdiff(unique(data$Raw_VISIT$subjid), existing_subjs)
 
   args <- list(
@@ -45,18 +49,14 @@ Raw_SDRGCOMP <- function(data, previous_data, spec, startDate, ...) {
 
 sdrgyn <- function(n, ...) {
   # Function body for sdrgyn
-  sample(c("Y", "N"),
-    prob = c(0.70, 0.30),
-    n,
-    replace = TRUE
-  )
+  sample(c("Y", "N"), prob = c(0.70, 0.30), n, replace = TRUE)
 }
 
 #' Subjects that are enrolled but never dosed (IP non-starters)
 #'
 #' The single shared predicate keeping the confirmed-non-starter markers
 #' consistent across SUBJ (`firstdosedate` NA), SDRGCOMP (`sdrgreas`) and
-#' STUDCOMP (`colendat`).
+#' STUDCOMP (`compreas`).
 #'
 #' @param raw_subj a `Raw_SUBJ` data.frame carrying `subjid`, `enrollyn`,
 #'   `firstdosedate`.
@@ -65,11 +65,15 @@ sdrgyn <- function(n, ...) {
 #' @keywords internal
 #' @noRd
 nonstarter_subjids <- function(raw_subj) {
-  if (is.null(raw_subj) ||
-    !all(c("subjid", "enrollyn", "firstdosedate") %in% names(raw_subj))) {
+  if (
+    is.null(raw_subj) ||
+      !all(c("subjid", "enrollyn", "firstdosedate") %in% names(raw_subj))
+  ) {
     return(character(0))
   }
-  as.character(raw_subj$subjid[raw_subj$enrollyn %in% "Y" & is.na(raw_subj$firstdosedate)])
+  as.character(raw_subj$subjid[
+    raw_subj$enrollyn %in% "Y" & is.na(raw_subj$firstdosedate)
+  ])
 }
 
 #' Mark study-drug-completion reason for IP non-starters
@@ -90,8 +94,11 @@ nonstarter_subjids <- function(raw_subj) {
 #' @family internal
 #' @keywords internal
 #' @noRd
-apply_nonstarter_sdrgreas <- function(df, raw_subj,
-                                      never_dosed_reason = "Subject Never Dosed with Study Drug") {
+apply_nonstarter_sdrgreas <- function(
+  df,
+  raw_subj,
+  never_dosed_reason = "Subject Never Dosed with Study Drug"
+) {
   if (is.null(df) || nrow(df) == 0 || !("subjid" %in% names(df))) {
     return(df)
   }

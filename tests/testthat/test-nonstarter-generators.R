@@ -1,7 +1,7 @@
 # IP non-starter scenario generators (gsm.datasim#122)
 # The confirmed-non-starter markers must be cross-domain consistent: the same
 # subjid set carries firstdosedate = NA (SUBJ), sdrgreas = the coded reason
-# (SDRGCOMP), and a present colendat (STUDCOMP), keyed off one shared predicate.
+# (SDRGCOMP), and a non-blank compreas (STUDCOMP), keyed off one shared predicate.
 
 NEVER_DOSED <- "Subject Never Dosed with Study Drug"
 
@@ -61,42 +61,55 @@ test_that("apply_nonstarter_sdrgreas marks non-starters with the coded reason, o
   expect_false(out$sdrgreas[out$subjid == "S2"] == NEVER_DOSED)
 })
 
-test_that("apply_nonstarter_colendat gives non-starters a present Date and others NA (#122)", {
+test_that("apply_nonstarter_compreas fills a blank reason for non-starters only (#122)", {
   raw_subj <- data.frame(
     subjid = c("S1", "S2", "S3"),
     enrollyn = c("Y", "Y", "Y"),
     firstdosedate = as.Date(c(NA, "2020-02-01", NA)),
     stringsAsFactors = FALSE
   )
-  df <- data.frame(subjid = c("S1", "S2", "S3"), stringsAsFactors = FALSE)
-  out <- apply_nonstarter_colendat(df, raw_subj)
-  expect_s3_class(out$colendat, "Date")
-  expect_false(is.na(out$colendat[out$subjid == "S1"]))
-  expect_false(is.na(out$colendat[out$subjid == "S3"]))
-  expect_true(is.na(out$colendat[out$subjid == "S2"]))
+  df <- data.frame(
+    subjid = c("S1", "S2", "S3"),
+    compreas = c("", "", ""),
+    stringsAsFactors = FALSE
+  )
+  out <- apply_nonstarter_compreas(df, raw_subj)
+  expect_type(out$compreas, "character")
+  expect_equal(out$compreas[out$subjid == "S1"], "Withdrew Consent")
+  expect_equal(out$compreas[out$subjid == "S3"], "Withdrew Consent")
+  # S2 is dosed, so its sampled value is left exactly as the generator drew it.
+  expect_equal(out$compreas[out$subjid == "S2"], "")
 })
 
-test_that("apply_nonstarter_colendat preserves a colendat a previous snapshot recorded (#122; PR #126 review r3577643679)", {
+test_that("apply_nonstarter_compreas preserves a reason a previous snapshot recorded (#122; PR #126 review r3577643679)", {
   raw_subj <- data.frame(
     subjid = c("S1", "S2"),
     enrollyn = c("Y", "Y"),
     firstdosedate = as.Date(c(NA, "2020-02-01")), # S1 non-starter, S2 dosed
     stringsAsFactors = FALSE
   )
-  # A carried-forward frame: S1's collection-end date was recorded in an earlier
-  # snapshot; re-running the helper must not rewrite it (idempotent).
+  # A carried-forward frame: S1's reason was recorded in an earlier snapshot and
+  # re-running the helper must not rewrite it (idempotent).
   carried <- data.frame(
     subjid = c("S1", "S2"),
-    colendat = as.Date(c("2012-03-31", NA)),
+    compreas = c("Lost to Follow-Up", "Death"),
     stringsAsFactors = FALSE
   )
-  out <- apply_nonstarter_colendat(carried, raw_subj)
-  expect_equal(out$colendat[out$subjid == "S1"], as.Date("2012-03-31"))
-  expect_true(is.na(out$colendat[out$subjid == "S2"]))
+  out <- apply_nonstarter_compreas(carried, raw_subj)
+  expect_equal(out$compreas[out$subjid == "S1"], "Lost to Follow-Up")
+  # A dosed subject's reason is never cleared - complete_death() reads this column.
+  expect_equal(out$compreas[out$subjid == "S2"], "Death")
 
-  # A new non-starter row with no date yet still receives a present date.
-  fresh <- data.frame(subjid = "S1", colendat = as.Date(NA), stringsAsFactors = FALSE)
-  expect_false(is.na(apply_nonstarter_colendat(fresh, raw_subj)$colendat[1]))
+  # A new non-starter row with no reason yet still receives one.
+  fresh <- data.frame(
+    subjid = "S1",
+    compreas = NA_character_,
+    stringsAsFactors = FALSE
+  )
+  expect_equal(
+    apply_nonstarter_compreas(fresh, raw_subj)$compreas[1],
+    "Withdrew Consent"
+  )
 })
 
 test_that("apply_nonstarter_sdrgreas keeps carried-forward rows stable across incremental snapshots (#122; PR #126 review r3577643601)", {
@@ -115,14 +128,19 @@ test_that("apply_nonstarter_sdrgreas keeps carried-forward rows stable across in
   # Snapshot 1: SDRGCOMP rows for the first 15 subjects.
   set.seed(123)
   snap1 <- apply_nonstarter_sdrgreas(
-    data.frame(subjid = subj_ids[1:15], stringsAsFactors = FALSE), raw_subj
+    data.frame(subjid = subj_ids[1:15], stringsAsFactors = FALSE),
+    raw_subj
   )
 
   # Snapshot 2 (incremental): snapshot-1 rows carried forward + newly appended rows,
   # exactly as add_new_var_data() -> bind_rows(dataset, new_rows) feeds this helper.
   combined <- rbind(
     snap1[, c("subjid", "sdrgreas")],
-    data.frame(subjid = subj_ids[16:21], sdrgreas = NA_character_, stringsAsFactors = FALSE)
+    data.frame(
+      subjid = subj_ids[16:21],
+      sdrgreas = NA_character_,
+      stringsAsFactors = FALSE
+    )
   )
   snap2 <- apply_nonstarter_sdrgreas(combined, raw_subj)
 
@@ -133,10 +151,12 @@ test_that("apply_nonstarter_sdrgreas keeps carried-forward rows stable across in
   # Newly appended benign rows still receive a real benign reason (not NA/never-dosed).
   new_reasons <- snap2$sdrgreas[snap2$subjid %in% subj_ids[16:21]]
   expect_false(any(is.na(new_reasons)))
-  expect_true(all(new_reasons %in% c("Study Drug Completed", "Study Drug Discontinued")))
+  expect_true(all(
+    new_reasons %in% c("Study Drug Completed", "Study Drug Discontinued")
+  ))
 })
 
-test_that("cross-domain consistency: sdrgreas 'never dosed' and colendat-present agree on the same subjids (#122)", {
+test_that("cross-domain consistency: sdrgreas 'never dosed' subjids are a subset of compreas-present (#122)", {
   raw_subj <- data.frame(
     subjid = c("S1", "S2", "S3", "S4"),
     enrollyn = c("Y", "Y", "Y", "N"),
@@ -144,12 +164,22 @@ test_that("cross-domain consistency: sdrgreas 'never dosed' and colendat-present
     stringsAsFactors = FALSE
   )
   df_sdrg <- data.frame(subjid = c("S1", "S2", "S3"), stringsAsFactors = FALSE)
-  df_stud <- data.frame(subjid = c("S1", "S2", "S3"), stringsAsFactors = FALSE)
+  # S2 is dosed but the base generator handed it a reason anyway. That is why the
+  # relationship is subset, not equality: compreas is shared clinical data that
+  # any discontinuing subject can carry, unlike the private colendat it replaces.
+  df_stud <- data.frame(
+    subjid = c("S1", "S2", "S3"),
+    compreas = c("", "Death", ""),
+    stringsAsFactors = FALSE
+  )
   set.seed(1)
   sdrg <- apply_nonstarter_sdrgreas(df_sdrg, raw_subj)
-  stud <- apply_nonstarter_colendat(df_stud, raw_subj)
+  stud <- apply_nonstarter_compreas(df_stud, raw_subj)
   never <- sort(sdrg$subjid[sdrg$sdrgreas == NEVER_DOSED])
-  colend <- sort(stud$subjid[!is.na(stud$colendat)])
-  expect_equal(never, colend)
+  present <- sort(stud$subjid[
+    !is.na(stud$compreas) & trimws(stud$compreas) != ""
+  ])
+  expect_true(all(never %in% present))
   expect_equal(never, c("S1", "S3"))
+  expect_setequal(present, c("S1", "S2", "S3"))
 })
