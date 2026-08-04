@@ -57,7 +57,7 @@ generate_unknown_domain()."><meta name="robots" content="noindex"></head><body>
     </div>
 
     <div class="ref-description section level2">
-    <p>Takes a list of workflows (as returned by <code><a href="https://gilead-biostats.github.io/workr/reference/MakeWorkflowList.html" class="external-link">workr::MakeWorkflowList()</a></code>) and
+    <p>Takes a list of workflows (as returned by <code><a href="https://rdrr.io/pkg/workr/man/MakeWorkflowList.html" class="external-link">workr::MakeWorkflowList()</a></code>) and
 generates simulated raw data for every <code>Raw_*</code> domain found in the combined
 specification. Domains that already have a dedicated generator in the domain
 registry or a legacy <code>Raw_*()</code> function are produced with those generators;
@@ -88,7 +88,7 @@ all other domains fall back to type-based column generation via
 
 <dl><dt id="arg-lworkflows">lWorkflows<a class="anchor" aria-label="anchor" href="#arg-lworkflows"></a></dt>
 <dd><p>A named list of workflow objects, each containing a <code>$spec</code>
-element (e.g. from <code><a href="https://gilead-biostats.github.io/workr/reference/MakeWorkflowList.html" class="external-link">workr::MakeWorkflowList()</a></code>).</p></dd>
+element (e.g. from <code><a href="https://rdrr.io/pkg/workr/man/MakeWorkflowList.html" class="external-link">workr::MakeWorkflowList()</a></code>).</p></dd>
 
 
 <dt id="arg-n-participants">n_participants<a class="anchor" aria-label="anchor" href="#arg-n-participants"></a></dt>
@@ -197,7 +197,7 @@ from previously generated domains.</p>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span><span class="co"># Load workflows from gsm.mapping</span></span></span>
-<span class="r-in"><span><span class="va">lWorkflows</span> <span class="op">&lt;-</span> <span class="fu">workr</span><span class="fu">::</span><span class="fu"><a href="https://gilead-biostats.github.io/workr/reference/MakeWorkflowList.html" class="external-link">MakeWorkflowList</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span><span class="va">lWorkflows</span> <span class="op">&lt;-</span> <span class="fu">workr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/workr/man/MakeWorkflowList.html" class="external-link">MakeWorkflowList</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>  strPath <span class="op">=</span> <span class="st">"workflow/1_mappings"</span>,</span></span>
 <span class="r-in"><span>  strPackage <span class="op">=</span> <span class="st">"gsm.mapping"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>

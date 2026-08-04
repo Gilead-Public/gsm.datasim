@@ -144,7 +144,7 @@ Accepts "days", "weeks", "months" and "years". User can also place a number and 
 
 <dt id="arg-lworkflows">lWorkflows<a class="anchor" aria-label="anchor" href="#arg-lworkflows"></a></dt>
 <dd><p>Optional named list of workflow objects (from
-<code><a href="https://gilead-biostats.github.io/workr/reference/MakeWorkflowList.html" class="external-link">workr::MakeWorkflowList()</a></code>). When supplied the function routes to
+<code><a href="https://rdrr.io/pkg/workr/man/MakeWorkflowList.html" class="external-link">workr::MakeWorkflowList()</a></code>). When supplied the function routes to
 <code><a href="generate_data_from_workflows.html">generate_data_from_workflows()</a></code> to produce a single-snapshot dataset
 driven entirely by the workflow spec. <code>SnapshotCount</code> and <code>SnapshotWidth</code>
 are ignored in this mode.</p></dd>
@@ -180,7 +180,7 @@ the <code>template.csv</code> file to get the necessary parameters for multiple 
 <span class="r-in"><span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu">raw_data_generator</span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Generate raw data from workflows</span></span></span>
-<span class="r-in"><span><span class="va">wf</span> <span class="op">&lt;-</span> <span class="fu">workr</span><span class="fu">::</span><span class="fu"><a href="https://gilead-biostats.github.io/workr/reference/MakeWorkflowList.html" class="external-link">MakeWorkflowList</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span><span class="va">wf</span> <span class="op">&lt;-</span> <span class="fu">workr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/workr/man/MakeWorkflowList.html" class="external-link">MakeWorkflowList</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>  strPath <span class="op">=</span> <span class="st">"workflow/1_mappings"</span>,</span></span>
 <span class="r-in"><span>  strPackage <span class="op">=</span> <span class="st">"gsm.mapping"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>

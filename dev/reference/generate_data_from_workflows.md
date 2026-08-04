@@ -1,7 +1,7 @@
 # Generate Raw Data from Workflow Specifications
 
 Takes a list of workflows (as returned by
-[`workr::MakeWorkflowList()`](https://gilead-biostats.github.io/workr/reference/MakeWorkflowList.html))
+[`workr::MakeWorkflowList()`](https://rdrr.io/pkg/workr/man/MakeWorkflowList.html))
 and generates simulated raw data for every `Raw_*` domain found in the
 combined specification. Domains that already have a dedicated generator
 in the domain registry or a legacy `Raw_*()` function are produced with
@@ -33,7 +33,7 @@ generate_data_from_workflows(
 
   A named list of workflow objects, each containing a `$spec` element
   (e.g. from
-  [`workr::MakeWorkflowList()`](https://gilead-biostats.github.io/workr/reference/MakeWorkflowList.html)).
+  [`workr::MakeWorkflowList()`](https://rdrr.io/pkg/workr/man/MakeWorkflowList.html)).
 
 - n_participants:
 
