@@ -107,6 +107,15 @@ ae_counts <- sapply(get_domain_timeline(study, "AE"), nrow)
 | `generate_analytics_layers()` | Run analytics on already-generated raw data |
 | `generate_reporting_layers()` | Run reporting on analytics results |
 
+### ActionLog simulation
+
+| Function | Description |
+|---|---|
+| `simulate_risk_signal_work_items()` | Create synthetic `grail.ado::GetWorkItems()`-compatible risk signals |
+| `tabulate_risk_signal_work_items()` | Normalize synthetic work items to `RiskSignalWorkItemsTableSchema` |
+| `augment_risk_signal_work_items()` | Augment a work item table to `grail::ActionLogSchema` |
+| `simulate_action_log()` | Run all three layers and return an ActionLog history |
+
 ### Export
 
 | Function | Description |
@@ -194,6 +203,32 @@ studies <- create_multiple_longitudinal_studies(
   domains       = c("AE", "LB", "VISIT", "PD"),
   run_analytics = TRUE
 )
+```
+
+### ActionLog histories
+
+ActionLog simulation uses synthetic values and the owning package functions. It
+does not connect to Azure DevOps or require credentials.
+
+```r
+kri_results <- data.frame(
+  StudyID = "DEMO-001",
+  SnapshotDate = as.Date(c("2026-01-01", "2026-02-01")),
+  GroupLevel = "Site",
+  GroupID = "1001",
+  MetricID = "Analysis_kri0001",
+  Flag = 1L
+)
+
+simulated <- simulate_action_log(
+  kri_results,
+  seed = 134,
+  duplicate_probability = 0.1,
+  include_intermediates = TRUE
+)
+
+names(simulated)
+#> [1] "work_items" "work_item_table" "action_log"
 ```
 
 ### Export

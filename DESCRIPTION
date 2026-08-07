@@ -30,6 +30,8 @@ Imports:
     utils,
     workr (>= 1.0.0)
 Suggests:
+    grail,
+    grail.ado,
     gsm.kri,
     gsm.mapping,
     gsm.reporting,
@@ -39,6 +41,8 @@ Suggests:
 VignetteBuilder: 
     knitr
 Remotes:
+    grail=Gilead-BioStats/grail@dev,
+    grail.ado=Gilead-BioStats/grail.ado@dev,
     gsm.kri=Gilead-BioStats/gsm.kri@dev,
     gsm.mapping=Gilead-BioStats/gsm.mapping@dev,
     gsm.reporting=Gilead-BioStats/gsm.reporting@dev,

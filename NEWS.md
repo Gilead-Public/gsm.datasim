@@ -1,5 +1,11 @@
 # gsm.datasim (development version)
 
+- Added deterministic ActionLog simulation utilities that produce
+	`grail.ado::GetWorkItems()`-compatible records, normalize through
+	`grail.ado::TabulateWorkItems()`, and augment to `grail::ActionLogSchema`.
+	State transitions, missing work items, and duplicate risk signals are
+	configurable for action-weighted Site Risk Score testing (#134).
+
 # gsm.datasim v2.0.0
 
 This major release introduces a composable study builder API, longitudinal multi-snapshot study support, workflow-driven data generation, a domain registry, and parquet export. Analytics and reporting are now powered by the `workr` workflow engine.
