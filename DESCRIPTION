@@ -30,6 +30,8 @@ Imports:
     utils,
     workr (>= 1.0.0)
 Suggests:
+    grail,
+    grail.ado,
     gsm.kri,
     gsm.mapping,
     gsm.reporting,
@@ -39,6 +41,8 @@ Suggests:
 VignetteBuilder: 
     knitr
 Remotes:
+    grail=Gilead-BioStats/grail@source-agnostic-action-log-contract,
+    grail.ado=Gilead-BioStats/grail.ado#121,
     gsm.kri=Gilead-Public/gsm.kri@for-ipns-140,
     gsm.mapping=Gilead-Public/gsm.mapping@dev,
     gsm.reporting=Gilead-Public/gsm.reporting@dev,

@@ -5,6 +5,10 @@
   `drv_enrl_first_dose_days`, `drv_days_lapsed_since_enrl`,
   `drv_ip_nonstarter_status`), impersonating the upstream Stride contract
   gsm now consumes rather than derives (#140).
+- Added deterministic ActionLog simulation utilities that produce
+	`grail.ado::GetWorkItems()`-compatible records. State transitions, missing
+	work items, and duplicate risk signals are configurable for action-weighted
+	Site Risk Score testing (#134).
 
 # gsm.datasim v2.0.0
 
