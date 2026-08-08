@@ -292,6 +292,7 @@ get_domain_registry <- function() {
         if (!("battrnam" %in% names(curr_spec))) curr_spec$battrnam <- list(required = TRUE)
         if (!("lbtstnam" %in% names(curr_spec))) curr_spec$lbtstnam <- list(required = TRUE)
         if (!("visnam" %in% names(curr_spec))) curr_spec$visnam <- list(required = TRUE)
+        if (!("rptresn" %in% names(curr_spec))) curr_spec$rptresn <- list(required = TRUE)
 
         if (all(c("subjid", "visnam") %in% names(curr_spec))) {
           curr_spec$subj_visit_repeated <- list(required = TRUE)
@@ -309,6 +310,7 @@ get_domain_registry <- function() {
           subj_visit_repeated = list(nrow(tests), subj_visits),
           studyid             = list(all_n, data$Raw_STUDY$protocol_number[[1]]),
           lb_dt               = list(all_n, context$start_date),
+          rptresn             = list(all_n, subj_visits, tests),
           default             = list(all_n, subj_visits, tests)
         )
 

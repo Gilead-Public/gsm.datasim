@@ -3,6 +3,8 @@
 #' Generate Raw VS based on `VS.yaml` from `gsm.mapping`.
 #' Wide format: one row per subject × visit with columns for all 8 vitals measures:
 #' weight, height, bmi, sysbp, diabp, pulse, temp, resp.
+#' Wide format: one row per subject × visit with columns for all 8 vitals measures:
+#' weight, height, bmi, sysbp, diabp, pulse, temp, resp.
 #'
 #' Domain generation itself is registered in `domain_registry.R` (`Raw_VS`
 #' entry); the functions below are the per-column generators dispatched by
@@ -93,7 +95,10 @@ resp <- function(n, subjects, ...) {
 #' Generate vital sign values with intentional duplicate injection
 #'
 #' For each subject, generates values from a normal distribution, then replaces
-#' ~dDuplicateRate of subsequent values with a copy of a previous value.
+#' ~dDuplicateRate of subsequent values with a copy of a previous value. At
+#' least one duplicate is forced whenever a subject has more than one
+#' subsequent record, so real duplicate-detection logic always has a case to
+#' find.
 #'
 #' @param n Total number of values to generate
 #' @param subjects Character vector of subject IDs (length n, with repeats)

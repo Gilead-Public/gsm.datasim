@@ -145,12 +145,17 @@ test_that(".generate_vital_with_duplicates never marks a subject's first record 
     dDuplicateRate = 0.5
   )
 
-  # Every duplicated value must match a strictly earlier value for the
-  # same subject (i.e. duplicates copy history, they don't invent it).
-  for (i in seq_along(values)[-1]) {
-    if (values[i] %in% values[seq_len(i - 1)]) {
-      expect_true(values[i] %in% values[seq_len(i - 1)])
-    }
+  # With dDuplicateRate = 0.5 and 4 subsequent records, at least one
+  # duplicate must be injected.
+  expect_true(any(duplicated(values)))
+
+  # Every duplicated value must match a value from a strictly earlier
+  # position for the same subject (i.e. duplicates copy history, they
+  # don't invent it, and the first record is never itself a duplicate).
+  dup_idx <- which(duplicated(values))
+  for (i in dup_idx) {
+    expect_true(i > 1)
+    expect_true(values[i] %in% values[seq_len(i - 1)])
   }
 })
 
