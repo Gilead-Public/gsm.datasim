@@ -10,7 +10,7 @@ it applies to any gsm task.
 Task-specific procedures (like the Red-Green TDD issue → PR lifecycle)
 are *not* baked into this always-loaded file. They live as **skills**
 under
-[`skills/`](https://gilead-biostats.github.io/gsm.datasim/dev/skills/) —
+[`skills/`](https://gilead-public.github.io/gsm.datasim/dev/skills/) —
 discrete capabilities the agent reaches for when a task matches the
 skill’s description, loading the full procedure only then. See
 [Skills](#skills) below. The model is: **conventions** are the always-on
@@ -138,13 +138,13 @@ tests or examples rather than synthesizing inputs from scratch:
 - `gsm.core::lSource$Raw_SUBJ` — demographics
 - `gsm.core::lSource$Raw_AE` — adverse events (plus other `Raw_*`
   domains in `lSource`)
-- [`gsm.core::reportingResults`](https://gilead-biostats.github.io/gsm.core/reference/reportingResults.html)
+- [`gsm.core::reportingResults`](https://rdrr.io/pkg/gsm.core/man/reportingResults.html)
   — pre-calculated KRI results
-- [`gsm.core::reportingGroups`](https://gilead-biostats.github.io/gsm.core/reference/reportingGroups.html)
+- [`gsm.core::reportingGroups`](https://rdrr.io/pkg/gsm.core/man/reportingGroups.html)
   — site / study metadata
-- [`gsm.core::reportingMetrics`](https://gilead-biostats.github.io/gsm.core/reference/reportingMetrics.html)
+- [`gsm.core::reportingMetrics`](https://rdrr.io/pkg/gsm.core/man/reportingMetrics.html)
   — metric definitions
-- [`gsm.core::reportingBounds`](https://gilead-biostats.github.io/gsm.core/reference/reportingBounds.html)
+- [`gsm.core::reportingBounds`](https://rdrr.io/pkg/gsm.core/man/reportingBounds.html)
   — statistical bounds
 
 `gsm.datasim` is the source for additional synthetic test data when
@@ -388,7 +388,7 @@ This Issue was drafted by Claude Code using Opus 4.8 and reviewed by @jwildfire
 - For code changes — new functionality or bug fixes — default to
   test-driven development: write or update tests first, confirm they
   fail, then implement the minimal change to make them pass. The
-  [`tdd`](https://gilead-biostats.github.io/gsm.datasim/dev/skills/tdd/SKILL.md)
+  [`tdd`](https://gilead-public.github.io/gsm.datasim/dev/skills/tdd/SKILL.md)
   skill defines the full Red-Green flow.
 - This is a default to adapt, not an absolute. Changes that can’t be
   meaningfully tested with `testthat` (docs, CI/YAML, templates) may
@@ -399,7 +399,7 @@ This Issue was drafted by Claude Code using Opus 4.8 and reviewed by @jwildfire
 ### Using Skills
 
 - When a task matches an available skill’s `description` (see
-  [`skills/`](https://gilead-biostats.github.io/gsm.datasim/dev/skills/)),
+  [`skills/`](https://gilead-public.github.io/gsm.datasim/dev/skills/)),
   use that skill rather than improvising — skills capture the
   ecosystem’s repeatable workflows.
 - Skills are guidance to adapt, not rigid scripts; the Conventions here
@@ -478,7 +478,7 @@ checkout flow. In all other cases, default to worktrees.
 ## Skills
 
 Task-specific capabilities live as skills in
-[`skills/`](https://gilead-biostats.github.io/gsm.datasim/dev/skills/),
+[`skills/`](https://gilead-public.github.io/gsm.datasim/dev/skills/),
 each a `skills/<name>/SKILL.md` with a `description` that tells the
 agent when to use it. The full skill loads only when a task matches, so
 procedures don’t tax every session. The agent invokes them as needed —
@@ -487,19 +487,19 @@ above always apply on top.
 
 Current skills:
 
-- **[`tdd`](https://gilead-biostats.github.io/gsm.datasim/dev/skills/tdd/SKILL.md)**
+- **[`tdd`](https://gilead-public.github.io/gsm.datasim/dev/skills/tdd/SKILL.md)**
   — the Red-Green TDD development workflow (write failing tests,
   implement the minimal change, then optionally open a PR), driven by a
   GitHub issue or any stated requirement.
-- **[`issue-review`](https://gilead-biostats.github.io/gsm.datasim/dev/skills/issue-review/SKILL.md)**
+- **[`issue-review`](https://gilead-public.github.io/gsm.datasim/dev/skills/issue-review/SKILL.md)**
   — preview a drafted GitHub issue, PR, or comment in the terminal and
   capture sign-off before posting. Use when about to post a drafted
   artifact (single or batch).
-- **[`pkgdown-assets`](https://gilead-biostats.github.io/gsm.datasim/dev/skills/pkgdown-assets/SKILL.md)**
+- **[`pkgdown-assets`](https://gilead-public.github.io/gsm.datasim/dev/skills/pkgdown-assets/SKILL.md)**
   — create and publish examples, cookbooks, and slide decks on a pkgdown
   site; guides through authoring source files, `build_assets()`, local
   verification, and CI wiring.
-- **[`sub-issue-linking`](https://gilead-biostats.github.io/gsm.datasim/dev/skills/sub-issue-linking/SKILL.md)**
+- **[`sub-issue-linking`](https://gilead-public.github.io/gsm.datasim/dev/skills/sub-issue-linking/SKILL.md)**
   — link existing GitHub issues as sub-issues of a parent issue using
   the Relationships feature. Use when adding sub-tasks or connecting
   cross-repo issues to a parent requirement.

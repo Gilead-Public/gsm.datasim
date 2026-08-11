@@ -97,7 +97,7 @@ raw_data_generator(
   Optional named list of workflow objects (from
   [`workr::MakeWorkflowList()`](https://rdrr.io/pkg/workr/man/MakeWorkflowList.html)).
   When supplied the function routes to
-  [`generate_data_from_workflows()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_data_from_workflows.md)
+  [`generate_data_from_workflows()`](https://gilead-public.github.io/gsm.datasim/dev/reference/generate_data_from_workflows.md)
   to produce a single-snapshot dataset driven entirely by the workflow
   spec. `SnapshotCount` and `SnapshotWidth` are ignored in this mode.
 
@@ -111,7 +111,7 @@ file in `"data-raw/raw_data.RDS"`.
 The function performs the following steps:
 
 1.  If `lWorkflows` is provided, delegates to
-    [`generate_data_from_workflows()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_data_from_workflows.md)
+    [`generate_data_from_workflows()`](https://gilead-public.github.io/gsm.datasim/dev/reference/generate_data_from_workflows.md)
     to produce a spec-driven single snapshot.
 
 2.  If `ParticipantCount`, `SiteCount`, `StudyID`, or `SnapshotCount` is

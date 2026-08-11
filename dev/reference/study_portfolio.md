@@ -1,7 +1,7 @@
 # Create a portfolio of studies from a base config and per-study variants
 
 A convenience wrapper around
-[`create_multiple_longitudinal_studies()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/create_multiple_longitudinal_studies.md)
+[`create_multiple_longitudinal_studies()`](https://gilead-public.github.io/gsm.datasim/dev/reference/create_multiple_longitudinal_studies.md)
 that lets you define a shared base configuration and a single named list
 of per-study overrides (variants). Only the fields that differ between
 studies need to appear in each variant entry – everything else falls
@@ -30,7 +30,7 @@ study_portfolio(
   `participants`, `sites`, `snapshots`, `interval`, `domains`,
   `outlier_intensity`, `run_analytics`, `run_reporting`, or any other
   argument accepted by
-  [`create_longitudinal_study()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/create_longitudinal_study.md).
+  [`create_longitudinal_study()`](https://gilead-public.github.io/gsm.datasim/dev/reference/create_longitudinal_study.md).
 
 - participants:
 
@@ -56,7 +56,7 @@ study_portfolio(
 - ...:
 
   Additional arguments forwarded verbatim to
-  [`create_multiple_longitudinal_studies()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/create_multiple_longitudinal_studies.md)
+  [`create_multiple_longitudinal_studies()`](https://gilead-public.github.io/gsm.datasim/dev/reference/create_multiple_longitudinal_studies.md)
   (e.g. `run_analytics`, `run_reporting`, `parallel`, `verbose`).
 
 ## Value

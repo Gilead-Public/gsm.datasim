@@ -4,12 +4,12 @@
 
 This function is deprecated. Please use the study configuration approach
 instead:
-[`create_study_config()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/create_study_config.md),
-[`add_dataset_config()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/add_dataset_config.md),
+[`create_study_config()`](https://gilead-public.github.io/gsm.datasim/dev/reference/create_study_config.md),
+[`add_dataset_config()`](https://gilead-public.github.io/gsm.datasim/dev/reference/add_dataset_config.md),
 and
-[`generate_study_data()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_study_data.md).
+[`generate_study_data()`](https://gilead-public.github.io/gsm.datasim/dev/reference/generate_study_data.md).
 See
-[`vignette("study-setup", package = "gsm.datasim")`](https://gilead-biostats.github.io/gsm.datasim/dev/articles/study-setup.md)
+[`vignette("study-setup", package = "gsm.datasim")`](https://gilead-public.github.io/gsm.datasim/dev/articles/study-setup.md)
 for a full walkthrough.
 
 ## Usage
@@ -77,6 +77,6 @@ A named list of snapshot data frames, named by snapshot end date.
 
 ## See also
 
-[`create_study_config()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/create_study_config.md),
-[`add_dataset_config()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/add_dataset_config.md),
-[`generate_study_data()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_study_data.md)
+[`create_study_config()`](https://gilead-public.github.io/gsm.datasim/dev/reference/create_study_config.md),
+[`add_dataset_config()`](https://gilead-public.github.io/gsm.datasim/dev/reference/add_dataset_config.md),
+[`generate_study_data()`](https://gilead-public.github.io/gsm.datasim/dev/reference/generate_study_data.md)

@@ -10,19 +10,17 @@ workflow engine.
 
 Useful links:
 
-- <https://github.com/Gilead-BioStats/gsm.datasim>
+- <https://github.com/Gilead-Public/gsm.datasim>
 
-- <https://gilead-biostats.github.io/gsm.datasim>
+- <https://gilead-public.github.io/gsm.datasim>
 
-- Report bugs at <https://github.com/Gilead-BioStats/gsm.datasim/issues>
+- Report bugs at <https://github.com/Gilead-Public/gsm.datasim/issues>
 
 ## Author
 
 **Maintainer**: Laura Maxwell <laura.maxwell@atorusresearch.com>
 
 Authors:
-
-- Laura Maxwell <laura.maxwell@atorusresearch.com>
 
 - Zelos Zhu <zelos.zhu@atorusresearch.com>
 

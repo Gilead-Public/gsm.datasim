@@ -2,13 +2,13 @@
 
 ## Overview
 
-[gsm.datasim](https://github.com/Gilead-BioStats/gsm.datasim) generates
+[gsm.datasim](https://github.com/Gilead-Public/gsm.datasim) generates
 synthetic clinical trial data for testing and development of clinical
 monitoring applications. It produces multi-snapshot longitudinal
 datasets across a configurable set of clinical domains (SDTM-style and
 custom) and can run configurable analytics and reporting pipelines on
 the generated data via the
-[`workr`](https://github.com/Gilead-BioStats/workr) workflow engine.
+[`workr`](https://github.com/Gilead-Public/workr) workflow engine.
 
 ## Installation
 
@@ -18,7 +18,7 @@ You can install the latest release of gsm.datasim from
 ``` r
 
 # install.packages("pak")
-pak::pak("Gilead-BioStats/gsm.datasim@*release")
+pak::pak("Gilead-Public/gsm.datasim@*release")
 ```
 
 You can install the development version of gsm.datasim from
@@ -27,7 +27,7 @@ You can install the development version of gsm.datasim from
 ``` r
 
 # install.packages("pak")
-pak::pak("Gilead-BioStats/gsm.datasim")
+pak::pak("Gilead-Public/gsm.datasim")
 ```
 
 ## Quick Start
@@ -64,35 +64,35 @@ ae_counts <- sapply(get_domain_timeline(study, "AE"), nrow)
 
 | Function | Description |
 |----|----|
-| [`quick_longitudinal_study()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/quick_longitudinal_study.md) | Single-call entry point: raw data + analytics + reporting |
-| [`create_longitudinal_study()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/create_longitudinal_study.md) | Full control over domains, intervals, and pipelines |
-| [`create_multiple_longitudinal_studies()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/create_multiple_longitudinal_studies.md) | Generate a portfolio of studies in one call |
-| [`create_study_config()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/create_study_config.md) | Build a config object for low-level control |
-| [`generate_study_data()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_study_data.md) | Generate raw data from a config object |
+| [`quick_longitudinal_study()`](https://gilead-public.github.io/gsm.datasim/dev/reference/quick_longitudinal_study.md) | Single-call entry point: raw data + analytics + reporting |
+| [`create_longitudinal_study()`](https://gilead-public.github.io/gsm.datasim/dev/reference/create_longitudinal_study.md) | Full control over domains, intervals, and pipelines |
+| [`create_multiple_longitudinal_studies()`](https://gilead-public.github.io/gsm.datasim/dev/reference/create_multiple_longitudinal_studies.md) | Generate a portfolio of studies in one call |
+| [`create_study_config()`](https://gilead-public.github.io/gsm.datasim/dev/reference/create_study_config.md) | Build a config object for low-level control |
+| [`generate_study_data()`](https://gilead-public.github.io/gsm.datasim/dev/reference/generate_study_data.md) | Generate raw data from a config object |
 
 ### Study access helpers
 
 | Function | Description |
 |----|----|
-| [`get_snapshot_data()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/get_snapshot_data.md) | Extract data for a specific snapshot |
-| [`get_domain_timeline()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/get_domain_timeline.md) | All snapshots for a single domain |
-| [`get_available_domains()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/get_available_domains.md) | List all domains present in the study |
-| [`summarize_longitudinal_study()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/summarize_longitudinal_study.md) | Print a study summary |
+| [`get_snapshot_data()`](https://gilead-public.github.io/gsm.datasim/dev/reference/get_snapshot_data.md) | Extract data for a specific snapshot |
+| [`get_domain_timeline()`](https://gilead-public.github.io/gsm.datasim/dev/reference/get_domain_timeline.md) | All snapshots for a single domain |
+| [`get_available_domains()`](https://gilead-public.github.io/gsm.datasim/dev/reference/get_available_domains.md) | List all domains present in the study |
+| [`summarize_longitudinal_study()`](https://gilead-public.github.io/gsm.datasim/dev/reference/summarize_longitudinal_study.md) | Print a study summary |
 
 ### Pipelines
 
 | Function | Description |
 |----|----|
-| [`run_longitudinal_analytics()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/run_longitudinal_analytics.md) | Run (or re-run) the analytics pipeline (powered by `workr`) |
-| [`run_longitudinal_reporting()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/run_longitudinal_reporting.md) | Run (or re-run) the reporting pipeline |
-| [`generate_analytics_layers()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_analytics_layers.md) | Run analytics on already-generated raw data |
-| [`generate_reporting_layers()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_reporting_layers.md) | Run reporting on analytics results |
+| [`run_longitudinal_analytics()`](https://gilead-public.github.io/gsm.datasim/dev/reference/run_longitudinal_analytics.md) | Run (or re-run) the analytics pipeline (powered by `workr`) |
+| [`run_longitudinal_reporting()`](https://gilead-public.github.io/gsm.datasim/dev/reference/run_longitudinal_reporting.md) | Run (or re-run) the reporting pipeline |
+| [`generate_analytics_layers()`](https://gilead-public.github.io/gsm.datasim/dev/reference/generate_analytics_layers.md) | Run analytics on already-generated raw data |
+| [`generate_reporting_layers()`](https://gilead-public.github.io/gsm.datasim/dev/reference/generate_reporting_layers.md) | Run reporting on analytics results |
 
 ### Export
 
 | Function | Description |
 |----|----|
-| [`export_study_data()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/export_study_data.md) | Write study to structured folder hierarchy (CSV or Parquet) |
+| [`export_study_data()`](https://gilead-public.github.io/gsm.datasim/dev/reference/export_study_data.md) | Write study to structured folder hierarchy (CSV or Parquet) |
 
 ## Common Patterns
 

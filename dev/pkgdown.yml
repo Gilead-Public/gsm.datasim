@@ -4,7 +4,7 @@ pkgdown_sha: ~
 articles:
   domain-registry: domain-registry.html
   study-setup: study-setup.html
-last_built: 2026-08-06T13:26Z
+last_built: 2026-08-11T19:07Z
 urls:
-  reference: https://gilead-biostats.github.io/gsm.datasim/reference
-  article: https://gilead-biostats.github.io/gsm.datasim/articles
+  reference: https://gilead-public.github.io/gsm.datasim/reference
+  article: https://gilead-public.github.io/gsm.datasim/articles

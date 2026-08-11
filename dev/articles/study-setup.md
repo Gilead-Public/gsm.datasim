@@ -126,7 +126,7 @@ names(kri_result) # e.g. Analysis_Summary, Analysis_Flagged, Analysis_Analyzed
 
 The reporting pipeline runs reporting workflows on top of the analytics
 results. Pass the analytics output directly to
-[`generate_reporting_layers()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_reporting_layers.md):
+[`generate_reporting_layers()`](https://gilead-public.github.io/gsm.datasim/dev/reference/generate_reporting_layers.md):
 
 ``` r
 
@@ -150,7 +150,7 @@ study.
 ### Basic Longitudinal Study
 
 The
-[`create_longitudinal_study()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/create_longitudinal_study.md)
+[`create_longitudinal_study()`](https://gilead-public.github.io/gsm.datasim/dev/reference/create_longitudinal_study.md)
 function provides the easiest way to set up a longitudinal study. By
 default only raw data is generated; set `run_analytics = TRUE` to run
 the analytics pipeline and `run_reporting = TRUE` to also run the
@@ -280,7 +280,7 @@ quarterly_study <- create_longitudinal_study(
 ### Quick Study Creation
 
 For rapid prototyping, use the
-[`quick_longitudinal_study()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/quick_longitudinal_study.md)
+[`quick_longitudinal_study()`](https://gilead-public.github.io/gsm.datasim/dev/reference/quick_longitudinal_study.md)
 function. Pass `include_pipeline = TRUE` to run both the analytics and
 reporting pipelines:
 
@@ -405,7 +405,7 @@ study <- run_longitudinal_reporting(study, verbose = TRUE)
 ## Multiple Studies Generation
 
 When you need to generate data for multiple studies simultaneously, the
-[`create_multiple_longitudinal_studies()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/create_multiple_longitudinal_studies.md)
+[`create_multiple_longitudinal_studies()`](https://gilead-public.github.io/gsm.datasim/dev/reference/create_multiple_longitudinal_studies.md)
 function provides an efficient approach. This is particularly useful
 for:
 
@@ -663,7 +663,7 @@ str(validation)
 
 Once you have a complete study object — with raw data, analytics, and
 (optionally) reporting — you can write everything to disk with
-[`export_study_data()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/export_study_data.md).
+[`export_study_data()`](https://gilead-public.github.io/gsm.datasim/dev/reference/export_study_data.md).
 The function creates a structured folder hierarchy under a root
 directory:
 
@@ -766,20 +766,20 @@ The `gsm.datasim` package provides flexible tools for creating both
 single snapshot and longitudinal clinical studies. Key takeaways:
 
 - Use
-  [`create_study_config()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/create_study_config.md)
+  [`create_study_config()`](https://gilead-public.github.io/gsm.datasim/dev/reference/create_study_config.md)
   and
-  [`generate_study_data()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_study_data.md)
+  [`generate_study_data()`](https://gilead-public.github.io/gsm.datasim/dev/reference/generate_study_data.md)
   for single snapshots
 - Use
-  [`create_longitudinal_study()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/create_longitudinal_study.md)
+  [`create_longitudinal_study()`](https://gilead-public.github.io/gsm.datasim/dev/reference/create_longitudinal_study.md)
   for multi-snapshot studies
 - Configure domains based on your study type and monitoring needs
 - Leverage the analytics pipeline for automated quality monitoring
 - Use
-  [`quick_longitudinal_study()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/quick_longitudinal_study.md)
+  [`quick_longitudinal_study()`](https://gilead-public.github.io/gsm.datasim/dev/reference/quick_longitudinal_study.md)
   for rapid prototyping
 - Use
-  [`export_study_data()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/export_study_data.md)
+  [`export_study_data()`](https://gilead-public.github.io/gsm.datasim/dev/reference/export_study_data.md)
   to write completed studies to a structured folder hierarchy
 
 The modular design allows you to start simple and add complexity as

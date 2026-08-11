@@ -23,11 +23,11 @@ export_study_data(
 - study:
 
   A `longitudinal_study` object (output of
-  [`create_longitudinal_study`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/create_longitudinal_study.md)
+  [`create_longitudinal_study`](https://gilead-public.github.io/gsm.datasim/dev/reference/create_longitudinal_study.md)
   or
-  [`quick_longitudinal_study`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/quick_longitudinal_study.md)),
+  [`quick_longitudinal_study`](https://gilead-public.github.io/gsm.datasim/dev/reference/quick_longitudinal_study.md)),
   or a `multiple_longitudinal_studies` object (output of
-  [`create_multiple_longitudinal_studies`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/create_multiple_longitudinal_studies.md)).
+  [`create_multiple_longitudinal_studies`](https://gilead-public.github.io/gsm.datasim/dev/reference/create_multiple_longitudinal_studies.md)).
   When a collection of studies is passed, each study is exported to its
   own subfolder under `output_dir`.
 

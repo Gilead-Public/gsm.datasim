@@ -3,7 +3,7 @@
 Creates a complete `data.frame` for a domain that has no dedicated
 generator function in the domain registry or as a legacy `Raw_*()`
 function. Each column in the spec is generated using
-[`generate_column_by_type()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_column_by_type.md),
+[`generate_column_by_type()`](https://gilead-public.github.io/gsm.datasim/dev/reference/generate_column_by_type.md),
 with an attempt to reuse existing named generator functions for columns
 whose names match a known generator (e.g. `subjid`, `studyid`).
 
@@ -38,7 +38,7 @@ generate_unknown_domain(
 
   List with `data`, `start_date`, `end_date` (same structure as passed
   to
-  [`generate_column_by_type()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_column_by_type.md)).
+  [`generate_column_by_type()`](https://gilead-public.github.io/gsm.datasim/dev/reference/generate_column_by_type.md)).
 
 - previous_data:
 

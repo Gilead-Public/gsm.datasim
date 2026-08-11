@@ -56,7 +56,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="search.json">
 </form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/Gilead-BioStats/gsm.datasim/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/Gilead-Public/gsm.datasim/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -74,7 +74,7 @@
 <div class="section level2">
 <h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
-<p><a href="https://github.com/Gilead-BioStats/gsm.datasim" class="external-link">gsm.datasim</a> generates synthetic clinical trial data for testing and development of clinical monitoring applications. It produces multi-snapshot longitudinal datasets across a configurable set of clinical domains (SDTM-style and custom) and can run configurable analytics and reporting pipelines on the generated data via the <a href="https://github.com/Gilead-BioStats/workr" class="external-link"><code>workr</code></a> workflow engine.</p>
+<p><a href="https://github.com/Gilead-Public/gsm.datasim" class="external-link">gsm.datasim</a> generates synthetic clinical trial data for testing and development of clinical monitoring applications. It produces multi-snapshot longitudinal datasets across a configurable set of clinical domains (SDTM-style and custom) and can run configurable analytics and reporting pipelines on the generated data via the <a href="https://github.com/Gilead-Public/workr" class="external-link"><code>workr</code></a> workflow engine.</p>
 </div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
@@ -82,19 +82,19 @@
 <p>You can install the latest release of gsm.datasim from <a href="https://github.com/" class="external-link">GitHub</a> with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("pak")</span></span>
-<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"Gilead-BioStats/gsm.datasim@*release"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"Gilead-Public/gsm.datasim@*release"</span><span class="op">)</span></span></code></pre></div>
 <div class="pkgdown-devel">
 <p>You can install the development version of gsm.datasim from <a href="https://github.com/" class="external-link">GitHub</a> with:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("pak")</span></span>
-<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"Gilead-BioStats/gsm.datasim"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"Gilead-Public/gsm.datasim"</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
 <h2 id="quick-start">Quick Start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
 </h2>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/Gilead-BioStats/gsm.datasim" class="external-link">gsm.datasim</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/Gilead-Public/gsm.datasim" class="external-link">gsm.datasim</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Generate a standard 6-month study with analytics + reporting</span></span>
 <span><span class="va">study</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/quick_longitudinal_study.html">quick_longitudinal_study</a></span><span class="op">(</span></span>
@@ -357,8 +357,8 @@
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
-<li><a href="https://github.com/Gilead-BioStats/gsm.datasim/" class="external-link">Browse source code</a></li>
-<li><a href="https://github.com/Gilead-BioStats/gsm.datasim/issues" class="external-link">Report a bug</a></li>
+<li><a href="https://github.com/Gilead-Public/gsm.datasim/" class="external-link">Browse source code</a></li>
+<li><a href="https://github.com/Gilead-Public/gsm.datasim/issues" class="external-link">Report a bug</a></li>
 </ul>
 </div>
 
@@ -397,9 +397,9 @@
 <div class="dev-status">
 <h2 data-toc-skip>Dev status</h2>
 <ul class="list-unstyled">
-<li><a href="https://github.com/Gilead-BioStats/gsm.datasim/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/Gilead-BioStats/gsm.datasim/actions/workflows/R-CMD-check.yaml/badge.svg?branch=dev" alt="R-CMD-check"></a></li>
-<li><a href="https://github.com/Gilead-BioStats/gsm.datasim/actions/workflows/test-coverage.yaml" class="external-link"><img src="https://github.com/Gilead-BioStats/gsm.datasim/actions/workflows/test-coverage.yaml/badge.svg?branch=dev" alt="test-coverage"></a></li>
-<li><a href="https://github.com/Gilead-BioStats/gsm.datasim/actions/workflows/pkgdown-all.yaml" class="external-link"><img src="https://github.com/Gilead-BioStats/gsm.datasim/actions/workflows/pkgdown-all.yaml/badge.svg?branch=dev" alt="pkgdown-all"></a></li>
+<li><a href="https://github.com/Gilead-Public/gsm.datasim/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/Gilead-Public/gsm.datasim/actions/workflows/R-CMD-check.yaml/badge.svg?branch=dev" alt="R-CMD-check"></a></li>
+<li><a href="https://github.com/Gilead-Public/gsm.datasim/actions/workflows/test-coverage.yaml" class="external-link"><img src="https://github.com/Gilead-Public/gsm.datasim/actions/workflows/test-coverage.yaml/badge.svg?branch=dev" alt="test-coverage"></a></li>
+<li><a href="https://github.com/Gilead-Public/gsm.datasim/actions/workflows/pkgdown-all.yaml" class="external-link"><img src="https://github.com/Gilead-Public/gsm.datasim/actions/workflows/pkgdown-all.yaml/badge.svg?branch=dev" alt="pkgdown-all"></a></li>
 </ul>
 </div>
 

@@ -7,7 +7,7 @@ combined specification. Domains that already have a dedicated generator
 in the domain registry or a legacy `Raw_*()` function are produced with
 those generators; all other domains fall back to type-based column
 generation via
-[`generate_unknown_domain()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_unknown_domain.md).
+[`generate_unknown_domain()`](https://gilead-public.github.io/gsm.datasim/dev/reference/generate_unknown_domain.md).
 
 ## Usage
 
@@ -113,13 +113,14 @@ generate_data_from_workflows(
   Example:
 
 
-      column_overrides = list(
-        Raw_LB = list(
-          score_val  = function(n)    round(runif(n, 0, 10), 1),
-          lbstresu   = c("mg/dL", "mmol/L", "g/L"),
-          visit_flag = function(n, df) ifelse(df$visnam == "SCREENING", "S", "F")
+        column_overrides = list(
+          Raw_LB = list(
+            score_val  = function(n)    round(runif(n, 0, 10), 1),
+            lbstresu   = c("mg/dL", "mmol/L", "g/L"),
+            visit_flag = function(n, df) ifelse(df$visnam == "SCREENING", "S", "F")
+          )
         )
-      )
+        
 
 ## Value
 
@@ -145,7 +146,7 @@ The generation follows a three-tier fallback strategy for each domain:
     called.
 
 3.  **Type-based fallback** –
-    [`generate_unknown_domain()`](https://gilead-biostats.github.io/gsm.datasim/dev/reference/generate_unknown_domain.md)
+    [`generate_unknown_domain()`](https://gilead-public.github.io/gsm.datasim/dev/reference/generate_unknown_domain.md)
     generates each column using spec metadata (type, FK detection, name
     pattern heuristics).
 
