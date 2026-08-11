@@ -11,9 +11,9 @@ Generates synthetic clinical trial data for testing and development of clinical 
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/Gilead-BioStats/gsm.datasim}
-  \item \url{https://gilead-biostats.github.io/gsm.datasim}
-  \item Report bugs at \url{https://github.com/Gilead-BioStats/gsm.datasim/issues}
+  \item \url{https://github.com/Gilead-Public/gsm.datasim}
+  \item \url{https://gilead-public.github.io/gsm.datasim}
+  \item Report bugs at \url{https://github.com/Gilead-Public/gsm.datasim/issues}
 }
 
 }
@@ -22,7 +22,6 @@ Useful links:
 
 Authors:
 \itemize{
-  \item Laura Maxwell \email{laura.maxwell@atorusresearch.com}
   \item Zelos Zhu \email{zelos.zhu@atorusresearch.com}
   \item Roman Rogoza \email{roman.rogoza@atorusresearch.com}
 }
