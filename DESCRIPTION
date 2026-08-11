@@ -12,9 +12,9 @@ Description: Generates synthetic clinical trial data for testing and development
     longitudinal datasets across SDTM-style and custom domains, with optional
     analytics and reporting pipelines powered by the 'workr' workflow engine.
 License: Apache License (>= 2)
-URL: https://github.com/Gilead-BioStats/gsm.datasim,
-    https://gilead-biostats.github.io/gsm.datasim
-BugReports: https://github.com/Gilead-BioStats/gsm.datasim/issues
+URL: https://github.com/Gilead-Public/gsm.datasim,
+    https://gilead-public.github.io/gsm.datasim
+BugReports: https://github.com/Gilead-Public/gsm.datasim/issues
 Imports:
     arrow,
     dplyr,
@@ -39,10 +39,10 @@ Suggests:
 VignetteBuilder: 
     knitr
 Remotes:
-    gsm.kri=Gilead-BioStats/gsm.kri@dev,
-    gsm.mapping=Gilead-BioStats/gsm.mapping@dev,
-    gsm.reporting=Gilead-BioStats/gsm.reporting@dev,
-    workr=Gilead-BioStats/workr@main
+    gsm.kri=Gilead-Public/gsm.kri@dev,
+    gsm.mapping=Gilead-Public/gsm.mapping@dev,
+    gsm.reporting=Gilead-Public/gsm.reporting@dev,
+    workr=Gilead-Public/workr@main
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 Config/roxygen2/version: 8.0.0
