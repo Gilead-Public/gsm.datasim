@@ -1,6 +1,6 @@
 ---
 title: "Generating Multiple Studies"
-author: "[gsm.datasim](https://gilead-biostats.github.io/gsm.datasim) Example"
+author: "[gsm.datasim](https://gilead-public.github.io/gsm.datasim) Example"
 description: "Shows three approaches to generating a portfolio of studies: identical configs, per-study vectors, and the study_portfolio() wrapper for variant-based configs."
 index: 4
 date: "`r format(Sys.time(), '%B %d, %Y %H:%M:%S %Z')`"

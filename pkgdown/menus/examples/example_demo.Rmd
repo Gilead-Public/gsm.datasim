@@ -1,6 +1,6 @@
 ---
 title: "gsm.datasim Demo"
-author: "[gsm.datasim](https://gilead-biostats.github.io/gsm.datasim) Example"
+author: "[gsm.datasim](https://gilead-public.github.io/gsm.datasim) Example"
 description: "Full walkthrough of gsm.datasim: data generation, analytics, reporting, export, and multi-study workflows."
 index: 1
 date: "`r format(Sys.time(), '%B %d, %Y %H:%M:%S %Z')`"

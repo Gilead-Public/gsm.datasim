@@ -1,6 +1,6 @@
 ---
 title: "Workflow-Driven Data Generation"
-author: "[gsm.datasim](https://gilead-biostats.github.io/gsm.datasim) Example"
+author: "[gsm.datasim](https://gilead-public.github.io/gsm.datasim) Example"
 description: "Generate simulated raw data directly from an lWorkflows spec — the same structure returned by workr::MakeWorkflowList(). Covers single-snapshot, longitudinal, domain subsetting, and custom/unknown domains."
 index: 4
 date: "`r format(Sys.time(), '%B %d, %Y %H:%M:%S %Z')`"
