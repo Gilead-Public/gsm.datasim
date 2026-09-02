@@ -358,8 +358,7 @@ get_domain_registry <- function() {
           studyid = list(d$n, context$data$Raw_STUDY$protocol_number[[1]]),
           default = list(d$n, context$start_date)
         )
-        df <- as.data.frame(add_new_var_data(d$dataset, curr_spec, args, spec$Raw_SDRGCOMP))
-        apply_nonstarter_sdrgreas(df, context$data$Raw_SUBJ)
+        as.data.frame(add_new_var_data(d$dataset, curr_spec, args, spec$Raw_SDRGCOMP))
       }
     ),
 
