@@ -191,9 +191,9 @@ apply_ipns_derivations <- function(
   dosed <- enrolled & !is.na(df$firstdosedate)
   undosed <- as.character(df$subjid) %in% nonstarter_subjids(df)
 
-  df$drv_enrollment_dt <- as.Date(ifelse(enrolled, df$enrolldt, NA))
+  df$drv_enrollment_dt <- dplyr::if_else(enrolled, as.Date(df$enrolldt), as.Date(NA))
   df$drv_ip_dosed <- ifelse(enrolled, ifelse(dosed, "Y", "N"), NA_character_)
-  df$drv_ip_first_dose_dt <- as.Date(ifelse(dosed, df$firstdosedate, NA))
+  df$drv_ip_first_dose_dt <- dplyr::if_else(dosed, as.Date(df$firstdosedate), as.Date(NA))
   df$drv_enrl_first_dose_days <- ifelse(
     dosed,
     as.integer(df$firstdosedate - df$enrolldt) + 1L,
