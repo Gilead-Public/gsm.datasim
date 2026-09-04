@@ -236,6 +236,12 @@ generate_snapshots_from_combined_specs <- function(SnapshotCount,
           timeonstudy = dplyr::if_else(enrollyn == "N", NA, timeonstudy)
         )
     }
+    if (!is.null(data$Raw_SUBJ)) {
+      data$Raw_SUBJ <- apply_ipns_derivations(
+        data$Raw_SUBJ,
+        endDate = end_dates[[snapshot_idx]]
+      )
+    }
     if (!("gilda_STUDY" %in% mappings)) {
       data$raw_gilda_study_data <- NULL
     }

@@ -41,8 +41,6 @@ Raw_STUDCOMP <- function(data, previous_data, spec, startDate, ...) {
 
   res <- add_new_var_data(dataset, curr_spec, args, spec$Raw_STUDCOMP, ...)
 
-  res <- apply_nonstarter_compreas(res, data$Raw_SUBJ)
-
   return(res)
 }
 
@@ -109,36 +107,4 @@ compreas <- function(n, ...) {
 
 completion_date <- function(n, ...) {
   rep(as.Date(Sys.Date()), n)
-}
-
-#' Mark study-completion reason for IP non-starters
-#'
-#' Fills a blank `compreas` for the non-starter subset (see
-#' `nonstarter_subjids()`), so a confirmed non-starter carries a non-blank
-#' study-completion reason alongside the coded `sdrgreas` from
-#' `apply_nonstarter_sdrgreas()`. Either marker confirms the subject downstream
-#' in `gsm.mapping::complete_non_starter()`.
-#'
-#' Only blanks are filled. A reason recorded by an earlier snapshot is kept, so
-#' carried-forward rows stay stable across incremental generation; rows outside
-#' the non-starter subset are never touched, because `compreas` is shared
-#' clinical data that `gsm.mapping::complete_death()` reads for its own scenario.
-#'
-#' @param df a generated `Raw_STUDCOMP` data.frame (must carry `subjid` and
-#'   `compreas`).
-#' @param raw_subj the `Raw_SUBJ` frame used to identify non-starters.
-#' @param never_started_reason the reason stamped on blank non-starter rows.
-#' @returns `df` with `compreas` filled on blank non-starter rows.
-#' @family internal
-#' @keywords internal
-#' @noRd
-apply_nonstarter_compreas <- function(df, raw_subj,
-                                      never_started_reason = "Withdrew Consent") {
-  if (is.null(df) || nrow(df) == 0 || !("subjid" %in% names(df))) {
-    return(df)
-  }
-  ns <- as.character(df$subjid) %in% nonstarter_subjids(raw_subj)
-  blank <- is.na(df$compreas) | trimws(df$compreas) == ""
-  df$compreas[ns & blank] <- never_started_reason
-  df
 }

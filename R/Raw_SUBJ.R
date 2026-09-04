@@ -158,6 +158,76 @@ sex <- function(n, ...) {
 race <- function(n, ...) {
   sample(c("White", "Asian", "Black", "Other"), n, replace = T)
 }
+#' Derive the upstream IP non-starter contract fields
+#'
+#' Impersonates the Stride derivation so simulated data carries the same six
+#' fields production data will. gsm never computes these outside the simulator.
+#'
+#' Runs over the whole frame on every snapshot, so days lapsed re-accrue and an
+#' undosed subject advances from within- to outside-window as time passes.
+#' Confirmed status is a deterministic function of `subjid` rather than a draw,
+#' so it cannot flip back on a later snapshot.
+#'
+#' @param df a generated `Raw_SUBJ` frame carrying `subjid`, `enrollyn`,
+#'   `enrolldt`, `firstdosedate`.
+#' @param endDate the snapshot date, acting as "today".
+#' @param nWindowDays days separating the two potential statuses.
+#' @param nConfirmedShare share of never-dosed subjects that are Confirmed.
+#' @returns `df` with the six `drv_*` columns.
+#' @family internal
+#' @keywords internal
+#' @noRd
+apply_ipns_derivations <- function(
+  df,
+  endDate,
+  nWindowDays = 30,
+  nConfirmedShare = 0.4
+) {
+  if (is.null(df) || nrow(df) == 0 || !("subjid" %in% names(df))) {
+    return(df)
+  }
+
+  enrolled <- df$enrollyn %in% "Y"
+  dosed <- enrolled & !is.na(df$firstdosedate)
+  undosed <- as.character(df$subjid) %in% nonstarter_subjids(df)
+
+  df$drv_enrollment_dt <- dplyr::if_else(enrolled, as.Date(df$enrolldt), as.Date(NA))
+  df$drv_ip_dosed <- ifelse(enrolled, ifelse(dosed, "Y", "N"), NA_character_)
+  df$drv_ip_first_dose_dt <- dplyr::if_else(dosed, as.Date(df$firstdosedate), as.Date(NA))
+  df$drv_enrl_first_dose_days <- ifelse(
+    dosed,
+    as.integer(df$firstdosedate - df$enrolldt) + 1L,
+    NA_integer_
+  )
+  df$drv_days_lapsed_since_enrl <- ifelse(
+    undosed,
+    as.integer(as.Date(endDate) - df$enrolldt) + 1L,
+    NA_integer_
+  )
+
+  # Hashing subjid keeps the choice stable per subject across snapshots. A
+  # digit sum will not serve here: subjids are "S" plus a zero-padded counter,
+  # so sums collide heavily and the realised share tracks subjid length rather
+  # than nConfirmedShare. unname() keeps the hash's names off the result.
+  bucket <- vapply(
+    as.character(df$subjid),
+    function(s) strtoi(substr(rlang::hash(s), 1, 6), 16L) %% 100L,
+    integer(1)
+  )
+  confirmed <- unname(undosed & bucket < round(nConfirmedShare * 100))
+
+  df$drv_ip_nonstarter_status <- dplyr::case_when(
+    !enrolled ~ NA_character_,
+    dosed ~ "Dosed",
+    confirmed ~ "Confirmed Non-Starter",
+    df$drv_days_lapsed_since_enrl > nWindowDays ~
+      "Potential Non-Starter outside window",
+    TRUE ~ "Potential Non-Starter within window"
+  )
+
+  df
+}
+
 enrollyn_enrolldt_timeonstudy_firstparticipantdate_firstdosedate_timeontreatment <- function(n, startDate, endDate, nonstarter_rate = 0.1, ...) {
   enrollyn_dat <- enrollyn(n, ...)
   enrolldt_dat <- enrolldt(n, startDate, endDate, enrollyn_dat, ...)

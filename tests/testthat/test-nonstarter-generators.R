@@ -1,9 +1,6 @@
 # IP non-starter scenario generators (gsm.datasim#122)
-# The confirmed-non-starter markers must be cross-domain consistent: the same
-# subjid set carries firstdosedate = NA (SUBJ), sdrgreas = the coded reason
-# (SDRGCOMP), and a non-blank compreas (STUDCOMP), keyed off one shared predicate.
-
-NEVER_DOSED <- "Subject Never Dosed with Study Drug"
+# nonstarter_subjids() is the single shared predicate ("enrolled AND never
+# dosed") that seeds the simulated drv_ip_nonstarter_status (#140).
 
 test_that("combined SUBJ generator leaves a deterministic subset of enrolled subjects never dosed (firstdosedate NA) (#122)", {
   set.seed(1234)
@@ -44,133 +41,133 @@ test_that("nonstarter_subjids is the shared predicate: enrolled AND firstdosedat
   expect_setequal(nonstarter_subjids(raw_subj), c("S1", "S3"))
 })
 
-test_that("apply_nonstarter_sdrgreas marks non-starters with the coded reason, others benign (#122)", {
-  raw_subj <- data.frame(
-    subjid = c("S1", "S2", "S3"),
-    enrollyn = c("Y", "Y", "Y"),
-    firstdosedate = as.Date(c(NA, "2020-02-01", NA)),
-    stringsAsFactors = FALSE
-  )
-  df <- data.frame(subjid = c("S1", "S2", "S3"), stringsAsFactors = FALSE)
-  set.seed(1)
-  out <- apply_nonstarter_sdrgreas(df, raw_subj)
-  expect_true("sdrgreas" %in% names(out))
-  expect_type(out$sdrgreas, "character")
-  expect_equal(out$sdrgreas[out$subjid == "S1"], NEVER_DOSED)
-  expect_equal(out$sdrgreas[out$subjid == "S3"], NEVER_DOSED)
-  expect_false(out$sdrgreas[out$subjid == "S2"] == NEVER_DOSED)
-})
-
-test_that("apply_nonstarter_compreas fills a blank reason for non-starters only (#122)", {
-  raw_subj <- data.frame(
-    subjid = c("S1", "S2", "S3"),
-    enrollyn = c("Y", "Y", "Y"),
-    firstdosedate = as.Date(c(NA, "2020-02-01", NA)),
-    stringsAsFactors = FALSE
-  )
-  df <- data.frame(
-    subjid = c("S1", "S2", "S3"),
-    compreas = c("", "", ""),
-    stringsAsFactors = FALSE
-  )
-  out <- apply_nonstarter_compreas(df, raw_subj)
-  expect_type(out$compreas, "character")
-  expect_equal(out$compreas[out$subjid == "S1"], "Withdrew Consent")
-  expect_equal(out$compreas[out$subjid == "S3"], "Withdrew Consent")
-  # S2 is dosed, so its sampled value is left exactly as the generator drew it.
-  expect_equal(out$compreas[out$subjid == "S2"], "")
-})
-
-test_that("apply_nonstarter_compreas preserves a reason a previous snapshot recorded (#122; PR #126 review r3577643679)", {
-  raw_subj <- data.frame(
-    subjid = c("S1", "S2"),
-    enrollyn = c("Y", "Y"),
-    firstdosedate = as.Date(c(NA, "2020-02-01")), # S1 non-starter, S2 dosed
-    stringsAsFactors = FALSE
-  )
-  # A carried-forward frame: S1's reason was recorded in an earlier snapshot and
-  # re-running the helper must not rewrite it (idempotent).
-  carried <- data.frame(
-    subjid = c("S1", "S2"),
-    compreas = c("Lost to Follow-Up", "Death"),
-    stringsAsFactors = FALSE
-  )
-  out <- apply_nonstarter_compreas(carried, raw_subj)
-  expect_equal(out$compreas[out$subjid == "S1"], "Lost to Follow-Up")
-  # A dosed subject's reason is never cleared - complete_death() reads this column.
-  expect_equal(out$compreas[out$subjid == "S2"], "Death")
-
-  # A new non-starter row with no reason yet still receives one.
-  fresh <- data.frame(
-    subjid = "S1",
-    compreas = NA_character_,
-    stringsAsFactors = FALSE
-  )
-  expect_equal(
-    apply_nonstarter_compreas(fresh, raw_subj)$compreas[1],
-    "Withdrew Consent"
-  )
-})
-
-test_that("apply_nonstarter_sdrgreas keeps carried-forward rows stable across incremental snapshots (#122; PR #126 review r3577643601)", {
-  # The cumulative-delta generators carry every previously generated SDRGCOMP row
-  # forward and append only new rows, so re-running this helper on a later snapshot
-  # must not silently rewrite a subject's already-recorded sdrgreas.
-  subj_ids <- sprintf("S%02d", 0:20)
-  raw_subj <- data.frame(
-    subjid = subj_ids,
-    enrollyn = "Y",
-    firstdosedate = as.Date(rep("2020-02-01", length(subj_ids))),
-    stringsAsFactors = FALSE
-  )
-  raw_subj$firstdosedate[raw_subj$subjid == "S00"] <- NA # one non-starter
-
-  # Snapshot 1: SDRGCOMP rows for the first 15 subjects.
-  set.seed(123)
-  snap1 <- apply_nonstarter_sdrgreas(
-    data.frame(subjid = subj_ids[1:15], stringsAsFactors = FALSE), raw_subj
-  )
-
-  # Snapshot 2 (incremental): snapshot-1 rows carried forward + newly appended rows,
-  # exactly as add_new_var_data() -> bind_rows(dataset, new_rows) feeds this helper.
-  combined <- rbind(
-    snap1[, c("subjid", "sdrgreas")],
-    data.frame(subjid = subj_ids[16:21], sdrgreas = NA_character_, stringsAsFactors = FALSE)
-  )
-  snap2 <- apply_nonstarter_sdrgreas(combined, raw_subj)
-
-  # Every subject present in snapshot 1 must keep its exact sdrgreas value.
-  carried <- snap2$sdrgreas[match(snap1$subjid, snap2$subjid)]
-  expect_equal(carried, snap1$sdrgreas)
-
-  # Newly appended benign rows still receive a real benign reason (not NA/never-dosed).
-  new_reasons <- snap2$sdrgreas[snap2$subjid %in% subj_ids[16:21]]
-  expect_false(any(is.na(new_reasons)))
-  expect_true(all(new_reasons %in% c("Study Drug Completed", "Study Drug Discontinued")))
-})
-
-test_that("cross-domain consistency: sdrgreas 'never dosed' subjids are a subset of compreas-present (#122)", {
-  raw_subj <- data.frame(
+# The simulator is gsm's only expression of the status model, so these tests
+# double as the readable statement of the precedence rules.
+make_subj <- function() {
+  data.frame(
     subjid = c("S1", "S2", "S3", "S4"),
     enrollyn = c("Y", "Y", "Y", "N"),
-    firstdosedate = as.Date(c(NA, "2020-02-01", NA, NA)),
+    enrolldt = as.Date(c("2025-01-01", "2025-01-01", "2025-03-01", NA)),
+    firstdosedate = as.Date(c("2025-01-05", NA, NA, NA)),
     stringsAsFactors = FALSE
   )
-  df_sdrg <- data.frame(subjid = c("S1", "S2", "S3"), stringsAsFactors = FALSE)
-  # S2 is dosed but the base generator handed it a reason anyway. That is why the
-  # relationship is subset, not equality: compreas is shared clinical data that
-  # any discontinuing subject can carry, unlike the private colendat it replaces.
-  df_stud <- data.frame(
-    subjid = c("S1", "S2", "S3"),
-    compreas = c("", "Death", ""),
+}
+
+# The two Potential statuses are only reachable when a subject is not drawn as
+# Confirmed, so each branch is driven explicitly by nConfirmedShare rather than
+# left to whichever bucket the fixture's subjids happen to land in.
+test_that("undosed subjects split on the window when none are Confirmed (#140)", {
+  res <- apply_ipns_derivations(
+    make_subj(),
+    endDate = as.Date("2025-03-15"),
+    nConfirmedShare = 0
+  )
+
+  expect_equal(res$drv_ip_dosed, c("Y", "N", "N", NA))
+  expect_equal(
+    res$drv_ip_nonstarter_status,
+    c(
+      "Dosed", # S1 dosed
+      "Potential Non-Starter outside window", # S2 undosed 74 days > 30
+      "Potential Non-Starter within window", # S3 undosed 15 days <= 30
+      NA_character_ # S4 not enrolled
+    )
+  )
+})
+
+test_that("Confirmed outranks either window status (#140)", {
+  res <- apply_ipns_derivations(
+    make_subj(),
+    endDate = as.Date("2025-03-15"),
+    nConfirmedShare = 1
+  )
+
+  # The same two undosed subjects, one either side of the window.
+  expect_equal(res$drv_ip_nonstarter_status[[1]], "Dosed")
+  expect_equal(
+    res$drv_ip_nonstarter_status[2:3],
+    rep("Confirmed Non-Starter", 2)
+  )
+})
+
+test_that("non-enrolled subjects carry NA in every drv_ field (#140)", {
+  res <- apply_ipns_derivations(make_subj(), endDate = as.Date("2025-03-15"))
+  drv <- grep("^drv_", names(res), value = TRUE)
+
+  expect_length(drv, 6)
+  expect_true(all(vapply(
+    drv,
+    function(col) is.na(res[[col]][[4]]),
+    logical(1)
+  )))
+})
+
+test_that("day counts are inclusive and only undosed subjects accrue days (#140)", {
+  res <- apply_ipns_derivations(make_subj(), endDate = as.Date("2025-03-15"))
+
+  expect_equal(res$drv_enrl_first_dose_days[[1]], 5L)
+  expect_true(is.na(res$drv_enrl_first_dose_days[[2]]))
+  expect_true(is.na(res$drv_days_lapsed_since_enrl[[1]]))
+  expect_equal(res$drv_days_lapsed_since_enrl[[2]], 74L)
+})
+
+test_that("a subject advances within -> outside as snapshots accrue (#140)", {
+  df <- make_subj()
+  early <- apply_ipns_derivations(
+    df,
+    as.Date("2025-03-10"),
+    nConfirmedShare = 0
+  )
+  late <- apply_ipns_derivations(df, as.Date("2025-04-30"), nConfirmedShare = 0)
+
+  # S3 enrolled 2025-03-01: inside the window at the earlier snapshot, outside
+  # at the later one, with no longitudinal state carried between the two.
+  expect_equal(
+    early$drv_ip_nonstarter_status[[3]],
+    "Potential Non-Starter within window"
+  )
+  expect_equal(
+    late$drv_ip_nonstarter_status[[3]],
+    "Potential Non-Starter outside window"
+  )
+})
+
+test_that("Confirmed does not flip back on a later snapshot (#140)", {
+  df <- make_subj()
+  early <- apply_ipns_derivations(
+    df,
+    as.Date("2025-03-10"),
+    nConfirmedShare = 1
+  )
+  late <- apply_ipns_derivations(df, as.Date("2025-04-30"), nConfirmedShare = 1)
+
+  # Confirmed is a function of subjid, not of days lapsed, so crossing the
+  # window boundary between snapshots must not change it.
+  expect_equal(early$drv_ip_nonstarter_status[[3]], "Confirmed Non-Starter")
+  expect_equal(late$drv_ip_nonstarter_status[[3]], "Confirmed Non-Starter")
+})
+
+test_that("the Confirmed draw honours nConfirmedShare (#140)", {
+  # Guards the hash rather than the status rules: a poorly distributed one
+  # makes the realised share a function of subjid length instead of the
+  # argument, and nothing else here would notice.
+  df <- data.frame(
+    subjid = paste0("S", sprintf("%03d", seq_len(2000))),
+    enrollyn = "Y",
+    enrolldt = as.Date("2025-01-01"),
+    firstdosedate = as.Date(NA),
     stringsAsFactors = FALSE
   )
-  set.seed(1)
-  sdrg <- apply_nonstarter_sdrgreas(df_sdrg, raw_subj)
-  stud <- apply_nonstarter_compreas(df_stud, raw_subj)
-  never <- sort(sdrg$subjid[sdrg$sdrgreas == NEVER_DOSED])
-  present <- sort(stud$subjid[!is.na(stud$compreas) & trimws(stud$compreas) != ""])
-  expect_true(all(never %in% present))
-  expect_equal(never, c("S1", "S3"))
-  expect_setequal(present, c("S1", "S2", "S3"))
+
+  res <- apply_ipns_derivations(
+    df,
+    endDate = as.Date("2025-06-01"),
+    nConfirmedShare = 0.4
+  )
+
+  expect_equal(
+    mean(res$drv_ip_nonstarter_status == "Confirmed Non-Starter"),
+    0.4,
+    tolerance = 0.05
+  )
 })
