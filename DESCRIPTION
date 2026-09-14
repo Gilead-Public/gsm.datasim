@@ -39,7 +39,7 @@ Suggests:
 VignetteBuilder: 
     knitr
 Remotes:
-    gsm.kri=Gilead-Public/gsm.kri@dev,
+    gsm.kri=Gilead-Public/gsm.kri@for-ipns-140,
     gsm.mapping=Gilead-Public/gsm.mapping@dev,
     gsm.reporting=Gilead-Public/gsm.reporting@dev,
     workr=Gilead-Public/workr@main
