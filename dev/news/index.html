@@ -47,7 +47,9 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="gsmdatasim-development-version">gsm.datasim (development version)<a class="anchor" aria-label="anchor" href="#gsmdatasim-development-version"></a></h2>
-</div>
+<ul><li>
+<code>Raw_SUBJ</code> now carries six simulated <code>drv_*</code> IP non-starter fields (<code>drv_enrollment_dt</code>, <code>drv_ip_dosed</code>, <code>drv_ip_first_dose_dt</code>, <code>drv_enrl_first_dose_days</code>, <code>drv_days_lapsed_since_enrl</code>, <code>drv_ip_nonstarter_status</code>), impersonating the upstream Stride contract gsm now consumes rather than derives (<a href="https://github.com/Gilead-Public/gsm.datasim/issues/140" class="external-link">#140</a>).</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.0.0" id="gsmdatasim-v200">gsm.datasim v2.0.0<a class="anchor" aria-label="anchor" href="#gsmdatasim-v200"></a></h2>
 <p>This major release introduces a composable study builder API, longitudinal multi-snapshot study support, workflow-driven data generation, a domain registry, and parquet export. Analytics and reporting are now powered by the <code>workr</code> workflow engine.</p>
@@ -101,7 +103,7 @@
 <h3 id="notable-changes-1-0-0">Notable Changes:<a class="anchor" aria-label="anchor" href="#notable-changes-1-0-0"></a></h3>
 <p><strong>User-facing functions</strong> - <code><a href="../reference/generate_rawdata_for_single_study.html">generate_rawdata_for_single_study()</a></code> can create snapshot(s) for a single study when provided with the proper parameters and appropriate mapping specifications. - <code><a href="../reference/raw_data_generator.html">raw_data_generator()</a></code> is a wrapper to run <code><a href="../reference/generate_rawdata_for_single_study.html">generate_rawdata_for_single_study()</a></code> to create multiple studies if providing a template/dataset containing a variety of these parameters.</p>
 <p><strong>New Mapping Workflows Support:</strong> - All workflows that exist in <code>gsm.mapping</code>’s <code>inst/workflow/1_mappings</code> are now supported, with “STUDY”, “SUBJ”, “SITE” and “ENROLL” always being required. - There are many <code>gsm.endpoints</code> specific domains, such as <code>Anticancer</code> and <code>OverallResponse</code> that now have support as well.</p>
-<p><strong>Replacing <code>clindata</code> with <code>gsm.datasim</code>:</strong> - The object <code><a href="https://rdrr.io/pkg/gsm.core/man/lSource.html" class="external-link">gsm.core::lSource</a></code> was created using <code>gsm.datasim</code> for examples, tests, and vignettes across the <code>gsm</code> ecosystem. This object is based on “core mappings” which include: “AE”, “COUNTRY”, “DATACHG”, “DATAENT”, “ENROLL”, “LB”, “PD”, “PK”, “QUERY”, “STUDY”, “STUDCOMP”, “SDRGCOMP”, “SITE”, “SUBJ”</p>
+<p><strong>Replacing <code>clindata</code> with <code>gsm.datasim</code>:</strong> - The object <code><a href="https://gilead-biostats.github.io/gsm.core/reference/lSource.html" class="external-link">gsm.core::lSource</a></code> was created using <code>gsm.datasim</code> for examples, tests, and vignettes across the <code>gsm</code> ecosystem. This object is based on “core mappings” which include: “AE”, “COUNTRY”, “DATACHG”, “DATAENT”, “ENROLL”, “LB”, “PD”, “PK”, “QUERY”, “STUDY”, “STUDCOMP”, “SDRGCOMP”, “SITE”, “SUBJ”</p>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

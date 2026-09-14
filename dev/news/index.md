@@ -2,6 +2,13 @@
 
 ## gsm.datasim (development version)
 
+- `Raw_SUBJ` now carries six simulated `drv_*` IP non-starter fields
+  (`drv_enrollment_dt`, `drv_ip_dosed`, `drv_ip_first_dose_dt`,
+  `drv_enrl_first_dose_days`, `drv_days_lapsed_since_enrl`,
+  `drv_ip_nonstarter_status`), impersonating the upstream Stride
+  contract gsm now consumes rather than derives
+  ([\#140](https://github.com/Gilead-Public/gsm.datasim/issues/140)).
+
 ## gsm.datasim v2.0.0
 
 This major release introduces a composable study builder API,
@@ -135,8 +142,8 @@ many `gsm.endpoints` specific domains, such as `Anticancer` and
 `OverallResponse` that now have support as well.
 
 **Replacing `clindata` with `gsm.datasim`:** - The object
-[`gsm.core::lSource`](https://rdrr.io/pkg/gsm.core/man/lSource.html) was
-created using `gsm.datasim` for examples, tests, and vignettes across
-the `gsm` ecosystem. This object is based on “core mappings” which
-include: “AE”, “COUNTRY”, “DATACHG”, “DATAENT”, “ENROLL”, “LB”, “PD”,
-“PK”, “QUERY”, “STUDY”, “STUDCOMP”, “SDRGCOMP”, “SITE”, “SUBJ”
+[`gsm.core::lSource`](https://gilead-biostats.github.io/gsm.core/reference/lSource.html)
+was created using `gsm.datasim` for examples, tests, and vignettes
+across the `gsm` ecosystem. This object is based on “core mappings”
+which include: “AE”, “COUNTRY”, “DATACHG”, “DATAENT”, “ENROLL”, “LB”,
+“PD”, “PK”, “QUERY”, “STUDY”, “STUDCOMP”, “SDRGCOMP”, “SITE”, “SUBJ”

@@ -138,13 +138,13 @@ tests or examples rather than synthesizing inputs from scratch:
 - `gsm.core::lSource$Raw_SUBJ` — demographics
 - `gsm.core::lSource$Raw_AE` — adverse events (plus other `Raw_*`
   domains in `lSource`)
-- [`gsm.core::reportingResults`](https://rdrr.io/pkg/gsm.core/man/reportingResults.html)
+- [`gsm.core::reportingResults`](https://gilead-biostats.github.io/gsm.core/reference/reportingResults.html)
   — pre-calculated KRI results
-- [`gsm.core::reportingGroups`](https://rdrr.io/pkg/gsm.core/man/reportingGroups.html)
+- [`gsm.core::reportingGroups`](https://gilead-biostats.github.io/gsm.core/reference/reportingGroups.html)
   — site / study metadata
-- [`gsm.core::reportingMetrics`](https://rdrr.io/pkg/gsm.core/man/reportingMetrics.html)
+- [`gsm.core::reportingMetrics`](https://gilead-biostats.github.io/gsm.core/reference/reportingMetrics.html)
   — metric definitions
-- [`gsm.core::reportingBounds`](https://rdrr.io/pkg/gsm.core/man/reportingBounds.html)
+- [`gsm.core::reportingBounds`](https://gilead-biostats.github.io/gsm.core/reference/reportingBounds.html)
   — statistical bounds
 
 `gsm.datasim` is the source for additional synthetic test data when
