@@ -216,6 +216,12 @@ run_domain_generation_loop <- function(combined_specs, config, source_domains) {
           timeonstudy = dplyr::if_else(enrollyn == "N", NA, timeonstudy)
         )
     }
+    if (!is.null(data$Raw_SUBJ)) {
+      data$Raw_SUBJ <- apply_ipns_derivations(
+        data$Raw_SUBJ,
+        endDate = end_dates[[snapshot_idx]]
+      )
+    }
     if ("Raw_IE" %in% names(data)) {
       unenrolled <- data$Raw_SUBJ %>%
         dplyr::filter(enrollyn == "N") %>%

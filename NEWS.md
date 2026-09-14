@@ -1,5 +1,11 @@
 # gsm.datasim (development version)
 
+- `Raw_SUBJ` now carries six simulated `drv_*` IP non-starter fields
+  (`drv_enrollment_dt`, `drv_ip_dosed`, `drv_ip_first_dose_dt`,
+  `drv_enrl_first_dose_days`, `drv_days_lapsed_since_enrl`,
+  `drv_ip_nonstarter_status`), impersonating the upstream Stride contract
+  gsm now consumes rather than derives (#140).
+
 # gsm.datasim v2.0.0
 
 This major release introduces a composable study builder API, longitudinal multi-snapshot study support, workflow-driven data generation, a domain registry, and parquet export. Analytics and reporting are now powered by the `workr` workflow engine.
