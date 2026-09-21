@@ -1,33 +1,3 @@
-make_vs_test_spec <- function() {
-  list(
-    subjid = list(required = TRUE),
-    invid = list(required = TRUE),
-    studyid = list(required = TRUE),
-    instancename = list(required = TRUE),
-    vs_dt = list(required = TRUE),
-    vsperf_std = list(required = TRUE),
-    weight = list(required = TRUE),
-    sysbp = list(required = TRUE),
-    diabp = list(required = TRUE)
-  )
-}
-
-make_vs_test_data <- function(n_subjects = 20, n_visits = 6) {
-  subjid <- sprintf("S%04d", seq_len(n_subjects))
-  invid <- sprintf("0X%04d", (seq_len(n_subjects) %% 3) + 1)
-
-  visits <- c("Screening", paste0("VISIT ", 1:5))[seq_len(n_visits)]
-  raw_visit <- do.call(rbind, lapply(subjid, function(s) {
-    data.frame(subjid = s, instancename = visits, stringsAsFactors = FALSE)
-  }))
-
-  list(
-    Raw_SUBJ = data.frame(subjid = subjid, invid = invid, stringsAsFactors = FALSE),
-    Raw_STUDY = data.frame(protocol_number = "PROT-VS"),
-    Raw_VISIT = raw_visit
-  )
-}
-
 test_that("Raw_VS is registered in the domain registry (#113)", {
   registry <- get_domain_registry()
 
@@ -55,10 +25,20 @@ test_that("Raw_VS migrated domain adapter generates a data frame with expected c
 
   expect_s3_class(vs_df, "data.frame")
   expect_true(nrow(vs_df) > 0)
-  expect_true(all(c(
-    "subjid", "invid", "studyid", "instancename",
-    "vs_dt", "vsperf_std", "weight", "sysbp", "diabp"
-  ) %in% names(vs_df)))
+  expect_true(all(
+    c(
+      "subjid",
+      "invid",
+      "studyid",
+      "instancename",
+      "vs_dt",
+      "vsperf_std",
+      "weight",
+      "sysbp",
+      "diabp"
+    ) %in%
+      names(vs_df)
+  ))
 
   # One row per subject x visit -- no dot-flattened list columns from
   # the split_vars processing.
@@ -81,7 +61,10 @@ test_that("Raw_VS invid is correctly attributed to each subject via Raw_SUBJ loo
 
   vs_df <- generate_domain_from_registry("Raw_VS", context)
 
-  expected_invid <- data$Raw_SUBJ[match(vs_df$subjid, data$Raw_SUBJ$subjid), "invid"]
+  expected_invid <- data$Raw_SUBJ[
+    match(vs_df$subjid, data$Raw_SUBJ$subjid),
+    "invid"
+  ]
   expect_equal(vs_df$invid, expected_invid)
 })
 
@@ -120,7 +103,11 @@ test_that(".generate_vital_with_duplicates injects duplicate values per subject 
   subjects <- rep(sprintf("S%02d", 1:15), each = n_visits)
 
   values <- gsm.datasim:::.generate_vital_with_duplicates(
-    n = length(subjects), subjects = subjects, mean = 75, sd = 10, digits = 1
+    n = length(subjects),
+    subjects = subjects,
+    mean = 75,
+    sd = 10,
+    digits = 1
   )
 
   expect_length(values, length(subjects))
@@ -128,10 +115,14 @@ test_that(".generate_vital_with_duplicates injects duplicate values per subject 
 
   # Every subject should have at least one exact-duplicate value among
   # their subsequent (non-first) records.
-  has_duplicate <- vapply(unique(subjects), function(subj) {
-    subj_values <- values[subjects == subj]
-    any(duplicated(subj_values))
-  }, logical(1))
+  has_duplicate <- vapply(
+    unique(subjects),
+    function(subj) {
+      subj_values <- values[subjects == subj]
+      any(duplicated(subj_values))
+    },
+    logical(1)
+  )
 
   expect_true(all(has_duplicate))
 })
@@ -141,7 +132,11 @@ test_that(".generate_vital_with_duplicates never marks a subject's first record 
 
   subjects <- rep("S01", 5)
   values <- gsm.datasim:::.generate_vital_with_duplicates(
-    n = length(subjects), subjects = subjects, mean = 100, sd = 5, digits = 0,
+    n = length(subjects),
+    subjects = subjects,
+    mean = 100,
+    sd = 5,
+    digits = 0,
     dDuplicateRate = 0.5
   )
 
@@ -159,7 +154,11 @@ test_that(".generate_vital_with_duplicates handles subjects with a single record
 
   subjects <- c("S01", "S02", "S03")
   values <- gsm.datasim:::.generate_vital_with_duplicates(
-    n = length(subjects), subjects = subjects, mean = 75, sd = 10, digits = 1
+    n = length(subjects),
+    subjects = subjects,
+    mean = 75,
+    sd = 10,
+    digits = 1
   )
 
   expect_length(values, 3)
@@ -184,10 +183,17 @@ test_that("Raw_VS generates realistic vitals distributions with duplicate inject
   # Weight, sysbp, diabp should each show some subject-level duplication,
   # consistent with the ~10% duplicate-injection rate.
   for (col in c("weight", "sysbp", "diabp")) {
-    dup_present <- vapply(split(vs_df[[col]], vs_df$subjid), function(x) {
-      any(duplicated(x))
-    }, logical(1))
-    expect_true(any(dup_present), info = paste(col, "should show duplicates for at least one subject"))
+    dup_present <- vapply(
+      split(vs_df[[col]], vs_df$subjid),
+      function(x) {
+        any(duplicated(x))
+      },
+      logical(1)
+    )
+    expect_true(
+      any(dup_present),
+      info = paste(col, "should show duplicates for at least one subject")
+    )
   }
 })
 
@@ -213,13 +219,22 @@ test_that("Raw_VS generates the full 8-vitals superset (height/bmi/pulse/temp/re
 
   vs_df <- generate_domain_from_registry("Raw_VS", context)
 
-  expect_true(all(c("height", "bmi", "pulse", "temp", "resp") %in% names(vs_df)))
+  expect_true(all(
+    c("height", "bmi", "pulse", "temp", "resp") %in% names(vs_df)
+  ))
   for (col in c("height", "bmi", "pulse", "temp", "resp")) {
     expect_true(is.numeric(vs_df[[col]]))
-    dup_present <- vapply(split(vs_df[[col]], vs_df$subjid), function(x) {
-      any(duplicated(x))
-    }, logical(1))
-    expect_true(any(dup_present), info = paste(col, "should show duplicates for at least one subject"))
+    dup_present <- vapply(
+      split(vs_df[[col]], vs_df$subjid),
+      function(x) {
+        any(duplicated(x))
+      },
+      logical(1)
+    )
+    expect_true(
+      any(dup_present),
+      info = paste(col, "should show duplicates for at least one subject")
+    )
   }
 })
 

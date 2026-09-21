@@ -8,7 +8,10 @@
 #'
 #' @return The previous log threshold, invisibly.
 #' @noRd
-test_at_log_threshold <- function(level = "FATAL", envir = rlang::caller_env()) {
+test_at_log_threshold <- function(
+  level = "FATAL",
+  envir = rlang::caller_env()
+) {
   old <- logger::log_threshold()
   withr::defer(logger::log_threshold(old), envir = envir)
   logger::log_threshold(level)

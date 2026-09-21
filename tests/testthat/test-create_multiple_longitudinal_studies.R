@@ -65,7 +65,9 @@ test_that("create_multiple_longitudinal_studies validates inputs (#95)", {
 
   # Duplicate study names
   expect_error(
-    create_multiple_longitudinal_studies(study_names = c("TEST-001", "TEST-001")),
+    create_multiple_longitudinal_studies(
+      study_names = c("TEST-001", "TEST-001")
+    ),
     "study_names contains duplicate values"
   )
 })

@@ -1,27 +1,3 @@
-death_classes <- c(
-  "Progressive Disease", "Adverse Event", "Disease Recurrence",
-  "Not related to disease",
-  "Related to long-term follow-up and not related to study drug"
-)
-
-make_death_test_spec <- function() {
-  list(
-    Raw_Death = list(
-      subjid = list(required = TRUE, type = "character"),
-      studyid = list(required = TRUE, type = "character"),
-      death_dt = list(required = TRUE, type = "Date"),
-      deathcls = list(required = TRUE, type = "character")
-    )
-  )
-}
-
-make_death_test_data <- function(n_subjects = 30) {
-  list(
-    Raw_SUBJ = data.frame(subjid = sprintf("S%04d", seq_len(n_subjects))),
-    Raw_STUDY = data.frame(protocol_number = "PROT-001")
-  )
-}
-
 test_that("death_dt generates dates within the 28-day window from start (#120)", {
   set.seed(101)
   start <- as.Date("2020-06-15")
@@ -58,7 +34,13 @@ test_that("Raw_Death generates a complete dataset from scratch (#120)", {
   data <- make_death_test_data()
   start_date <- as.Date("2012-01-01")
 
-  res <- Raw_Death(data, previous_data = list(), spec = spec, startDate = start_date, n = 5)
+  res <- Raw_Death(
+    data,
+    previous_data = list(),
+    spec = spec,
+    startDate = start_date,
+    n = 5
+  )
 
   expect_s3_class(res, "data.frame")
   expect_equal(nrow(res), 5)
@@ -78,7 +60,13 @@ test_that("Raw_Death appends only the delta rows to previous data (#120)", {
   data <- make_death_test_data()
   start_date <- as.Date("2012-01-01")
 
-  first <- Raw_Death(data, previous_data = list(), spec = spec, startDate = start_date, n = 3)
+  first <- Raw_Death(
+    data,
+    previous_data = list(),
+    spec = spec,
+    startDate = start_date,
+    n = 3
+  )
   second <- Raw_Death(
     data,
     previous_data = list(Raw_Death = first),
@@ -98,7 +86,13 @@ test_that("Raw_Death returns previous data unchanged when target count is met (#
   data <- make_death_test_data()
   start_date <- as.Date("2012-01-01")
 
-  first <- Raw_Death(data, previous_data = list(), spec = spec, startDate = start_date, n = 4)
+  first <- Raw_Death(
+    data,
+    previous_data = list(),
+    spec = spec,
+    startDate = start_date,
+    n = 4
+  )
   again <- Raw_Death(
     data,
     previous_data = list(Raw_Death = first),
@@ -116,7 +110,13 @@ test_that("Raw_Death renames columns per source_col in the spec (#120)", {
   spec$Raw_Death$deathcls$source_col <- "DEATHCLS"
   data <- make_death_test_data()
 
-  res <- Raw_Death(data, previous_data = list(), spec = spec, startDate = as.Date("2012-01-01"), n = 5)
+  res <- Raw_Death(
+    data,
+    previous_data = list(),
+    spec = spec,
+    startDate = as.Date("2012-01-01"),
+    n = 5
+  )
 
   expect_true("DEATHCLS" %in% names(res))
   expect_false("deathcls" %in% names(res))
@@ -129,7 +129,10 @@ test_that("domain registry exposes Raw_Death with expected schema and count func
   expect_true("Raw_Death" %in% names(registry))
 
   entry <- registry$Raw_Death
-  expect_equal(sort(names(entry)), sort(c("dataset", "required_inputs", "count_fn", "generate_fn")))
+  expect_equal(
+    sort(names(entry)),
+    sort(c("dataset", "required_inputs", "count_fn", "generate_fn"))
+  )
   expect_equal(entry$dataset, "Raw_Death")
   expect_true(is.function(entry$count_fn))
   expect_true(is.function(entry$generate_fn))

@@ -42,16 +42,8 @@ test_that("nonstarter_subjids is the shared predicate: enrolled AND firstdosedat
 })
 
 # The simulator is gsm's only expression of the status model, so these tests
-# double as the readable statement of the precedence rules.
-make_subj <- function() {
-  data.frame(
-    subjid = c("S1", "S2", "S3", "S4"),
-    enrollyn = c("Y", "Y", "Y", "N"),
-    enrolldt = as.Date(c("2025-01-01", "2025-01-01", "2025-03-01", NA)),
-    firstdosedate = as.Date(c("2025-01-05", NA, NA, NA)),
-    stringsAsFactors = FALSE
-  )
-}
+# double as the readable statement of the precedence rules. make_subj() lives
+# in helper-nonstarter-generators.R.
 
 # The two Potential statuses are only reachable when a subject is not drawn as
 # Confirmed, so each branch is driven explicitly by nConfirmedShare rather than
