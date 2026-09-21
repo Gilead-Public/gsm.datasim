@@ -53,6 +53,7 @@ test_that("every domain registry entry conforms to the required schema (#124)", 
 })
 
 test_that("Raw_AE migrated domain adapter generates data frame", {
+  test_at_log_threshold()
   set.seed(123)
 
   snapshot_data <- generate_rawdata_for_single_study(
@@ -90,6 +91,7 @@ test_that("Raw_AE migrated domain adapter generates data frame", {
 })
 
 test_that("Raw_LB migrated domain adapter generates data frame", {
+  test_at_log_threshold()
   set.seed(123)
 
   snapshot_data <- generate_rawdata_for_single_study(

@@ -147,6 +147,7 @@ test_that("generate_data_from_workflows rejects empty input (#106)", {  expect_e
 })
 
 test_that("generate_data_from_workflows handles pure-unknown workflows (#106)", {  set.seed(42)
+  test_at_log_threshold()
 
   # Create a minimal fake workflow with unknown domains
   fake_workflows <- list(
@@ -190,6 +191,7 @@ test_that("generate_data_from_workflows handles pure-unknown workflows (#106)", 
 })
 
 test_that("generate_data_from_workflows respects domain_counts (#106)", {  set.seed(42)
+  test_at_log_threshold()
 
   fake_workflows <- list(
     wf1 = list(
@@ -214,6 +216,7 @@ test_that("generate_data_from_workflows respects domain_counts (#106)", {  set.s
 })
 
 test_that("generate_data_from_workflows respects desired_domains filter (#106)", {  set.seed(42)
+  test_at_log_threshold()
 
   fake_workflows <- list(
     wf1 = list(
@@ -274,6 +277,7 @@ test_that(".resolve_domain_counts respects user overrides (#106)", {  counts <- 
 # ── Longitudinal / multi-snapshot ─────────────────────────────────────────────
 
 test_that("generate_data_from_workflows produces multiple snapshots (#106)", {  set.seed(42)
+  test_at_log_threshold()
 
   fake_workflows <- list(
     wf1 = list(
@@ -316,6 +320,7 @@ test_that("generate_data_from_workflows produces multiple snapshots (#106)", {  
 })
 
 test_that("longitudinal snapshots have cumulative rows for unknown domains (#106)", {  set.seed(123)
+  test_at_log_threshold()
 
   fake_workflows <- list(
     wf1 = list(
@@ -346,6 +351,7 @@ test_that("longitudinal snapshots have cumulative rows for unknown domains (#106
 })
 
 test_that("snapshot names are end-date strings (#106)", {  set.seed(42)
+  test_at_log_threshold()
 
   fake_workflows <- list(
     wf1 = list(
@@ -375,6 +381,7 @@ test_that("snapshot names are end-date strings (#106)", {  set.seed(42)
 })
 
 test_that("single snapshot returns flat list (backward compatible) (#106)", {  set.seed(42)
+  test_at_log_threshold()
 
   fake_workflows <- list(
     wf1 = list(
@@ -510,6 +517,7 @@ make_override_workflows <- function() {
 }
 
 test_that("column_overrides function(n) adds new column to generated domain (#106)", {  set.seed(42)
+  test_at_log_threshold()
   result <- generate_data_from_workflows(
     lWorkflows = make_override_workflows(),
     n_participants = 20,
@@ -523,6 +531,7 @@ test_that("column_overrides function(n) adds new column to generated domain (#10
 })
 
 test_that("column_overrides function(n, df) can derive from existing columns (#106)", {  set.seed(42)
+  test_at_log_threshold()
   result <- generate_data_from_workflows(
     lWorkflows = make_override_workflows(),
     n_participants = 15,
@@ -537,6 +546,7 @@ test_that("column_overrides function(n, df) can derive from existing columns (#1
 })
 
 test_that("column_overrides vector is sampled into generated domain (#106)", {  set.seed(42)
+  test_at_log_threshold()
   result <- generate_data_from_workflows(
     lWorkflows = make_override_workflows(),
     n_participants = 30,
@@ -549,6 +559,7 @@ test_that("column_overrides vector is sampled into generated domain (#106)", {  
 })
 
 test_that("column_overrides scalar is broadcast to all rows (#106)", {  set.seed(42)
+  test_at_log_threshold()
   result <- generate_data_from_workflows(
     lWorkflows = make_override_workflows(),
     n_participants = 10,
@@ -561,6 +572,7 @@ test_that("column_overrides scalar is broadcast to all rows (#106)", {  set.seed
 })
 
 test_that("column_overrides replaces an existing column (#106)", {  set.seed(42)
+  test_at_log_threshold()
   result <- generate_data_from_workflows(
     lWorkflows = make_override_workflows(),
     n_participants = 10,
@@ -572,6 +584,7 @@ test_that("column_overrides replaces an existing column (#106)", {  set.seed(42)
 })
 
 test_that("column_overrides applies to multiple domains independently (#106)", {  set.seed(42)
+  test_at_log_threshold()
   wf <- list(
     wf1 = list(
       meta = list(),
@@ -595,6 +608,7 @@ test_that("column_overrides applies to multiple domains independently (#106)", {
 })
 
 test_that("column_overrides NULL leaves output unchanged (backward compat) (#106)", {  set.seed(42)
+  test_at_log_threshold()
   result_no_override <- generate_data_from_workflows(
     lWorkflows     = make_override_workflows(),
     n_participants = 10
@@ -609,6 +623,7 @@ test_that("column_overrides NULL leaves output unchanged (backward compat) (#106
 })
 
 test_that("column_overrides are applied on every snapshot in multi-snapshot mode (#106)", {  set.seed(42)
+  test_at_log_threshold()
   result <- generate_data_from_workflows(
     lWorkflows = make_override_workflows(),
     n_participants = 20,
@@ -651,6 +666,7 @@ test_that("add_new_var_data still throws for non-missing-function errors (#106)"
 })
 
 test_that("unknown spec column in workflow does not drop to type-based fallback tier (#106)", {  # A workflow spec with a column (mystery_score) that has no generator should
+  test_at_log_threshold()
   # still produce a structurally correct domain via the registry/legacy tier,
   # not degrade to the full type-based fallback for the whole domain.
   set.seed(42)

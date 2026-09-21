@@ -529,7 +529,19 @@ save_data_on_disk <- function(data, base_path = NULL) {
   close(pb)
 
   logger::log_info(glue::glue("Saved all data successfully"))
-  tictoc::toc()
+  tictoc::toc(quiet = .toc_quiet())
+}
+
+#' Should `tictoc::toc()` be silenced?
+#'
+#' Timing messages are shown by default. Setting the `GSM_SHOW_TOC` environment
+#' variable to `"FALSE"` (or `"false"`) suppresses them; any other value, or an
+#' unset variable, leaves them on.
+#'
+#' @return `TRUE` when timing output should be suppressed.
+#' @noRd
+.toc_quiet <- function() {
+  isFALSE(as.logical(Sys.getenv("GSM_SHOW_TOC", "TRUE")))
 }
 
 generate_random_fpfv <- function(min_date, max_date, canBeEmpty = FALSE, previous_date = NULL) {

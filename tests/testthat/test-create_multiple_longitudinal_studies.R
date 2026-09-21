@@ -1,5 +1,6 @@
 test_that("create_multiple_longitudinal_studies works with basic configuration (#89, #95)", {
   skip_if_not_installed("gsm.mapping")
+  test_at_log_threshold()
 
   studies <- create_multiple_longitudinal_studies(
     study_names = c("TEST-001", "TEST-002"),
@@ -29,6 +30,7 @@ test_that("create_multiple_longitudinal_studies works with basic configuration (
 })
 
 test_that("create_multiple_longitudinal_studies works with per-study configuration (#89, #95)", {
+  test_at_log_threshold()
   skip_if_not_installed("gsm.mapping")
 
   studies <- create_multiple_longitudinal_studies(
@@ -69,6 +71,7 @@ test_that("create_multiple_longitudinal_studies validates inputs (#95)", {
 })
 
 test_that("print method works for multiple_longitudinal_studies (#95)", {
+  test_at_log_threshold()
   skip_if_not_installed("gsm.mapping")
 
   studies <- create_multiple_longitudinal_studies(
@@ -88,6 +91,7 @@ test_that("print method works for multiple_longitudinal_studies (#95)", {
 })
 
 test_that("summary method works for multiple_longitudinal_studies (#95)", {
+  test_at_log_threshold()
   skip_if_not_installed("gsm.mapping")
 
   studies <- create_multiple_longitudinal_studies(

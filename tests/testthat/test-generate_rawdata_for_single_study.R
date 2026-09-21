@@ -1,4 +1,5 @@
 test_that("generate_rawdata_for_single_study works (#96)", {
+  test_at_log_threshold()
   snapshots <- generate_rawdata_for_single_study(
     SnapshotCount = 2,
     SnapshotWidth = "months",
