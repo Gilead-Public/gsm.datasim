@@ -77,7 +77,8 @@ test_that("Raw_AE migrated domain adapter generates data frame", {
     workflow_path = "workflow/1_mappings",
     mappings = c("STUDY", "SITE", "SUBJ", "ENROLL", "SV", "VISIT", "AE"),
     package = "gsm.mapping"
-  )
+  ) |> 
+    expect_warning("deprecated")
 
   combined_specs <- load_specs(
     workflow_path = "workflow/1_mappings",
@@ -138,3 +139,4 @@ test_that("Raw_LB migrated domain adapter generates data frame", {
   expect_s3_class(lb_df, "data.frame")
   expect_true(nrow(lb_df) >= 0)
 })
+

@@ -667,6 +667,61 @@ test_that("column_overrides NULL leaves output unchanged (backward compat) (#106
   expect_equal(result_no_override, result_null_override)
 })
 
+# Raw_SITE only succeeds via the domain registry tier (not the legacy Raw_*()
+# path, since that requires split_vars applied by the legacy dispatcher) when
+# its spec matches the registry's expected columns and Raw_STUDY is present in
+# the same workflow. This exercises the "generated via domain registry"
+# success branch (data[[domain]] <- ...; .apply_column_overrides(); next).
+test_that("a domain matching the registry's expected spec is generated via the registry tier", {
+  set.seed(9137)
+  test_at_log_threshold()
+
+  fake_workflows <- list(
+    wf1 = list(
+      meta = list(),
+      spec = list(
+        Raw_STUDY = list(
+          studyid = list(required = TRUE, type = "character"),
+          protocol_number = list(required = TRUE, type = "character"),
+          nickname = list(required = TRUE, type = "character"),
+          protocol_title = list(required = TRUE, type = "character"),
+          phase = list(required = TRUE, type = "character"),
+          num_plan_site = list(required = TRUE, type = "integer"),
+          num_plan_subj = list(required = TRUE, type = "integer"),
+          act_fpfv = list(required = TRUE, type = "Date"),
+          est_fpfv = list(required = TRUE, type = "Date"),
+          est_lpfv = list(required = TRUE, type = "Date"),
+          est_lplv = list(required = TRUE, type = "Date"),
+          db_lock_dt = list(required = TRUE, type = "Date")
+        ),
+        Raw_SITE = list(
+          studyid = list(required = TRUE, type = "character"),
+          invid = list(required = TRUE, type = "character"),
+          Country = list(required = TRUE, type = "character"),
+          State = list(required = TRUE, type = "character"),
+          City = list(required = TRUE, type = "character"),
+          site_status = list(required = TRUE, type = "character"),
+          InvestigatorFirstName = list(required = TRUE, type = "character"),
+          InvestigatorLastName = list(required = TRUE, type = "character")
+        )
+      ),
+      steps = list()
+    )
+  )
+
+  result <- generate_data_from_workflows(
+    lWorkflows = fake_workflows,
+    n_participants = 20,
+    n_sites = 5
+  )
+
+  expect_s3_class(result$Raw_SITE, "data.frame")
+  expect_equal(nrow(result$Raw_SITE), 5)
+  expect_true(all(
+    c("invid", "Country", "State", "City", "site_status") %in% names(result$Raw_SITE)
+  ))
+})
+
 test_that("column_overrides are applied on every snapshot in multi-snapshot mode (#106)", {
   set.seed(42)
   test_at_log_threshold()
@@ -738,4 +793,95 @@ test_that("unknown spec column in workflow does not drop to type-based fallback 
   expect_true("mystery_score" %in% names(result$Raw_CUSTOM))
   expect_type(result$Raw_CUSTOM$mystery_score, "double")
   expect_equal(nrow(result$Raw_CUSTOM), 15)
+})
+
+# ── Spec preparation and generation-tier branches ─────────────────────────────
+
+# A workflow whose only domain is Mapped_* is stripped by
+# prepare_combined_specs_for_generation(), and desired_domains then filters the
+# auto-injected Raw_VISIT back out, leaving nothing to generate.
+test_that("generate_data_from_workflows warns when no domains remain (#106)", {
+  test_at_log_threshold()
+
+  wf <- list(
+    wf1 = list(
+      meta = list(),
+      spec = list(Mapped_SUBJ = list(subjid = list(type = "character"))),
+      steps = list()
+    )
+  )
+
+  expect_warning(
+    result <- generate_data_from_workflows(wf, desired_domains = character(0)),
+    "No Raw_[*] domains found"
+  )
+  expect_equal(result, list())
+})
+
+# A workflow that declares its own Raw_VISIT spec has it restored after
+# prepare_combined_specs_for_generation() replaces it with the default, and the
+# fully-specified Raw_VISIT then generates via the domain registry.
+test_that("a workflow-supplied Raw_VISIT spec is restored and generated via the registry", {
+  set.seed(42)
+  test_at_log_threshold()
+
+  wf <- list(
+    wf1 = list(
+      meta = list(),
+      spec = list(
+        Raw_SUBJ = list(
+          studyid = list(type = "character"),
+          subjid = list(type = "character"),
+          invid = list(type = "character")
+        ),
+        Raw_VISIT = list(
+          subjid = list(type = "character"),
+          foldername = list(type = "character"),
+          instancename = list(type = "character"),
+          visit_dt = list(type = "Date")
+        )
+      ),
+      steps = list()
+    )
+  )
+
+  result <- generate_data_from_workflows(wf, n_participants = 6, n_sites = 2)
+
+  expect_true(all(c("subjid", "foldername", "instancename", "visit_dt") %in%
+    names(result$Raw_VISIT)))
+  expect_gte(nrow(result$Raw_VISIT), 6)
+})
+
+# Raw_STUDY resolves to a single row, so its per-snapshot count vector takes the
+# rep(max_n, snapshot_count) branch rather than count_gen(); its generator also
+# succeeds as a legacy Raw_*() function across both snapshots.
+test_that("single-row domains repeat their count across snapshots via the legacy tier", {
+  set.seed(42)
+  test_at_log_threshold()
+
+  wf <- list(
+    wf1 = list(
+      meta = list(),
+      spec = list(
+        Raw_STUDY = list(
+          nickname = list(type = "character"),
+          protocol_title = list(type = "character")
+        )
+      ),
+      steps = list()
+    )
+  )
+
+  snapshots <- generate_data_from_workflows(
+    wf,
+    n_participants = 4,
+    n_sites = 2,
+    snapshot_count = 2
+  )
+
+  expect_length(snapshots, 2)
+  expect_equal(nrow(snapshots[[1]]$Raw_STUDY), 1)
+  # Legacy Raw_STUDY appends one row per snapshot from previous_data.
+  expect_equal(nrow(snapshots[[2]]$Raw_STUDY), 2)
+  expect_setequal(names(snapshots[[1]]$Raw_STUDY), c("nickname", "protocol_title"))
 })

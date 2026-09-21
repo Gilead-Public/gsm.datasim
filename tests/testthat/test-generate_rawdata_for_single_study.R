@@ -25,3 +25,32 @@ test_that("generate_rawdata_for_single_study works (#96)", {
     )
   )
 })
+
+# The IE and Randomization post-processing filters (unenrolled-subject removal
+# and earliest-record-per-subject) only run when those domains are requested.
+test_that("generate_rawdata_for_single_study post-processes IE and Randomization", {
+  skip_if_not_installed("gsm.mapping")
+  test_at_log_threshold()
+  withr::local_options(lifecycle_verbosity = "quiet")
+
+  snapshots <- generate_rawdata_for_single_study(
+    SnapshotCount = 2,
+    SnapshotWidth = "months",
+    ParticipantCount = 30,
+    SiteCount = 4,
+    StudyID = "ABC",
+    workflow_path = "workflow/1_mappings",
+    mappings = c("IE", "Randomization"),
+    package = "gsm.mapping",
+    desired_specs = NULL
+  )
+
+  expect_length(snapshots, 2)
+  expect_true(all(c("Raw_IE", "Raw_Randomization") %in% names(snapshots[[1]])))
+
+  first <- snapshots[[1]]
+  unenrolled <- first$Raw_SUBJ$subjid[first$Raw_SUBJ$enrollyn == "N"]
+  expect_false(any(first$Raw_IE$subjid %in% unenrolled))
+  # Only the earliest randomization record per subject survives.
+  expect_equal(anyDuplicated(first$Raw_Randomization$subjid), 0L)
+})
