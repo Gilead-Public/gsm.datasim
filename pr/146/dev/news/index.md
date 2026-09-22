@@ -10,13 +10,12 @@
   ([\#140](https://github.com/Gilead-Public/gsm.datasim/issues/140)).
 - Added deterministic ActionLog simulation utilities that produce
   `grail.ado::GetWorkItems()`-compatible records and project them into
-  the source-neutral `AllRiskSignals` and `Actions` domains introduced
-  by `grail.ado` PR
-  [\#121](https://github.com/Gilead-Public/gsm.datasim/issues/121).
+  the source-neutral `AllRiskSignals` and `Actions` field contracts.
   State transitions, missing work items, duplicate risk signals, and
   multi-snapshot histories are configurable for action-weighted Site
-  Risk Score testing; final ActionLog construction delegates to
-  `grail::BuildActionLog()`
+  Risk Score testing. All synthetic layers, including the final
+  ActionLog, are generated locally without ADO credentials or private
+  package dependencies
   ([\#134](https://github.com/Gilead-Public/gsm.datasim/issues/134)).
 
 ## gsm.datasim v2.0.0

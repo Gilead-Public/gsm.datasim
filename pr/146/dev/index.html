@@ -243,7 +243,7 @@
 </tr>
 <tr>
 <td><code><a href="reference/simulate_action_log.html">simulate_action_log()</a></code></td>
-<td>Let <code>grail::BuildActionLog()</code> build a final ActionLog from the projected domains</td>
+<td>Build a final synthetic ActionLog from the projected domains</td>
 </tr>
 <tr>
 <td><code><a href="reference/simulate_action_log_lookback_scenarios.html">simulate_action_log_lookback_scenarios()</a></code></td>
@@ -358,7 +358,7 @@
 <div class="section level3">
 <h3 id="actionlog-histories">ActionLog histories<a class="anchor" aria-label="anchor" href="#actionlog-histories"></a>
 </h3>
-<p>ActionLog simulation uses synthetic values and the owning package functions. It does not connect to Azure DevOps or require credentials. The raw work items are projected by <code>grail.ado::TabulateRiskSignals()</code> and <code>grail.ado::TabulateActions()</code> into the source-neutral domains owned by the current <code>grail</code> contract; final report construction remains owned by <code>grail::BuildActionLog()</code>. The internal <code>grail</code> and <code>grail.ado</code> packages are opt-in integrations and must be installed separately to use these projection and report-building helpers.</p>
+<p>ActionLog simulation is self-contained: it does not connect to Azure DevOps, require credentials, or install private packages. It generates raw ADO-compatible work items, source-neutral <code>AllRiskSignals</code> and <code>Actions</code> domains, and a final synthetic ActionLog for downstream workflow tests. The AA integration repository separately checks these schemas against the owning <code>grail.ado</code> and <code>grail</code> implementations.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">kri_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  StudyID <span class="op">=</span> <span class="st">"DEMO-001"</span>,</span>

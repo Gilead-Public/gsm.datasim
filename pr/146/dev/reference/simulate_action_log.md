@@ -1,9 +1,8 @@
 # Simulate an ActionLog history
 
 Creates raw ADO-compatible work items, projects them to source-neutral
-domains with `grail.ado`, and builds the final report with
-`grail::BuildActionLog()`. This convenience function can return the
-final ActionLog alone or all intermediate schema layers.
+domains, and builds a deterministic final ActionLog without network
+access.
 
 ## Usage
 

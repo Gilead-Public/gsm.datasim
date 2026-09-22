@@ -1,10 +1,8 @@
 # Project synthetic ADO work items into source-neutral Action Log domains
 
-Uses the projection contract introduced by `grail.ado` PR \#121. The
-same non-QTL Azure DevOps Risk Signal work items are projected
-independently into the inbound `AllRiskSignals` and `Actions` domains
-consumed by `{grail}`. Final Action Log report construction remains
-owned by `{grail}`.
+Projects non-QTL synthetic Risk Signal work items into the
+source-neutral `AllRiskSignals` and `Actions` field contracts used by
+Action Log consumers.
 
 ## Usage
 
