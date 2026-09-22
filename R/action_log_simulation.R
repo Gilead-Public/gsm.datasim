@@ -171,6 +171,7 @@
     "Custom.GroupID" = row$GroupID,
     "Custom.GroupLabel" = row$GroupLabel,
     "Custom.GroupInfo" = row$GroupInfo,
+    "Custom.Country" = row$Country,
     "Custom.GroupStatus" = row$GroupStatus,
     "Custom.Enrollment" = as.integer(row$Enrollment),
     "Custom.MetricType" = row$MetricType,
@@ -183,7 +184,7 @@
     "Custom.FunctionalArea" = row$FunctionalArea,
     "Custom.RecommendedAction" = row$RecommendedAction,
     "Custom.ActionTaken" = row$ActionTaken,
-    "Custom.CTMSID" = as.integer(row$CTMSID),
+    "Custom.CTMSID" = as.character(row$CTMSID),
     "Custom.Analytics" = row$Analytics,
     "Custom.Source" = "gsm.datasim",
     "Custom.Protocol" = project
@@ -405,137 +406,106 @@ simulate_risk_signal_work_items <- function(
   })
 }
 
-.require_action_log_package <- function(package, caller) {
-  if (!requireNamespace(package, quietly = TRUE)) {
-    stop(
-      package,
-      " must be installed to use ",
-      caller,
-      "().",
-      call. = FALSE
-    )
-  }
-}
-
-.missing_schema_column <- function(type, size) {
-  switch(
-    tolower(type),
-    string = rep(NA_character_, size),
-    integer = rep(NA_integer_, size),
-    boolean = rep(NA, size),
-    date = rep(as.Date(NA), size),
-    number = rep(NA_real_, size),
-    datetime = rep(as.POSIXct(NA), size),
-    rep(NA_character_, size)
-  )
-}
-
-.coerce_schema_column <- function(value, type) {
-  switch(
-    tolower(type),
-    string = as.character(value),
-    integer = as.integer(value),
-    boolean = as.logical(value),
-    date = as.Date(value),
-    number = as.numeric(value),
-    datetime = as.POSIXct(value),
-    value
-  )
-}
-
-.apply_action_log_schema <- function(data, schema) {
-  field_names <- vapply(schema$fields, function(field) field$name, character(1))
-
-  for (field in schema$fields) {
-    if (!(field$name %in% names(data))) {
-      data[[field$name]] <- .missing_schema_column(field$type, nrow(data))
-    } else {
-      data[[field$name]] <- .coerce_schema_column(data[[field$name]], field$type)
-    }
-  }
-
-  data[field_names]
-}
-
-#' Tabulate synthetic risk signal work items
+#' Project synthetic ADO work items into source-neutral Action Log domains
 #'
-#' Passes synthetic work items through `grail.ado::TabulateWorkItems()` and
-#' normalizes the result to `grail.ado::RiskSignalWorkItemsTableSchema`.
+#' Uses the projection contract introduced by `grail.ado` PR #121. The same
+#' non-QTL Azure DevOps Risk Signal work items are projected independently into
+#' the inbound `AllRiskSignals` and `Actions` domains consumed by `{grail}`.
+#' Final Action Log report construction remains owned by `{grail}`.
 #'
-#' @param work_items List returned by [simulate_risk_signal_work_items()].
-#' @param organization Azure DevOps organization used to construct work item
-#'   URLs.
+#' @param work_items A list of ADO-compatible Risk Signal work items, typically
+#'   returned by [simulate_risk_signal_work_items()].
+#' @param organization Azure DevOps organization used to construct fallback
+#'   work-item URLs.
 #'
-#' @return A data frame conforming to the grail.ado risk signal work item table
-#'   schema.
+#' @return A named list containing `all_risk_signals` and `actions` data frames.
 #' @export
-tabulate_risk_signal_work_items <- function(
+project_action_log_domains <- function(
     work_items,
     organization = "Gilead-RND-CDS-RBQM") {
   if (!is.list(work_items)) {
     stop("work_items must be a list.", call. = FALSE)
   }
-  if (!is.character(organization) || length(organization) != 1L || is.na(organization)) {
+  if (!is.character(organization) || length(organization) != 1L ||
+      is.na(organization)) {
     stop("organization must be a single character value.", call. = FALSE)
   }
-  .require_action_log_package("grail.ado", "tabulate_risk_signal_work_items")
+  required_exports <- c("TabulateRiskSignals", "TabulateActions")
+  if (!requireNamespace("grail.ado", quietly = TRUE) ||
+      !all(required_exports %in% getNamespaceExports("grail.ado"))) {
+    stop(
+      "grail.ado with the source-neutral Action Log projection APIs is required.",
+      call. = FALSE
+    )
+  }
 
-  work_item_table <- grail.ado::TabulateWorkItems(
-    work_items,
-    strOrganization = organization
-  )
-  .apply_action_log_schema(
-    work_item_table,
-    grail.ado::RiskSignalWorkItemsTableSchema
+  list(
+    all_risk_signals = grail.ado::TabulateRiskSignals(
+      work_items,
+      strOrganization = organization
+    ),
+    actions = grail.ado::TabulateActions(
+      work_items,
+      strOrganization = organization
+    )
   )
 }
 
-#' Augment synthetic risk signal work items
+#' Simulate source-neutral Action Log input domains
 #'
-#' Passes a simulated risk signal work item table through
-#' `grail::AugmentRiskSignalWorkItemsTable()` and normalizes the result to
-#' `grail::ActionLogSchema`.
+#' Generates deterministic ADO-compatible Risk Signal work items and projects
+#' them into the source-neutral `AllRiskSignals` and `Actions` domains defined
+#' by the current `{grail}` Action Log contract.
 #'
-#' @param work_item_table Data frame returned by
-#'   [tabulate_risk_signal_work_items()].
-#' @param extraction_date Synthetic ActionLog extraction date.
-#' @param state_order Order used when sorting work items within a signal key.
+#' @inheritParams simulate_risk_signal_work_items
 #'
-#' @return A data frame conforming to `grail::ActionLogSchema`.
+#' @return A named list containing the raw `work_items`, projected
+#'   `all_risk_signals`, and projected `actions`.
 #' @export
-augment_risk_signal_work_items <- function(
-    work_item_table,
-    extraction_date = Sys.Date(),
-    state_order = .action_log_states) {
-  if (!is.data.frame(work_item_table)) {
-    stop("work_item_table must be a data frame.", call. = FALSE)
-  }
-  extraction_date <- as.Date(extraction_date)
-  if (length(extraction_date) != 1L || is.na(extraction_date)) {
-    stop("extraction_date must be a single date.", call. = FALSE)
-  }
-  if (!is.character(state_order) || !setequal(state_order, .action_log_states)) {
-    stop("state_order must contain all supported ActionLog states.", call. = FALSE)
-  }
-  .require_action_log_package("grail", "augment_risk_signal_work_items")
-
-  action_log <- grail::AugmentRiskSignalWorkItemsTable(
-    work_item_table,
-    strState = state_order,
-    dtExtractionDate = extraction_date
+simulate_action_log_domains <- function(
+    df_results,
+    state_probabilities = c(
+      "Awaiting Triage" = 0.2,
+      "No Action" = 0.4,
+      "Open Action" = 0.2,
+      "Closed Action" = 0.2
+    ),
+    transition_matrix = NULL,
+    missing_probability = 0,
+    duplicate_probability = 0,
+    seed = NULL,
+    extraction_date = NULL,
+    work_item_id_start = 900000L,
+    organization = "Gilead-RND-CDS-RBQM") {
+  work_items <- simulate_risk_signal_work_items(
+    df_results = df_results,
+    state_probabilities = state_probabilities,
+    transition_matrix = transition_matrix,
+    missing_probability = missing_probability,
+    duplicate_probability = duplicate_probability,
+    seed = seed,
+    extraction_date = extraction_date,
+    work_item_id_start = work_item_id_start,
+    organization = organization
   )
-  .apply_action_log_schema(action_log, grail::ActionLogSchema)
+  domains <- project_action_log_domains(
+    work_items,
+    organization = organization
+  )
+
+  c(list(work_items = work_items), domains)
 }
 
 #' Simulate an ActionLog history
 #'
-#' Creates raw ADO-compatible work items, tabulates them with `grail.ado`, and
-#' augments them with `grail`. This convenience function can return the final
-#' ActionLog alone or all three intermediate schema layers.
+#' Creates raw ADO-compatible work items, projects them to source-neutral
+#' domains with `grail.ado`, and builds the final report with
+#' `grail::BuildActionLog()`. This convenience function can return the final
+#' ActionLog alone or all intermediate schema layers.
 #'
 #' @inheritParams simulate_risk_signal_work_items
-#' @param include_intermediates If `TRUE`, return raw work items, the tabulated
-#'   work item data, and the augmented ActionLog in a named list.
+#' @param include_intermediates If `TRUE`, return raw work items,
+#'   `all_risk_signals`, `actions`, and the final `action_log` in a named list.
 #'
 #' @return An ActionLog data frame, or a named list of all three schema layers.
 #' @export
@@ -575,21 +545,109 @@ simulate_action_log <- function(
     work_item_id_start = work_item_id_start,
     organization = organization
   )
-  work_item_table <- tabulate_risk_signal_work_items(
+  domains <- project_action_log_domains(
     work_items,
     organization = organization
   )
-  action_log <- augment_risk_signal_work_items(
-    work_item_table,
-    extraction_date = extraction_date
+  if (!requireNamespace("grail", quietly = TRUE) ||
+      !"BuildActionLog" %in% getNamespaceExports("grail")) {
+    stop(
+      "grail with the source-neutral BuildActionLog API is required.",
+      call. = FALSE
+    )
+  }
+  action_log <- grail::BuildActionLog(
+    dfRiskSignals = domains$all_risk_signals,
+    dfActions = domains$actions,
+    dtExtractionDate = extraction_date
   )
 
   if (isTRUE(include_intermediates)) {
-    return(list(
-      work_items = work_items,
-      work_item_table = work_item_table,
-      action_log = action_log
+    return(c(
+      list(work_items = work_items),
+      domains,
+      list(action_log = action_log)
     ))
   }
   action_log
+}
+
+#' Simulate deterministic Action Log lookback scenarios
+#'
+#' Builds three-snapshot histories that exercise action-window boundaries for
+#' downstream scoring tests. The scenarios cover an older open action, a recent
+#' closed action, a current open action, no action, and awaiting triage.
+#'
+#' @param study_id Study identifier for the synthetic histories.
+#' @param snapshot_dates Exactly three ordered snapshot dates.
+#' @param work_item_id_start First synthetic ADO work item ID.
+#' @param organization Azure DevOps organization used only to construct URLs.
+#'
+#' @return A named list containing `reporting_results`, scenario `expectations`,
+#'   raw `work_items`, source-neutral `all_risk_signals` and `actions`, and the
+#'   final `action_log`.
+#' @export
+simulate_action_log_lookback_scenarios <- function(
+    study_id = "SYNTHETIC-STUDY",
+    snapshot_dates = as.Date(c("2026-01-31", "2026-02-28", "2026-03-31")),
+    work_item_id_start = 910000L,
+    organization = "Gilead-RND-CDS-RBQM") {
+  snapshot_dates <- as.Date(snapshot_dates)
+  if (length(snapshot_dates) != 3L || anyNA(snapshot_dates) ||
+      is.unsorted(snapshot_dates, strictly = TRUE)) {
+    stop("snapshot_dates must contain exactly three increasing dates.", call. = FALSE)
+  }
+  if (!is.character(study_id) || length(study_id) != 1L ||
+      is.na(study_id) || study_id == "") {
+    stop("study_id must be a single non-empty character value.", call. = FALSE)
+  }
+
+  scenarios <- data.frame(
+    Scenario = c(
+      "older-open", "recent-closed", "current-open", "no-action",
+      "awaiting-triage"
+    ),
+    GroupID = as.character(1001:1005),
+    stringsAsFactors = FALSE
+  )
+  states <- list(
+    c("Open Action", "No Action", "No Action"),
+    c("No Action", "Closed Action", "No Action"),
+    c("No Action", "No Action", "Open Action"),
+    rep("No Action", 3),
+    c("No Action", "No Action", "Awaiting Triage")
+  )
+  reporting_results <- do.call(rbind, lapply(seq_len(nrow(scenarios)), function(index) {
+    data.frame(
+      StudyID = study_id,
+      SnapshotDate = snapshot_dates,
+      GroupLevel = "Site",
+      GroupID = scenarios$GroupID[index],
+      MetricID = paste0("Analysis_kri", sprintf("%04d", index)),
+      Flag = 1L,
+      State = states[[index]],
+      Country = "US",
+      Scenario = scenarios$Scenario[index],
+      stringsAsFactors = FALSE
+    )
+  }))
+  expectations <- data.frame(
+    scenarios,
+    Lookback1 = c(FALSE, FALSE, TRUE, FALSE, FALSE),
+    Lookback2 = c(FALSE, TRUE, TRUE, FALSE, FALSE),
+    Lookback3 = c(TRUE, TRUE, TRUE, FALSE, FALSE),
+    stringsAsFactors = FALSE
+  )
+  simulated <- simulate_action_log(
+    reporting_results,
+    extraction_date = max(snapshot_dates) + 7,
+    work_item_id_start = work_item_id_start,
+    organization = organization,
+    include_intermediates = TRUE
+  )
+
+  c(
+    list(reporting_results = reporting_results, expectations = expectations),
+    simulated
+  )
 }

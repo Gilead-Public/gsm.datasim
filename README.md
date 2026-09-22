@@ -112,9 +112,10 @@ ae_counts <- sapply(get_domain_timeline(study, "AE"), nrow)
 | Function | Description |
 |---|---|
 | `simulate_risk_signal_work_items()` | Create synthetic `grail.ado::GetWorkItems()`-compatible risk signals |
-| `tabulate_risk_signal_work_items()` | Normalize synthetic work items to `RiskSignalWorkItemsTableSchema` |
-| `augment_risk_signal_work_items()` | Augment a work item table to `grail::ActionLogSchema` |
-| `simulate_action_log()` | Run all three layers and return an ActionLog history |
+| `project_action_log_domains()` | Project work items to source-neutral `AllRiskSignals` and `Actions` domains |
+| `simulate_action_log_domains()` | Generate work items plus both source-neutral inbound domains |
+| `simulate_action_log()` | Let `grail::BuildActionLog()` build a final ActionLog from the projected domains |
+| `simulate_action_log_lookback_scenarios()` | Generate deterministic three-snapshot histories for configurable lookback tests |
 
 ### Export
 
@@ -208,7 +209,11 @@ studies <- create_multiple_longitudinal_studies(
 ### ActionLog histories
 
 ActionLog simulation uses synthetic values and the owning package functions. It
-does not connect to Azure DevOps or require credentials.
+does not connect to Azure DevOps or require credentials. The raw work items are
+projected by `grail.ado::TabulateRiskSignals()` and
+`grail.ado::TabulateActions()` into the source-neutral domains owned by the
+current `grail` contract; final report construction remains owned by
+`grail::BuildActionLog()`.
 
 ```r
 kri_results <- data.frame(
@@ -228,7 +233,16 @@ simulated <- simulate_action_log(
 )
 
 names(simulated)
-#> [1] "work_items" "work_item_table" "action_log"
+#> [1] "work_items" "all_risk_signals" "actions" "action_log"
+
+lookback <- simulate_action_log_lookback_scenarios()
+lookback$expectations
+#>         Scenario GroupID Lookback1 Lookback2 Lookback3
+#> 1     older-open    1001     FALSE     FALSE      TRUE
+#> 2  recent-closed    1002     FALSE      TRUE      TRUE
+#> 3   current-open    1003      TRUE      TRUE      TRUE
+#> 4      no-action    1004     FALSE     FALSE     FALSE
+#> 5 awaiting-triage    1005     FALSE     FALSE     FALSE
 ```
 
 ### Export
