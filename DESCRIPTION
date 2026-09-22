@@ -29,9 +29,6 @@ Imports:
     tictoc,
     utils,
     workr (>= 1.0.0)
-Enhances:
-    grail,
-    grail.ado,
 Suggests:
     gsm.kri,
     gsm.mapping,
@@ -49,3 +46,6 @@ Remotes:
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 Config/roxygen2/version: 8.0.0
+Config/Needs/actionlog:
+    Gilead-BioStats/grail@dev,
+    Gilead-BioStats/grail.ado#121

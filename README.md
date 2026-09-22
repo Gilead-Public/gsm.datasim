@@ -214,8 +214,8 @@ projected by `grail.ado::TabulateRiskSignals()` and
 `grail.ado::TabulateActions()` into the source-neutral domains owned by the
 current `grail` contract; final report construction remains owned by
 `grail::BuildActionLog()`. The internal `grail` and `grail.ado` packages are
-optional enhanced integrations and must be installed separately to use these
-projection and report-building helpers.
+opt-in integrations and must be installed separately to use these projection
+and report-building helpers.
 
 ```r
 kri_results <- data.frame(
