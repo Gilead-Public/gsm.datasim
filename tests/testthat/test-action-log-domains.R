@@ -20,13 +20,6 @@ make_domain_results <- function() {
 }
 
 test_that("simulate_action_log_domains projects PR 121 source-neutral domains (#134)", {
-  skip_if_not_installed("grail.ado")
-  skip_if_not(
-    all(c("TabulateRiskSignals", "TabulateActions") %in%
-      getNamespaceExports("grail.ado")),
-    "grail.ado PR #121 projection APIs are unavailable"
-  )
-
   simulated <- simulate_action_log_domains(
     make_domain_results(),
     seed = 134,
@@ -66,13 +59,6 @@ test_that("simulate_action_log_domains projects PR 121 source-neutral domains (#
 })
 
 test_that("project_action_log_domains returns typed empty domains (#134)", {
-  skip_if_not_installed("grail.ado")
-  skip_if_not(
-    all(c("TabulateRiskSignals", "TabulateActions") %in%
-      getNamespaceExports("grail.ado")),
-    "grail.ado PR #121 projection APIs are unavailable"
-  )
-
   projected <- project_action_log_domains(list())
 
   expect_equal(nrow(projected$all_risk_signals), 0)
@@ -104,13 +90,6 @@ test_that("project_action_log_domains returns typed empty domains (#134)", {
 })
 
 test_that("standard domain projection excludes QTL-associated actions (#134)", {
-  skip_if_not_installed("grail.ado")
-  skip_if_not(
-    all(c("TabulateRiskSignals", "TabulateActions") %in%
-      getNamespaceExports("grail.ado")),
-    "grail.ado PR #121 projection APIs are unavailable"
-  )
-
   results <- make_domain_results()[1:2, ]
   results$MetricType <- c("KRI", "QTL")
   projected <- simulate_action_log_domains(results, seed = 134)
@@ -121,13 +100,6 @@ test_that("standard domain projection excludes QTL-associated actions (#134)", {
 })
 
 test_that("source-neutral projections preserve deterministic histories (#134)", {
-  skip_if_not_installed("grail.ado")
-  skip_if_not(
-    all(c("TabulateRiskSignals", "TabulateActions") %in%
-      getNamespaceExports("grail.ado")),
-    "grail.ado PR #121 projection APIs are unavailable"
-  )
-
   first <- simulate_action_log_domains(make_domain_results(), seed = 134)
   second <- simulate_action_log_domains(make_domain_results(), seed = 134)
 
@@ -139,10 +111,6 @@ test_that("source-neutral projections preserve deterministic histories (#134)", 
 })
 
 test_that("lookback scenarios exercise action-window boundaries (#134, #63)", {
-  skip_if_not_installed("grail.ado")
-  skip_if_not_installed("grail")
-  skip_if_not("BuildActionLog" %in% getNamespaceExports("grail"))
-
   simulated <- simulate_action_log_lookback_scenarios()
 
   expect_named(simulated, c(

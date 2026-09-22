@@ -18,6 +18,16 @@ make_action_log_results <- function() {
   )
 }
 
+action_log_names <- c(
+  "StudyID", "SnapshotDate", "GroupLevel", "GroupID", "MetricID", "State",
+  "AssignedTo", "RiskSignalID", "RiskSignalURL", "SignalDescription",
+  "RecommendedAction", "ActionTaken", "CTMSID", "CreatedDate",
+  "ResolvedDate", "ExtractionDate", "RiskSignalDuplicateFlag",
+  "RelevantSnapshotDate", "RelevantSnapshotFlag", "RiskSignalAge",
+  "FunctionalArea", "GroupLabel", "MetricLabel", "MetricAbbreviation",
+  "Country"
+)
+
 test_that("simulate_risk_signal_work_items returns GetWorkItems-compatible records (#134)", {
   results <- make_action_log_results()
 
@@ -108,13 +118,6 @@ test_that("simulate_risk_signal_work_items supports deterministic state transiti
 })
 
 test_that("project_action_log_domains conforms to source-neutral schemas (#134)", {
-  skip_if_not_installed("grail.ado")
-  skip_if_not(
-    all(c("TabulateRiskSignals", "TabulateActions") %in%
-      getNamespaceExports("grail.ado")),
-    "grail.ado PR #121 projection APIs are unavailable"
-  )
-
   work_items <- simulate_risk_signal_work_items(
     make_action_log_results(),
     seed = 134
@@ -129,24 +132,14 @@ test_that("project_action_log_domains conforms to source-neutral schemas (#134)"
   expect_identical(domains$actions$ActionID, domains$actions$RiskSignalID)
 })
 
-test_that("simulate_action_log delegates final report construction to grail (#134)", {
-  skip_if_not_installed("grail.ado")
-  skip_if_not_installed("grail")
-  skip_if_not("BuildActionLog" %in% getNamespaceExports("grail"))
-
+test_that("simulate_action_log builds the final synthetic report (#134)", {
   action_log <- simulate_action_log(
     make_action_log_results(),
     seed = 134,
     extraction_date = as.Date("2026-03-08")
   )
-  schema_names <- vapply(
-    grail::ActionLogSchema$fields,
-    function(field) field$name,
-    character(1)
-  )
-
   expect_s3_class(action_log, "data.frame")
-  expect_identical(names(action_log), schema_names)
+  expect_identical(names(action_log), action_log_names)
   expect_s3_class(action_log$SnapshotDate, "Date")
   expect_s3_class(action_log$ExtractionDate, "Date")
   expect_type(action_log$RiskSignalID, "integer")
@@ -156,9 +149,6 @@ test_that("simulate_action_log delegates final report construction to grail (#13
 })
 
 test_that("simulate_action_log exposes missing and duplicate scenarios (#134)", {
-  skip_if_not_installed("grail.ado")
-  skip_if_not_installed("grail")
-
   missing_action_log <- simulate_action_log(
     make_action_log_results(),
     missing_probability = 1,
@@ -168,7 +158,7 @@ test_that("simulate_action_log exposes missing and duplicate scenarios (#134)", 
   expect_equal(nrow(missing_action_log), 0)
   expect_identical(
     names(missing_action_log),
-    vapply(grail::ActionLogSchema$fields, function(field) field$name, character(1))
+    action_log_names
   )
 
   simulated <- simulate_action_log(
@@ -190,45 +180,35 @@ test_that("simulate_action_log exposes missing and duplicate scenarios (#134)", 
   expect_equal(length(unique(simulated$action_log$RiskSignalID)), 12)
 })
 
-test_that("generated work items include the formal grail.ado raw schema (#134)", {
-  skip_if_not_installed("grail.ado")
-
+test_that("generated work items include canonical raw fields (#134)", {
   work_items <- simulate_risk_signal_work_items(
     make_action_log_results(),
     seed = 134
   )
-  schema_names <- vapply(
-    grail.ado::RiskSignalWorkItemsSchema$fields,
-    function(field) field$name,
-    character(1)
+  required_fields <- c(
+    "System.TeamProject", "System.WorkItemType", "System.State",
+    "System.CreatedDate", "Custom.SnapshotDate", "Custom.GroupLevel",
+    "Custom.GroupID", "Custom.Country", "Custom.MetricType",
+    "Custom.MetricID", "Custom.SignalDescription", "Custom.FunctionalArea",
+    "Custom.RecommendedAction"
   )
 
-  expect_true(all(schema_names %in% names(work_items[[1]]$fields)))
+  expect_true(all(required_fields %in% names(work_items[[1]]$fields)))
 })
 
-test_that("source-neutral adapters accept the AA-derived grail.ado fixture (#134)", {
-  skip_if_not_installed("grail.ado")
-  skip_if_not_installed("grail")
-  skip_if_not(
-    all(c("TabulateRiskSignals", "TabulateActions") %in%
-      getNamespaceExports("grail.ado")),
-    "grail.ado PR #121 projection APIs are unavailable"
-  )
-  skip_if_not("BuildActionLog" %in% getNamespaceExports("grail"))
+test_that("projection supplies fallback URLs and ignores malformed records (#134)", {
+  work_item <- simulate_risk_signal_work_items(
+    make_action_log_results()[1, ],
+    seed = 134
+  )[[1]]
+  work_item$browser_url <- NULL
 
-  reference_items <- grail.ado::RiskSignalWorkItems[1:3]
-  domains <- project_action_log_domains(reference_items)
-  reference_action_log <- grail::BuildActionLog(
-    domains$all_risk_signals,
-    domains$actions,
-    dtExtractionDate = as.Date("2026-03-08")
-  )
+  domains <- project_action_log_domains(list(NULL, work_item))
 
-  expect_equal(nrow(domains$all_risk_signals), 3)
-  expect_equal(nrow(domains$actions), 3)
-  expect_identical(
-    names(reference_action_log),
-    vapply(grail::ActionLogSchema$fields, function(field) field$name, character(1))
+  expect_equal(nrow(domains$all_risk_signals), 1)
+  expect_match(
+    domains$all_risk_signals$RiskSignalURL,
+    "AA-AA-000-0000/_workitems/edit/900000"
   )
 })
 

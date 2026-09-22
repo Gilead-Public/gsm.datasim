@@ -406,12 +406,155 @@ simulate_risk_signal_work_items <- function(
   })
 }
 
+.action_log_domain_types <- list(
+  all_risk_signals = c(
+    RiskSignalID = "integer", RiskSignalURL = "character",
+    StudyID = "character", SnapshotDate = "character",
+    GroupLevel = "character", GroupID = "character", Country = "character",
+    MetricID = "character", MetricLabel = "character",
+    MetricAbbreviation = "character", MetricType = "character",
+    SignalDescription = "character", RiskSignalState = "character",
+    RiskSignalCreatedDate = "character", RiskSignalResolvedDate = "character"
+  ),
+  actions = c(
+    ActionID = "integer", ActionURL = "character", RiskSignalID = "integer",
+    ActionState = "character", AssignedTo = "character",
+    RecommendedAction = "character", ActionTaken = "character",
+    FunctionalArea = "character", CTMSID = "character",
+    ActionCreatedDate = "character", ActionResolvedDate = "character"
+  )
+)
+
+.action_log_types <- c(
+  StudyID = "character", SnapshotDate = "Date", GroupLevel = "character",
+  GroupID = "character", MetricID = "character", State = "character",
+  AssignedTo = "character", RiskSignalID = "integer",
+  RiskSignalURL = "character", SignalDescription = "character",
+  RecommendedAction = "character", ActionTaken = "character",
+  CTMSID = "character", CreatedDate = "Date", ResolvedDate = "Date",
+  ExtractionDate = "Date", RiskSignalDuplicateFlag = "logical",
+  RelevantSnapshotDate = "Date", RelevantSnapshotFlag = "logical",
+  RiskSignalAge = "numeric", FunctionalArea = "character",
+  GroupLabel = "character", MetricLabel = "character",
+  MetricAbbreviation = "character", Country = "character"
+)
+
+.empty_action_log_data <- function(types) {
+  as.data.frame(
+    lapply(types, function(type) {
+      switch(
+        type,
+        integer = integer(),
+        numeric = numeric(),
+        logical = logical(),
+        Date = as.Date(character()),
+        character()
+      )
+    }),
+    stringsAsFactors = FALSE,
+    check.names = FALSE
+  )
+}
+
+.work_item_field <- function(work_item, name) {
+  value <- work_item$fields[[name]]
+  if (is.null(value) || length(value) == 0L) NA else value
+}
+
+.work_item_character <- function(work_item, name) {
+  value <- .work_item_field(work_item, name)
+  if (is.list(value)) {
+    value <- value$displayName
+  }
+  if (is.null(value) || length(value) == 0L || is.na(value[1])) {
+    return(NA_character_)
+  }
+  as.character(value[1])
+}
+
+.project_action_log_work_item <- function(work_item, organization) {
+  if (!is.list(work_item) || !is.list(work_item$fields)) {
+    return(NULL)
+  }
+  metric_type <- .work_item_character(work_item, "Custom.MetricType")
+  if (!is.na(metric_type) && toupper(trimws(metric_type)) == "QTL") {
+    return(NULL)
+  }
+  work_item_id <- as.integer(work_item$id)
+  project <- .work_item_character(work_item, "System.TeamProject")
+  browser_url <- work_item$browser_url
+  if (is.null(browser_url) || length(browser_url) == 0L || is.na(browser_url)) {
+    browser_url <- paste0(
+      "https://dev.azure.com/", organization, "/", project,
+      "/_workitems/edit/", work_item_id
+    )
+  }
+  resolved_date <- .work_item_character(
+    work_item,
+    "Microsoft.VSTS.Common.ResolvedDate"
+  )
+  if (is.na(resolved_date)) {
+    resolved_date <- .work_item_character(
+      work_item,
+      "Microsoft.VSTS.Common.ClosedDate"
+    )
+  }
+
+  list(
+    all_risk_signals = data.frame(
+      RiskSignalID = work_item_id,
+      RiskSignalURL = as.character(browser_url),
+      StudyID = project,
+      SnapshotDate = .work_item_character(work_item, "Custom.SnapshotDate"),
+      GroupLevel = .work_item_character(work_item, "Custom.GroupLevel"),
+      GroupID = .work_item_character(work_item, "Custom.GroupID"),
+      Country = .work_item_character(work_item, "Custom.Country"),
+      MetricID = .work_item_character(work_item, "Custom.MetricID"),
+      MetricLabel = .work_item_character(work_item, "Custom.MetricLabel"),
+      MetricAbbreviation = .work_item_character(
+        work_item,
+        "Custom.MetricAbbreviation"
+      ),
+      MetricType = metric_type,
+      SignalDescription = .work_item_character(
+        work_item,
+        "Custom.SignalDescription"
+      ),
+      RiskSignalState = .work_item_character(work_item, "System.State"),
+      RiskSignalCreatedDate = .work_item_character(
+        work_item,
+        "System.CreatedDate"
+      ),
+      RiskSignalResolvedDate = resolved_date,
+      stringsAsFactors = FALSE
+    ),
+    actions = data.frame(
+      ActionID = work_item_id,
+      ActionURL = as.character(browser_url),
+      RiskSignalID = work_item_id,
+      ActionState = .work_item_character(work_item, "System.State"),
+      AssignedTo = .work_item_character(work_item, "System.AssignedTo"),
+      RecommendedAction = .work_item_character(
+        work_item,
+        "Custom.RecommendedAction"
+      ),
+      ActionTaken = .work_item_character(work_item, "Custom.ActionTaken"),
+      FunctionalArea = .work_item_character(
+        work_item,
+        "Custom.FunctionalArea"
+      ),
+      CTMSID = .work_item_character(work_item, "Custom.CTMSID"),
+      ActionCreatedDate = .work_item_character(work_item, "System.CreatedDate"),
+      ActionResolvedDate = resolved_date,
+      stringsAsFactors = FALSE
+    )
+  )
+}
+
 #' Project synthetic ADO work items into source-neutral Action Log domains
 #'
-#' Uses the projection contract introduced by `grail.ado` PR #121. The same
-#' non-QTL Azure DevOps Risk Signal work items are projected independently into
-#' the inbound `AllRiskSignals` and `Actions` domains consumed by `{grail}`.
-#' Final Action Log report construction remains owned by `{grail}`.
+#' Projects non-QTL synthetic Risk Signal work items into the source-neutral
+#' `AllRiskSignals` and `Actions` field contracts used by Action Log consumers.
 #'
 #' @param work_items A list of ADO-compatible Risk Signal work items, typically
 #'   returned by [simulate_risk_signal_work_items()].
@@ -430,25 +573,124 @@ project_action_log_domains <- function(
       is.na(organization)) {
     stop("organization must be a single character value.", call. = FALSE)
   }
-  required_exports <- c("TabulateRiskSignals", "TabulateActions")
-  if (!requireNamespace("grail.ado", quietly = TRUE) ||
-      !all(required_exports %in% getNamespaceExports("grail.ado"))) {
-    stop(
-      "grail.ado with the source-neutral Action Log projection APIs is required.",
-      call. = FALSE
-    )
+  rows <- Filter(
+    Negate(is.null),
+    lapply(work_items, .project_action_log_work_item, organization = organization)
+  )
+  if (length(rows) == 0L) {
+    return(lapply(.action_log_domain_types, .empty_action_log_data))
   }
 
   list(
-    all_risk_signals = grail.ado::TabulateRiskSignals(
-      work_items,
-      strOrganization = organization
-    ),
-    actions = grail.ado::TabulateActions(
-      work_items,
-      strOrganization = organization
-    )
+    all_risk_signals = do.call(
+      rbind,
+      lapply(rows, `[[`, "all_risk_signals")
+    )[names(.action_log_domain_types$all_risk_signals)],
+    actions = do.call(rbind, lapply(rows, `[[`, "actions"))[
+      names(.action_log_domain_types$actions)
+    ]
   )
+}
+
+.build_synthetic_action_log <- function(domains, extraction_date) {
+  risk_signals <- domains$all_risk_signals
+  actions <- domains$actions
+  if (nrow(risk_signals) == 0L) {
+    return(.empty_action_log_data(.action_log_types))
+  }
+
+  risk_signals$SnapshotDate <- as.Date(substr(risk_signals$SnapshotDate, 1, 10))
+  order_index <- order(
+    risk_signals$SnapshotDate,
+    risk_signals$GroupLevel,
+    risk_signals$GroupID,
+    risk_signals$MetricID,
+    risk_signals$RiskSignalID
+  )
+  risk_signals <- risk_signals[order_index, , drop = FALSE]
+  action_index <- match(risk_signals$RiskSignalID, actions$RiskSignalID)
+  actions <- actions[action_index, , drop = FALSE]
+
+  duplicate_key <- with(
+    risk_signals,
+    paste(SnapshotDate, GroupLevel, GroupID, MetricID, sep = "\r")
+  )
+  duplicate_flag <- ave(
+    seq_along(duplicate_key),
+    duplicate_key,
+    FUN = seq_along
+  ) > 1L
+  state <- ifelse(
+    is.na(actions$ActionID),
+    risk_signals$RiskSignalState,
+    actions$ActionState
+  )
+  resolved_date <- as.Date(substr(
+    ifelse(
+      is.na(actions$ActionID),
+      risk_signals$RiskSignalResolvedDate,
+      actions$ActionResolvedDate
+    ),
+    1,
+    10
+  ))
+  relevant_date <- as.Date(rep(NA_character_, nrow(risk_signals)))
+  history_key <- with(
+    risk_signals,
+    paste(GroupLevel, GroupID, MetricID, sep = "\r")
+  )
+  for (key in unique(history_key)) {
+    indexes <- which(history_key == key)
+    history_state <- state[indexes]
+    history_date <- risk_signals$SnapshotDate[indexes]
+    selected <- if (any(history_state == "Open Action")) {
+      min(history_date[history_state == "Open Action"])
+    } else if (any(history_state == "Closed Action")) {
+      max(history_date[history_state == "Closed Action"])
+    } else if (any(history_state == "Awaiting Triage")) {
+      min(history_date[history_state == "Awaiting Triage"])
+    } else {
+      min(history_date)
+    }
+    relevant_date[indexes] <- selected
+  }
+  age_end <- ifelse(
+    state %in% c("No Action", "Closed Action"),
+    as.character(resolved_date),
+    as.character(extraction_date)
+  )
+
+  action_log <- data.frame(
+    StudyID = risk_signals$StudyID,
+    SnapshotDate = risk_signals$SnapshotDate,
+    GroupLevel = risk_signals$GroupLevel,
+    GroupID = risk_signals$GroupID,
+    MetricID = risk_signals$MetricID,
+    State = state,
+    AssignedTo = actions$AssignedTo,
+    RiskSignalID = risk_signals$RiskSignalID,
+    RiskSignalURL = risk_signals$RiskSignalURL,
+    SignalDescription = risk_signals$SignalDescription,
+    RecommendedAction = actions$RecommendedAction,
+    ActionTaken = actions$ActionTaken,
+    CTMSID = actions$CTMSID,
+    CreatedDate = as.Date(substr(risk_signals$RiskSignalCreatedDate, 1, 10)),
+    ResolvedDate = resolved_date,
+    ExtractionDate = rep(as.Date(extraction_date), nrow(risk_signals)),
+    RiskSignalDuplicateFlag = as.logical(duplicate_flag),
+    RelevantSnapshotDate = relevant_date,
+    RelevantSnapshotFlag = relevant_date == risk_signals$SnapshotDate,
+    RiskSignalAge = as.numeric(
+      as.Date(age_end) - risk_signals$SnapshotDate
+    ) + 1,
+    FunctionalArea = actions$FunctionalArea,
+    GroupLabel = NA_character_,
+    MetricLabel = risk_signals$MetricLabel,
+    MetricAbbreviation = risk_signals$MetricAbbreviation,
+    Country = risk_signals$Country,
+    stringsAsFactors = FALSE
+  )
+  action_log[names(.action_log_types)]
 }
 
 #' Simulate source-neutral Action Log input domains
@@ -499,9 +741,7 @@ simulate_action_log_domains <- function(
 #' Simulate an ActionLog history
 #'
 #' Creates raw ADO-compatible work items, projects them to source-neutral
-#' domains with `grail.ado`, and builds the final report with
-#' `grail::BuildActionLog()`. This convenience function can return the final
-#' ActionLog alone or all intermediate schema layers.
+#' domains, and builds a deterministic final ActionLog without network access.
 #'
 #' @inheritParams simulate_risk_signal_work_items
 #' @param include_intermediates If `TRUE`, return raw work items,
@@ -549,18 +789,7 @@ simulate_action_log <- function(
     work_items,
     organization = organization
   )
-  if (!requireNamespace("grail", quietly = TRUE) ||
-      !"BuildActionLog" %in% getNamespaceExports("grail")) {
-    stop(
-      "grail with the source-neutral BuildActionLog API is required.",
-      call. = FALSE
-    )
-  }
-  action_log <- grail::BuildActionLog(
-    dfRiskSignals = domains$all_risk_signals,
-    dfActions = domains$actions,
-    dtExtractionDate = extraction_date
-  )
+  action_log <- .build_synthetic_action_log(domains, extraction_date)
 
   if (isTRUE(include_intermediates)) {
     return(c(

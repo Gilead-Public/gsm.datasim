@@ -52,7 +52,5 @@ An ActionLog data frame, or a named list of all three schema layers.
 }
 \description{
 Creates raw ADO-compatible work items, projects them to source-neutral
-domains with \code{grail.ado}, and builds the final report with
-\code{grail::BuildActionLog()}. This convenience function can return the final
-ActionLog alone or all intermediate schema layers.
+domains, and builds a deterministic final ActionLog without network access.
 }

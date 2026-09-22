@@ -114,7 +114,7 @@ ae_counts <- sapply(get_domain_timeline(study, "AE"), nrow)
 | `simulate_risk_signal_work_items()` | Create synthetic `grail.ado::GetWorkItems()`-compatible risk signals |
 | `project_action_log_domains()` | Project work items to source-neutral `AllRiskSignals` and `Actions` domains |
 | `simulate_action_log_domains()` | Generate work items plus both source-neutral inbound domains |
-| `simulate_action_log()` | Let `grail::BuildActionLog()` build a final ActionLog from the projected domains |
+| `simulate_action_log()` | Build a final synthetic ActionLog from the projected domains |
 | `simulate_action_log_lookback_scenarios()` | Generate deterministic three-snapshot histories for configurable lookback tests |
 
 ### Export
@@ -208,14 +208,12 @@ studies <- create_multiple_longitudinal_studies(
 
 ### ActionLog histories
 
-ActionLog simulation uses synthetic values and the owning package functions. It
-does not connect to Azure DevOps or require credentials. The raw work items are
-projected by `grail.ado::TabulateRiskSignals()` and
-`grail.ado::TabulateActions()` into the source-neutral domains owned by the
-current `grail` contract; final report construction remains owned by
-`grail::BuildActionLog()`. The internal `grail` and `grail.ado` packages are
-opt-in integrations and must be installed separately to use these projection
-and report-building helpers.
+ActionLog simulation is self-contained: it does not connect to Azure DevOps,
+require credentials, or install private packages. It generates raw
+ADO-compatible work items, source-neutral `AllRiskSignals` and `Actions`
+domains, and a final synthetic ActionLog for downstream workflow tests. The AA
+integration repository separately checks these schemas against the owning
+`grail.ado` and `grail` implementations.
 
 ```r
 kri_results <- data.frame(
