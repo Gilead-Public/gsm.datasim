@@ -35,7 +35,8 @@ Suggests:
     gsm.reporting,
     knitr,
     rmarkdown,
-    testthat
+    testthat,
+    withr
 VignetteBuilder: 
     knitr
 Remotes:

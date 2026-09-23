@@ -33,9 +33,17 @@ test_that("organize_analytics_results respects verbose flag and organizes Analys
   expect_true("Analysis_Summary" %in% names(metric_output$data_frames))
   expect_s3_class(metric_output$data_frames$Analysis_Summary, "data.frame")
   expect_equal(nrow(metric_output$data_frames$Analysis_Summary), 1)
-  expect_equal(metric_output$data_frames$Analysis_Summary$GroupLevel[[1]], "Country")
-  expect_true("Metric_ID" %in% names(metric_output$data_frames$Analysis_Summary))
-  expect_equal(metric_output$data_frames$Analysis_Summary$Metric_ID[[1]], "cou0001")
+  expect_equal(
+    metric_output$data_frames$Analysis_Summary$GroupLevel[[1]],
+    "Country"
+  )
+  expect_true(
+    "Metric_ID" %in% names(metric_output$data_frames$Analysis_Summary)
+  )
+  expect_equal(
+    metric_output$data_frames$Analysis_Summary$Metric_ID[[1]],
+    "cou0001"
+  )
 })
 
 test_that("organize_analytics_results preserves snapshot date keys for per-snapshot analytics (#95)", {

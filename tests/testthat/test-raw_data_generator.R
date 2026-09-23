@@ -1,4 +1,6 @@
 test_that("raw_data_generator works with a template file (#96)", {
+  test_at_log_threshold()
+  withr::local_envvar(GSM_SHOW_TOC = "FALSE")
   result <- raw_data_generator(
     template_path = system.file("small_template.csv", package = "gsm.datasim"),
     mappings = c("AE")
@@ -9,6 +11,8 @@ test_that("raw_data_generator works with a template file (#96)", {
 })
 
 test_that("raw_data_generator works with explicit study parameters (#96)", {
+  test_at_log_threshold()
+  withr::local_envvar(GSM_SHOW_TOC = "FALSE")
   result <- raw_data_generator(
     SnapshotCount = 2,
     SnapshotWidth = "months",
@@ -26,6 +30,8 @@ test_that("raw_data_generator works with explicit study parameters (#96)", {
 })
 
 test_that("raw_data_generator supports explicit legacy generation mode (#96)", {
+  test_at_log_threshold()
+  withr::local_envvar(GSM_SHOW_TOC = "FALSE")
   old_warned <- .gsm_datasim_runtime_state$legacy_mode_warned
   on.exit(
     {

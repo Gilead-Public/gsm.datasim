@@ -27,6 +27,7 @@ subj_seed_config <- function(participant_count = 1, snapshot_count = 2) {
 }
 
 test_that("a later snapshot with no new subjects still advances an undosed subject from within- to outside-window, legacy path (#140)", {
+  test_at_log_threshold()
   skip_if_not_installed("gsm.mapping")
   set.seed(1)
   cfg <- subj_seed_config()
@@ -56,6 +57,7 @@ test_that("a later snapshot with no new subjects still advances an undosed subje
 })
 
 test_that("a later snapshot with no new subjects still advances an undosed subject from within- to outside-window, config-native path (#140)", {
+  test_at_log_threshold()
   skip_if_not_installed("gsm.mapping")
   set.seed(1)
   config <- create_standard_study_config(
@@ -108,6 +110,7 @@ test_that("a later snapshot with no new subjects still advances an undosed subje
 })
 
 test_that("the final Raw_ENROLL reconciliation leaves every non-enrolled subject with NA in all six drv_ fields (#140)", {
+  test_at_log_threshold()
   skip_if_not_installed("gsm.mapping")
   set.seed(42)
   cfg <- subj_seed_config(participant_count = 20, snapshot_count = 1)
@@ -129,6 +132,7 @@ test_that("the final Raw_ENROLL reconciliation leaves every non-enrolled subject
 })
 
 test_that("the legacy and config-native generation paths produce the same six-column drv_ contract (#140)", {
+  test_at_log_threshold()
   skip_if_not_installed("gsm.mapping")
 
   set.seed(7)

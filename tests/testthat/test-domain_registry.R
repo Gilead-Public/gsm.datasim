@@ -4,7 +4,12 @@ test_that("domain registry exposes required schema for migrated domains", {
   expect_true("Raw_AE" %in% names(registry))
   expect_true("Raw_LB" %in% names(registry))
 
-  expected_fields <- sort(c("dataset", "required_inputs", "count_fn", "generate_fn"))
+  expected_fields <- sort(c(
+    "dataset",
+    "required_inputs",
+    "count_fn",
+    "generate_fn"
+  ))
 
   ae_entry <- registry$Raw_AE
   expect_equal(sort(names(ae_entry)), expected_fields)
@@ -24,17 +29,24 @@ test_that("every domain registry entry conforms to the required schema (#124)", 
 
   expect_gt(length(registry), 0)
 
-  expected_fields <- sort(c("dataset", "required_inputs", "count_fn", "generate_fn"))
+  expected_fields <- sort(c(
+    "dataset",
+    "required_inputs",
+    "count_fn",
+    "generate_fn"
+  ))
 
   for (domain_name in names(registry)) {
     entry <- registry[[domain_name]]
 
     expect_equal(
-      sort(names(entry)), expected_fields,
+      sort(names(entry)),
+      expected_fields,
       info = paste("fields for", domain_name)
     )
     expect_identical(
-      entry$dataset, domain_name,
+      entry$dataset,
+      domain_name,
       info = paste("dataset key for", domain_name)
     )
     expect_true(
@@ -53,6 +65,7 @@ test_that("every domain registry entry conforms to the required schema (#124)", 
 })
 
 test_that("Raw_AE migrated domain adapter generates data frame", {
+  test_at_log_threshold()
   set.seed(123)
 
   snapshot_data <- generate_rawdata_for_single_study(
@@ -64,7 +77,8 @@ test_that("Raw_AE migrated domain adapter generates data frame", {
     workflow_path = "workflow/1_mappings",
     mappings = c("STUDY", "SITE", "SUBJ", "ENROLL", "SV", "VISIT", "AE"),
     package = "gsm.mapping"
-  )
+  ) |> 
+    expect_warning("deprecated")
 
   combined_specs <- load_specs(
     workflow_path = "workflow/1_mappings",
@@ -90,6 +104,7 @@ test_that("Raw_AE migrated domain adapter generates data frame", {
 })
 
 test_that("Raw_LB migrated domain adapter generates data frame", {
+  test_at_log_threshold()
   set.seed(123)
 
   snapshot_data <- generate_rawdata_for_single_study(
@@ -124,3 +139,4 @@ test_that("Raw_LB migrated domain adapter generates data frame", {
   expect_s3_class(lb_df, "data.frame")
   expect_true(nrow(lb_df) >= 0)
 })
+
