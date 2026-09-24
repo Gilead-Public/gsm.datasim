@@ -12,7 +12,8 @@ create_study_config(
   analytics_workflows = NULL,
   reporting_package = NULL,
   reporting_workflows = NULL,
-  outlier_intensity = 1
+  outlier_intensity = 1,
+  vs_risk_profile = NULL
 )
 }
 \arguments{
@@ -32,6 +33,15 @@ create_study_config(
 
 \item{outlier_intensity}{Global multiplier for outlier-like values in domain generators.
 Use \code{1} for current baseline, values \code{>1} to increase outlier prevalence.}
+
+\item{vs_risk_profile}{Optional named list controlling site-targeted
+consecutive-run injection in \code{Raw_VS}, for the repeat-measure KRIs.
+Recognized fields are \code{dPctRed} and \code{dPctAmber} (share of sites
+in each band), \code{nWindowLength} (rolling window length, whole number
+\code{>= 2}), \code{dRateNormal} / \code{dRateAmber} / \code{dRateRed}
+(target repeat rate per band), and \code{vVitals} (character vector of
+vitals to target, or \code{NULL} for all eight). \code{NULL} uses the
+generator defaults.}
 }
 \value{
 A list containing study configuration

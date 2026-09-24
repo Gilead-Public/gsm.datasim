@@ -50,13 +50,21 @@ importFrom(glue,glue)
 importFrom(logger,log_info)
 importFrom(magrittr,"%>%")
 importFrom(rlang,zap)
-importFrom(stringr,str_detect)
-importFrom(stringr,str_replace_all)
-importFrom(tictoc,tic)
-importFrom(tictoc,toc)
-importFrom(utils,modifyList)
-importFrom(utils,read.csv)
-importFrom(utils,setTxtProgressBar)
-importFrom(utils,txtProgressBar)
-importFrom(workr,MakeWorkflowList)
-importFrom(workr,RunWorkflows)
+importFrom(stringr,
+  str_detect,
+  str_replace_all
+)
+importFrom(tictoc,
+  tic,
+  toc
+)
+importFrom(utils,
+  modifyList,
+  read.csv,
+  setTxtProgressBar,
+  txtProgressBar
+)
+importFrom(workr,
+  MakeWorkflowList,
+  RunWorkflows
+)

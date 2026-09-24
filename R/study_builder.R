@@ -12,6 +12,14 @@
 #' @param reporting_workflows Specific reporting workflows to run (default: all)
 #' @param outlier_intensity Global multiplier for outlier-like values in domain generators.
 #'   Use \code{1} for current baseline, values \code{>1} to increase outlier prevalence.
+#' @param vs_risk_profile Optional named list controlling site-targeted
+#'   consecutive-run injection in \code{Raw_VS}, for the repeat-measure KRIs.
+#'   Recognized fields are \code{dPctRed} and \code{dPctAmber} (share of sites
+#'   in each band), \code{nWindowLength} (rolling window length, whole number
+#'   \code{>= 2}), \code{dRateNormal} / \code{dRateAmber} / \code{dRateRed}
+#'   (target repeat rate per band), and \code{vVitals} (character vector of
+#'   vitals to target, or \code{NULL} for all eight). \code{NULL} uses the
+#'   generator defaults.
 #'
 #' @return A list containing study configuration
 #' @examples
@@ -22,7 +30,7 @@
 create_study_config <- function(study_id = "STUDY001", participant_count = 100, site_count = 10,
                                 analytics_package = NULL, analytics_workflows = NULL,
                                 reporting_package = NULL, reporting_workflows = NULL,
-                                outlier_intensity = 1) {
+                                outlier_intensity = 1, vs_risk_profile = NULL) {
   config <- list(
     study_params = list(
       study_id = study_id,
@@ -32,7 +40,8 @@ create_study_config <- function(study_id = "STUDY001", participant_count = 100, 
       analytics_workflows = analytics_workflows,
       reporting_package = reporting_package,
       reporting_workflows = reporting_workflows,
-      outlier_intensity = outlier_intensity
+      outlier_intensity = outlier_intensity,
+      vs_risk_profile = vs_risk_profile
     ),
     temporal_config = list(
       start_date = as.Date("2023-01-01"),
@@ -193,7 +202,81 @@ validate_study_config <- function(config) {
     stop("outlier_intensity must be a single non-negative numeric value")
   }
 
+  validate_vs_risk_profile(config$study_params$vs_risk_profile)
+
   return(TRUE)
+}
+
+#' Validate a Raw_VS site-risk profile
+#'
+#' Checks the structure of a `vs_risk_profile` list. `NULL` is valid and means
+#' "use the generator defaults".
+#'
+#' @param profile A risk profile list, or `NULL`.
+#' @returns `TRUE` invisibly, or an error describing the first problem found.
+#' @keywords internal
+#' @noRd
+validate_vs_risk_profile <- function(profile) {
+  if (is.null(profile)) {
+    return(invisible(TRUE))
+  }
+
+  if (!is.list(profile)) {
+    stop("vs_risk_profile must be a list or NULL")
+  }
+
+  known <- c(
+    "dPctRed", "dPctAmber", "nWindowLength",
+    "dRateNormal", "dRateAmber", "dRateRed", "vVitals"
+  )
+  unknown <- setdiff(names(profile), known)
+  if (length(unknown) > 0) {
+    stop(
+      "vs_risk_profile contains unknown field(s): ",
+      paste(unknown, collapse = ", ")
+    )
+  }
+
+  is_proportion <- function(x) {
+    is.numeric(x) && length(x) == 1 && !is.na(x) && x >= 0 && x <= 1
+  }
+
+  for (field in c("dPctRed", "dPctAmber", "dRateNormal", "dRateAmber", "dRateRed")) {
+    value <- profile[[field]]
+    if (!is.null(value) && !is_proportion(value)) {
+      stop("vs_risk_profile$", field, " must be a single number between 0 and 1")
+    }
+  }
+
+  pct_red <- profile$dPctRed %||% 0
+  pct_amber <- profile$dPctAmber %||% 0
+  if (pct_red + pct_amber > 1) {
+    stop("vs_risk_profile$dPctRed + vs_risk_profile$dPctAmber must not exceed 1")
+  }
+
+  window <- profile$nWindowLength
+  if (!is.null(window) &&
+    (!is.numeric(window) || length(window) != 1 || is.na(window) ||
+      window < 2 || window != round(window))) {
+    stop("vs_risk_profile$nWindowLength must be a single whole number >= 2")
+  }
+
+  vitals <- profile$vVitals
+  if (!is.null(vitals)) {
+    if (!is.character(vitals) || length(vitals) == 0) {
+      stop("vs_risk_profile$vVitals must be a non-empty character vector or NULL")
+    }
+    unknown_vitals <- setdiff(vitals, VS_VITALS)
+    if (length(unknown_vitals) > 0) {
+      stop(
+        "vs_risk_profile$vVitals contains unknown vital(s): ",
+        paste(unknown_vitals, collapse = ", "),
+        ". Valid vitals: ", paste(VS_VITALS, collapse = ", ")
+      )
+    }
+  }
+
+  invisible(TRUE)
 }
 
 #' Create Study Configuration for Standard Datasets
@@ -336,8 +419,10 @@ NULL
 #'
 #' @return A longitudinal study data structure
 #' @examples
-#' config <- list(participants = 50, sites = 5, snapshots = 2, interval = "1 month",
-#'                domains = c("AE", "LB"))
+#' config <- list(
+#'   participants = 50, sites = 5, snapshots = 2, interval = "1 month",
+#'   domains = c("AE", "LB")
+#' )
 #' study <- create_longitudinal_study_data("MY-STUDY", raw_data = list(), config = config)
 #' study$study_id
 #' @export
@@ -410,7 +495,8 @@ summarize_longitudinal_study <- function(study, verbose = TRUE) {
 #' @examples
 #' \dontrun{
 #' study <- create_longitudinal_study(
-#'   "STUDY-001", participants = 50, sites = 5, snapshots = 2,
+#'   "STUDY-001",
+#'   participants = 50, sites = 5, snapshots = 2,
 #'   analytics_package = "gsm.kri"
 #' )
 #' study <- run_longitudinal_analytics(study)
@@ -442,7 +528,8 @@ run_longitudinal_analytics <- function(study, verbose = FALSE) {
 #' @examples
 #' \dontrun{
 #' study <- create_longitudinal_study(
-#'   "STUDY-001", participants = 50, sites = 5, snapshots = 2,
+#'   "STUDY-001",
+#'   participants = 50, sites = 5, snapshots = 2,
 #'   run_analytics = TRUE, analytics_package = "gsm.kri"
 #' )
 #' study <- run_longitudinal_reporting(study)
@@ -497,8 +584,10 @@ get_snapshot_data <- function(study, snapshot) {
 #' @return Timeline data for the specified domain
 #' @examples
 #' \dontrun{
-#' study <- create_longitudinal_study("STUDY-001", participants = 50, sites = 5,
-#'                                     snapshots = 3, domains = c("AE", "LB"))
+#' study <- create_longitudinal_study("STUDY-001",
+#'   participants = 50, sites = 5,
+#'   snapshots = 3, domains = c("AE", "LB")
+#' )
 #' ae_timeline <- get_domain_timeline(study, "AE")
 #' length(ae_timeline) # one entry per snapshot
 #' }

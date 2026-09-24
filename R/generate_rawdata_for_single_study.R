@@ -197,7 +197,10 @@ generate_snapshots_from_combined_specs <- function(SnapshotCount,
         snapshot_idx = snapshot_idx,
         snapshot_count = SnapshotCount,
         snapshot_width = SnapshotWidth,
-        study_id = StudyID
+        study_id = StudyID,
+        # This deprecated path carries no study parameters, so Raw_VS runs at
+        # the generator defaults. Use the study-config path to configure it.
+        vs_risk_profile = NULL
       )
 
       migrated_data <- generate_domain_from_registry(

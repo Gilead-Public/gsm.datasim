@@ -533,7 +533,12 @@ get_domain_registry <- function() {
         subjs <- subjid(n, external_subjid = data$Raw_SUBJ$subjid, replace = FALSE)
         subj_visits <- data$Raw_VISIT %>%
           dplyr::filter(subjid %in% subjs) %>%
-          dplyr::select(subjid, instancename)
+          dplyr::select(subjid, instancename, visit_dt) %>%
+          as.data.frame() %>%
+          assign_schedule_dates(
+            visits = data$Raw_VISIT,
+            strDateCol = "vs_dt"
+          )
 
         invids <- data.frame(subjid = subj_visits$subjid) %>%
           dplyr::left_join(dplyr::select(data$Raw_SUBJ, subjid, invid), by = "subjid") %>%
@@ -541,21 +546,36 @@ get_domain_registry <- function() {
 
         all_n <- nrow(subj_visits)
 
+        # `vsperf_std` is generated up front so the vital generators can blank
+        # the not-performed rows before injecting runs. Generating it inside
+        # each generator instead would give every vital a different set of
+        # missing rows.
+        performed <- vsperf_std(all_n)
+
+        risk_profile <- context$vs_risk_profile
+
+        vital_args <- list(
+          all_n, subj_visits$subjid,
+          sites = invids,
+          performed = performed,
+          lRiskProfile = risk_profile
+        )
+
         args <- list(
           vs_subj_visit_repeated = list(1, subj_visits),
-          vs_invid_repeated      = list(1, invids),
-          studyid              = list(all_n, data$Raw_STUDY$protocol_number[[1]]),
-          vs_dt                = list(all_n, context$start_date),
-          vsperf_std           = list(all_n),
-          weight               = list(all_n, subj_visits$subjid),
-          height               = list(all_n, subj_visits$subjid),
-          bmi                  = list(all_n, subj_visits$subjid),
-          sysbp                = list(all_n, subj_visits$subjid),
-          diabp                = list(all_n, subj_visits$subjid),
-          pulse                = list(all_n, subj_visits$subjid),
-          temp                 = list(all_n, subj_visits$subjid),
-          resp                 = list(all_n, subj_visits$subjid),
-          default              = list(all_n, subj_visits)
+          vs_invid_repeated = list(1, invids),
+          studyid = list(all_n, data$Raw_STUDY$protocol_number[[1]]),
+          vs_dt = list(all_n, subj_visits$vs_dt),
+          vsperf_std = list(all_n, performed),
+          weight = vital_args,
+          height = vital_args,
+          bmi = vital_args,
+          sysbp = vital_args,
+          diabp = vital_args,
+          pulse = vital_args,
+          temp = vital_args,
+          resp = vital_args,
+          default = list(all_n, subj_visits)
         )
 
         as.data.frame(add_new_var_data(dataset, curr_spec, args, spec$Raw_VS,
