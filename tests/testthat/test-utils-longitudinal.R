@@ -429,7 +429,7 @@ test_that("inject_targeted_runs recounts rather than over-reports a single-value
   expect_equal(realized$numerator, 3)
 })
 
-test_that("assign_schedule_dates returns Dates from a character schedule (#148)", {
+test_that("assign_schedule_dates returns Dates from a character schedule (#143)", {
   fx <- make_schedule_fixture()
   chr_visits <- fx$visits
   chr_visits$visit_dt <- format(chr_visits$visit_dt, "%Y-%m-%d")
@@ -441,7 +441,7 @@ test_that("assign_schedule_dates returns Dates from a character schedule (#148)"
   expect_equal(out_chr, out_date)
 })
 
-test_that("assign_schedule_dates accepts a POSIXct schedule (#148)", {
+test_that("assign_schedule_dates accepts a POSIXct schedule (#143)", {
   fx <- make_schedule_fixture()
   posix_visits <- fx$visits
   posix_visits$visit_dt <- as.POSIXct(posix_visits$visit_dt, tz = "UTC")
@@ -452,7 +452,7 @@ test_that("assign_schedule_dates accepts a POSIXct schedule (#148)", {
   expect_equal(out, assign_schedule_dates(fx$df, fx$visits, strDateCol = "vs_dt"))
 })
 
-test_that("assign_schedule_dates rejects an unparseable schedule (#148)", {
+test_that("assign_schedule_dates rejects an unparseable schedule (#143)", {
   fx <- make_schedule_fixture()
 
   bad <- fx$visits
@@ -470,7 +470,7 @@ test_that("assign_schedule_dates rejects an unparseable schedule (#148)", {
   )
 })
 
-test_that("inject_targeted_runs recounts pre-existing windows at a zero target (#148)", {
+test_that("inject_targeted_runs recounts pre-existing windows at a zero target (#143)", {
   # `dTargetRate = 0` injects nothing, but the caller's values may already
   # contain identical windows; `realized` must report what the metric will
   # count, not zero.
@@ -486,7 +486,7 @@ test_that("inject_targeted_runs recounts pre-existing windows at a zero target (
   expect_equal(realized$numerator, count_identical_windows_naive(values, groups, 3))
 })
 
-test_that("inject_targeted_runs still reports zero when no windows repeat (#148)", {
+test_that("inject_targeted_runs still reports zero when no windows repeat (#143)", {
   values <- c(1, 2, 3, 4, 5, 6)
   groups <- rep("G1", 6)
 

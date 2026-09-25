@@ -570,7 +570,7 @@ test_that("all-missing site IDs leave values untargeted (#143)", {
   expect_equal(values, round(stats::rnorm(length(subjects), mean = 75, sd = 10), 1))
 })
 
-test_that("Raw_VS vs_dt is a Date even when Raw_VISIT supplies character dates (#148)", {
+test_that("Raw_VS vs_dt is a Date even when Raw_VISIT supplies character dates (#143)", {
   set.seed(3390)
 
   # The real `Raw_VISIT` generator emits "%Y-%m-%d" strings, not `Date`s. The
@@ -596,7 +596,7 @@ test_that("Raw_VS vs_dt is a Date even when Raw_VISIT supplies character dates (
   }
 })
 
-test_that("Raw_VS vs_dt class does not depend on the schedule's storage type (#148)", {
+test_that("Raw_VS vs_dt class does not depend on the schedule's storage type (#143)", {
   set.seed(8827)
   date_df <- generate_domain_from_registry(
     "Raw_VS",
