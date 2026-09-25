@@ -100,6 +100,18 @@ test_that("ae_site_grading_profile guarantees one site per direction in small st
   expect_equal(ae_site_grading_profile("SITE01")$grading, "typical")
 })
 
+test_that("ae_site_grading_profile anchors both directions among the largest sites", {
+  sites <- sprintf("0X%03d", 1:200)
+  size <- setNames(rep(c(40, 5), c(15, 185)), sites)
+
+  for (study in paste0("STUDY-", 1:5)) {
+    p <- ae_site_grading_profile(sites, study, site_size = size)
+    big <- p$grading[p$invid %in% sites[1:15]]
+    expect_true(any(big == "over"))
+    expect_true(any(big == "under"))
+  }
+})
+
 test_that("ae_site_grading_profile turns site effects off at intensity 0", {
   p <- ae_site_grading_profile(sprintf("0X%03d", 1:100), "S", intensity = 0)
   expect_true(all(p$shift == 0))
@@ -118,7 +130,7 @@ test_that("simulate_ae_grading keys grades on each record's actual site", {
   expect_setequal(unique(res$aeser), c("Y", "N"))
 
   res$invid <- fx$subj$invid[match(res$subjid, fx$subj$subjid)]
-  profile <- ae_site_grading_profile(fx$subj$invid, "PROT-149")
+  profile <- ae_site_grading_profile(fx$subj$invid, "PROT-149", site_size = table(fx$subj$invid))
   res$grading <- profile$grading[match(res$invid, profile$invid)]
   expect_true(any(res$grading == "over"))
   expect_true(any(res$grading == "under"))
@@ -175,7 +187,7 @@ test_that("registry Raw_AE generation applies site-keyed grading", {
   expect_true(all(res$aetoxgr %in% 1:5))
 
   res$invid <- fx$subj$invid[match(res$subjid, fx$subj$subjid)]
-  profile <- ae_site_grading_profile(fx$subj$invid, "PROT-149")
+  profile <- ae_site_grading_profile(fx$subj$invid, "PROT-149", site_size = table(fx$subj$invid))
   res$grading <- profile$grading[match(res$invid, profile$invid)]
   g3 <- tapply(res$aetoxgr >= 3, res$grading, mean)
   expect_gt(g3[["over"]], g3[["typical"]] + 0.15)
