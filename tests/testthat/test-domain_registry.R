@@ -66,7 +66,6 @@ test_that("every domain registry entry conforms to the required schema (#124)", 
 
 test_that("Raw_AE migrated domain adapter generates data frame", {
   test_at_log_threshold()
-  withr::local_options(lifecycle_verbosity = "warning")
   set.seed(123)
 
   snapshot_data <- generate_rawdata_for_single_study(
@@ -79,7 +78,7 @@ test_that("Raw_AE migrated domain adapter generates data frame", {
     mappings = c("STUDY", "SITE", "SUBJ", "ENROLL", "SV", "VISIT", "AE"),
     package = "gsm.mapping"
   ) |> 
-    expect_warning("deprecated")
+    lifecycle::expect_deprecated()
 
   combined_specs <- load_specs(
     workflow_path = "workflow/1_mappings",
