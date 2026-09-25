@@ -148,17 +148,27 @@ hash_unif <- function(x) {
 #'
 #' Assigns each site a shift on the cumulative-logit grade scale. Most sites
 #' get small random variation; about 5% of sites systematically over-grade
-#' and about 5% under-grade (at least one of each whenever there are two or
-#' more sites). The assignment is a deterministic function of the study and
-#' site ids, so it is stable across snapshots and does not consume RNG draws.
+#' and about 5% under-grade. The assignment is a deterministic function of the
+#' study and site ids, so it is stable across snapshots and does not consume
+#' RNG draws. When there are two or more sites, at least one over-grading and
+#' one under-grading site are placed among the largest sites (see
+#' `site_size`).
 #'
 #' @param invid Character vector of site ids.
 #' @param studyid Study id, so different studies seed different sites.
 #' @param intensity Outlier intensity (see `get_outlier_intensity()`). Scales
 #'   the over/under-grading shift; `0` turns site effects off.
 #' @param hotspot_frac Fraction of sites seeded in each direction.
-#' @param hotspot_shift Logit shift for seeded sites at intensity 1.
+#' @param hotspot_shift Logit shift magnitudes at intensity 1 for seeded
+#'   over-grading and under-grading sites. Under-grading needs a larger shift
+#'   because Grade 3+ is already uncommon, so there is less room to drop.
 #' @param noise_sd SD of the background site-to-site variation.
+#' @param site_size Optional named numeric vector of site sizes (e.g.
+#'   subjects per site), named by site id.
+#' @param anchor_frac Fraction of sites (at least 2) with the largest
+#'   `site_size` that must include at least one over-grading and one
+#'   under-grading site. Anchors can move as enrollment changes; the
+#'   hash-seeded sites do not.
 #'
 #' @returns a data.frame with columns `invid`, `grading` (`"over"`,
 #'   `"under"`, or `"typical"`), and `shift`, one row per unique site.
@@ -169,8 +179,10 @@ ae_site_grading_profile <- function(invid,
                                     studyid = "",
                                     intensity = get_outlier_intensity(),
                                     hotspot_frac = 0.05,
-                                    hotspot_shift = 2,
-                                    noise_sd = 0.2) {
+                                    hotspot_shift = c(over = 2, under = 4),
+                                    noise_sd = 0.2,
+                                    site_size = NULL,
+                                    anchor_frac = 0.02) {
   sites <- sort(unique(as.character(invid[!is.na(invid)])))
   if (is.null(studyid) || length(studyid) == 0 || is.na(studyid[[1]])) {
     studyid <- ""
@@ -180,18 +192,42 @@ ae_site_grading_profile <- function(invid,
   u <- hash_unif(key)
   grading <- ifelse(u < hotspot_frac, "over", ifelse(u >= 1 - hotspot_frac, "under", "typical"))
 
-  # Guarantee a true positive in each direction for small studies.
+  # Guarantee at least one site per direction among the largest sites, so the
+  # seeded tendencies clear KRI accrual thresholds and have enough records to
+  # flag (low-side Grade 3+ flags in particular need large sites).
   if (length(sites) >= 2) {
-    if (!any(grading == "over")) {
-      grading[which.min(ifelse(grading == "under", Inf, u))] <- "over"
+    pool <- rep(TRUE, length(sites))
+    if (!is.null(site_size)) {
+      size <- as.numeric(site_size[sites])
+      size[is.na(size)] <- 0
+      k <- max(2L, ceiling(anchor_frac * length(sites)))
+      pool <- seq_along(sites) %in% order(-size, u)[seq_len(k)]
     }
-    if (!any(grading == "under")) {
-      grading[which.max(ifelse(grading == "over", -Inf, u))] <- "under"
+
+    for (direction in c("over", "under")) {
+      if (any(grading[pool] == direction)) {
+        next
+      }
+      other <- setdiff(c("over", "under"), direction)
+      candidates <- pool & grading == "typical"
+      if (!any(candidates) && sum(grading[pool] == other) > 1) {
+        candidates <- pool & grading == other
+      }
+      if (any(candidates)) {
+        # Most extreme hash value on the matching side, for determinism.
+        pick <- if (direction == "over") {
+          which.min(ifelse(candidates, u, Inf))
+        } else {
+          which.max(ifelse(candidates, u, -Inf))
+        }
+        grading[pick] <- direction
+      }
     }
   }
 
   noise <- stats::qnorm(pmin(pmax(hash_unif(paste0(key, "::noise")), 1e-6), 1 - 1e-6)) * noise_sd
-  shift <- noise + hotspot_shift * intensity * ((grading == "over") - (grading == "under"))
+  shift <- noise + intensity * (hotspot_shift[["over"]] * (grading == "over") -
+    hotspot_shift[["under"]] * (grading == "under"))
   if (intensity <= 0) {
     grading <- rep("typical", length(sites))
     shift <- rep(0, length(sites))
@@ -214,6 +250,7 @@ ae_site_grading_profile <- function(invid,
 #' @param studyid Study id used to seed site grading tendencies.
 #' @param spec The Raw_AE spec, used to resolve `source_col` renames.
 #' @param intensity Outlier intensity.
+#' @param ... Passed to [ae_site_grading_profile()].
 #'
 #' @returns `dataset` with updated AE term, SOC, grade, and seriousness.
 #' @family internal
@@ -224,7 +261,8 @@ simulate_ae_grading <- function(dataset,
                                 Raw_SUBJ_data = NULL,
                                 studyid = "",
                                 spec = NULL,
-                                intensity = get_outlier_intensity()) {
+                                intensity = get_outlier_intensity(),
+                                ...) {
   new_rows <- new_rows[new_rows >= 1 & new_rows <= NROW(dataset)]
   if (!is.data.frame(dataset) || length(new_rows) == 0) {
     return(dataset)
@@ -257,7 +295,13 @@ simulate_ae_grading <- function(dataset,
     site_shift <- 0
     if (has_sites) {
       row_sites <- Raw_SUBJ_data$invid[match(subjids, Raw_SUBJ_data$subjid)]
-      profile <- ae_site_grading_profile(Raw_SUBJ_data$invid, studyid, intensity = intensity)
+      profile <- ae_site_grading_profile(
+        Raw_SUBJ_data$invid,
+        studyid,
+        intensity = intensity,
+        site_size = table(Raw_SUBJ_data$invid),
+        ...
+      )
       site_shift <- profile$shift[match(row_sites, profile$invid)]
       site_shift[is.na(site_shift)] <- 0
     }
