@@ -41,24 +41,26 @@ Raw_AE <- function(data, previous_data, spec, startDate, endDate, ...) {
   args <- list(
     subjid = list(n, external_subjid = data$Raw_SUBJ$subjid),
     aest_dt_aeen_dt = list(n, startDate, endDate),
-    aeser = list(n, data$Raw_SUBJ),
-    aetoxgr = list(n, data$Raw_SUBJ),
     studyid = list(n, data$Raw_STUDY$protocol_number[[1]]),
     default = list(n, startDate)
   )
 
   res <- add_new_var_data(dataset, curr_spec, args, spec$Raw_AE, ...)
+  res <- simulate_ae_grading(
+    res,
+    new_rows = seq_len(n) + previous_row_num,
+    Raw_SUBJ_data = data$Raw_SUBJ,
+    studyid = data$Raw_STUDY$protocol_number[[1]],
+    spec = spec$Raw_AE
+  )
 
   return(res)
 }
 
-aeser <- function(n, Raw_SUBJ_data = NULL, ...) {
+aeser <- function(n, ..., Raw_SUBJ_data = NULL, row_keys = NULL) {
   # Favor serious AEs in hotspot sites so z-score metrics can separate entities.
-  row_keys <- if (is.data.frame(Raw_SUBJ_data) && "subjid" %in% names(Raw_SUBJ_data)) {
-    sample(Raw_SUBJ_data$subjid, n, replace = TRUE)
-  } else {
-    NULL
-  }
+  # `row_keys` must be each record's own subjid; otherwise the hotspot site
+  # assignment is unrelated to the site the record maps to.
   sample_categorical_with_hotspots(
     values = c("Y", "N"),
     n = n,
@@ -88,27 +90,16 @@ aeen_dt <- function(n, aestartDate, ...) {
   as.Date(aestartDate) + sample(1:3, n, replace = TRUE)
 }
 mdrpt_nsv <- function(n, ...) {
-  sample(c("term1", "term2"), n, replace = TRUE)
+  ae_term_catalog()$mdrpt_nsv[sample_ae_term_idx(n)]
 }
 mdrsoc_nsv <- function(n, ...) {
-  sample(c("soc1", "soc2"), n, replace = TRUE)
+  ae_term_catalog()$mdrsoc_nsv[sample_ae_term_idx(n)]
 }
-aetoxgr <- function(n, Raw_SUBJ_data = NULL, ...) {
-  row_keys <- if (is.data.frame(Raw_SUBJ_data) && "subjid" %in% names(Raw_SUBJ_data)) {
-    sample(Raw_SUBJ_data$subjid, n, replace = TRUE)
-  } else {
-    NULL
+aetoxgr <- function(n, ..., mdrpt_nsv = NULL, site_shift = 0) {
+  if (is.null(mdrpt_nsv)) {
+    mdrpt_nsv <- ae_term_catalog()$mdrpt_nsv[sample_ae_term_idx(n)]
   }
-  sample_categorical_with_hotspots(
-    values = 1:5,
-    n = n,
-    base_prob = c(0.45, 0.30, 0.15, 0.07, 0.03),
-    outlier_idx = 4:5,
-    row_keys = row_keys,
-    key_map = Raw_SUBJ_data,
-    key_col = "subjid",
-    site_col = "invid"
-  )
+  draw_ae_grades(mdrpt_nsv, site_shift = site_shift)
 }
 
 aest_dt_aeen_dt <- function(n, startDate, endDate, ...) {
