@@ -88,7 +88,9 @@ group (typically subject).</p></dd>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p><code>values</code> with runs injected, carrying a <code>"realized"</code> attribute: a
-list with the achieved <code>numerator</code> and <code>denominator</code>.</p>
+list with the achieved <code>numerator</code> and <code>denominator</code>. The numerator is
+<strong>recounted from the returned values</strong>, not assumed from the construction,
+so it always matches what a window-counting metric will compute.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>

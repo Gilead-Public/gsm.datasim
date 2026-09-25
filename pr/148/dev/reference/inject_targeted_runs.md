@@ -33,7 +33,10 @@ inject_targeted_runs(values, groups, dTargetRate, nWindowLength = 3)
 ## Value
 
 `values` with runs injected, carrying a `"realized"` attribute: a list
-with the achieved `numerator` and `denominator`.
+with the achieved `numerator` and `denominator`. The numerator is
+**recounted from the returned values**, not assumed from the
+construction, so it always matches what a window-counting metric will
+compute.
 
 ## Details
 

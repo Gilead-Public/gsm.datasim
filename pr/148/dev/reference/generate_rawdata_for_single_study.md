@@ -25,7 +25,8 @@ generate_rawdata_for_single_study(
   mappings,
   package,
   strStartDate = "2012-01-01",
-  desired_specs = NULL
+  desired_specs = NULL,
+  vs_risk_profile = NULL
 )
 ```
 
@@ -70,6 +71,13 @@ generate_rawdata_for_single_study(
 - desired_specs:
 
   Optional character vector of dataset names to keep.
+
+- vs_risk_profile:
+
+  Optional `Raw_VS` consecutive-repeat risk profile, in the same form
+  accepted by
+  [`create_study_config()`](https://gilead-public.github.io/gsm.datasim/dev/reference/create_study_config.md).
+  `NULL` (the default) uses the built-in profile.
 
 ## Value
 

@@ -5,7 +5,10 @@
 - `Raw_VS` simulates consecutive repeated measurements at site-specific
   rates; the new `vs_risk_profile` argument on
   [`create_study_config()`](https://gilead-public.github.io/gsm.datasim/dev/reference/create_study_config.md)
-  controls how many sites land in each risk band.
+  controls how many sites land in each risk band. The `vs_risk_profile`
+  argument is also available on the deprecated
+  [`generate_rawdata_for_single_study()`](https://gilead-public.github.io/gsm.datasim/dev/reference/generate_rawdata_for_single_study.md)
+  path
   ([\#113](https://github.com/Gilead-Public/gsm.datasim/issues/113),
   [\#143](https://github.com/Gilead-Public/gsm.datasim/issues/143)).
 
