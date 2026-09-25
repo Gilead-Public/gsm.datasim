@@ -32,7 +32,8 @@ create_standard_study_config(
   death = TRUE,
   randomization = TRUE,
   overall_response = TRUE,
-  outlier_intensity = 1
+  outlier_intensity = 1,
+  vs_risk_profile = NULL
 )
 ```
 
@@ -141,6 +142,13 @@ create_standard_study_config(
 - outlier_intensity:
 
   Global multiplier for outlier-like values in domain generators.
+
+- vs_risk_profile:
+
+  Optional named list controlling site-targeted consecutive-run
+  injection in `Raw_VS`. Passed through to
+  [`create_study_config`](https://gilead-public.github.io/gsm.datasim/dev/reference/create_study_config.md);
+  see there for the recognized fields.
 
 ## Value
 

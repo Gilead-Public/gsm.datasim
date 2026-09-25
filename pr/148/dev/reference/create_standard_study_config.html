@@ -78,7 +78,8 @@
 <span>  death <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  randomization <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  overall_response <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  outlier_intensity <span class="op">=</span> <span class="fl">1</span></span>
+<span>  outlier_intensity <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  vs_risk_profile <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -188,6 +189,12 @@
 
 <dt id="arg-outlier-intensity">outlier_intensity<a class="anchor" aria-label="anchor" href="#arg-outlier-intensity"></a></dt>
 <dd><p>Global multiplier for outlier-like values in domain generators.</p></dd>
+
+
+<dt id="arg-vs-risk-profile">vs_risk_profile<a class="anchor" aria-label="anchor" href="#arg-vs-risk-profile"></a></dt>
+<dd><p>Optional named list controlling site-targeted
+consecutive-run injection in <code>Raw_VS</code>. Passed through to
+<code><a href="create_study_config.html">create_study_config</a></code>; see there for the recognized fields.</p></dd>
 
 </dl></div>
     <div class="section level2">
