@@ -1,0 +1,12 @@
+dependencies:
+  - name: gsmViz
+    version: 2.4.0
+    src: 'htmlwidgets/lib/gsm.viz-2.4.0'
+    script: 'index.js'
+  - name: testdata-explorer
+    version: 0.1.0
+    src: 'htmlwidgets/lib/testdata-explorer'
+    script:
+      - 'datatable.js'
+      - 'explorer.js'
+    stylesheet: 'explorer.css'

@@ -1,0 +1,78 @@
+# Test data bundle configuration (gsm.roadmap#118 / gsm.datasim#151).
+#
+# Every parameter that gsm.core/data-raw/simulate_longitudinal_data.R used to
+# hard-code lives here, so a data refresh is a config change, not a code edit.
+# `build_testdata_bundle()` reads this file; override individual fields with
+# `read_testdata_config(participants = 40, ...)` for local experiments.
+
+# Semantic version of the published bundle. Bump it when the data changes:
+#   major  column or domain removed / renamed / retyped
+#   minor  column or domain added, new metric workflow included
+#   patch  values change with an identical schema
+bundle_version: "1.0.0"
+
+study_id: "AA-AA-000-0000"
+seed: 1234
+participants: 1000
+sites: 150
+
+# Snapshots: `snapshots` monthly snapshots are generated starting at
+# `start_date` (month-end dates as the engine computes them). `snapshot_dates`
+# are the dates stamped on the reporting tables and used as snapshot folder
+# names in the bundle -- one per snapshot, matching what gsm.core shipped.
+snapshots: 3
+interval: "1 month"
+start_date: "2025-01-31"
+snapshot_dates: ["2025-02-01", "2025-03-01", "2025-04-01"]
+
+# Raw domains to simulate (mapping workflow names in the mapping package).
+# COUNTRY and EXCLUSION are derived mapped domains; listing them keeps the
+# mapping run complete even though they have no Raw_* source.
+domains:
+  - AE
+  - COUNTRY
+  - DATACHG
+  - DATAENT
+  - ENROLL
+  - LB
+  - VISIT
+  - Death
+  - OverallResponse
+  - Randomization
+  - PD
+  - PK
+  - QUERY
+  - STUDY
+  - STUDCOMP
+  - SDRGCOMP
+  - SITE
+  - SUBJ
+  - IE
+  - EXCLUSION
+
+# Packages whose workflows build each layer.
+mapping_package: gsm.mapping
+analytics_packages: [gsm.kri, gsm.qtl]   # workflow/2_metrics from each
+reporting_package: gsm.reporting
+
+# Packages attached (temporarily) while the workflows run. Some metric
+# workflows reference gsm.core functions unqualified (e.g. Analyze_NormalApprox),
+# and workr resolves bare names through the search path.
+attach_packages: [gsm.core]
+
+# Post-processing the original script applied silently.
+post_processing:
+  site_status: "Active"   # Raw_SITE$site_status is forced to this value on every snapshot
+
+# Export format: csv for diffability, parquet for typed loading.
+format: both
+
+# Package refs the publish workflow (gsm.datasim#153) installs before building.
+# Informational for local builds; recorded alongside installed versions in manifest.json.
+package_refs:
+  gsm.mapping: Gilead-Public/gsm.mapping@dev
+  gsm.kri: Gilead-Public/gsm.kri@dev
+  gsm.qtl: Gilead-Public/gsm.qtl@dev
+  gsm.reporting: Gilead-Public/gsm.reporting@dev
+  gsm.core: Gilead-Public/gsm.core@dev
+  workr: Gilead-Public/workr@main

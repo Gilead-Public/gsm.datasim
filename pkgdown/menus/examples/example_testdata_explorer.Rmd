@@ -1,0 +1,84 @@
+---
+title: "Test Data Explorer"
+author: "[gsm.datasim](https://gilead-public.github.io/gsm.datasim) Example"
+description: "Browse the shared gsm test data bundle: what is in it, how big each table is, and how it changes across snapshots."
+index: 5
+date: "`r format(Sys.time(), '%B %d, %Y %H:%M:%S %Z')`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment  = "#>",
+  message  = FALSE,
+  warning  = FALSE
+)
+library(gsm.datasim)
+```
+
+## The shared test data bundle
+
+The gsm ecosystem develops and qualifies against one shared set of simulated
+study data. It used to ship inside `gsm.core` as `lSource` and the
+`reporting*` / `analytics*` objects, so every data refresh needed a `gsm.core`
+release. It is now built here by `build_testdata_bundle()` from the checked-in
+[`bundle-config.yaml`](https://github.com/Gilead-Public/gsm.datasim/blob/dev/inst/testdata/bundle-config.yaml)
+and written as a versioned bundle with a `manifest.json` describing exactly how
+it was produced.
+
+This page renders the explorer for the bundle found in `GSM_TESTDATA_DIR` when
+that variable is set (the published bundle on CI), and otherwise builds a
+reduced bundle on the fly so the page works anywhere the pipeline packages are
+installed.
+
+```{r bundle}
+bundle_dir <- Sys.getenv("GSM_TESTDATA_DIR", unset = "")
+
+if (nzchar(bundle_dir)) {
+  bundle <- read_testdata_bundle(bundle_dir)
+} else {
+  cfg <- read_testdata_config(
+    bundle_version = "0.0.0", # local preview, not a published version
+    participants = 200,
+    sites = 20
+  )
+  bundle <- build_testdata_bundle(cfg, output_dir = tempdir(), overwrite = TRUE)
+}
+bundle
+```
+
+## Explore
+
+Select a table in the tree to page through its rows or inspect its schema.
+The **Overview** shows how each table grows across snapshots and a few
+distributions from the latest raw layer. The latest `raw/` layer (the
+`lSource` equivalent) embeds up to 5,000 rows per table and other tables up
+to 1,000, so the page stays small; the summaries always cover the whole table
+and the full bundle is available for download.
+
+```{r explorer, out.width="100%"}
+explore_testdata(bundle)
+```
+
+## What is in the bundle
+
+```{r inventory}
+s <- summarize_testdata_bundle(bundle)
+knitr::kable(
+  aggregate(cbind(tables = 1, rows = rows) ~ snapshot + layer, data = s$tables, FUN = sum),
+  caption = "Tables and rows per snapshot and layer"
+)
+```
+
+## Reproducing the bundle
+
+```{r reproduce, eval=FALSE}
+# the production configuration (1000 participants, 150 sites, 3 snapshots)
+cfg <- read_testdata_config()
+bundle <- build_testdata_bundle(cfg, output_dir = "~/gsm-testdata")
+
+# the manifest records the seed, parameters, package versions and a checksum per file
+bundle$manifest$package_versions
+head(bundle$manifest$files)
+```

@@ -17,8 +17,10 @@ URL: https://github.com/Gilead-Public/gsm.datasim,
 BugReports: https://github.com/Gilead-Public/gsm.datasim/issues
 Imports:
     arrow,
+    digest,
     dplyr,
     glue,
+    jsonlite,
     lifecycle,
     logger,
     lubridate,
@@ -28,22 +30,29 @@ Imports:
     stringr,
     tictoc,
     utils,
-    workr (>= 1.0.0)
+    withr,
+    workr (>= 1.0.0),
+    yaml
 Suggests:
+    gsm.core,
     gsm.kri,
     gsm.mapping,
+    gsm.qtl,
     gsm.reporting,
+    htmlwidgets,
     knitr,
     rmarkdown,
-    testthat,
-    withr
+    testthat
 VignetteBuilder: 
     knitr
 Remotes:
+    gsm.core=Gilead-Public/gsm.core@dev,
     gsm.kri=Gilead-Public/gsm.kri@for-ipns-140,
     gsm.mapping=Gilead-Public/gsm.mapping@dev,
+    gsm.qtl=Gilead-Public/gsm.qtl@dev,
     gsm.reporting=Gilead-Public/gsm.reporting@dev,
     workr=Gilead-Public/workr@main
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 Config/roxygen2/version: 8.0.0
+RoxygenNote: 7.3.2
