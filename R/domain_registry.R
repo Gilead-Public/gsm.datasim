@@ -551,7 +551,12 @@ get_domain_registry <- function() {
         # matches what real extracts contain.
         curr_spec$invid <- NULL
 
-        subjs <- subjid(n, external_subjid = data$Raw_SUBJ$subjid, replace = FALSE)
+        # Snapshots are deltas and previously-written rows are frozen, so the
+        # new block must come from subjects that have no rows yet. Sampling the
+        # cumulative roster would re-select already-written subjects and append
+        # a second copy of their visit history (#143).
+        available_subjids <- setdiff(data$Raw_SUBJ$subjid, dataset$subjid)
+        subjs <- subjid(n, external_subjid = available_subjids, replace = FALSE)
         subj_visits <- data$Raw_VISIT %>%
           dplyr::filter(subjid %in% subjs) %>%
           dplyr::select(subjid, instancename, visit_dt) %>%

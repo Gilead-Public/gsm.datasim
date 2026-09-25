@@ -102,6 +102,42 @@ test_that("Raw_VS respects the cumulative snapshot pattern via previous_data (#1
   expect_equal(length(unique(vs_snapshot2$subjid)), 20)
 })
 
+test_that("Raw_VS appends only newly enrolled subjects as the roster grows (#143)", {
+  set.seed(4417)
+
+  # The test above only exercises the `n <= 0` early return. This one covers
+  # the case the delta model actually turns on: a snapshot where some subjects
+  # are already frozen in `previous_data` and others are new.
+  data1 <- make_vs_test_data(n_subjects = 10, n_visits = 4)
+  vs_snapshot1 <- generate_domain_from_registry("Raw_VS", make_vs_context(data1))
+
+  data2 <- make_vs_test_data(n_subjects = 15, n_visits = 4)
+  context2 <- make_vs_context(data2, n = 15, start_date = as.Date("2012-02-01"))
+  context2$previous_data <- list(Raw_VS = vs_snapshot1)
+  vs_snapshot2 <- generate_domain_from_registry("Raw_VS", context2)
+
+  # Frozen rows are carried through untouched.
+  expect_equal(
+    vs_snapshot2[seq_len(nrow(vs_snapshot1)), ],
+    vs_snapshot1,
+    ignore_attr = TRUE
+  )
+
+  # Every subject on the roster appears exactly once, and none twice.
+  expect_equal(length(unique(vs_snapshot2$subjid)), 15)
+  expect_equal(nrow(vs_snapshot2), 15 * 4)
+
+  # The appended block must be the five *new* subjects, not a resample of the
+  # cumulative roster, which would duplicate already-written visit rows.
+  new_rows <- vs_snapshot2[-seq_len(nrow(vs_snapshot1)), ]
+  expect_setequal(
+    unique(new_rows$subjid),
+    setdiff(data2$Raw_SUBJ$subjid, unique(vs_snapshot1$subjid))
+  )
+  # `foldername` is the visit column the spec's `source_col` renames to.
+  expect_equal(sum(duplicated(vs_snapshot2[c("subjid", "foldername")])), 0)
+})
+
 test_that("Raw_VS generates the full 8-vitals superset when spec'd (#113, #143)", {
   set.seed(4471)
 
