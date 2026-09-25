@@ -521,15 +521,28 @@ get_domain_registry <- function() {
         # `visit`, with `source_col: foldername`. It is paired with `subjid`
         # into one split var so both come from the same subject-visit frame.
         # `rename_raw_data_vars_per_spec()` keys off the caller's spec, so a
-        # spec that omits `visit` gets the column under its canonical name
+        # spec that omits a visit column gets it under the canonical name
         # rather than the `foldername` source name.
-        if (!("visit" %in% names(curr_spec))) curr_spec$visit <- list(required = TRUE)
+        #
+        # Callers predating VS.yaml may name the column `instancename` or
+        # `foldername`. Every alias the spec declares is folded into the split
+        # var; leaving one behind would send it to the same-named `Raw_VISIT`
+        # generator through `default`, which has no `possible_visits` here and
+        # would emit an all-`NA` column instead of the schedule.
+        visit_cols <- intersect(
+          c("visit", "instancename", "foldername"),
+          names(curr_spec)
+        )
+        if (length(visit_cols) == 0) {
+          curr_spec$visit <- list(required = TRUE)
+          visit_cols <- "visit"
+        }
 
-        use_subj_visit <- all(c("subjid", "visit") %in% names(curr_spec))
+        use_subj_visit <- "subjid" %in% names(curr_spec)
         if (use_subj_visit) {
           curr_spec$vs_subj_visit_repeated <- list(required = TRUE)
           curr_spec$subjid <- NULL
-          curr_spec$visit <- NULL
+          curr_spec[visit_cols] <- NULL
         }
 
         # `Raw_VS` carries no `invid` -- site is joined on from `Mapped_SUBJ`
@@ -571,7 +584,7 @@ get_domain_registry <- function() {
         )
 
         args <- list(
-          vs_subj_visit_repeated = list(1, subj_visits),
+          vs_subj_visit_repeated = list(1, subj_visits, visit_cols = visit_cols),
           studyid = list(all_n, data$Raw_STUDY$protocol_number[[1]]),
           vs_dt = list(all_n, subj_visits$vs_dt),
           vsperf_std = list(all_n, performed),

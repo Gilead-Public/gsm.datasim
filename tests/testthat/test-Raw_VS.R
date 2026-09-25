@@ -693,3 +693,54 @@ test_that("Raw_VS generates through the standard study config (#113, #143)", {
   # No dot-flattened list columns escaping the split_vars processing.
   expect_false(any(grepl(".", names(snapshot$Raw_VS), fixed = TRUE)))
 })
+
+# Specs predating gsm.mapping's VS.yaml name the visit column `instancename`
+# or `foldername`. Adding `visit` alongside one of those left the original to
+# fall through to the same-named `Raw_VISIT` generator with no
+# `possible_visits`, producing an all-`NA` column instead of the schedule.
+test_that("Raw_VS fills legacy visit aliases from the schedule (#143)", {
+  for (alias in c("instancename", "foldername")) {
+    set.seed(8823)
+
+    spec <- make_vs_test_spec()
+    spec$visit <- NULL
+    spec[[alias]] <- list(required = TRUE, type = "character")
+
+    data <- make_vs_test_data(n_subjects = 6, n_visits = 4)
+    vs_df <- generate_domain_from_registry("Raw_VS", make_vs_context(data, spec = spec))
+
+    expect_true(alias %in% names(vs_df), info = alias)
+    expect_false(anyNA(vs_df[[alias]]), info = alias)
+    expect_setequal(unique(vs_df[[alias]]), unique(data$Raw_VISIT$instancename))
+    # The canonical name is not invented alongside the caller's alias.
+    expect_false("visit" %in% names(vs_df), info = alias)
+  }
+})
+
+test_that("Raw_VS fills every declared visit alias (#143)", {
+  set.seed(1467)
+
+  spec <- make_vs_test_spec()
+  spec$instancename <- list(required = TRUE, type = "character")
+
+  data <- make_vs_test_data(n_subjects = 5, n_visits = 4)
+  vs_df <- generate_domain_from_registry("Raw_VS", make_vs_context(data, spec = spec))
+
+  # `visit` carries source_col = "foldername"; `instancename` stands alone.
+  expect_false(anyNA(vs_df$foldername))
+  expect_false(anyNA(vs_df$instancename))
+  expect_identical(vs_df$foldername, vs_df$instancename)
+})
+
+test_that("create_standard_study_config forwards vs_risk_profile (#143)", {
+  profile <- list(dPctRed = 0.2, dPctAmber = 0.3, nWindowLength = 4)
+
+  config <- create_standard_study_config(
+    "DEMO",
+    participant_count = 10, site_count = 3,
+    vs_risk_profile = profile
+  )
+
+  expect_identical(config$study_params$vs_risk_profile, profile)
+  expect_no_error(validate_study_config(config))
+})

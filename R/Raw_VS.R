@@ -58,16 +58,22 @@ VS_DEFAULT_RISK_PROFILE <- list(
 #' @param n Number of rows to generate.
 #' @param data Data frame of subject-visit records to repeat, carrying
 #'   `subjid` and `instancename`.
+#' @param visit_cols Names to emit the visit column under, one per visit alias
+#'   the caller's spec declares. Defaults to the canonical `"visit"`.
 #' @param ... Unused; absorbs other generator arguments.
-#' @returns A list with elements `subjid` and `visit`.
+#' @returns A list with element `subjid` plus one element per `visit_cols`.
 #' @keywords internal
 #' @noRd
-vs_subj_visit_repeated <- function(n, data, ...) {
+vs_subj_visit_repeated <- function(n, data, visit_cols = "visit", ...) {
   res <- repeat_rows(n, data)
-  return(list(
-    subjid = res$subjid,
-    visit = res$instancename
-  ))
+  out <- c(
+    list(subjid = res$subjid),
+    stats::setNames(
+      rep(list(res$instancename), length(visit_cols)),
+      visit_cols
+    )
+  )
+  return(out)
 }
 
 

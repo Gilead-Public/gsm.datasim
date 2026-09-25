@@ -309,6 +309,9 @@ validate_vs_risk_profile <- function(profile) {
 #' @param randomization Include randomization data (Raw_Randomization)
 #' @param overall_response Include overall response data (Raw_OverallResponse)
 #' @param outlier_intensity Global multiplier for outlier-like values in domain generators.
+#' @param vs_risk_profile Optional named list controlling site-targeted
+#'   consecutive-run injection in \code{Raw_VS}. Passed through to
+#'   \code{\link{create_study_config}}; see there for the recognized fields.
 #'
 #' @return Study configuration with standard datasets
 #' @examples
@@ -336,14 +339,15 @@ create_standard_study_config <- function(study_id = "STUDY001", participant_coun
                                          inclusion_exclusion = TRUE,
                                          country = TRUE,
                                          death = TRUE, randomization = TRUE, overall_response = TRUE,
-                                         outlier_intensity = 1) {
+                                         outlier_intensity = 1, vs_risk_profile = NULL) {
   config <- create_study_config(
     study_id = study_id,
     participant_count = participant_count,
     site_count = site_count,
     analytics_package = analytics_package,
     analytics_workflows = analytics_workflows,
-    outlier_intensity = outlier_intensity
+    outlier_intensity = outlier_intensity,
+    vs_risk_profile = vs_risk_profile
   )
 
   # Core datasets (override automatic inclusion if user wants to disable)
