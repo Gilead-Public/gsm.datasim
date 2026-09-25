@@ -52,34 +52,45 @@ site_repeat_rate <- function(df, strValueCol, strGroupCol = "invid",
   out[, c(strGroupCol, "numerator", "denominator", "rate")]
 }
 
+# Mirrors the authoritative `Raw_VS` spec in gsm.mapping's VS.yaml
+# (Gilead-Public/gsm.mapping#165). Two things drive the column names below:
+#
+#   * `Raw_VS` is the RAW extract, so `source_col` entries mean the emitted
+#     columns are the source names -- `project`, `foldername`, `bsaentry` --
+#     which `rename_raw_data_vars_per_spec()` applies on the way out.
+#   * There is no `invid`; site is joined from `Mapped_SUBJ` when `Mapped_VS`
+#     is built. Use `attach_vs_site()` in tests that need it.
 make_vs_test_spec <- function() {
   list(
-    subjid = list(required = TRUE),
-    invid = list(required = TRUE),
-    studyid = list(required = TRUE),
-    instancename = list(required = TRUE),
-    vs_dt = list(required = TRUE),
-    vsperf_std = list(required = TRUE),
-    weight = list(required = TRUE),
-    sysbp = list(required = TRUE),
-    diabp = list(required = TRUE)
+    studyid = list(required = TRUE, type = "character", source_col = "project"),
+    subjid = list(required = TRUE, type = "character"),
+    visit = list(required = TRUE, type = "character", source_col = "foldername"),
+    vs_dt = list(required = TRUE, type = "Date"),
+    vsperf_std = list(required = TRUE, type = "character"),
+    weight = list(required = TRUE, type = "numeric"),
+    sysbp = list(required = TRUE, type = "numeric"),
+    diabp = list(required = TRUE, type = "numeric")
   )
 }
 
 make_vs_full_spec <- function() {
   spec <- make_vs_test_spec()
-  spec$height <- list(required = TRUE)
-  spec$bmi <- list(required = TRUE)
-  spec$pulse <- list(required = TRUE)
-  spec$temp <- list(required = TRUE)
-  spec$resp <- list(required = TRUE)
+  spec$height <- list(required = TRUE, type = "numeric")
+  spec$bsa <- list(required = TRUE, type = "numeric", source_col = "bsaentry")
+  spec$pulse <- list(required = TRUE, type = "numeric")
+  spec$temp <- list(required = TRUE, type = "numeric")
+  spec$resp <- list(required = TRUE, type = "numeric")
   spec
 }
 
+# Emitted (post-rename) vital column names, so `bsa` appears as `bsaentry`.
 VS_VITAL_COLS <- c(
-  "weight", "height", "bmi", "sysbp",
+  "weight", "height", "bsaentry", "sysbp",
   "diabp", "pulse", "temp", "resp"
 )
+
+# The emitted visit column name, per `source_col: foldername`.
+VS_VISIT_COL <- "foldername"
 
 # `Raw_VISIT` now matters to `Raw_VS` generation: `vs_dt` is taken from
 # `visit_dt` rather than being a constant, so the test fixture must carry a
@@ -134,4 +145,13 @@ make_vs_context <- function(data, spec = make_vs_test_spec(), n = NULL,
     start_date = start_date,
     vs_risk_profile = vs_risk_profile
   )
+}
+
+# `Raw_VS` deliberately carries no `invid` (gsm.mapping#165 joins site on from
+# `Mapped_SUBJ` when building `Mapped_VS`). Tests that assert per-site
+# behaviour must therefore do that join themselves, exactly as the mapping
+# does, rather than reading a column off the raw domain.
+attach_vs_site <- function(vs_df, data) {
+  vs_df$invid <- data$Raw_SUBJ$invid[match(vs_df$subjid, data$Raw_SUBJ$subjid)]
+  vs_df
 }

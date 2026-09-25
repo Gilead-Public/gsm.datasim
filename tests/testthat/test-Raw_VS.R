@@ -46,9 +46,8 @@ test_that("Raw_VS migrated domain adapter generates a data frame with expected c
   expect_true(all(
     c(
       "subjid",
-      "invid",
-      "studyid",
-      "instancename",
+      "project",
+      "foldername",
       "vs_dt",
       "vsperf_std",
       "weight",
@@ -64,17 +63,28 @@ test_that("Raw_VS migrated domain adapter generates a data frame with expected c
   expect_equal(nrow(vs_df), 20 * 6)
 })
 
-test_that("Raw_VS invid is correctly attributed to each subject via Raw_SUBJ lookup (#113, #143)", {
+test_that("Raw_VS omits invid, which Mapped_VS joins from Mapped_SUBJ (#113, #143)", {
   set.seed(514)
 
   data <- make_vs_test_data(n_subjects = 10, n_visits = 3)
-  vs_df <- generate_domain_from_registry("Raw_VS", make_vs_context(data))
 
-  expected_invid <- data$Raw_SUBJ[
-    match(vs_df$subjid, data$Raw_SUBJ$subjid),
-    "invid"
-  ]
-  expect_equal(vs_df$invid, expected_invid)
+  # Not in the authoritative VS.yaml spec, so it must not be generated.
+  vs_df <- generate_domain_from_registry("Raw_VS", make_vs_context(data))
+  expect_false("invid" %in% names(vs_df))
+
+  # Even when a caller's spec asks for it, since real extracts lack it.
+  spec_with_invid <- make_vs_test_spec()
+  spec_with_invid$invid <- list(required = TRUE)
+  with_invid <- generate_domain_from_registry(
+    "Raw_VS",
+    make_vs_context(data, spec = spec_with_invid)
+  )
+  expect_false("invid" %in% names(with_invid))
+
+  # Site remains recoverable by the same subjid join the mapping performs.
+  joined <- attach_vs_site(vs_df, data)
+  expect_false(anyNA(joined$invid))
+  expect_setequal(unique(joined$invid), unique(data$Raw_SUBJ$invid))
 })
 
 test_that("Raw_VS respects the cumulative snapshot pattern via previous_data (#113, #143)", {
@@ -130,23 +140,25 @@ test_that("prepare_combined_specs_for_generation does not add a Raw_VS spec when
   expect_false("Raw_VS" %in% names(prepared))
 })
 
-test_that("Raw_VS registry adapter falls back to a default instancename spec entry when the caller-supplied spec omits it (#113, #143)", {
+test_that("Raw_VS registry adapter falls back to a default visit spec entry when the caller-supplied spec omits it (#113, #143)", {
   set.seed(6284)
 
   data <- make_vs_test_data(n_subjects = 15, n_visits = 4)
 
-  # Spec deliberately omits `instancename` -- the registry entry should
+  # Spec deliberately omits `visit` -- the registry entry should
   # inject its own `required = TRUE` default rather than erroring.
-  spec_without_instancename <- make_vs_test_spec()
-  spec_without_instancename$instancename <- NULL
+  spec_without_visit <- make_vs_test_spec()
+  spec_without_visit$visit <- NULL
 
   vs_df <- generate_domain_from_registry(
     "Raw_VS",
-    make_vs_context(data, spec = spec_without_instancename)
+    make_vs_context(data, spec = spec_without_visit)
   )
 
   expect_s3_class(vs_df, "data.frame")
-  expect_true("instancename" %in% names(vs_df))
+  # Renaming is driven by the caller's spec, which here has no `visit` entry
+  # to carry `source_col`, so the column keeps its canonical name.
+  expect_true("visit" %in% names(vs_df))
   expect_equal(nrow(vs_df), 15 * 4)
 })
 
@@ -163,7 +175,7 @@ test_that("Raw_VS vs_dt follows the visit schedule and is non-decreasing within 
   # Dates match Raw_VISIT$visit_dt for the corresponding subject-visit.
   expected <- data$Raw_VISIT$visit_dt[
     match(
-      paste(vs_df$subjid, vs_df$instancename),
+      paste(vs_df$subjid, vs_df$foldername),
       paste(data$Raw_VISIT$subjid, data$Raw_VISIT$instancename)
     )
   ]
@@ -200,7 +212,7 @@ test_that("Raw_VS site-level repeat rates land in their intended bands (#143)", 
     make_vs_context(data, vs_risk_profile = profile)
   )
 
-  rates <- site_repeat_rate(vs_df, strValueCol = "weight")
+  rates <- site_repeat_rate(attach_vs_site(vs_df, data), strValueCol = "weight")
   rates <- rates[!is.na(rates$rate), ]
 
   # 10 sites at 20% / 30% -> 2 red, 3 amber, 5 normal.
@@ -227,7 +239,7 @@ test_that("Raw_VS sites in different bands get materially different rates (#143)
     make_vs_context(data, vs_risk_profile = profile)
   )
 
-  rates <- site_repeat_rate(vs_df, strValueCol = "weight")
+  rates <- site_repeat_rate(attach_vs_site(vs_df, data), strValueCol = "weight")
   rates <- rates[!is.na(rates$rate), ]
 
   # Guards against a regression that makes allocation a no-op: the spread
@@ -254,8 +266,9 @@ test_that("Raw_VS risk assignment is drawn independently per vital (#143)", {
     make_vs_context(data, spec = make_vs_full_spec(), vs_risk_profile = profile)
   )
 
-  red_weight <- site_repeat_rate(vs_df, strValueCol = "weight")
-  red_sysbp <- site_repeat_rate(vs_df, strValueCol = "sysbp")
+  vs_sited <- attach_vs_site(vs_df, data)
+  red_weight <- site_repeat_rate(vs_sited, strValueCol = "weight")
+  red_sysbp <- site_repeat_rate(vs_sited, strValueCol = "sysbp")
 
   weight_red_sites <- red_weight$invid[red_weight$rate >= 0.30]
   sysbp_red_sites <- red_sysbp$invid[red_sysbp$rate >= 0.30]
@@ -317,7 +330,7 @@ test_that("Raw_VS site rates hold over performed measurements only, proving blan
   # `site_repeat_rate()` drops NA before forming windows, so this computes the
   # rate over performed measurements only. Under the wrong (inject-then-blank)
   # order the realized rates would be depressed relative to target.
-  rates <- site_repeat_rate(vs_df, strValueCol = "weight")
+  rates <- site_repeat_rate(attach_vs_site(vs_df, data), strValueCol = "weight")
   rates <- rates[!is.na(rates$rate), ]
 
   expect_equal(sum(rates$rate >= 0.30), 2)
@@ -348,7 +361,7 @@ test_that("Raw_VS falls back to generator defaults when no risk profile is suppl
   expect_equal(with_profile, without_field)
 
   # Defaults still produce a usable spread of site rates.
-  rates <- site_repeat_rate(with_profile, strValueCol = "weight")
+  rates <- site_repeat_rate(attach_vs_site(with_profile, data), strValueCol = "weight")
   expect_true(any(!is.na(rates$rate)))
 })
 
@@ -360,7 +373,7 @@ test_that("Raw_VS honors a caller-supplied risk profile end to end (#143)", {
     "Raw_VS",
     make_vs_context(data, vs_risk_profile = list(dPctRed = 0, dPctAmber = 0.2))
   )
-  rates_no_red <- site_repeat_rate(no_red, strValueCol = "weight")
+  rates_no_red <- site_repeat_rate(attach_vs_site(no_red, data), strValueCol = "weight")
   expect_equal(sum(rates_no_red$rate >= 0.30, na.rm = TRUE), 0)
 
   set.seed(7744)
@@ -371,7 +384,7 @@ test_that("Raw_VS honors a caller-supplied risk profile end to end (#143)", {
       vs_risk_profile = list(dPctRed = 0.5, dPctAmber = 0.2)
     )
   )
-  rates_many_red <- site_repeat_rate(many_red, strValueCol = "weight")
+  rates_many_red <- site_repeat_rate(attach_vs_site(many_red, data), strValueCol = "weight")
   expect_equal(sum(rates_many_red$rate >= 0.30, na.rm = TRUE), 5)
 })
 
@@ -395,14 +408,14 @@ test_that("Raw_VS risk profile can be restricted to a subset of vitals (#143)", 
   # Targeted vitals show red sites; untargeted ones do not.
   expect_gt(
     sum(
-      site_repeat_rate(vs_df, strValueCol = "weight")$rate >= 0.30,
+      site_repeat_rate(attach_vs_site(vs_df, data), strValueCol = "weight")$rate >= 0.30,
       na.rm = TRUE
     ),
     0
   )
   expect_equal(
     sum(
-      site_repeat_rate(vs_df, strValueCol = "sysbp")$rate >= 0.30,
+      site_repeat_rate(attach_vs_site(vs_df, data), strValueCol = "sysbp")$rate >= 0.30,
       na.rm = TRUE
     ),
     0
@@ -585,7 +598,7 @@ test_that("Raw_VS vs_dt is a Date even when Raw_VISIT supplies character dates (
 
   expected <- as.Date(data$Raw_VISIT$visit_dt)[
     match(
-      paste(vs_df$subjid, vs_df$instancename),
+      paste(vs_df$subjid, vs_df$foldername),
       paste(data$Raw_VISIT$subjid, data$Raw_VISIT$instancename)
     )
   ]
@@ -611,4 +624,72 @@ test_that("Raw_VS vs_dt class does not depend on the schedule's storage type (#1
 
   expect_equal(date_df$vs_dt, chr_df$vs_dt)
   expect_equal(date_df, chr_df)
+})
+
+# ---- the authoritative gsm.mapping spec ------------------------------------
+
+# These drive generation from the real `VS.yaml` rather than a hand-built
+# fixture. The fixture is what let the earlier `invid`/`bmi` guesses survive:
+# it described columns real VS extracts do not have.
+test_that("Raw_VS generates exactly the columns VS.yaml specifies (#113, #143)", {
+  skip_if_not_installed("gsm.mapping", minimum_version = "1.1.6.9000")
+  set.seed(6104)
+
+  spec <- load_specs("workflow/1_mappings", NULL, "gsm.mapping")$Raw_VS
+  skip_if(is.null(spec), "VS.yaml not available in the installed gsm.mapping")
+
+  data <- make_vs_test_data(n_subjects = 8, n_visits = 5)
+  vs_df <- generate_domain_from_registry("Raw_VS", make_vs_context(data, spec = spec))
+
+  # `source_col` names the column in the raw extract, so that is what a raw
+  # domain must emit.
+  expected <- vapply(
+    names(spec),
+    function(nm) spec[[nm]]$source_col %||% nm,
+    character(1)
+  )
+
+  expect_setequal(names(vs_df), unname(expected))
+  # No invented columns, in either direction.
+  expect_length(setdiff(names(vs_df), expected), 0)
+  expect_length(setdiff(expected, names(vs_df)), 0)
+})
+
+test_that("Raw_VS emits no invid or bmi column under the real spec (#113, #143)", {
+  skip_if_not_installed("gsm.mapping", minimum_version = "1.1.6.9000")
+  set.seed(2219)
+
+  spec <- load_specs("workflow/1_mappings", NULL, "gsm.mapping")$Raw_VS
+  skip_if(is.null(spec), "VS.yaml not available in the installed gsm.mapping")
+
+  vs_df <- generate_domain_from_registry(
+    "Raw_VS",
+    make_vs_context(make_vs_test_data(n_subjects = 6, n_visits = 4), spec = spec)
+  )
+
+  # `invid` is joined from Mapped_SUBJ during Mapped_VS construction, and the
+  # vitals carry `bsa`, not `bmi`.
+  expect_false("invid" %in% names(vs_df))
+  expect_false("bmi" %in% names(vs_df))
+  expect_true("bsaentry" %in% names(vs_df))
+})
+
+test_that("Raw_VS generates through the standard study config (#113, #143)", {
+  skip_if_not_installed("gsm.mapping", minimum_version = "1.1.6.9000")
+  set.seed(4471)
+
+  # Exercises the config path end to end, which the hand-built fixtures
+  # bypassed entirely -- it failed outright before this fix.
+  config <- add_dataset_config(
+    create_standard_study_config("DEMO", participant_count = 15, site_count = 3),
+    "Raw_VS"
+  )
+  snapshot <- suppressMessages(generate_study_data(config))[[1]]
+
+  expect_s3_class(snapshot$Raw_VS, "data.frame")
+  expect_gt(nrow(snapshot$Raw_VS), 0)
+  expect_s3_class(snapshot$Raw_VS$vs_dt, "Date")
+  expect_false("invid" %in% names(snapshot$Raw_VS))
+  # No dot-flattened list columns escaping the split_vars processing.
+  expect_false(any(grepl(".", names(snapshot$Raw_VS), fixed = TRUE)))
 })

@@ -8,7 +8,7 @@
 #' @return Named list of domain registry entries.
 #' @examples
 #' registry <- get_domain_registry()
-#' names(registry)              # all supported domain keys
+#' names(registry) # all supported domain keys
 #' names(registry[["Raw_AE"]]) # structure of a single entry
 #' @export
 get_domain_registry <- function() {
@@ -417,7 +417,7 @@ get_domain_registry <- function() {
           studyid = list(d$n, context$data$Raw_STUDY$protocol_number[[1]]),
           death_dt = list(d$n, context$start_date),
           deathcls = list(d$n),
-          default  = list(d$n)
+          default = list(d$n)
         )
         as.data.frame(add_new_var_data(d$dataset, curr_spec, args, spec$Raw_Death))
       }
@@ -517,18 +517,26 @@ get_domain_registry <- function() {
           return(dataset)
         }
 
-        if (!("instancename" %in% names(curr_spec))) curr_spec$instancename <- list(required = TRUE)
+        # The authoritative spec (gsm.mapping VS.yaml) names the visit column
+        # `visit`, with `source_col: foldername`. It is paired with `subjid`
+        # into one split var so both come from the same subject-visit frame.
+        # `rename_raw_data_vars_per_spec()` keys off the caller's spec, so a
+        # spec that omits `visit` gets the column under its canonical name
+        # rather than the `foldername` source name.
+        if (!("visit" %in% names(curr_spec))) curr_spec$visit <- list(required = TRUE)
 
-        if (all(c("subjid", "instancename") %in% names(curr_spec))) {
+        use_subj_visit <- all(c("subjid", "visit") %in% names(curr_spec))
+        if (use_subj_visit) {
           curr_spec$vs_subj_visit_repeated <- list(required = TRUE)
           curr_spec$subjid <- NULL
-          curr_spec$instancename <- NULL
+          curr_spec$visit <- NULL
         }
 
-        if ("invid" %in% names(curr_spec)) {
-          curr_spec$vs_invid_repeated <- list(required = TRUE)
-          curr_spec$invid <- NULL
-        }
+        # `Raw_VS` carries no `invid` -- site is joined on from `Mapped_SUBJ`
+        # when `Mapped_VS` is built (gsm.mapping#165). Any `invid` a caller's
+        # spec requests is dropped rather than generated, so the raw domain
+        # matches what real extracts contain.
+        curr_spec$invid <- NULL
 
         subjs <- subjid(n, external_subjid = data$Raw_SUBJ$subjid, replace = FALSE)
         subj_visits <- data$Raw_VISIT %>%
@@ -540,6 +548,7 @@ get_domain_registry <- function() {
             strDateCol = "vs_dt"
           )
 
+        # Site is resolved for run targeting only; it is not emitted.
         invids <- data.frame(subjid = subj_visits$subjid) %>%
           dplyr::left_join(dplyr::select(data$Raw_SUBJ, subjid, invid), by = "subjid") %>%
           dplyr::pull(invid)
@@ -563,13 +572,12 @@ get_domain_registry <- function() {
 
         args <- list(
           vs_subj_visit_repeated = list(1, subj_visits),
-          vs_invid_repeated = list(1, invids),
           studyid = list(all_n, data$Raw_STUDY$protocol_number[[1]]),
           vs_dt = list(all_n, subj_visits$vs_dt),
           vsperf_std = list(all_n, performed),
           weight = vital_args,
           height = vital_args,
-          bmi = vital_args,
+          bsa = vital_args,
           sysbp = vital_args,
           diabp = vital_args,
           pulse = vital_args,
@@ -578,8 +586,12 @@ get_domain_registry <- function() {
           default = list(all_n, subj_visits)
         )
 
+        # Only split on a var the spec actually produced; naming an absent one
+        # errors inside `combination_var_splitter()`.
+        split_vars <- if (use_subj_visit) list("vs_subj_visit_repeated") else list()
+
         as.data.frame(add_new_var_data(dataset, curr_spec, args, spec$Raw_VS,
-          split_vars = list("vs_subj_visit_repeated", "vs_invid_repeated")
+          split_vars = split_vars
         ))
       }
     ),

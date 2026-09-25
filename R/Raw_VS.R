@@ -1,8 +1,8 @@
 #' Column generators for Raw VS (Vital Signs) Data
 #'
 #' Generate Raw VS based on `VS.yaml` from `gsm.mapping`.
-#' Wide format: one row per subject × visit with columns for all 8 vitals measures:
-#' weight, height, bmi, sysbp, diabp, pulse, temp, resp.
+#' Wide format: one row per subject × visit with columns for all 8 vitals
+#' measures: weight, height, bsa, sysbp, diabp, pulse, temp, resp.
 #'
 #' Domain generation itself is registered in `domain_registry.R` (`Raw_VS`
 #' entry); the functions below are the per-column generators dispatched by
@@ -14,7 +14,7 @@
 
 # The eight wide-format vital columns produced by this domain.
 VS_VITALS <- c(
-  "weight", "height", "bmi", "sysbp",
+  "weight", "height", "bsa", "sysbp",
   "diabp", "pulse", "temp", "resp"
 )
 
@@ -23,7 +23,7 @@ VS_VITALS <- c(
 VS_VITAL_PARAMS <- list(
   weight = list(mean = 75, sd = 10, digits = 1),
   height = list(mean = 170, sd = 10, digits = 1),
-  bmi    = list(mean = 25, sd = 4, digits = 1),
+  bsa    = list(mean = 1.9, sd = 0.2, digits = 2),
   sysbp  = list(mean = 125, sd = 15, digits = 0),
   diabp  = list(mean = 80, sd = 10, digits = 0),
   pulse  = list(mean = 72, sd = 12, digits = 0),
@@ -46,40 +46,35 @@ VS_DEFAULT_RISK_PROFILE <- list(
 
 
 # Note: parallels `subj_visit_repeated()` in Raw_LB.R (n=1, one row per
-# subject-visit, no test repeat factor), but retains the `instancename`
-# column name per the VS.yaml spec (Raw_LB uses `visnam`). Named distinctly
-# from Raw_LB's `subj_visit_repeated()` to avoid colliding in the package
-# namespace (generator functions are dispatched by bare name via `do.call()`).
+# subject-visit, no test repeat factor). The visit column is emitted as
+# `visit` per the VS.yaml spec, which carries `source_col: foldername` (Raw_LB
+# uses `visnam`); `rename_raw_data_vars_per_spec()` renames it on the way out.
+# Named distinctly from Raw_LB's `subj_visit_repeated()` to avoid colliding in
+# the package namespace (generator functions are dispatched by bare name via
+# `do.call()`).
 
 #' Repeat subject visits
 #'
 #' @param n Number of rows to generate.
-#' @param data Data frame of subject-visit records to repeat.
+#' @param data Data frame of subject-visit records to repeat, carrying
+#'   `subjid` and `instancename`.
 #' @param ... Unused; absorbs other generator arguments.
-#' @returns A list with elements `subjid` and `instancename`.
+#' @returns A list with elements `subjid` and `visit`.
 #' @keywords internal
 #' @noRd
 vs_subj_visit_repeated <- function(n, data, ...) {
   res <- repeat_rows(n, data)
   return(list(
     subjid = res$subjid,
-    instancename = res$instancename
+    visit = res$instancename
   ))
 }
 
-#' Repeat site identifiers across subject visits
-#'
-#' @param n Number of rows to generate.
-#' @param invids Data frame of subject-to-site assignments.
-#' @param ... Unused; absorbs other generator arguments.
-#' @returns A list with element `invid`.
-#' @keywords internal
-#' @noRd
-vs_invid_repeated <- function(n, invids, ...) {
-  return(list(
-    invid = repeat_rows(n, invids)
-  ))
-}
+
+# `Raw_VS` carries no `invid`: site is joined on from `Mapped_SUBJ` during
+# `Mapped_VS` construction (Gilead-Public/gsm.mapping#165), so a
+# `vs_invid_repeated()` generator would emit a column real extracts lack.
+# Site identifiers are still resolved internally for run targeting.
 
 
 # `vs_dt` is taken from the visit schedule rather than generated. The registry
@@ -144,8 +139,8 @@ height <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = N
 
 #' @rdname weight
 #' @noRd
-bmi <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NULL, ...) {
-  .generate_vital(n, subjects, sites, performed, lRiskProfile, "bmi")
+bsa <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NULL, ...) {
+  .generate_vital(n, subjects, sites, performed, lRiskProfile, "bsa")
 }
 
 #' @rdname weight

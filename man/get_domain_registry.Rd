@@ -18,6 +18,6 @@ registry-based migration path.
 }
 \examples{
 registry <- get_domain_registry()
-names(registry)              # all supported domain keys
+names(registry) # all supported domain keys
 names(registry[["Raw_AE"]]) # structure of a single entry
 }
