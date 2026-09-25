@@ -8,7 +8,7 @@
 #' @return Named list of domain registry entries.
 #' @examples
 #' registry <- get_domain_registry()
-#' names(registry)              # all supported domain keys
+#' names(registry) # all supported domain keys
 #' names(registry[["Raw_AE"]]) # structure of a single entry
 #' @export
 get_domain_registry <- function() {
@@ -417,7 +417,7 @@ get_domain_registry <- function() {
           studyid = list(d$n, context$data$Raw_STUDY$protocol_number[[1]]),
           death_dt = list(d$n, context$start_date),
           deathcls = list(d$n),
-          default  = list(d$n)
+          default = list(d$n)
         )
         as.data.frame(add_new_var_data(d$dataset, curr_spec, args, spec$Raw_Death))
       }
@@ -517,49 +517,119 @@ get_domain_registry <- function() {
           return(dataset)
         }
 
-        if (!("instancename" %in% names(curr_spec))) curr_spec$instancename <- list(required = TRUE)
+        # The authoritative spec (gsm.mapping VS.yaml) names the visit column
+        # `visit`, with `source_col: foldername`. It is paired with `subjid`
+        # into one split var so both come from the same subject-visit frame.
+        # `rename_raw_data_vars_per_spec()` keys off the caller's spec, so a
+        # spec that omits a visit column gets it under the canonical name
+        # rather than the `foldername` source name.
+        #
+        # Callers predating VS.yaml may name the column `instancename` or
+        # `foldername`. Every alias the spec declares is folded into the split
+        # var; leaving one behind would send it to the same-named `Raw_VISIT`
+        # generator through `default`, which has no `possible_visits` here and
+        # would emit an all-`NA` column instead of the schedule.
+        visit_cols <- intersect(
+          c("visit", "instancename", "foldername"),
+          names(curr_spec)
+        )
+        if (length(visit_cols) == 0) {
+          curr_spec$visit <- list(required = TRUE)
+          visit_cols <- "visit"
+        }
 
-        if (all(c("subjid", "instancename") %in% names(curr_spec))) {
+        use_subj_visit <- "subjid" %in% names(curr_spec)
+        if (use_subj_visit) {
           curr_spec$vs_subj_visit_repeated <- list(required = TRUE)
           curr_spec$subjid <- NULL
-          curr_spec$instancename <- NULL
+          curr_spec[visit_cols] <- NULL
         }
 
-        if ("invid" %in% names(curr_spec)) {
-          curr_spec$vs_invid_repeated <- list(required = TRUE)
-          curr_spec$invid <- NULL
-        }
+        # `Raw_VS` carries no `invid` -- site is joined on from `Mapped_SUBJ`
+        # when `Mapped_VS` is built (gsm.mapping#165). Any `invid` a caller's
+        # spec requests is dropped rather than generated, so the raw domain
+        # matches what real extracts contain.
+        curr_spec$invid <- NULL
 
-        subjs <- subjid(n, external_subjid = data$Raw_SUBJ$subjid, replace = FALSE)
+        # Snapshots are deltas and previously-written rows are frozen, so the
+        # new block must come from subjects that have no rows yet. Sampling the
+        # cumulative roster would re-select already-written subjects and append
+        # a second copy of their visit history (#143).
+        available_subjids <- setdiff(data$Raw_SUBJ$subjid, dataset$subjid)
+        subjs <- subjid(n, external_subjid = available_subjids, replace = FALSE)
         subj_visits <- data$Raw_VISIT %>%
           dplyr::filter(subjid %in% subjs) %>%
-          dplyr::select(subjid, instancename)
+          dplyr::select(subjid, instancename, visit_dt) %>%
+          as.data.frame() %>%
+          assign_schedule_dates(
+            visits = data$Raw_VISIT,
+            strDateCol = "vs_dt"
+          )
 
+        # Site is resolved for run targeting only; it is not emitted.
         invids <- data.frame(subjid = subj_visits$subjid) %>%
           dplyr::left_join(dplyr::select(data$Raw_SUBJ, subjid, invid), by = "subjid") %>%
           dplyr::pull(invid)
 
         all_n <- nrow(subj_visits)
 
-        args <- list(
-          vs_subj_visit_repeated = list(1, subj_visits),
-          vs_invid_repeated      = list(1, invids),
-          studyid              = list(all_n, data$Raw_STUDY$protocol_number[[1]]),
-          vs_dt                = list(all_n, context$start_date),
-          vsperf_std           = list(all_n),
-          weight               = list(all_n, subj_visits$subjid),
-          height               = list(all_n, subj_visits$subjid),
-          bmi                  = list(all_n, subj_visits$subjid),
-          sysbp                = list(all_n, subj_visits$subjid),
-          diabp                = list(all_n, subj_visits$subjid),
-          pulse                = list(all_n, subj_visits$subjid),
-          temp                 = list(all_n, subj_visits$subjid),
-          resp                 = list(all_n, subj_visits$subjid),
-          default              = list(all_n, subj_visits)
+        # `vsperf_std` is generated up front so the vital generators can blank
+        # the not-performed rows before injecting runs. Generating it inside
+        # each generator instead would give every vital a different set of
+        # missing rows.
+        performed <- vsperf_std(all_n)
+
+        risk_profile <- context$vs_risk_profile
+
+        # Bands are assigned by rank over the site roster, not by sampling the
+        # sites present in this snapshot, so a site keeps its band as the study
+        # enrolls (#143). `Raw_SITE` is append-only, which is what makes rank a
+        # stable key; `pi_number` is its site identifier, matching
+        # `Raw_SUBJ$invid`. Sites already seen lead the roster so their ranks
+        # never shift when new sites appear.
+        seen_sites <- unique(as.character(stats::na.omit(data$Raw_SUBJ$invid)))
+        roster_sites <- unique(as.character(data$Raw_SITE$pi_number))
+        all_sites <- c(seen_sites, setdiff(roster_sites, seen_sites))
+
+        # The eventual roster size, so early snapshots take percentages over
+        # the final site count rather than over the handful enrolled so far.
+        total_sites <- max(
+          length(all_sites),
+          context$total_site_count %||% 0L
         )
 
+        vital_args <- list(
+          all_n, subj_visits$subjid,
+          sites = invids,
+          performed = performed,
+          lRiskProfile = risk_profile,
+          vAllSites = all_sites,
+          nTotalSites = total_sites,
+          strStudyId = data$Raw_STUDY$protocol_number[[1]]
+        )
+
+        args <- list(
+          vs_subj_visit_repeated = list(1, subj_visits, visit_cols = visit_cols),
+          studyid = list(all_n, data$Raw_STUDY$protocol_number[[1]]),
+          vs_dt = list(all_n, subj_visits$vs_dt),
+          vsperf_std = list(all_n, performed),
+          weight = vital_args,
+          height = vital_args,
+          bsa = vital_args,
+          sysbp = vital_args,
+          diabp = vital_args,
+          pulse = vital_args,
+          temp = vital_args,
+          resp = vital_args,
+          default = list(all_n, subj_visits)
+        )
+
+        # Only split on a var the spec actually produced; naming an absent one
+        # errors inside `combination_var_splitter()`.
+        split_vars <- if (use_subj_visit) list("vs_subj_visit_repeated") else list()
+
         as.data.frame(add_new_var_data(dataset, curr_spec, args, spec$Raw_VS,
-          split_vars = list("vs_subj_visit_repeated", "vs_invid_repeated")
+          split_vars = split_vars
         ))
       }
     ),

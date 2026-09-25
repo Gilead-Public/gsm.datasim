@@ -1,134 +1,335 @@
 #' Column generators for Raw VS (Vital Signs) Data
 #'
 #' Generate Raw VS based on `VS.yaml` from `gsm.mapping`.
-#' Wide format: one row per subject × visit with columns for all 8 vitals measures:
-#' weight, height, bmi, sysbp, diabp, pulse, temp, resp.
+#' Wide format: one row per subject × visit with columns for all 8 vitals
+#' measures: weight, height, bsa, sysbp, diabp, pulse, temp, resp.
 #'
 #' Domain generation itself is registered in `domain_registry.R` (`Raw_VS`
 #' entry); the functions below are the per-column generators dispatched by
 #' `add_new_var_data()` based on `spec$Raw_VS` column names.
 #'
-#' @family internal
 #' @keywords internal
 #' @noRd
 
 
+# The eight wide-format vital columns produced by this domain.
+VS_VITALS <- c(
+  "weight", "height", "bsa", "sysbp",
+  "diabp", "pulse", "temp", "resp"
+)
+
+# Distribution parameters per vital. Held in one place so the generators below
+# carry nothing but their identity.
+VS_VITAL_PARAMS <- list(
+  weight = list(mean = 75, sd = 10, digits = 1),
+  height = list(mean = 170, sd = 10, digits = 1),
+  bsa    = list(mean = 1.9, sd = 0.2, digits = 2),
+  sysbp  = list(mean = 125, sd = 15, digits = 0),
+  diabp  = list(mean = 80, sd = 10, digits = 0),
+  pulse  = list(mean = 72, sd = 12, digits = 0),
+  temp   = list(mean = 36.8, sd = 0.4, digits = 1),
+  resp   = list(mean = 16, sd = 3, digits = 0)
+)
+
+# Default site-risk profile. Target rates sit mid-band relative to the
+# 20% amber / 30% red thresholds specified in gsm.kri#306, so small-site
+# quantization does not push a site across a boundary.
+VS_DEFAULT_RISK_PROFILE <- list(
+  dPctRed = 0.1,
+  dPctAmber = 0.2,
+  nWindowLength = 3,
+  dRateNormal = 0.05,
+  dRateAmber = 0.25,
+  dRateRed = 0.45,
+  vVitals = NULL
+)
+
+
 # Note: parallels `subj_visit_repeated()` in Raw_LB.R (n=1, one row per
-# subject-visit, no test repeat factor), but retains the `instancename`
-# column name per the VS.yaml spec (Raw_LB uses `visnam`). Named distinctly
-# from Raw_LB's `subj_visit_repeated()` to avoid colliding in the package
-# namespace (generator functions are dispatched by bare name via `do.call()`).
-vs_subj_visit_repeated <- function(n, data, ...) {
+# subject-visit, no test repeat factor). The visit column is emitted as
+# `visit` per the VS.yaml spec, which carries `source_col: foldername` (Raw_LB
+# uses `visnam`); `rename_raw_data_vars_per_spec()` renames it on the way out.
+# Named distinctly from Raw_LB's `subj_visit_repeated()` to avoid colliding in
+# the package namespace (generator functions are dispatched by bare name via
+# `do.call()`).
+
+#' Repeat subject visits
+#'
+#' @param n Number of rows to generate.
+#' @param data Data frame of subject-visit records to repeat, carrying
+#'   `subjid` and `instancename`.
+#' @param visit_cols Names to emit the visit column under, one per visit alias
+#'   the caller's spec declares. Defaults to the canonical `"visit"`.
+#' @param ... Unused; absorbs other generator arguments.
+#' @returns A list with element `subjid` plus one element per `visit_cols`.
+#' @keywords internal
+#' @noRd
+vs_subj_visit_repeated <- function(n, data, visit_cols = "visit", ...) {
   res <- repeat_rows(n, data)
-  return(list(
-    subjid = res$subjid,
-    instancename = res$instancename
-  ))
+  out <- c(
+    list(subjid = res$subjid),
+    stats::setNames(
+      rep(list(res$instancename), length(visit_cols)),
+      visit_cols
+    )
+  )
+  return(out)
 }
 
-vs_invid_repeated <- function(n, invids, ...) {
-  return(list(
-    invid = repeat_rows(n, invids)
-  ))
+
+# `Raw_VS` carries no `invid`: site is joined on from `Mapped_SUBJ` during
+# `Mapped_VS` construction (Gilead-Public/gsm.mapping#165), so a
+# `vs_invid_repeated()` generator would emit a column real extracts lack.
+# Site identifiers are still resolved internally for run targeting.
+
+
+# `vs_dt` is taken from the visit schedule rather than generated. The registry
+# entry joins `Raw_VISIT$visit_dt` on and sorts by subject then date (see
+# `assign_schedule_dates()`), so chronological order is well defined and
+# injected runs are genuinely adjacent in time.
+
+#' Assign visit dates from the visit schedule
+#'
+#' @param n Number of rows to generate.
+#' @param dates Vector of dates supplied by the registry entry.
+#' @param ... Unused; absorbs other generator arguments.
+#' @returns The `dates` vector, unchanged.
+#' @keywords internal
+#' @noRd
+vs_dt <- function(n, dates, ...) {
+  return(dates)
 }
 
 
-vs_dt <- generic_date
-
-
-vsperf_std <- function(n, ...) {
-  # ~95% performed, ~5% not performed
+#' Generate the vital-sign performed flag
+#'
+#' @param n Number of rows to generate.
+#' @param performed Optional precomputed vector of `"Y"`/`"N"` values.
+#' @param ... Unused; absorbs other generator arguments.
+#' @returns A character vector of `"Y"`/`"N"` values of length `n`.
+#' @keywords internal
+#' @noRd
+vsperf_std <- function(n, performed = NULL, ...) {
+  # ~95% performed, ~5% not performed. The registry precomputes this so the
+  # vital generators can blank the not-performed rows; when called without a
+  # precomputed vector it falls back to generating its own.
+  if (!is.null(performed)) {
+    return(performed)
+  }
   sample(c("Y", "N"), n, prob = c(0.95, 0.05), replace = TRUE)
 }
 
 
-weight <- function(n, subjects, ...) {
-  # Generate realistic weights with ~10% duplicates per subject
-  .generate_vital_with_duplicates(n, subjects, mean = 75, sd = 10, digits = 1)
-}
-
-
-sysbp <- function(n, subjects, ...) {
-  # Generate systolic BP with ~10% duplicates per subject
-  .generate_vital_with_duplicates(n, subjects, mean = 125, sd = 15, digits = 0)
-}
-
-
-diabp <- function(n, subjects, ...) {
-  # Generate diastolic BP with ~10% duplicates per subject
-  .generate_vital_with_duplicates(n, subjects, mean = 80, sd = 10, digits = 0)
-}
-
-
-height <- function(n, subjects, ...) {
-  # Generate height (cm) with ~10% duplicates per subject
-  .generate_vital_with_duplicates(n, subjects, mean = 170, sd = 10, digits = 1)
-}
-
-
-bmi <- function(n, subjects, ...) {
-  # Generate BMI with ~10% duplicates per subject
-  .generate_vital_with_duplicates(n, subjects, mean = 25, sd = 4, digits = 1)
-}
-
-
-pulse <- function(n, subjects, ...) {
-  # Generate pulse/heart rate with ~10% duplicates per subject
-  .generate_vital_with_duplicates(n, subjects, mean = 72, sd = 12, digits = 0)
-}
-
-
-temp <- function(n, subjects, ...) {
-  # Generate temperature (°C) with ~10% duplicates per subject
-  .generate_vital_with_duplicates(n, subjects, mean = 36.8, sd = 0.4, digits = 1)
-}
-
-
-resp <- function(n, subjects, ...) {
-  # Generate respiratory rate with ~10% duplicates per subject
-  .generate_vital_with_duplicates(n, subjects, mean = 16, sd = 3, digits = 0)
-}
-
-
-#' Generate vital sign values with intentional duplicate injection
+#' Generate a vital-sign column
 #'
-#' For each subject, generates values from a normal distribution, then replaces
-#' ~dDuplicateRate of subsequent values with a copy of a previous value.
-#'
-#' @param n Total number of values to generate
-#' @param subjects Character vector of subject IDs (length n, with repeats)
-#' @param mean Mean of normal distribution
-#' @param sd Standard deviation
-#' @param digits Number of decimal places to round
-#' @param dDuplicateRate Proportion of subsequent records to make duplicates
-#' @returns Numeric vector of length n
+#' @param n Number of rows to generate.
+#' @param subjects Vector of subject IDs, ordered by subject then visit date.
+#' @param sites Vector of site IDs aligned with `subjects`, or `NULL` for no
+#'   site targeting.
+#' @param performed Character vector of `vsperf_std` values; `"N"` rows are
+#'   blanked.
+#' @param lRiskProfile Risk profile list, or `NULL` for defaults.
+#' @param ... Unused; absorbs other generator arguments.
+#' @returns A numeric vector of length `n`.
 #' @keywords internal
 #' @noRd
-.generate_vital_with_duplicates <- function(n, subjects, mean, sd, digits, dDuplicateRate = 0.10) {
-  # Generate all values first
+weight <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NULL,
+                   vAllSites = NULL, nTotalSites = NULL, strStudyId = NULL, ...) {
+  .generate_vital(n, subjects, sites, performed, lRiskProfile,
+    vAllSites = vAllSites, nTotalSites = nTotalSites, strStudyId = strStudyId,
+    strVital = "weight"
+  )
+}
 
-  values <- round(stats::rnorm(n, mean = mean, sd = sd), digits = digits)
+#' @rdname weight
+#' @noRd
+height <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NULL,
+                   vAllSites = NULL, nTotalSites = NULL, strStudyId = NULL, ...) {
+  .generate_vital(n, subjects, sites, performed, lRiskProfile,
+    vAllSites = vAllSites, nTotalSites = nTotalSites, strStudyId = strStudyId,
+    strVital = "height"
+  )
+}
 
-  # Inject duplicates per subject
-  unique_subjs <- unique(subjects)
-  for (subj in unique_subjs) {
-    idx <- which(subjects == subj)
-    if (length(idx) <= 1) next
+#' @rdname weight
+#' @noRd
+bsa <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NULL,
+                   vAllSites = NULL, nTotalSites = NULL, strStudyId = NULL, ...) {
+  .generate_vital(n, subjects, sites, performed, lRiskProfile,
+    vAllSites = vAllSites, nTotalSites = nTotalSites, strStudyId = strStudyId,
+    strVital = "bsa"
+  )
+}
 
-    # For subsequent records (not the first), randomly duplicate
-    subsequent_idx <- idx[-1]
-    n_dups <- max(1, round(length(subsequent_idx) * dDuplicateRate))
-    dup_positions <- sample(subsequent_idx, size = min(n_dups, length(subsequent_idx)))
+#' @rdname weight
+#' @noRd
+sysbp <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NULL,
+                   vAllSites = NULL, nTotalSites = NULL, strStudyId = NULL, ...) {
+  .generate_vital(n, subjects, sites, performed, lRiskProfile,
+    vAllSites = vAllSites, nTotalSites = nTotalSites, strStudyId = strStudyId,
+    strVital = "sysbp"
+  )
+}
 
-    for (pos in dup_positions) {
-      # Copy a previous value for this subject. `sample()` treats a
-      # length-1 numeric argument as `1:x` rather than a single value to
-      # choose from, so guard the single-candidate case explicitly.
-      prior_idx <- idx[idx < pos]
-      chosen_idx <- if (length(prior_idx) == 1) prior_idx else sample(prior_idx, 1)
-      values[pos] <- values[chosen_idx]
-    }
+#' @rdname weight
+#' @noRd
+diabp <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NULL,
+                   vAllSites = NULL, nTotalSites = NULL, strStudyId = NULL, ...) {
+  .generate_vital(n, subjects, sites, performed, lRiskProfile,
+    vAllSites = vAllSites, nTotalSites = nTotalSites, strStudyId = strStudyId,
+    strVital = "diabp"
+  )
+}
+
+#' @rdname weight
+#' @noRd
+pulse <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NULL,
+                   vAllSites = NULL, nTotalSites = NULL, strStudyId = NULL, ...) {
+  .generate_vital(n, subjects, sites, performed, lRiskProfile,
+    vAllSites = vAllSites, nTotalSites = nTotalSites, strStudyId = strStudyId,
+    strVital = "pulse"
+  )
+}
+
+#' @rdname weight
+#' @noRd
+temp <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NULL,
+                   vAllSites = NULL, nTotalSites = NULL, strStudyId = NULL, ...) {
+  .generate_vital(n, subjects, sites, performed, lRiskProfile,
+    vAllSites = vAllSites, nTotalSites = nTotalSites, strStudyId = strStudyId,
+    strVital = "temp"
+  )
+}
+
+#' @rdname weight
+#' @noRd
+resp <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NULL,
+                   vAllSites = NULL, nTotalSites = NULL, strStudyId = NULL, ...) {
+  .generate_vital(n, subjects, sites, performed, lRiskProfile,
+    vAllSites = vAllSites, nTotalSites = nTotalSites, strStudyId = strStudyId,
+    strVital = "resp"
+  )
+}
+
+
+#' Resolve a caller-supplied VS risk profile against the defaults
+#'
+#' @param lRiskProfile Named list, or `NULL` for defaults.
+#' @returns A complete risk profile list.
+#' @keywords internal
+#' @noRd
+.resolve_vs_risk_profile <- function(lRiskProfile = NULL) {
+  if (is.null(lRiskProfile)) {
+    return(VS_DEFAULT_RISK_PROFILE)
+  }
+  if (!is.list(lRiskProfile)) {
+    stop("`vs_risk_profile` must be a list or NULL")
+  }
+  utils::modifyList(VS_DEFAULT_RISK_PROFILE, lRiskProfile)
+}
+
+
+#' Generate site-aware vital sign values with targeted consecutive runs
+#'
+#' Blanks not-performed rows BEFORE injecting runs, so window counts are
+#' computed over performed measurements only. Reversing that order inflates
+#' every site's realized rate relative to what the metric computes. Risk bands
+#' are drawn independently per vital -- each vital is its own KRI.
+#'
+#' Bands persist across snapshots. `vAllSites` supplies the site roster in
+#' first-appearance order and `nTotalSites` the eventual roster size, so a
+#' site's band follows from its rank rather than from which sites happen to
+#' have enrolled by the current snapshot (#143). The seed key folds in the
+#' study and the vital, keeping bands stable per site and independent per
+#' vital.
+#'
+#' @param n Number of values to generate.
+#' @param subjects Vector of subject IDs, ordered by subject then visit date.
+#' @param sites Vector of site IDs aligned with `subjects`, or `NULL` for no
+#'   site targeting.
+#' @param performed Character vector of `vsperf_std` values; `"N"` rows are
+#'   blanked.
+#' @param lRiskProfile Risk profile list, or `NULL` for defaults.
+#' @param vAllSites Site roster in first-appearance order, or `NULL` to fall
+#'   back to the sites present in `sites`.
+#' @param nTotalSites Eventual number of sites in the study, or `NULL`.
+#' @param strStudyId Study identifier, folded into the band seed key.
+#' @param strVital Name of the vital being generated.
+#' @returns A numeric vector of length `n`.
+#' @keywords internal
+#' @noRd
+.generate_vital <- function(n, subjects, sites = NULL, performed = NULL,
+                            lRiskProfile = NULL, vAllSites = NULL,
+                            nTotalSites = NULL, strStudyId = NULL, strVital) {
+  params <- VS_VITAL_PARAMS[[strVital]]
+  if (is.null(params)) {
+    stop("Unknown vital: ", strVital)
   }
 
-  return(values)
+  values <- round(
+    stats::rnorm(n, mean = params$mean, sd = params$sd),
+    digits = params$digits
+  )
+
+  # Blank not-performed rows BEFORE injection -- see the note above.
+  if (!is.null(performed)) {
+    values[performed == "N"] <- NA_real_
+  }
+
+  if (is.null(sites)) {
+    return(values)
+  }
+
+  profile <- .resolve_vs_risk_profile(lRiskProfile)
+
+  # A profile may target only a subset of vitals; others get plain draws.
+  if (!is.null(profile$vVitals) && !(strVital %in% profile$vVitals)) {
+    return(values)
+  }
+
+  # Rows with a missing site ID cannot be targeted, so they must not consume
+  # part of the red/amber allocation either -- otherwise a pseudo-site "NA"
+  # absorbs a band and leaves real sites normal.
+  known_sites <- sites[!is.na(sites)]
+  if (length(known_sites) == 0) {
+    return(values)
+  }
+
+  # Rank over the full roster where it is known, so a site's band does not
+  # depend on which snapshot is being generated. Sites in `known_sites` that
+  # the roster omits are appended rather than dropped -- allocation must cover
+  # every site that has rows here.
+  roster <- unique(as.character(vAllSites %||% character(0)))
+  roster <- c(roster, setdiff(unique(as.character(known_sites)), roster))
+
+  bands <- allocate_site_risk(
+    roster,
+    dPctRed = profile$dPctRed,
+    dPctAmber = profile$dPctAmber,
+    nTotalSites = nTotalSites,
+    strSeedKey = paste(strStudyId %||% "", strVital, sep = "|")
+  )
+
+  rate_for_band <- c(
+    red = profile$dRateRed,
+    amber = profile$dRateAmber,
+    normal = profile$dRateNormal
+  )
+
+  # `bands` is keyed by the full roster, which may include sites that have no
+  # rows in this snapshot yet. They hold their band for later snapshots;
+  # there is simply nothing to inject into now.
+  for (site in names(bands)) {
+    site_idx <- which(sites %in% site)
+    if (length(site_idx) == 0) next
+
+    values[site_idx] <- as.numeric(inject_targeted_runs(
+      values[site_idx],
+      subjects[site_idx],
+      dTargetRate = rate_for_band[[bands[[site]]]],
+      nWindowLength = profile$nWindowLength
+    ))
+  }
+
+  values
 }

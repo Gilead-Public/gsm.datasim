@@ -19,8 +19,10 @@ Get specific domain data across all snapshots.
 }
 \examples{
 \dontrun{
-study <- create_longitudinal_study("STUDY-001", participants = 50, sites = 5,
-                                    snapshots = 3, domains = c("AE", "LB"))
+study <- create_longitudinal_study("STUDY-001",
+  participants = 50, sites = 5,
+  snapshots = 3, domains = c("AE", "LB")
+)
 ae_timeline <- get_domain_timeline(study, "AE")
 length(ae_timeline) # one entry per snapshot
 }
