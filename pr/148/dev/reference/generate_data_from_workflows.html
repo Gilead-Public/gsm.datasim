@@ -78,7 +78,8 @@ all other domains fall back to type-based column generation via
 <span>  snapshot_width <span class="op">=</span> <span class="st">"months"</span>,</span>
 <span>  domain_counts <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  desired_domains <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  column_overrides <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  column_overrides <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  vs_risk_profile <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -168,6 +169,16 @@ for custom distributions or categorical values.</p></dd>
 <span>    visit_flag <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">n</span>, <span class="va">df</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">visnam</span> <span class="op">==</span> <span class="st">"SCREENING"</span>, <span class="st">"S"</span>, <span class="st">"F"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div></dd>
+
+
+<dt id="arg-vs-risk-profile">vs_risk_profile<a class="anchor" aria-label="anchor" href="#arg-vs-risk-profile"></a></dt>
+<dd><p>Optional named list configuring <code>Raw_VS</code> site risk
+bands, matching the <code>vs_risk_profile</code> argument of <code><a href="create_study_config.html">create_study_config()</a></code>.
+Controls the share of sites placed in the red and amber bands
+(<code>dPctRed</code> / <code>dPctAmber</code>), their target consecutive-repeat rates
+(<code>dRateRed</code> / <code>dRateAmber</code> / <code>dRateNormal</code>), the rolling window length
+(<code>nWindowLength</code>), and which vitals are targeted (<code>vVitals</code>). <code>NULL</code> uses
+the built-in defaults.</p></dd>
 
 </dl></div>
     <div class="section level2">

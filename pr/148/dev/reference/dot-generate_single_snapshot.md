@@ -18,6 +18,8 @@ generation via `previous_data`.
   snapshot_width,
   study_id,
   previous_data,
-  column_overrides = NULL
+  column_overrides = NULL,
+  total_site_count = NULL,
+  vs_risk_profile = NULL
 )
 ```

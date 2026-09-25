@@ -23,7 +23,8 @@ generate_data_from_workflows(
   snapshot_width = "months",
   domain_counts = NULL,
   desired_domains = NULL,
-  column_overrides = NULL
+  column_overrides = NULL,
+  vs_risk_profile = NULL
 )
 ```
 
@@ -120,6 +121,17 @@ generate_data_from_workflows(
           visit_flag = function(n, df) ifelse(df$visnam == "SCREENING", "S", "F")
         )
       )
+
+- vs_risk_profile:
+
+  Optional named list configuring `Raw_VS` site risk bands, matching the
+  `vs_risk_profile` argument of
+  [`create_study_config()`](https://gilead-public.github.io/gsm.datasim/dev/reference/create_study_config.md).
+  Controls the share of sites placed in the red and amber bands
+  (`dPctRed` / `dPctAmber`), their target consecutive-repeat rates
+  (`dRateRed` / `dRateAmber` / `dRateNormal`), the rolling window length
+  (`nWindowLength`), and which vitals are targeted (`vVitals`). `NULL`
+  uses the built-in defaults.
 
 ## Value
 
