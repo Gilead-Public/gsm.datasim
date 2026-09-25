@@ -123,7 +123,9 @@ allocate_site_risk <- function(vSites, dPctRed = 0.1, dPctAmber = 0.2,
 #' @param nWindowLength Whole number `>= 2`. Rolling window length.
 #'
 #' @returns `values` with runs injected, carrying a `"realized"` attribute: a
-#'   list with the achieved `numerator` and `denominator`.
+#'   list with the achieved `numerator` and `denominator`. The numerator is
+#'   **recounted from the returned values**, not assumed from the construction,
+#'   so it always matches what a window-counting metric will compute.
 #'
 #' @keywords internal
 inject_targeted_runs <- function(values, groups, dTargetRate, nWindowLength = 3) {
@@ -170,7 +172,6 @@ inject_targeted_runs <- function(values, groups, dTargetRate, nWindowLength = 3)
   if (length(eligible) > 1) eligible <- sample(eligible)
 
   remaining <- target_numerator
-  achieved <- 0
 
   for (grp in eligible) {
     if (remaining <= 0) break
@@ -184,14 +185,75 @@ inject_targeted_runs <- function(values, groups, dTargetRate, nWindowLength = 3)
     run_length <- nWindowLength + take - 1
     run_idx <- idx[seq_len(run_length)]
 
-    # The run takes the value of the block it overwrites.
-    values[run_idx] <- values[run_idx[1]]
+    # The run takes a value from the block it overwrites. The element just past
+    # the run may already carry that value -- rounded measurements collide
+    # often enough that this is not rare -- and left alone it silently extends
+    # the run by a window. Prefer a block value that differs from that
+    # neighbour; no values are synthesised, so the group's value distribution
+    # is unchanged.
+    values[run_idx] <- .choose_run_value(values, idx, run_length)
 
     remaining <- remaining - take
-    achieved <- achieved + take
   }
 
-  .with_realized(values, achieved, total_windows)
+  # Recount rather than trust the construction: when a group holds a single
+  # distinct value no choice avoids the tie. Counting the returned vector keeps
+  # `realized` equal to what the downstream metric computes, which is the whole
+  # point of the attribute.
+  .with_realized(
+    values,
+    .count_identical_windows(values, idx_by_group, nWindowLength),
+    total_windows
+  )
+}
+
+
+#' Pick the value for an injected run, avoiding a tie with the next element
+#'
+#' Returns the first value in the overwritten block that differs from the
+#' element immediately following the run, falling back to the block's first
+#' value when there is no following element or no differing candidate.
+#'
+#' @noRd
+.choose_run_value <- function(values, idx, run_length) {
+  block <- values[idx[seq_len(run_length)]]
+  if (run_length >= length(idx)) {
+    return(block[1])
+  }
+
+  next_value <- values[idx[run_length + 1]]
+  candidates <- block[block != next_value]
+  if (length(candidates) == 0) {
+    return(block[1])
+  }
+
+  candidates[1]
+}
+
+
+#' Count length-`nWindowLength` windows whose values are all identical
+#' @noRd
+.count_identical_windows <- function(values, idx_by_group, nWindowLength) {
+  sum(vapply(
+    idx_by_group,
+    function(idx) {
+      n <- length(idx)
+      if (n < nWindowLength) {
+        return(0L)
+      }
+      v <- values[idx]
+      starts <- seq_len(n - nWindowLength + 1)
+      sum(vapply(
+        starts,
+        function(i) {
+          window <- v[i + seq_len(nWindowLength) - 1]
+          all(window == window[1])
+        },
+        logical(1)
+      ))
+    },
+    integer(1)
+  ))
 }
 
 

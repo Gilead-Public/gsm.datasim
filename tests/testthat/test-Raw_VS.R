@@ -521,3 +521,51 @@ test_that(".generate_vital rejects an unrecognized vital (#143)", {
     "Unknown vital: glucose"
   )
 })
+
+test_that("missing site IDs do not consume a risk band allocation (#148)", {
+  # Two known sites plus a block of NA sites. The allocation must be computed
+  # over the known sites only: 50% red of two known sites is exactly one red
+  # site. Counting the pseudo-site would make it 50% of three, letting the
+  # untargetable NA rows absorb a band.
+  subjects <- rep(paste0("S", 1:12), each = 9)
+  sites <- c(rep("SITE1", 36), rep("SITE2", 36), rep(NA_character_, 36))
+
+  profile <- list(
+    dPctRed = 0.5, dPctAmber = 0,
+    dRateRed = 0.6, dRateAmber = 0.25, dRateNormal = 0
+  )
+
+  for (seed in c(6612, 1187, 4403, 8829)) {
+    set.seed(seed)
+    values <- .generate_vital(
+      length(subjects), subjects, sites,
+      performed = NULL, lRiskProfile = profile, strVital = "weight"
+    )
+
+    elevated <- vapply(
+      c("SITE1", "SITE2"),
+      function(site) {
+        keep <- !is.na(sites) & sites == site
+        count_identical_windows_naive(values[keep], subjects[keep], 3) > 0
+      },
+      logical(1)
+    )
+
+    expect_equal(sum(elevated), 1)
+    expect_false(anyNA(values))
+  }
+})
+
+test_that("all-missing site IDs leave values untargeted (#148)", {
+  subjects <- rep(paste0("S", 1:4), each = 6)
+  sites <- rep(NA_character_, length(subjects))
+
+  set.seed(9034)
+  values <- .generate_vital(
+    length(subjects), subjects, sites,
+    performed = NULL, lRiskProfile = NULL, strVital = "weight"
+  )
+
+  set.seed(9034)
+  expect_equal(values, round(stats::rnorm(length(subjects), mean = 75, sd = 10), 1))
+})

@@ -242,8 +242,16 @@ resp <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NUL
     return(values)
   }
 
+  # Rows with a missing site ID cannot be targeted, so they must not consume
+  # part of the red/amber allocation either -- otherwise a pseudo-site "NA"
+  # absorbs a band and leaves real sites normal.
+  known_sites <- sites[!is.na(sites)]
+  if (length(known_sites) == 0) {
+    return(values)
+  }
+
   bands <- allocate_site_risk(
-    sites,
+    known_sites,
     dPctRed = profile$dPctRed,
     dPctAmber = profile$dPctAmber
   )
@@ -254,9 +262,10 @@ resp <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NUL
     normal = profile$dRateNormal
   )
 
+  # `bands` is keyed by sites drawn from `sites` itself, so every key matches
+  # at least one row.
   for (site in names(bands)) {
-    site_idx <- which(sites == site)
-    if (length(site_idx) == 0) next
+    site_idx <- which(sites %in% site)
 
     values[site_idx] <- as.numeric(inject_targeted_runs(
       values[site_idx],

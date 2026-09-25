@@ -32,3 +32,19 @@ make_schedule_fixture <- function() {
 
   list(df = df, visits = visits)
 }
+
+# Independent, deliberately naive recount of all-identical rolling windows.
+# Kept separate from the implementation so it can check it rather than echo it.
+count_identical_windows_naive <- function(values, groups, window_length = 3) {
+  total <- 0
+  for (grp in unique(groups)) {
+    v <- values[groups == grp]
+    v <- v[!is.na(v)]
+    if (length(v) < window_length) next
+    for (i in seq_len(length(v) - window_length + 1)) {
+      window <- v[i:(i + window_length - 1)]
+      if (all(window == window[1])) total <- total + 1
+    }
+  }
+  total
+}

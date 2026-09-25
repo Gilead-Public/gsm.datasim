@@ -18,7 +18,9 @@ group (typically subject).}
 }
 \value{
 \code{values} with runs injected, carrying a \code{"realized"} attribute: a
-list with the achieved \code{numerator} and \code{denominator}.
+list with the achieved \code{numerator} and \code{denominator}. The numerator is
+\strong{recounted from the returned values}, not assumed from the construction,
+so it always matches what a window-counting metric will compute.
 }
 \description{
 Overwrites contiguous blocks of \code{values} within each group so that the

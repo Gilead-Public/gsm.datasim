@@ -2,7 +2,9 @@
 
 - `Raw_VS` simulates consecutive repeated measurements at site-specific
   rates; the new `vs_risk_profile` argument on `create_study_config()` controls
-  how many sites land in each risk band. (#113, #143).
+  how many sites land in each risk band. The `vs_risk_profile` argument is also
+  available on the deprecated `generate_rawdata_for_single_study()` path
+  (#113, #143).
 
 - `Raw_SUBJ` now carries six simulated `drv_*` IP non-starter fields
   (`drv_enrollment_dt`, `drv_ip_dosed`, `drv_ip_first_dose_dt`,

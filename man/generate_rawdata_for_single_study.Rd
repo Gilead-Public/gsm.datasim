@@ -14,7 +14,8 @@ generate_rawdata_for_single_study(
   mappings,
   package,
   strStartDate = "2012-01-01",
-  desired_specs = NULL
+  desired_specs = NULL,
+  vs_risk_profile = NULL
 )
 }
 \arguments{
@@ -37,6 +38,10 @@ generate_rawdata_for_single_study(
 \item{strStartDate}{Study start date as a string (default \code{"2012-01-01"}).}
 
 \item{desired_specs}{Optional character vector of dataset names to keep.}
+
+\item{vs_risk_profile}{Optional \code{Raw_VS} consecutive-repeat risk profile, in
+the same form accepted by \code{\link[=create_study_config]{create_study_config()}}. \code{NULL} (the default)
+uses the built-in profile.}
 }
 \value{
 A named list of snapshot data frames, named by snapshot end date.

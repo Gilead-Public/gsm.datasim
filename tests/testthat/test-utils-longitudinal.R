@@ -383,3 +383,48 @@ test_that("assign_schedule_dates ordering is stable for repeated subject-visits 
 
   expect_equal(out1, out2)
 })
+
+test_that("inject_targeted_runs does not over-count when the run's neighbour ties (#148)", {
+  # `c(1, 2, 3, 1)` at W = 3 was the reported case: overwriting the first three
+  # positions with 1 leaves the trailing 1 extending the run to 2 windows.
+  values <- c(1, 2, 3, 1)
+  groups <- rep("G1", 4)
+
+  out <- inject_targeted_runs(values, groups, dTargetRate = 0.5, nWindowLength = 3)
+  realized <- attr(out, "realized")
+
+  expect_equal(realized$denominator, 2)
+  expect_equal(realized$numerator, 1)
+  expect_equal(count_identical_windows_naive(as.numeric(out), groups, 3), 1)
+})
+
+test_that("inject_targeted_runs realized numerator matches a naive recount (#148)", {
+  set.seed(7314)
+  # Coarse rounding makes incidental ties common, which is the condition under
+  # which the constructed count used to drift from the computed one.
+  groups <- rep(sprintf("G%02d", 1:12), each = 6)
+  values <- round(stats::rnorm(length(groups), mean = 10, sd = 1), 0)
+
+  for (rate in c(0.05, 0.25, 0.45, 1)) {
+    out <- inject_targeted_runs(values, groups, dTargetRate = rate, nWindowLength = 3)
+    realized <- attr(out, "realized")
+
+    expect_equal(
+      realized$numerator,
+      count_identical_windows_naive(as.numeric(out), groups, 3)
+    )
+  }
+})
+
+test_that("inject_targeted_runs recounts rather than over-reports a single-value group (#148)", {
+  # No differing value exists to swap in, so the tie cannot be broken; the
+  # recount must report the true (higher) numerator instead of the target.
+  values <- rep(5, 5)
+  groups <- rep("G1", 5)
+
+  out <- inject_targeted_runs(values, groups, dTargetRate = 0.34, nWindowLength = 3)
+  realized <- attr(out, "realized")
+
+  expect_equal(realized$denominator, 3)
+  expect_equal(realized$numerator, 3)
+})
