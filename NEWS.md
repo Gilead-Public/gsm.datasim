@@ -5,6 +5,16 @@
   `drv_enrl_first_dose_days`, `drv_days_lapsed_since_enrl`,
   `drv_ip_nonstarter_status`), impersonating the upstream Stride contract
   gsm now consumes rather than derives (#140).
+- `Raw_AE` simulates realistic AE severity grading (#149). The `term1` /
+  `term2` placeholders are replaced by 29 preferred terms with their SOCs
+  and term-specific CTCAE grade distributions (about 20-25% Grade 3+
+  study-wide). `aetoxgr` (and the `aeser` hotspots) are now drawn from each
+  record's own subject and site, not from an unrelated subject draw that
+  hid the site signal. About 5% of sites systematically over-grade and 5%
+  under-grade, with at least one of each among the largest sites. This
+  gives the two-sided AE grading KRIs (`kri0016` / `kri0017` in `gsm.kri`)
+  true positives in both directions. Site tendencies stay the same across
+  snapshots, scale with `outlier_intensity`, and turn off at `0`.
 
 # gsm.datasim v2.0.0
 
