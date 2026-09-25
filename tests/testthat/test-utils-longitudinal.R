@@ -428,3 +428,73 @@ test_that("inject_targeted_runs recounts rather than over-reports a single-value
   expect_equal(realized$denominator, 3)
   expect_equal(realized$numerator, 3)
 })
+
+test_that("assign_schedule_dates returns Dates from a character schedule (#148)", {
+  fx <- make_schedule_fixture()
+  chr_visits <- fx$visits
+  chr_visits$visit_dt <- format(chr_visits$visit_dt, "%Y-%m-%d")
+
+  out_chr <- assign_schedule_dates(fx$df, chr_visits, strDateCol = "vs_dt")
+  out_date <- assign_schedule_dates(fx$df, fx$visits, strDateCol = "vs_dt")
+
+  expect_s3_class(out_chr$vs_dt, "Date")
+  expect_equal(out_chr, out_date)
+})
+
+test_that("assign_schedule_dates accepts a POSIXct schedule (#148)", {
+  fx <- make_schedule_fixture()
+  posix_visits <- fx$visits
+  posix_visits$visit_dt <- as.POSIXct(posix_visits$visit_dt, tz = "UTC")
+
+  out <- assign_schedule_dates(fx$df, posix_visits, strDateCol = "vs_dt")
+
+  expect_s3_class(out$vs_dt, "Date")
+  expect_equal(out, assign_schedule_dates(fx$df, fx$visits, strDateCol = "vs_dt"))
+})
+
+test_that("assign_schedule_dates rejects an unparseable schedule (#148)", {
+  fx <- make_schedule_fixture()
+
+  bad <- fx$visits
+  bad$visit_dt <- rep("not-a-date", nrow(bad))
+  expect_error(
+    assign_schedule_dates(fx$df, bad, strDateCol = "vs_dt"),
+    "not-a-date"
+  )
+
+  wrong_type <- fx$visits
+  wrong_type$visit_dt <- seq_len(nrow(wrong_type))
+  expect_error(
+    assign_schedule_dates(fx$df, wrong_type, strDateCol = "vs_dt"),
+    "must be a Date or a character vector"
+  )
+})
+
+test_that("inject_targeted_runs recounts pre-existing windows at a zero target (#148)", {
+  # `dTargetRate = 0` injects nothing, but the caller's values may already
+  # contain identical windows; `realized` must report what the metric will
+  # count, not zero.
+  values <- c(1, 1, 1, 2, 5, 9)
+  groups <- rep("G1", 6)
+
+  out <- inject_targeted_runs(values, groups, dTargetRate = 0, nWindowLength = 3)
+  realized <- attr(out, "realized")
+
+  expect_equal(as.numeric(out), values)
+  expect_equal(realized$denominator, 4)
+  expect_equal(realized$numerator, 1)
+  expect_equal(realized$numerator, count_identical_windows_naive(values, groups, 3))
+})
+
+test_that("inject_targeted_runs still reports zero when no windows repeat (#148)", {
+  values <- c(1, 2, 3, 4, 5, 6)
+  groups <- rep("G1", 6)
+
+  realized <- attr(
+    inject_targeted_runs(values, groups, dTargetRate = 0, nWindowLength = 3),
+    "realized"
+  )
+
+  expect_equal(realized$numerator, 0)
+  expect_equal(realized$denominator, 4)
+})

@@ -16,7 +16,9 @@ assign_schedule_dates(
 \item{df}{Data frame of subject-visit records to date.}
 
 \item{visits}{Data frame carrying the visit schedule, with the group and
-visit columns plus \code{visit_dt}.}
+visit columns plus \code{visit_dt}. \code{visit_dt} may be a \code{Date} or a
+\code{"\%Y-\%m-\%d"} character vector; the \code{Raw_VISIT} generator produces the
+latter.}
 
 \item{strDateCol}{Name for the date column in the returned frame -- e.g.
 \code{"vs_dt"} for \code{Raw_VS}, \code{"lb_dt"} for a future \code{Raw_LB} adopter.}
@@ -25,9 +27,9 @@ visit columns plus \code{visit_dt}.}
 visit.}
 }
 \value{
-\code{df} with the date column added, sorted by group then date. The
-sort is stable, so repeated records within a visit keep a deterministic
-order.
+\code{df} with the date column added as a \code{Date}, sorted by group then
+date. The sort is stable, so repeated records within a visit keep a
+deterministic order.
 }
 \description{
 Brings the authoritative visit schedule (\code{Raw_VISIT$visit_dt}) onto a

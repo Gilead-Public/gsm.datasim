@@ -163,7 +163,15 @@ inject_targeted_runs <- function(values, groups, dTargetRate, nWindowLength = 3)
   target_numerator <- round(dTargetRate * total_windows)
 
   if (target_numerator == 0) {
-    return(.with_realized(values, 0, total_windows))
+    # Recount rather than assume zero: the caller's values may already contain
+    # identical windows by chance (rounded measurements collide), and the
+    # `realized` contract is "what the metric will compute", not "what we
+    # injected".
+    return(.with_realized(
+      values,
+      .count_identical_windows(values, idx_by_group, nWindowLength),
+      total_windows
+    ))
   }
 
   # Shuffle group order so injected runs aren't concentrated in the
@@ -280,15 +288,17 @@ inject_targeted_runs <- function(values, groups, dTargetRate, nWindowLength = 3)
 #'
 #' @param df Data frame of subject-visit records to date.
 #' @param visits Data frame carrying the visit schedule, with the group and
-#'   visit columns plus `visit_dt`.
+#'   visit columns plus `visit_dt`. `visit_dt` may be a `Date` or a
+#'   `"%Y-%m-%d"` character vector; the `Raw_VISIT` generator produces the
+#'   latter.
 #' @param strDateCol Name for the date column in the returned frame -- e.g.
 #'   `"vs_dt"` for `Raw_VS`, `"lb_dt"` for a future `Raw_LB` adopter.
 #' @param strGroupCol,strVisitCol Column names identifying the subject and the
 #'   visit.
 #'
-#' @returns `df` with the date column added, sorted by group then date. The
-#'   sort is stable, so repeated records within a visit keep a deterministic
-#'   order.
+#' @returns `df` with the date column added as a `Date`, sorted by group then
+#'   date. The sort is stable, so repeated records within a visit keep a
+#'   deterministic order.
 #'
 #' @keywords internal
 assign_schedule_dates <- function(df, visits, strDateCol,
@@ -308,7 +318,12 @@ assign_schedule_dates <- function(df, visits, strDateCol,
   key_df <- paste(df[[strGroupCol]], df[[strVisitCol]], sep = "\r")
   key_visits <- paste(visits[[strGroupCol]], visits[[strVisitCol]], sep = "\r")
 
-  dates <- visits$visit_dt[match(key_df, key_visits)]
+  # `Raw_VISIT$visit_dt` is a "%Y-%m-%d" character vector, but the date column
+  # this replaces was a `Date` and downstream consumers depend on that class.
+  # Normalize here so the schedule's storage type cannot leak into the output,
+  # and so the sort below is chronological rather than lexicographic by luck.
+  schedule <- .as_schedule_date(visits$visit_dt)
+  dates <- schedule[match(key_df, key_visits)]
 
   if (anyNA(dates)) {
     unmatched <- unique(df[[strVisitCol]][is.na(dates)])
@@ -324,6 +339,35 @@ assign_schedule_dates <- function(df, visits, strDateCol,
 
 
 # ---- validation helpers -----------------------------------------------------
+
+#' Coerce a visit schedule column to `Date`
+#'
+#' Errors on unparseable values rather than letting them become `NA`, which
+#' `assign_schedule_dates()` would otherwise report as an unmatched visit.
+#'
+#' @noRd
+.as_schedule_date <- function(x) {
+  if (inherits(x, "Date")) {
+    return(x)
+  }
+  if (inherits(x, "POSIXt")) {
+    return(as.Date(x))
+  }
+  if (!is.character(x)) {
+    stop("`visits$visit_dt` must be a Date or a character vector of dates")
+  }
+
+  parsed <- as.Date(x, format = "%Y-%m-%d")
+  bad <- is.na(parsed) & !is.na(x)
+  if (any(bad)) {
+    stop(
+      "`visits$visit_dt` has ", sum(bad), " value(s) that are not ",
+      "\"%Y-%m-%d\" dates: ", paste(utils::head(unique(x[bad]), 5), collapse = ", ")
+    )
+  }
+
+  parsed
+}
 
 .validate_window_length <- function(nWindowLength) {
   stopifnot(

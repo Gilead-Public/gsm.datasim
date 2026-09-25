@@ -84,13 +84,21 @@ VS_VITAL_COLS <- c(
 # `Raw_VISIT` now matters to `Raw_VS` generation: `vs_dt` is taken from
 # `visit_dt` rather than being a constant, so the test fixture must carry a
 # real per-visit schedule.
+# `strDateClass` mirrors the real `Raw_VISIT` generator, which emits
+# "%Y-%m-%d" character dates rather than `Date`s (see `visit_dt()` in
+# R/Raw_VISIT.R). Tests use "character" to exercise the production path.
 make_vs_test_data <- function(n_subjects = 20, n_visits = 6, n_sites = 3,
-                              start_date = as.Date("2012-01-01")) {
+                              start_date = as.Date("2012-01-01"),
+                              strDateClass = c("Date", "character")) {
+  strDateClass <- match.arg(strDateClass)
   subjid <- sprintf("S%04d", seq_len(n_subjects))
   invid <- sprintf("0X%04d", (seq_len(n_subjects) %% n_sites) + 1)
 
   visits <- c("Screening", paste0("VISIT ", seq_len(max(n_visits - 1, 1))))[seq_len(n_visits)]
   visit_dates <- start_date + seq(0, by = 28, length.out = n_visits)
+  if (strDateClass == "character") {
+    visit_dates <- format(visit_dates, "%Y-%m-%d")
+  }
 
   raw_visit <- do.call(
     rbind,

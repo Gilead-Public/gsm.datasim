@@ -569,3 +569,46 @@ test_that("all-missing site IDs leave values untargeted (#143)", {
   set.seed(9034)
   expect_equal(values, round(stats::rnorm(length(subjects), mean = 75, sd = 10), 1))
 })
+
+test_that("Raw_VS vs_dt is a Date even when Raw_VISIT supplies character dates (#148)", {
+  set.seed(3390)
+
+  # The real `Raw_VISIT` generator emits "%Y-%m-%d" strings, not `Date`s. The
+  # `vs_dt` column must still honour the `Date` contract the previous
+  # `generic_date` generator established.
+  data <- make_vs_test_data(n_subjects = 10, n_visits = 5, strDateClass = "character")
+  expect_type(data$Raw_VISIT$visit_dt, "character")
+
+  vs_df <- generate_domain_from_registry("Raw_VS", make_vs_context(data))
+
+  expect_s3_class(vs_df$vs_dt, "Date")
+
+  expected <- as.Date(data$Raw_VISIT$visit_dt)[
+    match(
+      paste(vs_df$subjid, vs_df$instancename),
+      paste(data$Raw_VISIT$subjid, data$Raw_VISIT$instancename)
+    )
+  ]
+  expect_equal(vs_df$vs_dt, expected)
+
+  for (s in unique(vs_df$subjid)) {
+    expect_false(is.unsorted(vs_df$vs_dt[vs_df$subjid == s]), info = paste("subject", s))
+  }
+})
+
+test_that("Raw_VS vs_dt class does not depend on the schedule's storage type (#148)", {
+  set.seed(8827)
+  date_df <- generate_domain_from_registry(
+    "Raw_VS",
+    make_vs_context(make_vs_test_data(n_subjects = 8, n_visits = 4, strDateClass = "Date"))
+  )
+
+  set.seed(8827)
+  chr_df <- generate_domain_from_registry(
+    "Raw_VS",
+    make_vs_context(make_vs_test_data(n_subjects = 8, n_visits = 4, strDateClass = "character"))
+  )
+
+  expect_equal(date_df$vs_dt, chr_df$vs_dt)
+  expect_equal(date_df, chr_df)
+})
