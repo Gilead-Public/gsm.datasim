@@ -72,6 +72,69 @@ test_that("allocate_site_risk errors when red + amber exceeds the site count (#1
   expect_error(allocate_site_risk(sites, dPctRed = 0.7, dPctAmber = 0.7))
 })
 
+# Rounding each band independently can total more than the site count even
+# when the percentages are a profile `validate_vs_risk_profile()` accepts.
+test_that("allocate_site_risk caps rounding overshoot rather than erroring (#143)", {
+  set.seed(3382)
+
+  # 50% + 50% of 3 sites rounds to 2 red and 2 amber -- 4 bands for 3 sites.
+  bands <- allocate_site_risk(c("A", "B", "C"), dPctRed = 0.5, dPctAmber = 0.5)
+
+  expect_length(bands, 3)
+  expect_equal(sum(bands == "red"), 2)
+  # Amber is capped at what red leaves behind.
+  expect_equal(sum(bands == "amber"), 1)
+  expect_equal(sum(bands == "normal"), 0)
+})
+
+test_that("allocate_site_risk caps only rounding, not oversized profiles (#143)", {
+  sites <- sprintf("S%02d", 1:4)
+
+  # Percentages summing past 1 are a malformed profile, not a rounding
+  # artifact, so they must still error rather than silently degrade.
+  expect_error(
+    allocate_site_risk(sites, dPctRed = 0.7, dPctAmber = 0.7),
+    "must not exceed the number of sites"
+  )
+
+  # Explicit counts are never capped: a caller naming exact numbers gets an
+  # error rather than fewer sites than requested.
+  expect_error(
+    allocate_site_risk(sites, nRed = 2, nAmber = 3),
+    "must not exceed the number of sites"
+  )
+  expect_error(
+    allocate_site_risk(sites, dPctRed = 0.5, nAmber = 3),
+    "must not exceed the number of sites"
+  )
+})
+
+test_that("allocate_site_risk never over-allocates across a sweep (#143)", {
+  set.seed(7716)
+
+  grid <- expand.grid(
+    n_sites = 1:8,
+    pct_red = c(0, 0.1, 0.25, 0.5),
+    pct_amber = c(0, 0.2, 0.5)
+  )
+  # Only profiles the validator would accept.
+  grid <- grid[grid$pct_red + grid$pct_amber <= 1, ]
+
+  for (i in seq_len(nrow(grid))) {
+    sites <- sprintf("S%02d", seq_len(grid$n_sites[i]))
+    bands <- expect_no_error(
+      allocate_site_risk(
+        sites,
+        dPctRed = grid$pct_red[i],
+        dPctAmber = grid$pct_amber[i]
+      )
+    )
+    expect_length(bands, grid$n_sites[i])
+    expect_setequal(names(bands), sites)
+    expect_true(all(bands %in% c("red", "amber", "normal")))
+  }
+})
+
 test_that("allocate_site_risk degrades sensibly for very few sites (#143)", {
   sites <- c("A", "B", "C")
   set.seed(6104)

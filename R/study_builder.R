@@ -248,10 +248,20 @@ validate_vs_risk_profile <- function(profile) {
     }
   }
 
-  pct_red <- profile$dPctRed %||% 0
-  pct_amber <- profile$dPctAmber %||% 0
+  # Check the EFFECTIVE profile, not the one as written. Omitted fields are
+  # filled from `VS_DEFAULT_RISK_PROFILE` by `.resolve_vs_risk_profile()`
+  # before the generator ever sees them, so reading an omitted percentage as 0
+  # here would accept `list(dPctRed = 0.9)` and then fail at generation time
+  # against the resolved 0.9 + 0.2.
+  effective <- .resolve_vs_risk_profile(profile)
+  pct_red <- effective$dPctRed %||% 0
+  pct_amber <- effective$dPctAmber %||% 0
   if (pct_red + pct_amber > 1) {
-    stop("vs_risk_profile$dPctRed + vs_risk_profile$dPctAmber must not exceed 1")
+    stop(
+      "vs_risk_profile$dPctRed + vs_risk_profile$dPctAmber must not exceed 1",
+      " (effective values, after defaults are applied: ",
+      pct_red, " + ", pct_amber, ")"
+    )
   }
 
   window <- profile$nWindowLength

@@ -46,9 +46,8 @@ count_repeat_windows <- function(nMeasurements, nWindowLength = 3) {
 #'
 #' Partitions sites into `"red"`, `"amber"`, and `"normal"` bands by sampling
 #' without replacement. Used to decide which sites should be given an elevated
-#' consecutive-repeat rate before `inject_targeted_runs()` constructs it.
-#'
-#' Supply either percentages (`dPctRed` / `dPctAmber`) or explicit counts
+#' consecutive-repeat rate before `inject_targeted_runs()` constructs it. Supply
+#' either percentages (`dPctRed` / `dPctAmber`) or explicit counts 
 #' (`nRed` / `nAmber`); counts take precedence when both are given.
 #' Percentages are converted with [round()], so small site counts degrade
 #' gracefully rather than erroring -- 10% of 3 sites is 0 red sites, not a
@@ -73,17 +72,29 @@ allocate_site_risk <- function(vSites, dPctRed = 0.1, dPctAmber = 0.2,
     return(stats::setNames(character(0), character(0)))
   }
 
-  n_red <- if (!is.null(nRed)) {
+  red_from_pct <- is.null(nRed)
+  amber_from_pct <- is.null(nAmber)
+
+  n_red <- if (!red_from_pct) {
     .validate_count(nRed, "nRed")
   } else {
     .validate_proportion(dPctRed, "dPctRed")
     round(dPctRed * n_sites)
   }
-  n_amber <- if (!is.null(nAmber)) {
+  n_amber <- if (!amber_from_pct) {
     .validate_count(nAmber, "nAmber")
   } else {
     .validate_proportion(dPctAmber, "dPctAmber")
     round(dPctAmber * n_sites)
+  }
+
+  # Only absorb the rounding overshoot, not a genuinely oversized profile: cap
+  # when the percentages are themselves valid (sum <= 1) and both came from
+  # percentages. Anything else still errors below.
+  if (red_from_pct && amber_from_pct &&
+    n_red <= n_sites &&
+    dPctRed + dPctAmber <= 1) {
+    n_amber <- min(n_amber, n_sites - n_red)
   }
 
   if (n_red + n_amber > n_sites) {

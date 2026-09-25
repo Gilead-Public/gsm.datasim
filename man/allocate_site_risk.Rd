@@ -29,10 +29,8 @@ Named character vector, one element per distinct site, with values
 \description{
 Partitions sites into \code{"red"}, \code{"amber"}, and \code{"normal"} bands by sampling
 without replacement. Used to decide which sites should be given an elevated
-consecutive-repeat rate before \code{inject_targeted_runs()} constructs it.
-}
-\details{
-Supply either percentages (\code{dPctRed} / \code{dPctAmber}) or explicit counts
+consecutive-repeat rate before \code{inject_targeted_runs()} constructs it. Supply
+either percentages (\code{dPctRed} / \code{dPctAmber}) or explicit counts
 (\code{nRed} / \code{nAmber}); counts take precedence when both are given.
 Percentages are converted with \code{\link[=round]{round()}}, so small site counts degrade
 gracefully rather than erroring -- 10\% of 3 sites is 0 red sites, not a
