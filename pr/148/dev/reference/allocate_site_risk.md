@@ -4,7 +4,12 @@ Partitions sites into `"red"`, `"amber"`, and `"normal"` bands by
 sampling without replacement. Used to decide which sites should be given
 an elevated consecutive-repeat rate before
 [`inject_targeted_runs()`](https://gilead-public.github.io/gsm.datasim/dev/reference/inject_targeted_runs.md)
-constructs it.
+constructs it. Supply either percentages (`dPctRed` / `dPctAmber`) or
+explicit counts (`nRed` / `nAmber`); counts take precedence when both
+are given. Percentages are converted with
+[`round()`](https://rdrr.io/r/base/Round.html), so small site counts
+degrade gracefully rather than erroring – 10% of 3 sites is 0 red sites,
+not a fractional one.
 
 ## Usage
 
@@ -38,12 +43,3 @@ allocate_site_risk(
 
 Named character vector, one element per distinct site, with values
 `"red"`, `"amber"`, or `"normal"`.
-
-## Details
-
-Supply either percentages (`dPctRed` / `dPctAmber`) or explicit counts
-(`nRed` / `nAmber`); counts take precedence when both are given.
-Percentages are converted with
-[`round()`](https://rdrr.io/r/base/Round.html), so small site counts
-degrade gracefully rather than erroring – 10% of 3 sites is 0 red sites,
-not a fractional one.
