@@ -522,7 +522,7 @@ test_that(".generate_vital rejects an unrecognized vital (#143)", {
   )
 })
 
-test_that("missing site IDs do not consume a risk band allocation (#148)", {
+test_that("missing site IDs do not consume a risk band allocation (#143)", {
   # Two known sites plus a block of NA sites. The allocation must be computed
   # over the known sites only: 50% red of two known sites is exactly one red
   # site. Counting the pseudo-site would make it 50% of three, letting the
@@ -556,7 +556,7 @@ test_that("missing site IDs do not consume a risk band allocation (#148)", {
   }
 })
 
-test_that("all-missing site IDs leave values untargeted (#148)", {
+test_that("all-missing site IDs leave values untargeted (#143)", {
   subjects <- rep(paste0("S", 1:4), each = 6)
   sites <- rep(NA_character_, length(subjects))
 

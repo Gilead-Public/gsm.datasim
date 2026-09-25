@@ -55,7 +55,7 @@ test_that("generate_rawdata_for_single_study post-processes IE and Randomization
   expect_equal(anyDuplicated(first$Raw_Randomization$subjid), 0L)
 })
 
-test_that("generate_rawdata_for_single_study accepts a vs_risk_profile (#148)", {
+test_that("generate_rawdata_for_single_study accepts a vs_risk_profile (#143)", {
   expect_true("vs_risk_profile" %in% names(formals(generate_rawdata_for_single_study)))
   expect_true("vs_risk_profile" %in% names(formals(generate_snapshots_from_combined_specs)))
   expect_null(formals(generate_rawdata_for_single_study)$vs_risk_profile)

@@ -384,7 +384,7 @@ test_that("assign_schedule_dates ordering is stable for repeated subject-visits 
   expect_equal(out1, out2)
 })
 
-test_that("inject_targeted_runs does not over-count when the run's neighbour ties (#148)", {
+test_that("inject_targeted_runs does not over-count when the run's neighbour ties (#143)", {
   # `c(1, 2, 3, 1)` at W = 3 was the reported case: overwriting the first three
   # positions with 1 leaves the trailing 1 extending the run to 2 windows.
   values <- c(1, 2, 3, 1)
@@ -398,7 +398,7 @@ test_that("inject_targeted_runs does not over-count when the run's neighbour tie
   expect_equal(count_identical_windows_naive(as.numeric(out), groups, 3), 1)
 })
 
-test_that("inject_targeted_runs realized numerator matches a naive recount (#148)", {
+test_that("inject_targeted_runs realized numerator matches a naive recount (#143)", {
   set.seed(7314)
   # Coarse rounding makes incidental ties common, which is the condition under
   # which the constructed count used to drift from the computed one.
@@ -416,7 +416,7 @@ test_that("inject_targeted_runs realized numerator matches a naive recount (#148
   }
 })
 
-test_that("inject_targeted_runs recounts rather than over-reports a single-value group (#148)", {
+test_that("inject_targeted_runs recounts rather than over-reports a single-value group (#143)", {
   # No differing value exists to swap in, so the tie cannot be broken; the
   # recount must report the true (higher) numerator instead of the target.
   values <- rep(5, 5)
