@@ -576,11 +576,31 @@ get_domain_registry <- function() {
 
         risk_profile <- context$vs_risk_profile
 
+        # Bands are assigned by rank over the site roster, not by sampling the
+        # sites present in this snapshot, so a site keeps its band as the study
+        # enrolls (#143). `Raw_SITE` is append-only, which is what makes rank a
+        # stable key; `pi_number` is its site identifier, matching
+        # `Raw_SUBJ$invid`. Sites already seen lead the roster so their ranks
+        # never shift when new sites appear.
+        seen_sites <- unique(as.character(stats::na.omit(data$Raw_SUBJ$invid)))
+        roster_sites <- unique(as.character(data$Raw_SITE$pi_number))
+        all_sites <- c(seen_sites, setdiff(roster_sites, seen_sites))
+
+        # The eventual roster size, so early snapshots take percentages over
+        # the final site count rather than over the handful enrolled so far.
+        total_sites <- max(
+          length(all_sites),
+          context$total_site_count %||% 0L
+        )
+
         vital_args <- list(
           all_n, subj_visits$subjid,
           sites = invids,
           performed = performed,
-          lRiskProfile = risk_profile
+          lRiskProfile = risk_profile,
+          vAllSites = all_sites,
+          nTotalSites = total_sites,
+          strStudyId = data$Raw_STUDY$protocol_number[[1]]
         )
 
         args <- list(

@@ -798,3 +798,72 @@ test_that("create_standard_study_config forwards vs_risk_profile (#143)", {
   expect_identical(config$study_params$vs_risk_profile, profile)
   expect_no_error(validate_study_config(config))
 })
+
+test_that("Raw_VS risk bands persist across snapshots (#143)", {
+  # The regression this guards: bands were drawn independently inside every
+  # snapshot, so the elevated site moved from snapshot to snapshot and no site
+  # held a persistently elevated rate over the life of the study.
+  set.seed(5518)
+
+  config <- add_dataset_config(
+    create_standard_study_config(
+      "DEMO",
+      participant_count = 100,
+      site_count = 10,
+      vs_risk_profile = list(dPctRed = 0.1, dPctAmber = 0.2)
+    ),
+    "Raw_VS"
+  )
+  data <- suppressMessages(generate_study_data(config))
+
+  top_site_by_snapshot <- vapply(
+    data,
+    function(snapshot) {
+      vs_sited <- attach_vs_site(snapshot$Raw_VS, snapshot)
+      rates <- site_repeat_rate(as.data.frame(vs_sited), strValueCol = "sysbp")
+      rates <- rates[!is.na(rates$rate), ]
+      rates$invid[which.max(rates$rate)]
+    },
+    character(1)
+  )
+
+  # Snapshot 1 has a single enrolled site, which may legitimately be normal --
+  # with one site there is no "most elevated" site to speak of. The guarantee
+  # applies once the study has sites to distinguish between.
+  multi_site <- top_site_by_snapshot[-1]
+  expect_equal(length(unique(multi_site)), 1)
+
+  # ...and that site is genuinely elevated, not merely the argmax of noise.
+  final <- data[[length(data)]]
+  final_rates <- site_repeat_rate(
+    as.data.frame(attach_vs_site(final$Raw_VS, final)),
+    strValueCol = "sysbp"
+  )
+  expect_gte(final_rates$rate[final_rates$invid == multi_site[[1]]], 0.30)
+})
+
+test_that("Raw_VS bands stay independent per vital across snapshots (#143)", {
+  # Persistence must not collapse the vitals onto one shared band: each vital
+  # is its own KRI, so a site red on sysbp need not be red on pulse.
+  set.seed(7731)
+
+  config <- add_dataset_config(
+    create_standard_study_config(
+      "DEMO",
+      participant_count = 100,
+      site_count = 10,
+      vs_risk_profile = list(dPctRed = 0.1, dPctAmber = 0.2)
+    ),
+    "Raw_VS"
+  )
+  data <- suppressMessages(generate_study_data(config))
+  final <- data[[length(data)]]
+  vs_sited <- as.data.frame(attach_vs_site(final$Raw_VS, final))
+
+  red_for <- function(vital) {
+    rates <- site_repeat_rate(vs_sited, strValueCol = vital)
+    sort(rates$invid[!is.na(rates$rate) & rates$rate >= 0.30])
+  }
+
+  expect_false(identical(red_for("sysbp"), red_for("pulse")))
+})

@@ -133,50 +133,82 @@ vsperf_std <- function(n, performed = NULL, ...) {
 #' @returns A numeric vector of length `n`.
 #' @keywords internal
 #' @noRd
-weight <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NULL, ...) {
-  .generate_vital(n, subjects, sites, performed, lRiskProfile, "weight")
+weight <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NULL,
+                   vAllSites = NULL, nTotalSites = NULL, strStudyId = NULL, ...) {
+  .generate_vital(n, subjects, sites, performed, lRiskProfile,
+    vAllSites = vAllSites, nTotalSites = nTotalSites, strStudyId = strStudyId,
+    strVital = "weight"
+  )
 }
 
 #' @rdname weight
 #' @noRd
-height <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NULL, ...) {
-  .generate_vital(n, subjects, sites, performed, lRiskProfile, "height")
+height <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NULL,
+                   vAllSites = NULL, nTotalSites = NULL, strStudyId = NULL, ...) {
+  .generate_vital(n, subjects, sites, performed, lRiskProfile,
+    vAllSites = vAllSites, nTotalSites = nTotalSites, strStudyId = strStudyId,
+    strVital = "height"
+  )
 }
 
 #' @rdname weight
 #' @noRd
-bsa <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NULL, ...) {
-  .generate_vital(n, subjects, sites, performed, lRiskProfile, "bsa")
+bsa <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NULL,
+                   vAllSites = NULL, nTotalSites = NULL, strStudyId = NULL, ...) {
+  .generate_vital(n, subjects, sites, performed, lRiskProfile,
+    vAllSites = vAllSites, nTotalSites = nTotalSites, strStudyId = strStudyId,
+    strVital = "bsa"
+  )
 }
 
 #' @rdname weight
 #' @noRd
-sysbp <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NULL, ...) {
-  .generate_vital(n, subjects, sites, performed, lRiskProfile, "sysbp")
+sysbp <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NULL,
+                   vAllSites = NULL, nTotalSites = NULL, strStudyId = NULL, ...) {
+  .generate_vital(n, subjects, sites, performed, lRiskProfile,
+    vAllSites = vAllSites, nTotalSites = nTotalSites, strStudyId = strStudyId,
+    strVital = "sysbp"
+  )
 }
 
 #' @rdname weight
 #' @noRd
-diabp <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NULL, ...) {
-  .generate_vital(n, subjects, sites, performed, lRiskProfile, "diabp")
+diabp <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NULL,
+                   vAllSites = NULL, nTotalSites = NULL, strStudyId = NULL, ...) {
+  .generate_vital(n, subjects, sites, performed, lRiskProfile,
+    vAllSites = vAllSites, nTotalSites = nTotalSites, strStudyId = strStudyId,
+    strVital = "diabp"
+  )
 }
 
 #' @rdname weight
 #' @noRd
-pulse <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NULL, ...) {
-  .generate_vital(n, subjects, sites, performed, lRiskProfile, "pulse")
+pulse <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NULL,
+                   vAllSites = NULL, nTotalSites = NULL, strStudyId = NULL, ...) {
+  .generate_vital(n, subjects, sites, performed, lRiskProfile,
+    vAllSites = vAllSites, nTotalSites = nTotalSites, strStudyId = strStudyId,
+    strVital = "pulse"
+  )
 }
 
 #' @rdname weight
 #' @noRd
-temp <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NULL, ...) {
-  .generate_vital(n, subjects, sites, performed, lRiskProfile, "temp")
+temp <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NULL,
+                   vAllSites = NULL, nTotalSites = NULL, strStudyId = NULL, ...) {
+  .generate_vital(n, subjects, sites, performed, lRiskProfile,
+    vAllSites = vAllSites, nTotalSites = nTotalSites, strStudyId = strStudyId,
+    strVital = "temp"
+  )
 }
 
 #' @rdname weight
 #' @noRd
-resp <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NULL, ...) {
-  .generate_vital(n, subjects, sites, performed, lRiskProfile, "resp")
+resp <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NULL,
+                   vAllSites = NULL, nTotalSites = NULL, strStudyId = NULL, ...) {
+  .generate_vital(n, subjects, sites, performed, lRiskProfile,
+    vAllSites = vAllSites, nTotalSites = nTotalSites, strStudyId = strStudyId,
+    strVital = "resp"
+  )
 }
 
 
@@ -204,6 +236,13 @@ resp <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NUL
 #' every site's realized rate relative to what the metric computes. Risk bands
 #' are drawn independently per vital -- each vital is its own KRI.
 #'
+#' Bands persist across snapshots. `vAllSites` supplies the site roster in
+#' first-appearance order and `nTotalSites` the eventual roster size, so a
+#' site's band follows from its rank rather than from which sites happen to
+#' have enrolled by the current snapshot (#143). The seed key folds in the
+#' study and the vital, keeping bands stable per site and independent per
+#' vital.
+#'
 #' @param n Number of values to generate.
 #' @param subjects Vector of subject IDs, ordered by subject then visit date.
 #' @param sites Vector of site IDs aligned with `subjects`, or `NULL` for no
@@ -211,12 +250,17 @@ resp <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NUL
 #' @param performed Character vector of `vsperf_std` values; `"N"` rows are
 #'   blanked.
 #' @param lRiskProfile Risk profile list, or `NULL` for defaults.
+#' @param vAllSites Site roster in first-appearance order, or `NULL` to fall
+#'   back to the sites present in `sites`.
+#' @param nTotalSites Eventual number of sites in the study, or `NULL`.
+#' @param strStudyId Study identifier, folded into the band seed key.
 #' @param strVital Name of the vital being generated.
 #' @returns A numeric vector of length `n`.
 #' @keywords internal
 #' @noRd
 .generate_vital <- function(n, subjects, sites = NULL, performed = NULL,
-                            lRiskProfile = NULL, strVital) {
+                            lRiskProfile = NULL, vAllSites = NULL,
+                            nTotalSites = NULL, strStudyId = NULL, strVital) {
   params <- VS_VITAL_PARAMS[[strVital]]
   if (is.null(params)) {
     stop("Unknown vital: ", strVital)
@@ -251,10 +295,19 @@ resp <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NUL
     return(values)
   }
 
+  # Rank over the full roster where it is known, so a site's band does not
+  # depend on which snapshot is being generated. Sites in `known_sites` that
+  # the roster omits are appended rather than dropped -- allocation must cover
+  # every site that has rows here.
+  roster <- unique(as.character(vAllSites %||% character(0)))
+  roster <- c(roster, setdiff(unique(as.character(known_sites)), roster))
+
   bands <- allocate_site_risk(
-    known_sites,
+    roster,
     dPctRed = profile$dPctRed,
-    dPctAmber = profile$dPctAmber
+    dPctAmber = profile$dPctAmber,
+    nTotalSites = nTotalSites,
+    strSeedKey = paste(strStudyId %||% "", strVital, sep = "|")
   )
 
   rate_for_band <- c(
@@ -263,10 +316,12 @@ resp <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NUL
     normal = profile$dRateNormal
   )
 
-  # `bands` is keyed by sites drawn from `sites` itself, so every key matches
-  # at least one row.
+  # `bands` is keyed by the full roster, which may include sites that have no
+  # rows in this snapshot yet. They hold their band for later snapshots;
+  # there is simply nothing to inject into now.
   for (site in names(bands)) {
     site_idx <- which(sites %in% site)
+    if (length(site_idx) == 0) next
 
     values[site_idx] <- as.numeric(inject_targeted_runs(
       values[site_idx],

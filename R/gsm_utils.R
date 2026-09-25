@@ -181,7 +181,8 @@ run_domain_generation_loop <- function(combined_specs, config, source_domains) {
         snapshot_count = snapshot_count,
         snapshot_width = snapshot_width,
         study_id       = study_id,
-        vs_risk_profile = config$study_params$vs_risk_profile
+        vs_risk_profile = config$study_params$vs_risk_profile,
+        total_site_count = max(site_count_vec)
       )
 
       migrated_data <- generate_domain_from_registry(data_type, registry_context)

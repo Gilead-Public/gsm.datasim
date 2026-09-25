@@ -53,24 +53,52 @@ count_repeat_windows <- function(nMeasurements, nWindowLength = 3) {
 #' gracefully rather than erroring -- 10% of 3 sites is 0 red sites, not a
 #' fractional one.
 #'
+#' @section Persisting bands across snapshots:
+#'
+#' Supplying `nTotalSites` and `strSeedKey` switches allocation from "sample
+#' the sites I can see" to "assign by rank over the final roster". Sites are
+#' ranked by first appearance, bands are dealt across `nTotalSites` slots, and
+#' the slot permutation is derived from `strSeedKey` rather than the ambient
+#' RNG. A site therefore keeps its band no matter which snapshot is being
+#' generated, and sites that enroll later claim unused slots without
+#' disturbing bands already handed out (#143).
+#'
+#' This matters because snapshots are deltas: rows written in an early
+#' snapshot are frozen, so a site's band has to be right the first time its
+#' rows are generated. It relies on the site roster being append-only, which
+#' is what makes rank a stable key.
+#'
 #' @param vSites Character vector of site identifiers. Duplicates are ignored;
-#'   each distinct site receives one band.
+#'   each distinct site receives one band. Order is significant when
+#'   `nTotalSites` is supplied -- it is the rank order.
 #' @param dPctRed,dPctAmber Proportions in `[0, 1]` of sites to place in the
 #'   red and amber bands.
 #' @param nRed,nAmber Optional explicit site counts, overriding the
 #'   corresponding percentage.
+#' @param nTotalSites Optional total number of sites the study will end up
+#'   with. Percentages are taken over this rather than over `vSites`, so early
+#'   snapshots allocate against the final roster size.
+#' @param strSeedKey Optional string keying the deterministic slot
+#'   permutation. Required for allocation to be reproducible across calls;
+#'   include the vital so bands stay independent per vital.
 #'
 #' @returns Named character vector, one element per distinct site, with values
 #'   `"red"`, `"amber"`, or `"normal"`.
 #'
 #' @keywords internal
 allocate_site_risk <- function(vSites, dPctRed = 0.1, dPctAmber = 0.2,
-                               nRed = NULL, nAmber = NULL) {
+                               nRed = NULL, nAmber = NULL,
+                               nTotalSites = NULL, strSeedKey = NULL) {
   sites <- unique(as.character(vSites))
   n_sites <- length(sites)
   if (n_sites == 0) {
     return(stats::setNames(character(0), character(0)))
   }
+
+  # Percentages are taken over the final roster when it is known, so snapshot 1
+  # allocates 1 red out of 10 eventual sites rather than 0 red out of the 1
+  # site that has enrolled so far.
+  n_slots <- if (is.null(nTotalSites)) n_sites else max(nTotalSites, n_sites)
 
   red_from_pct <- is.null(nRed)
   amber_from_pct <- is.null(nAmber)
@@ -79,38 +107,70 @@ allocate_site_risk <- function(vSites, dPctRed = 0.1, dPctAmber = 0.2,
     .validate_count(nRed, "nRed")
   } else {
     .validate_proportion(dPctRed, "dPctRed")
-    round(dPctRed * n_sites)
+    round(dPctRed * n_slots)
   }
   n_amber <- if (!amber_from_pct) {
     .validate_count(nAmber, "nAmber")
   } else {
     .validate_proportion(dPctAmber, "dPctAmber")
-    round(dPctAmber * n_sites)
+    round(dPctAmber * n_slots)
   }
 
   # Only absorb the rounding overshoot, not a genuinely oversized profile: cap
   # when the percentages are themselves valid (sum <= 1) and both came from
   # percentages. Anything else still errors below.
   if (red_from_pct && amber_from_pct &&
-    n_red <= n_sites &&
+    n_red <= n_slots &&
     dPctRed + dPctAmber <= 1) {
-    n_amber <- min(n_amber, n_sites - n_red)
+    n_amber <- min(n_amber, n_slots - n_red)
   }
 
-  if (n_red + n_amber > n_sites) {
+  if (n_red + n_amber > n_slots) {
     stop(
       "Cannot allocate ", n_red, " red and ", n_amber, " amber bands across ",
-      n_sites, " site(s): red + amber must not exceed the number of sites"
+      n_slots, " site(s): red + amber must not exceed the number of sites"
     )
   }
 
-  shuffled <- if (n_sites == 1) sites else sample(sites)
-  bands <- stats::setNames(rep("normal", n_sites), shuffled)
+  # Deal bands across slots, then map sites onto slots by rank. With a seed key
+  # the permutation is a pure function of that key, so every snapshot computes
+  # the same slot layout without carrying state across the snapshot boundary.
+  slot_bands <- rep("normal", n_slots)
+  if (n_red > 0) slot_bands[seq_len(n_red)] <- "red"
+  if (n_amber > 0) slot_bands[n_red + seq_len(n_amber)] <- "amber"
 
-  if (n_red > 0) bands[seq_len(n_red)] <- "red"
-  if (n_amber > 0) bands[n_red + seq_len(n_amber)] <- "amber"
+  shuffled_slots <- if (n_slots == 1) {
+    slot_bands
+  } else if (is.null(strSeedKey)) {
+    sample(slot_bands)
+  } else {
+    .keyed_permutation(slot_bands, strSeedKey)
+  }
 
-  bands[sites]
+  stats::setNames(shuffled_slots[seq_len(n_sites)], sites)
+}
+
+
+# Deterministic permutation of `x` keyed by a string. Uses a temporary, fully
+# restored RNG state so allocation neither consumes nor perturbs the caller's
+# stream -- two vitals in the same generation pass must not shift each other's
+# bands, and the surrounding value draws must stay reproducible.
+.keyed_permutation <- function(x, strSeedKey) {
+  seed <- sum(strtoi(charToRaw(strSeedKey), 16L) *
+    seq_along(charToRaw(strSeedKey))) %% .Machine$integer.max
+
+  if (exists(".Random.seed", envir = globalenv(), inherits = FALSE)) {
+    old_seed <- get(".Random.seed", envir = globalenv(), inherits = FALSE)
+    on.exit(assign(".Random.seed", old_seed, envir = globalenv()), add = TRUE)
+  } else {
+    on.exit(
+      suppressWarnings(rm(".Random.seed", envir = globalenv())),
+      add = TRUE
+    )
+  }
+
+  set.seed(seed)
+  sample(x)
 }
 
 

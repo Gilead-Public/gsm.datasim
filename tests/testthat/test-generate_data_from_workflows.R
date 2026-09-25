@@ -885,3 +885,68 @@ test_that("single-row domains repeat their count across snapshots via the legacy
   expect_equal(nrow(snapshots[[2]]$Raw_STUDY), 2)
   expect_setequal(names(snapshots[[1]]$Raw_STUDY), c("nickname", "protocol_title"))
 })
+
+test_that("generate_data_from_workflows threads vs_risk_profile to Raw_VS (#143)", {
+  # This path previously assembled `registry_context` without
+  # `vs_risk_profile`, so `Raw_VS` silently fell back to the built-in profile
+  # and the argument had no effect here.
+  skip_if_not_installed("gsm.mapping")
+  set.seed(6125)
+
+  vs_workflows <- list(
+    vs = list(
+      spec = list(
+        # `Raw_VS` carries no `invid`; site targeting reads it from `Raw_SUBJ`
+        # and the roster from `Raw_SITE`, so the upstream domains must be in
+        # the spec for there to be sites to target at all.
+        Raw_STUDY = list(
+          studyid = list(type = "character"),
+          protocol_number = list(type = "character")
+        ),
+        Raw_SITE = list(
+          studyid = list(type = "character"),
+          invid = list(type = "character"),
+          pi_number = list(type = "character")
+        ),
+        Raw_SUBJ = list(
+          studyid = list(type = "character"),
+          subjid = list(type = "character"),
+          invid = list(type = "character"),
+          enrollyn = list(type = "character")
+        ),
+        Raw_VISIT = list(
+          subjid = list(type = "character"),
+          instancename = list(type = "character"),
+          foldername = list(type = "character"),
+          visit_dt = list(type = "Date")
+        ),
+        Raw_VS = make_vs_full_spec()
+      ),
+      steps = list()
+    )
+  )
+
+  # Every site red, so the profile's effect is unambiguous: if it reached
+  # `Raw_VS`, no site sits near the normal-band floor.
+  result <- generate_data_from_workflows(
+    lWorkflows = vs_workflows,
+    n_participants = 20,
+    n_sites = 5,
+    study_id = "TEST-VS",
+    # Enough visits per subject for rolling windows to exist.
+    domain_counts = list(Raw_VISIT = 200),
+    vs_risk_profile = list(
+      dPctRed = 1, dPctAmber = 0,
+      dRateNormal = 0.05, dRateAmber = 0.25, dRateRed = 0.45
+    )
+  )
+
+  vs_sited <- attach_vs_site(as.data.frame(result$Raw_VS), result)
+  rates <- site_repeat_rate(vs_sited, strValueCol = "weight")
+  rates <- rates[!is.na(rates$rate), ]
+
+  # Guard against a false pass: the tier-2/3 fallbacks generate `Raw_VS`
+  # without ever consulting the profile, and they do so silently.
+  expect_equal(nrow(rates), 5)
+  expect_true(all(rates$rate >= 0.30))
+})

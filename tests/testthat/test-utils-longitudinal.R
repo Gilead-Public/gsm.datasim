@@ -561,3 +561,85 @@ test_that("inject_targeted_runs still reports zero when no windows repeat (#143)
   expect_equal(realized$numerator, 0)
   expect_equal(realized$denominator, 4)
 })
+
+test_that("allocate_site_risk takes percentages over the full roster (#143)", {
+  # Early snapshots know only the sites enrolled so far. Without nTotalSites,
+  # 10% of 2 visible sites rounds to 0 red; with it, the allocation is made
+  # against the roster the study will actually reach.
+  bands <- allocate_site_risk(
+    c("A", "B"),
+    dPctRed = 0.1,
+    dPctAmber = 0.2,
+    nTotalSites = 10,
+    strSeedKey = "STUDY|sysbp"
+  )
+
+  expect_named(bands, c("A", "B"))
+  expect_true(all(bands %in% c("red", "amber", "normal")))
+})
+
+test_that("allocate_site_risk is stable as the roster grows (#143)", {
+  # The persistence guarantee, at the unit level: a site keeps its band when
+  # later sites are appended, which is what lets each snapshot recompute the
+  # allocation without carrying state.
+  sites <- c("A", "B", "C", "D", "E", "F", "G", "H", "I", "J")
+  full <- allocate_site_risk(
+    sites,
+    nTotalSites = 10, strSeedKey = "STUDY|sysbp"
+  )
+
+  for (k in seq_along(sites)) {
+    partial <- allocate_site_risk(
+      sites[seq_len(k)],
+      nTotalSites = 10, strSeedKey = "STUDY|sysbp"
+    )
+    expect_identical(partial, full[seq_len(k)])
+  }
+})
+
+test_that("allocate_site_risk keys bands by seed, independently per vital (#143)", {
+  sites <- c("A", "B", "C", "D", "E", "F", "G", "H", "I", "J")
+  args <- list(sites, nTotalSites = 10)
+
+  sysbp <- do.call(allocate_site_risk, c(args, strSeedKey = "STUDY|sysbp"))
+  pulse <- do.call(allocate_site_risk, c(args, strSeedKey = "STUDY|pulse"))
+
+  # Same key -> same bands, regardless of ambient RNG state.
+  set.seed(11)
+  again <- do.call(allocate_site_risk, c(args, strSeedKey = "STUDY|sysbp"))
+  expect_identical(sysbp, again)
+
+  # Different vital -> different layout, same band composition.
+  expect_false(identical(sysbp, pulse))
+  expect_equal(sort(unname(sysbp)), sort(unname(pulse)))
+})
+
+test_that("allocate_site_risk leaves the caller's RNG stream untouched (#143)", {
+  # Band allocation happens mid-generation; consuming random draws would shift
+  # every value generated afterwards and break reproducibility.
+  set.seed(4402)
+  expected <- runif(3)
+
+  set.seed(4402)
+  allocate_site_risk(c("A", "B", "C"), nTotalSites = 10, strSeedKey = "STUDY|sysbp")
+  expect_identical(runif(3), expected)
+})
+
+test_that("allocate_site_risk works before the RNG is initialized (#143)", {
+  # A fresh session has no `.Random.seed` until something draws. Allocation
+  # must not leave one behind in that case, since creating one silently
+  # changes how the session's first user-visible draw behaves.
+  withr::with_seed(918, {
+    if (exists(".Random.seed", envir = globalenv(), inherits = FALSE)) {
+      rm(".Random.seed", envir = globalenv())
+    }
+
+    bands <- allocate_site_risk(
+      c("A", "B", "C"),
+      nTotalSites = 10, strSeedKey = "STUDY|sysbp"
+    )
+
+    expect_length(bands, 3)
+    expect_false(exists(".Random.seed", envir = globalenv(), inherits = FALSE))
+  })
+})

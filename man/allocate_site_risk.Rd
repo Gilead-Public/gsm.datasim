@@ -9,18 +9,29 @@ allocate_site_risk(
   dPctRed = 0.1,
   dPctAmber = 0.2,
   nRed = NULL,
-  nAmber = NULL
+  nAmber = NULL,
+  nTotalSites = NULL,
+  strSeedKey = NULL
 )
 }
 \arguments{
 \item{vSites}{Character vector of site identifiers. Duplicates are ignored;
-each distinct site receives one band.}
+each distinct site receives one band. Order is significant when
+\code{nTotalSites} is supplied -- it is the rank order.}
 
 \item{dPctRed, dPctAmber}{Proportions in \verb{[0, 1]} of sites to place in the
 red and amber bands.}
 
 \item{nRed, nAmber}{Optional explicit site counts, overriding the
 corresponding percentage.}
+
+\item{nTotalSites}{Optional total number of sites the study will end up
+with. Percentages are taken over this rather than over \code{vSites}, so early
+snapshots allocate against the final roster size.}
+
+\item{strSeedKey}{Optional string keying the deterministic slot
+permutation. Required for allocation to be reproducible across calls;
+include the vital so bands stay independent per vital.}
 }
 \value{
 Named character vector, one element per distinct site, with values
@@ -36,4 +47,21 @@ Percentages are converted with \code{\link[=round]{round()}}, so small site coun
 gracefully rather than erroring -- 10\% of 3 sites is 0 red sites, not a
 fractional one.
 }
+\section{Persisting bands across snapshots}{
+
+
+Supplying \code{nTotalSites} and \code{strSeedKey} switches allocation from "sample
+the sites I can see" to "assign by rank over the final roster". Sites are
+ranked by first appearance, bands are dealt across \code{nTotalSites} slots, and
+the slot permutation is derived from \code{strSeedKey} rather than the ambient
+RNG. A site therefore keeps its band no matter which snapshot is being
+generated, and sites that enroll later claim unused slots without
+disturbing bands already handed out (#143).
+
+This matters because snapshots are deltas: rows written in an early
+snapshot are frozen, so a site's band has to be right the first time its
+rows are generated. It relies on the site roster being append-only, which
+is what makes rank a stable key.
+}
+
 \keyword{internal}

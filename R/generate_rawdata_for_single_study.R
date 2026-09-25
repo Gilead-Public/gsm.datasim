@@ -199,7 +199,8 @@ generate_snapshots_from_combined_specs <- function(SnapshotCount,
         snapshot_count = SnapshotCount,
         snapshot_width = SnapshotWidth,
         study_id = StudyID,
-        vs_risk_profile = vs_risk_profile
+        vs_risk_profile = vs_risk_profile,
+        total_site_count = max(site_count)
       )
 
       migrated_data <- generate_domain_from_registry(
