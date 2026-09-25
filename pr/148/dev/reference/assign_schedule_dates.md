@@ -26,7 +26,8 @@ assign_schedule_dates(
 - visits:
 
   Data frame carrying the visit schedule, with the group and visit
-  columns plus `visit_dt`.
+  columns plus `visit_dt`. `visit_dt` may be a `Date` or a `"%Y-%m-%d"`
+  character vector; the `Raw_VISIT` generator produces the latter.
 
 - strDateCol:
 
@@ -39,8 +40,9 @@ assign_schedule_dates(
 
 ## Value
 
-`df` with the date column added, sorted by group then date. The sort is
-stable, so repeated records within a visit keep a deterministic order.
+`df` with the date column added as a `Date`, sorted by group then date.
+The sort is stable, so repeated records within a visit keep a
+deterministic order.
 
 ## Details
 
