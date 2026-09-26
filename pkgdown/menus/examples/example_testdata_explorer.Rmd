@@ -41,7 +41,9 @@ if (nzchar(bundle_dir)) {
   cfg <- read_testdata_config(
     bundle_version = "0.0.0", # local preview, not a published version
     participants = 200,
-    sites = 20
+    sites = 20,
+    # use whichever metric packages this machine has (the published bundle uses both)
+    analytics_packages = intersect(c("gsm.kri", "gsm.qtl"), rownames(installed.packages()))
   )
   bundle <- build_testdata_bundle(cfg, output_dir = tempdir(), overwrite = TRUE)
 }
