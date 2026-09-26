@@ -510,33 +510,49 @@ execute_analytics_pipeline <- function(raw_data, config) {
       analytics_wf <- config$study_params$analytics_workflows %||%
         config$analytics_workflows
 
+      # `analytics_package` may name several packages (e.g. gsm.kri + gsm.qtl);
+      # their workflow/2_metrics lists are concatenated.
+      analytics_pkgs <- unique(as.character(analytics_pkg))
+
       # Verify the workflow directory is accessible before calling MakeWorkflowList.
       # system.file() returns "" for packages that are loaded but not installed
       # (e.g. via devtools::load_all()), which would produce the cryptic
       # "[ strPath ] must exist." error from MakeWorkflowList.
-      pkg_wf_path <- system.file("workflow", package = analytics_pkg)
-      if (!nzchar(pkg_wf_path)) {
+      wf_paths <- vapply(analytics_pkgs, function(p) system.file("workflow", package = p), character(1))
+      accessible <- analytics_pkgs[nzchar(wf_paths)]
+      if (!length(accessible)) {
         warning(
           "Analytics pipeline skipped: workflow directory not found in package '",
-          analytics_pkg, "'. ",
+          paste(analytics_pkgs, collapse = "', '"), "'. ",
           "Ensure the package is installed (e.g. remotes::install_github()), ",
           "not just loaded with devtools::load_all()."
         )
         vcat("Analytics pipeline skipped: package workflows not accessible.\n")
         return(NULL)
       }
+      if (length(accessible) < length(analytics_pkgs)) {
+        warning(
+          "Skipping analytics package(s) without accessible workflows: ",
+          paste(setdiff(analytics_pkgs, accessible), collapse = ", ")
+        )
+      }
 
       # Determine workflow configuration once
-      if (!is.null(analytics_wf)) {
-        lWorkflow <- workr::MakeWorkflowList(
-          strPackage = analytics_pkg,
-          strNames   = analytics_wf
-        )
-      } else {
-        lWorkflow <- workr::MakeWorkflowList(
-          strPackage = analytics_pkg,
-          strPath    = "workflow/2_metrics"
-        )
+      lWorkflow <- list()
+      for (pkg in accessible) {
+        pkg_wf <- if (!is.null(analytics_wf)) {
+          workr::MakeWorkflowList(
+            strPackage = pkg,
+            strNames   = analytics_wf,
+            strPath    = "workflow/2_metrics"
+          )
+        } else {
+          workr::MakeWorkflowList(
+            strPackage = pkg,
+            strPath    = "workflow/2_metrics"
+          )
+        }
+        lWorkflow <- c(lWorkflow, pkg_wf)
       }
 
       snapshot_names <- names(raw_data)
