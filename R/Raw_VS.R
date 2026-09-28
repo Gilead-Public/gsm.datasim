@@ -215,7 +215,7 @@ resp <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NUL
 #' Resolve a caller-supplied VS risk profile against the defaults
 #'
 #' @param lRiskProfile Named list, or `NULL` for defaults.
-#' @returns A complete risk profile list.
+#' @returns A complete, validated risk profile list.
 #' @keywords internal
 #' @noRd
 .resolve_vs_risk_profile <- function(lRiskProfile = NULL) {
@@ -225,7 +225,71 @@ resp <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NUL
   if (!is.list(lRiskProfile)) {
     stop("`vs_risk_profile` must be a list or NULL")
   }
-  utils::modifyList(VS_DEFAULT_RISK_PROFILE, lRiskProfile)
+
+  # Catch misspellings against the profile as written.
+  unknown <- setdiff(names(lRiskProfile), names(VS_DEFAULT_RISK_PROFILE))
+  if (length(unknown) > 0) {
+    stop(
+      "vs_risk_profile contains unknown field(s): ",
+      paste(unknown, collapse = ", ")
+    )
+  }
+
+  profile <- utils::modifyList(VS_DEFAULT_RISK_PROFILE, lRiskProfile)
+  .validate_resolved_vs_risk_profile(profile)
+  profile
+}
+
+
+#' Validate a fully-resolved VS risk profile
+#'
+#' Operates on the merged profile, so every field is present.
+#'
+#' @param profile A resolved risk profile list.
+#' @returns `TRUE` invisibly, or an error describing the first problem found.
+#' @keywords internal
+#' @noRd
+.validate_resolved_vs_risk_profile <- function(profile) {
+  is_proportion <- function(x) {
+    is.numeric(x) && length(x) == 1 && !is.na(x) && x >= 0 && x <= 1
+  }
+
+  for (field in c("dPctRed", "dPctAmber", "dRateNormal", "dRateAmber", "dRateRed")) {
+    if (!is_proportion(profile[[field]])) {
+      stop("vs_risk_profile$", field, " must be a single number between 0 and 1")
+    }
+  }
+
+  if (profile$dPctRed + profile$dPctAmber > 1) {
+    stop(
+      "vs_risk_profile$dPctRed + vs_risk_profile$dPctAmber must not exceed 1",
+      " (effective values, after defaults are applied: ",
+      profile$dPctRed, " + ", profile$dPctAmber, ")"
+    )
+  }
+
+  window <- profile$nWindowLength
+  if (!is.numeric(window) || length(window) != 1 || is.na(window) ||
+    window < 2 || window != round(window)) {
+    stop("vs_risk_profile$nWindowLength must be a single whole number >= 2")
+  }
+
+  vitals <- profile$vVitals
+  if (!is.null(vitals)) {
+    if (!is.character(vitals) || length(vitals) == 0) {
+      stop("vs_risk_profile$vVitals must be a non-empty character vector or NULL")
+    }
+    unknown_vitals <- setdiff(vitals, VS_VITALS)
+    if (length(unknown_vitals) > 0) {
+      stop(
+        "vs_risk_profile$vVitals contains unknown vital(s): ",
+        paste(unknown_vitals, collapse = ", "),
+        ". Valid vitals: ", paste(VS_VITALS, collapse = ", ")
+      )
+    }
+  }
+
+  invisible(TRUE)
 }
 
 

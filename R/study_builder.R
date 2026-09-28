@@ -202,91 +202,11 @@ validate_study_config <- function(config) {
     stop("outlier_intensity must be a single non-negative numeric value")
   }
 
-  validate_vs_risk_profile(config$study_params$vs_risk_profile)
+  # Resolving validates; the resolved profile is discarded here because the
+  # generator resolves again from the stored config.
+  .resolve_vs_risk_profile(config$study_params$vs_risk_profile)
 
   return(TRUE)
-}
-
-#' Validate a Raw_VS site-risk profile
-#'
-#' Checks the structure of a `vs_risk_profile` list. `NULL` is valid and means
-#' "use the generator defaults".
-#'
-#' @param profile A risk profile list, or `NULL`.
-#' @returns `TRUE` invisibly, or an error describing the first problem found.
-#' @keywords internal
-#' @noRd
-validate_vs_risk_profile <- function(profile) {
-  if (is.null(profile)) {
-    return(invisible(TRUE))
-  }
-
-  if (!is.list(profile)) {
-    stop("vs_risk_profile must be a list or NULL")
-  }
-
-  known <- c(
-    "dPctRed", "dPctAmber", "nWindowLength",
-    "dRateNormal", "dRateAmber", "dRateRed", "vVitals"
-  )
-  unknown <- setdiff(names(profile), known)
-  if (length(unknown) > 0) {
-    stop(
-      "vs_risk_profile contains unknown field(s): ",
-      paste(unknown, collapse = ", ")
-    )
-  }
-
-  is_proportion <- function(x) {
-    is.numeric(x) && length(x) == 1 && !is.na(x) && x >= 0 && x <= 1
-  }
-
-  for (field in c("dPctRed", "dPctAmber", "dRateNormal", "dRateAmber", "dRateRed")) {
-    value <- profile[[field]]
-    if (!is.null(value) && !is_proportion(value)) {
-      stop("vs_risk_profile$", field, " must be a single number between 0 and 1")
-    }
-  }
-
-  # Check the EFFECTIVE profile, not the one as written. Omitted fields are
-  # filled from `VS_DEFAULT_RISK_PROFILE` by `.resolve_vs_risk_profile()`
-  # before the generator ever sees them, so reading an omitted percentage as 0
-  # here would accept `list(dPctRed = 0.9)` and then fail at generation time
-  # against the resolved 0.9 + 0.2.
-  effective <- .resolve_vs_risk_profile(profile)
-  pct_red <- effective$dPctRed %||% 0
-  pct_amber <- effective$dPctAmber %||% 0
-  if (pct_red + pct_amber > 1) {
-    stop(
-      "vs_risk_profile$dPctRed + vs_risk_profile$dPctAmber must not exceed 1",
-      " (effective values, after defaults are applied: ",
-      pct_red, " + ", pct_amber, ")"
-    )
-  }
-
-  window <- profile$nWindowLength
-  if (!is.null(window) &&
-    (!is.numeric(window) || length(window) != 1 || is.na(window) ||
-      window < 2 || window != round(window))) {
-    stop("vs_risk_profile$nWindowLength must be a single whole number >= 2")
-  }
-
-  vitals <- profile$vVitals
-  if (!is.null(vitals)) {
-    if (!is.character(vitals) || length(vitals) == 0) {
-      stop("vs_risk_profile$vVitals must be a non-empty character vector or NULL")
-    }
-    unknown_vitals <- setdiff(vitals, VS_VITALS)
-    if (length(unknown_vitals) > 0) {
-      stop(
-        "vs_risk_profile$vVitals contains unknown vital(s): ",
-        paste(unknown_vitals, collapse = ", "),
-        ". Valid vitals: ", paste(VS_VITALS, collapse = ", ")
-      )
-    }
-  }
-
-  invisible(TRUE)
 }
 
 #' Create Study Configuration for Standard Datasets

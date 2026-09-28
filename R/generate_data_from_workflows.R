@@ -329,6 +329,8 @@ generate_data_from_workflows <- function(
                                       vs_risk_profile = NULL) {
   data <- list()
 
+  vs_risk_profile <- .resolve_vs_risk_profile(vs_risk_profile)
+
   for (domain in names(combined_specs)) {
     n <- domain_n[[domain]]
     domain_spec <- combined_specs[[domain]]

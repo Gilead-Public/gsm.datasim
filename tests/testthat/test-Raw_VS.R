@@ -512,44 +512,48 @@ test_that("validate_study_config rejects a malformed vs_risk_profile (#143)", {
 # The validator checks the profile as the generator will see it: omitted
 # fields are filled from VS_DEFAULT_RISK_PROFILE before use, so validating the
 # profile as written accepts partial profiles that cannot generate.
-test_that("validate_vs_risk_profile checks the profile after defaults (#143)", {
+test_that(".resolve_vs_risk_profile checks the profile after defaults (#143)", {
   # dPctAmber is omitted, so it resolves to the default 0.2 -- 0.9 + 0.2 > 1.
   expect_error(
-    validate_vs_risk_profile(list(dPctRed = 0.9)),
+    .resolve_vs_risk_profile(list(dPctRed = 0.9)),
     "must not exceed 1"
   )
   # The message reports the effective values, not the written ones.
   expect_error(
-    validate_vs_risk_profile(list(dPctRed = 0.9)),
+    .resolve_vs_risk_profile(list(dPctRed = 0.9)),
     "after defaults are applied"
   )
 
   # Omitting dPctRed is the mirror case: resolves to the default 0.1.
   expect_error(
-    validate_vs_risk_profile(list(dPctAmber = 0.95)),
+    .resolve_vs_risk_profile(list(dPctAmber = 0.95)),
     "must not exceed 1"
   )
 
-  # A partial profile that is still valid once resolved is accepted.
-  expect_true(validate_vs_risk_profile(list(dPctRed = 0.5)))
-  expect_true(validate_vs_risk_profile(list(nWindowLength = 4)))
+  # A partial profile that is still valid once resolved is accepted, and the
+  # omitted fields come back filled from the defaults.
+  expect_equal(
+    .resolve_vs_risk_profile(list(dPctRed = 0.5)),
+    utils::modifyList(VS_DEFAULT_RISK_PROFILE, list(dPctRed = 0.5))
+  )
+  expect_no_error(.resolve_vs_risk_profile(list(nWindowLength = 4)))
 
   # An explicit pair that sums within 1 is unaffected by defaults.
-  expect_true(validate_vs_risk_profile(list(dPctRed = 0.9, dPctAmber = 0.05)))
+  expect_no_error(.resolve_vs_risk_profile(list(dPctRed = 0.9, dPctAmber = 0.05)))
 
   # A misspelled field is caught by name rather than silently ignored.
   expect_error(
-    validate_vs_risk_profile(list(dPctRed = 0.1, dPctRedd = 0.2)),
+    .resolve_vs_risk_profile(list(dPctRed = 0.1, dPctRedd = 0.2)),
     "unknown field\\(s\\): dPctRedd"
   )
 
   # vVitals must be a non-empty character vector; NULL means "all vitals".
   expect_error(
-    validate_vs_risk_profile(list(vVitals = character(0))),
+    .resolve_vs_risk_profile(list(vVitals = character(0))),
     "non-empty character vector"
   )
   expect_error(
-    validate_vs_risk_profile(list(vVitals = 1:3)),
+    .resolve_vs_risk_profile(list(vVitals = 1:3)),
     "non-empty character vector"
   )
 })

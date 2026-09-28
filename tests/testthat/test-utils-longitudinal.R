@@ -73,7 +73,7 @@ test_that("allocate_site_risk errors when red + amber exceeds the site count (#1
 })
 
 # Rounding each band independently can total more than the site count even
-# when the percentages are a profile `validate_vs_risk_profile()` accepts.
+# when the percentages are a profile `.resolve_vs_risk_profile()` accepts.
 test_that("allocate_site_risk caps rounding overshoot rather than erroring (#143)", {
   set.seed(3382)
 

@@ -110,6 +110,9 @@ generate_snapshots_from_combined_specs <- function(SnapshotCount,
                                                    mappings,
                                                    strStartDate = "2012-01-01",
                                                    vs_risk_profile = NULL) {
+  # Resolve up front so a bad profile fails before any snapshot work.
+  vs_risk_profile <- .resolve_vs_risk_profile(vs_risk_profile)
+
   # Generate start and end dates for snapshots
   start_dates <- seq(as.Date(strStartDate), length.out = SnapshotCount, by = SnapshotWidth)
   end_dates <- start_dates + 28

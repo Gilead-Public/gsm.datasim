@@ -950,3 +950,62 @@ test_that("generate_data_from_workflows threads vs_risk_profile to Raw_VS (#143)
   expect_equal(nrow(rates), 5)
   expect_true(all(rates$rate >= 0.30))
 })
+
+test_that("an invalid vs_risk_profile is rejected identically on every route (#143)", {
+  # The rules live in `.resolve_vs_risk_profile()`, which every route passes
+  # through, so a profile must be accepted or rejected the same way whether it
+  # arrives via a study config or via this entry point. Previously only the
+  # config path validated: here the registry error was swallowed by the
+  # `tryCatch()` in `.generate_single_snapshot()`, which treats any failure as
+  # "no registry entry" and quietly fell back to generic generation, handing
+  # back Raw_VS data that ignored the requested profile.
+  vs_workflows <- list(
+    vs = list(spec = list(Raw_VS = make_vs_test_spec()), steps = list())
+  )
+
+  invalid <- list(
+    impossible_pcts  = list(dPctRed = 0.9, dPctAmber = 0.9),
+    misspelled_field = list(dPctRed = 0.1, dPctRedd = 0.2),
+    bad_window       = list(nWindowLength = 1),
+    unknown_vital    = list(vVitals = "glucose")
+  )
+
+  for (profile in invalid) {
+    config_msg <- tryCatch(
+      {
+        validate_study_config(
+          create_study_config("VS-PARITY", vs_risk_profile = profile)
+        )
+        NA_character_
+      },
+      error = conditionMessage
+    )
+
+    workflow_msg <- tryCatch(
+      {
+        generate_data_from_workflows(
+          lWorkflows = vs_workflows,
+          n_participants = 12,
+          n_sites = 3,
+          vs_risk_profile = profile
+        )
+        NA_character_
+      },
+      error = conditionMessage
+    )
+
+    # Both routes must reject, and say the same thing when they do.
+    expect_false(is.na(config_msg))
+    expect_identical(workflow_msg, config_msg)
+  }
+
+  # A valid profile still generates rather than being over-eagerly rejected.
+  expect_no_error(
+    generate_data_from_workflows(
+      lWorkflows = vs_workflows,
+      n_participants = 12,
+      n_sites = 3,
+      vs_risk_profile = list(dPctRed = 0.2, dPctAmber = 0.3)
+    )
+  )
+})
