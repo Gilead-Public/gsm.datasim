@@ -108,3 +108,21 @@ test_that("apply_ipns_derivations returns its input unchanged when unusable", {
     no_subjid
   )
 })
+
+test_that("first dose lags enrollment by 0-14 days and never passes the snapshot date (#157)", {
+  set.seed(6318)
+  end <- as.Date("2012-03-01")
+  res <- enrollyn_enrolldt_timeonstudy_firstparticipantdate_firstdosedate_timeontreatment(
+    n = 2000,
+    startDate = as.Date("2012-01-01"),
+    endDate = end,
+    nonstarter_rate = 0
+  )
+  lag <- as.integer(res$firstdosedate - res$enrolldt)
+  dosed <- !is.na(lag)
+
+  expect_true(all(lag[dosed] >= 0 & lag[dosed] <= 14))
+  expect_true(all(res$firstdosedate[dosed] <= end))
+  expect_true(any(lag[dosed] == 0))
+  expect_true(any(lag[dosed] > 0))
+})

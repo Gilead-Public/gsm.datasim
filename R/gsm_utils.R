@@ -221,6 +221,11 @@ run_domain_generation_loop <- function(combined_specs, config, source_domains) {
         data$Raw_SUBJ,
         endDate = end_dates[[snapshot_idx]]
       )
+      data$Raw_STUDCOMP <- apply_ipns_studcomp(
+        data$Raw_STUDCOMP,
+        data$Raw_SUBJ,
+        endDate = end_dates[[snapshot_idx]]
+      )
     }
     if ("Raw_IE" %in% names(data)) {
       unenrolled <- data$Raw_SUBJ %>%

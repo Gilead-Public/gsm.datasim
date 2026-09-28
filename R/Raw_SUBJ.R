@@ -160,7 +160,7 @@ race <- function(n, ...) {
 }
 #' Derive the upstream IP non-starter contract fields
 #'
-#' Impersonates the Stride derivation so simulated data carries the same six
+#' Impersonates the Stride derivation so simulated data carries the same seven
 #' fields production data will. gsm never computes these outside the simulator.
 #'
 #' Runs over the whole frame on every snapshot, so days lapsed re-accrue and an
@@ -173,14 +173,16 @@ race <- function(n, ...) {
 #' @param endDate the snapshot date, acting as "today".
 #' @param nWindowDays days separating the two potential statuses.
 #' @param nConfirmedShare share of never-dosed subjects that are Confirmed.
-#' @returns `df` with the six `drv_*` columns.
+#' @param nKitAssignedShare share of never-dosed subjects with a kit assigned.
+#' @returns `df` with the seven `drv_*` columns.
 #' @keywords internal
 #' @noRd
 apply_ipns_derivations <- function(
   df,
   endDate,
   nWindowDays = 30,
-  nConfirmedShare = 0.4
+  nConfirmedShare = 0.4,
+  nKitAssignedShare = 0.5
 ) {
   if (is.null(df) || nrow(df) == 0 || !("subjid" %in% names(df))) {
     return(df)
@@ -206,7 +208,8 @@ apply_ipns_derivations <- function(
 
   # subjid() draws each subject's number uniformly at random, so its last two
   # digits bucket subjects faithfully and stay stable across snapshots.
-  bucket <- as.integer(sub("^S", "", df$subjid)) %% 100L
+  id <- as.integer(sub("^S", "", df$subjid))
+  bucket <- id %% 100L
   confirmed <- undosed & bucket < round(nConfirmedShare * 100)
 
   df$drv_ip_nonstarter_status <- dplyr::case_when(
@@ -218,8 +221,20 @@ apply_ipns_derivations <- function(
     TRUE ~ "Potential Non-Starter within window"
   )
 
+  # Dosing implies a kit. For the rest, the hundreds and thousands digits keep
+  # kit assignment independent of the Confirmed bucket.
+  df$drv_kit_assigned <- dplyr::case_when(
+    !enrolled ~ NA_character_,
+    dosed | (id %/% 100L) %% 100L < round(nKitAssignedShare * 100) ~ "Y",
+    TRUE ~ "N"
+  )
+
   df
 }
+
+# Named after the spec column so add_new_var_data() calls it instead of the
+# RNG-consuming type fallback; apply_ipns_derivations() fills in the value.
+drv_kit_assigned <- function(n, ...) rep(NA_character_, n)
 
 enrollyn_enrolldt_timeonstudy_firstparticipantdate_firstdosedate_timeontreatment <- function(n, startDate, endDate, nonstarter_rate = 0.1, ...) {
   enrollyn_dat <- enrollyn(n, ...)
@@ -227,7 +242,11 @@ enrollyn_enrolldt_timeonstudy_firstparticipantdate_firstdosedate_timeontreatment
   timeonstudy_dat <- timeonstudy(n, enrolldt_dat, endDate, ...)
 
   firstparticipantdate_dat <- enrolldt_dat
-  firstdosedate_dat <- enrolldt_dat
+  # A short lag that includes same-day dosing, capped at the snapshot date.
+  firstdosedate_dat <- pmin(
+    enrolldt_dat + sample(0:14, n, replace = TRUE),
+    as.Date(endDate)
+  )
   timeontreatment_dat <- timeonstudy_dat
 
   # IP non-starter scenario (#122): a deterministic subset of enrolled subjects

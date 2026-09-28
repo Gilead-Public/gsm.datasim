@@ -23,7 +23,8 @@ Raw_STUDCOMP <- function(data, previous_data, spec, startDate, ...) {
   }
 
   n <- inps$n - previous_row_num
-  if (n == 0) {
+  # Appended Confirmed non-starter rows can push previous data past the target.
+  if (n <= 0) {
     return(dataset)
   }
 
@@ -107,4 +108,68 @@ compreas <- function(n, ...) {
 
 completion_date <- function(n, ...) {
   rep(as.Date(Sys.Date()), n)
+}
+
+#' Align Raw_STUDCOMP with the simulated IP non-starter status
+#'
+#' Confirmed non-starters need a completion record, Potential non-starters
+#' carry no completion value, and a reason accompanies `compyn == "N"` only.
+#' Every rule is a
+#' function of `subjid` and only rows that break a rule are rewritten, so rows
+#' carried into later snapshots stay unchanged.
+#'
+#' @param studcomp a `Raw_STUDCOMP` frame, or `NULL`.
+#' @param subj the same snapshot's `Raw_SUBJ` after [apply_ipns_derivations()].
+#' @param endDate the snapshot date.
+#' @param nConsentWithdrawnShare share of Confirmed non-starters whose reason
+#'   is consent withdrawal; the rest are lost to follow-up.
+#' @returns `studcomp` with aligned rows plus one row per Confirmed subject
+#'   that had none.
+#' @keywords internal
+#' @noRd
+apply_ipns_studcomp <- function(studcomp, subj, endDate, nConsentWithdrawnShare = 0.3) {
+  if (is.null(studcomp) || is.null(subj) || !("drv_ip_nonstarter_status" %in% names(subj))) {
+    return(studcomp)
+  }
+
+  confirmed <- subj$subjid[subj$drv_ip_nonstarter_status %in% "Confirmed Non-Starter"]
+  missing <- setdiff(confirmed, studcomp$subjid)
+  if (length(missing) > 0) {
+    studcomp <- dplyr::bind_rows(
+      studcomp,
+      subj[match(missing, subj$subjid), c("studyid", "invid", "subjid")]
+    )
+  }
+
+  i <- match(studcomp$subjid, subj$subjid)
+  status <- subj$drv_ip_nonstarter_status[i]
+  id <- as.integer(sub("^S", "", studcomp$subjid))
+  blank <- is.na(studcomp$compreas) | studcomp$compreas == ""
+  confirmed <- status %in% "Confirmed Non-Starter"
+  potential <- grepl("^Potential", status)
+  dosed <- status %in% "Dosed"
+
+  # complete_death() turns a "Death" reason into a death record, so a
+  # never-dosed subject never gets one.
+  studcomp$compyn[confirmed] <- "N"
+  fix <- confirmed & (blank | studcomp$compreas %in% "Death")
+  studcomp$compreas[fix] <- ifelse(
+    (id[fix] %/% 1000L) %% 100L < round(nConsentWithdrawnShare * 100),
+    "Withdrew Consent",
+    "Lost to Follow-Up"
+  )
+
+  studcomp$compyn[potential] <- NA_character_
+  studcomp$compreas[potential] <- ""
+
+  fix <- dosed & studcomp$compyn %in% "N" & blank
+  studcomp$compreas[fix] <- c("Lost to Follow-Up", "Death", "Withdrew Consent")[(id[fix] %/% 10L) %% 3L + 1L]
+  studcomp$compreas[dosed & !(studcomp$compyn %in% "N")] <- ""
+
+  anchor <- dplyr::coalesce(subj$drv_ip_first_dose_dt[i], subj$drv_enrollment_dt[i])
+  created <- as.Date(studcomp$mincreated_dts)
+  fix <- !is.na(status) & (is.na(created) | created < anchor | created > as.Date(endDate))
+  studcomp$mincreated_dts[fix] <- as.POSIXct(pmin(anchor[fix] + id[fix] %% 15L, as.Date(endDate)))
+
+  studcomp
 }
