@@ -269,3 +269,70 @@ enrollyn_enrolldt_timeonstudy_firstparticipantdate_firstdosedate_timeontreatment
     timeontreatment = timeontreatment_dat
   ))
 }
+
+# Reasons a dosed subject stops treatment early; no drug name or phase.
+ptd_reason_values <- c(
+  "Adverse Event",
+  "Lack of Efficacy",
+  "Physician Decision",
+  "Withdrawal by Subject",
+  "Protocol Deviation",
+  "Progressive Disease",
+  "Lost to Follow-up"
+)
+
+#' Derive the upstream premature treatment discontinuation fields
+#'
+#' Impersonates the Stride derivation of the three PTD fields. Every rule is a
+#' function of the `subjid` digits, so a date or reason never changes once
+#' present and the derivation makes no RNG draw. Separate digits drive separate
+#' rules so the scenarios do not co-vary.
+#'
+#' @param df a `Raw_SUBJ` frame after [apply_ipns_derivations()].
+#' @param endDate the snapshot date; planned dates after it stay `NA`.
+#' @param nDiscontinuedShare share of dosed subjects who discontinue.
+#' @returns `df` with the three PTD `drv_*` columns.
+#' @keywords internal
+#' @noRd
+apply_ptd_derivations <- function(df, endDate, nDiscontinuedShare = 0.3) {
+  if (is.null(df) || nrow(df) == 0 || !("drv_ip_dosed" %in% names(df))) {
+    return(df)
+  }
+
+  k <- as.integer(sub("^S", "", df$subjid))
+  dosed <- df$drv_ip_dosed %in% "Y"
+  discontinuing <- dosed & (k %/% 100L) %% 100L < round(nDiscontinuedShare * 100)
+  lag <- ifelse(k %% 10L < 3L, 0L, 1L + (k %/% 10L) %% 27L)
+  planned <- df$drv_ip_first_dose_dt + lag
+  dated <- discontinuing & planned <= as.Date(endDate)
+
+  first <- ptd_reason_values[k %% 7L + 1L]
+  second <- ptd_reason_values[(k %% 7L + 1L + (k %/% 7L) %% 6L) %% 7L + 1L]
+  shape <- (k %/% 10L) %% 100L
+  reason <- dplyr::case_when(
+    shape < 10L ~ NA_character_,
+    shape < 25L ~ paste(first, second, sep = ", "),
+    TRUE ~ first
+  )
+
+  df$drv_treatment_discontinuation_dt <- dplyr::if_else(dated, planned, as.Date(NA))
+  # A reason without a date is a real delivery shape; the metric ignores it.
+  df$drv_premature_discontinuation_reason <- dplyr::case_when(
+    dated ~ reason,
+    dosed & !discontinuing & k %% 100L >= 97L ~ first,
+    TRUE ~ NA_character_
+  )
+  df$drv_days_lapsed_enrl_discontinuation <- ifelse(
+    dated,
+    as.integer(df$drv_treatment_discontinuation_dt - df$drv_enrollment_dt) + 1L,
+    NA_integer_
+  )
+
+  df
+}
+
+# Named after the spec columns so add_new_var_data() skips the RNG-consuming
+# type fallback; apply_ptd_derivations() fills in the values.
+drv_treatment_discontinuation_dt <- function(n, ...) rep(as.Date(NA), n)
+drv_premature_discontinuation_reason <- function(n, ...) rep(NA_character_, n)
+drv_days_lapsed_enrl_discontinuation <- function(n, ...) rep(NA_integer_, n)
