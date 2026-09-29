@@ -114,6 +114,7 @@ completion_date <- function(n, ...) {
 #'
 #' Adds missing Confirmed records with `compyn = "N"`, clears Potential
 #' completion values, and repairs reasons and timestamps without RNG draws.
+#' Frames whose columns carry `source_col` names pass through unchanged.
 #'
 #' @param studcomp A `Raw_STUDCOMP` frame, or `NULL`.
 #' @param subj The snapshot's `Raw_SUBJ` after [apply_ipns_derivations()].
@@ -124,7 +125,8 @@ completion_date <- function(n, ...) {
 #' @keywords internal
 #' @noRd
 apply_ipns_studcomp <- function(studcomp, subj, endDate, nConsentWithdrawnShare = 0.3) {
-  if (is.null(studcomp) || is.null(subj) || !("drv_ip_nonstarter_status" %in% names(subj))) {
+  if (!all(c("subjid", "compyn", "compreas", "mincreated_dts") %in% names(studcomp)) ||
+    !("drv_ip_nonstarter_status" %in% names(subj))) {
     return(studcomp)
   }
 

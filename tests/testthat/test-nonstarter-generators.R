@@ -269,6 +269,16 @@ test_that("a study without completion records passes through (#157)", {
   expect_null(apply_ipns_studcomp(NULL, subj, as.Date("2025-03-15")))
 })
 
+test_that("completion records with source_col-renamed columns pass through unchanged (#157)", {
+  subj <- apply_ipns_derivations(make_subj(), as.Date("2025-03-15"), nConfirmedShare = 1)
+  for (col in c("subjid", "compyn", "compreas", "mincreated_dts")) {
+    studcomp <- make_studcomp()
+    names(studcomp)[names(studcomp) == col] <- toupper(col)
+
+    expect_identical(apply_ipns_studcomp(studcomp, subj, as.Date("2025-03-15")), studcomp)
+  }
+})
+
 test_that("apply_ipns_studcomp draws no random numbers (#157)", {
   set.seed(1)
   seed <- .Random.seed
