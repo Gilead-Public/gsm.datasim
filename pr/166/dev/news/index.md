@@ -2,22 +2,12 @@
 
 ## gsm.datasim (development version)
 
-- `Raw_SUBJ` now carries six simulated `drv_*` IP non-starter fields
-  (`drv_enrollment_dt`, `drv_ip_dosed`, `drv_ip_first_dose_dt`,
-  `drv_enrl_first_dose_days`, `drv_days_lapsed_since_enrl`,
-  `drv_ip_nonstarter_status`), impersonating the upstream Stride
-  contract gsm now consumes rather than derives
+- Added simulated IP non-starter scenarios for IP Compliance reporting
   ([\#140](https://github.com/Gilead-Public/gsm.datasim/issues/140)).
-- `Raw_SUBJ` also carries `drv_kit_assigned`, first doses now follow
-  enrollment by up to 14 days, and `Raw_STUDCOMP` agrees with the IP
-  non-starter status: every Confirmed non-starter has a completion
-  record, Potential non-starters carry no completion value, and a reason
-  accompanies `compyn == "N"` only
+- Added kit assignment scenarios, more realistic dosing timelines, and
+  consistent study completion records
   ([\#157](https://github.com/Gilead-Public/gsm.datasim/issues/157)).
-- `Raw_SUBJ` carries three simulated premature treatment discontinuation
-  fields (`drv_treatment_discontinuation_dt`,
-  `drv_premature_discontinuation_reason`,
-  `drv_days_lapsed_enrl_discontinuation`) for dosed subjects
+- Added simulated premature treatment discontinuation scenarios
   ([\#138](https://github.com/Gilead-Public/gsm.datasim/issues/138)).
 
 ## gsm.datasim v2.0.0
