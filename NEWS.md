@@ -1,10 +1,9 @@
 # gsm.datasim (development version)
 
-- `Raw_SUBJ` now carries six simulated `drv_*` IP non-starter fields
-  (`drv_enrollment_dt`, `drv_ip_dosed`, `drv_ip_first_dose_dt`,
-  `drv_enrl_first_dose_days`, `drv_days_lapsed_since_enrl`,
-  `drv_ip_nonstarter_status`), impersonating the upstream Stride contract
-  gsm now consumes rather than derives (#140).
+- Added simulated IP non-starter scenarios for IP Compliance reporting (#140).
+- Added kit assignment scenarios, more realistic dosing timelines, and
+  consistent study completion records (#157).
+- Added simulated premature treatment discontinuation scenarios (#138).
 
 # gsm.datasim v2.0.0
 

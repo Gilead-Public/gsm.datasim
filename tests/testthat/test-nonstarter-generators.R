@@ -82,11 +82,11 @@ test_that("Confirmed outranks either window status (#140)", {
   )
 })
 
-test_that("non-enrolled subjects carry NA in every drv_ field (#140)", {
+test_that("non-enrolled subjects carry NA in every drv_ field (#140, #157)", {
   res <- apply_ipns_derivations(make_subj(), endDate = as.Date("2025-03-15"))
   drv <- grep("^drv_", names(res), value = TRUE)
 
-  expect_length(drv, 6)
+  expect_true("drv_kit_assigned" %in% drv)
   expect_true(all(vapply(
     drv,
     function(col) is.na(res[[col]][[4]]),
@@ -162,4 +162,131 @@ test_that("the Confirmed draw honours nConfirmedShare (#140)", {
     0.4,
     tolerance = 0.05
   )
+})
+
+test_that("kit assignment is Y for every dosed subject and NA when not enrolled (#157)", {
+  none <- apply_ipns_derivations(make_subj(), as.Date("2025-03-15"), nKitAssignedShare = 0)
+  every <- apply_ipns_derivations(make_subj(), as.Date("2025-03-15"), nKitAssignedShare = 1)
+
+  expect_equal(none$drv_kit_assigned, c("Y", "N", "N", NA))
+  expect_equal(every$drv_kit_assigned, c("Y", "Y", "Y", NA))
+})
+
+test_that("kit assignment does not change with the snapshot date (#157)", {
+  expect_identical(
+    apply_ipns_derivations(make_subj(), as.Date("2025-03-15"))$drv_kit_assigned,
+    apply_ipns_derivations(make_subj(), as.Date("2025-09-15"))$drv_kit_assigned
+  )
+})
+
+test_that("the kit share among undosed subjects honours nKitAssignedShare (#157)", {
+  df <- data.frame(
+    subjid = paste0("S", sprintf("%03d", seq_len(10000))),
+    enrollyn = "Y",
+    enrolldt = as.Date("2025-01-01"),
+    firstdosedate = as.Date(NA),
+    stringsAsFactors = FALSE
+  )
+
+  res <- apply_ipns_derivations(df, as.Date("2025-06-01"), nKitAssignedShare = 0.5)
+
+  expect_equal(mean(res$drv_kit_assigned == "Y"), 0.5, tolerance = 0.05)
+})
+
+test_that("each Confirmed non-starter gets a completion record with compyn N and a non-Death reason (#157)", {
+  subj <- apply_ipns_derivations(make_subj(), as.Date("2025-03-15"), nConfirmedShare = 1)
+  res <- apply_ipns_studcomp(make_studcomp(), subj, as.Date("2025-03-15"))
+  conf <- res[res$subjid %in% c("S2", "S3"), ]
+
+  expect_setequal(conf$subjid, c("S2", "S3"))
+  expect_equal(conf$compyn, c("N", "N"))
+  expect_true(all(conf$compreas %in% c("Withdrew Consent", "Lost to Follow-Up")))
+  expect_equal(conf$invid, c("I1", "I1"))
+})
+
+test_that("Potential non-starters keep a blank completion value and reason (#157)", {
+  subj <- apply_ipns_derivations(make_subj(), as.Date("2025-03-15"), nConfirmedShare = 0)
+  studcomp <- make_studcomp()
+  studcomp$compyn[2] <- "Y"
+  res <- apply_ipns_studcomp(studcomp, subj, as.Date("2025-03-15"))
+
+  expect_true(is.na(res$compyn[res$subjid == "S2"]))
+  expect_equal(res$compreas[res$subjid == "S2"], "")
+  expect_false("S3" %in% res$subjid)
+})
+
+test_that("a dosed subject has a reason exactly when compyn is N, NA reasons included (#157)", {
+  subj <- apply_ipns_derivations(make_subj(), as.Date("2025-03-15"))
+  completed <- apply_ipns_studcomp(make_studcomp(), subj, as.Date("2025-03-15"))
+  studcomp <- make_studcomp()
+  studcomp$compyn[1] <- "N"
+  studcomp$compreas[1] <- NA
+  discontinued <- apply_ipns_studcomp(studcomp, subj, as.Date("2025-03-15"))
+
+  expect_equal(completed$compreas[completed$subjid == "S1"], "")
+  expect_true(discontinued$compreas[discontinued$subjid == "S1"] %in%
+    c("Lost to Follow-Up", "Death", "Withdrew Consent"))
+})
+
+test_that("completion records of non-enrolled subjects are left untouched (#157)", {
+  subj <- apply_ipns_derivations(make_subj(), as.Date("2025-03-15"))
+  res <- apply_ipns_studcomp(make_studcomp(), subj, as.Date("2025-03-15"))
+
+  expect_equal(res[res$subjid == "S4", ], make_studcomp()[3, ], ignore_attr = TRUE)
+})
+
+test_that("completion records fall between the subject's anchor and the snapshot date (#157)", {
+  subj <- apply_ipns_derivations(make_subj(), as.Date("2025-03-15"), nConfirmedShare = 1)
+  res <- apply_ipns_studcomp(make_studcomp(), subj, as.Date("2025-03-15"))
+  created <- setNames(as.Date(res$mincreated_dts), res$subjid)
+
+  expect_equal(created[["S1"]], as.Date("2025-01-06")) # before first dose: moved
+  expect_equal(created[["S2"]], as.Date("2025-01-01")) # in range: kept
+  expect_equal(created[["S3"]], as.Date("2025-03-04")) # appended
+})
+
+test_that("a second pass changes nothing (#157)", {
+  subj <- apply_ipns_derivations(make_subj(), as.Date("2025-03-15"), nConfirmedShare = 1)
+  once <- apply_ipns_studcomp(make_studcomp(), subj, as.Date("2025-03-15"))
+
+  expect_identical(apply_ipns_studcomp(once, subj, as.Date("2025-03-15")), once)
+})
+
+test_that("nConsentWithdrawnShare decides the Confirmed reason (#157)", {
+  subj <- apply_ipns_derivations(make_subj(), as.Date("2025-03-15"), nConfirmedShare = 1)
+  reasons <- function(share) {
+    res <- apply_ipns_studcomp(make_studcomp(), subj, as.Date("2025-03-15"), nConsentWithdrawnShare = share)
+    res$compreas[res$subjid %in% c("S2", "S3")]
+  }
+
+  expect_equal(reasons(1), rep("Withdrew Consent", 2))
+  expect_equal(reasons(0), rep("Lost to Follow-Up", 2))
+})
+
+test_that("a study without completion records passes through (#157)", {
+  subj <- apply_ipns_derivations(make_subj(), as.Date("2025-03-15"))
+
+  expect_null(apply_ipns_studcomp(NULL, subj, as.Date("2025-03-15")))
+})
+
+test_that("completion records with source_col-renamed columns pass through unchanged (#157)", {
+  subj <- apply_ipns_derivations(make_subj(), as.Date("2025-03-15"), nConfirmedShare = 1)
+  for (col in c("subjid", "compyn", "compreas", "mincreated_dts")) {
+    studcomp <- make_studcomp()
+    names(studcomp)[names(studcomp) == col] <- toupper(col)
+
+    expect_identical(apply_ipns_studcomp(studcomp, subj, as.Date("2025-03-15")), studcomp)
+  }
+})
+
+test_that("apply_ipns_studcomp draws no random numbers (#157)", {
+  set.seed(1)
+  seed <- .Random.seed
+
+  apply_ipns_studcomp(
+    make_studcomp(),
+    apply_ipns_derivations(make_subj(), as.Date("2025-03-15"), nConfirmedShare = 1),
+    as.Date("2025-03-15")
+  )
+  expect_identical(.Random.seed, seed)
 })
