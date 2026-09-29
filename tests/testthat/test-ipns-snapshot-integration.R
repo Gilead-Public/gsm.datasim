@@ -189,6 +189,7 @@ test_that("the legacy and config-native generation paths produce the same drv_ c
     drv_premature_discontinuation_reason = "character",
     drv_days_lapsed_enrl_discontinuation = "integer"
   )
+  expect_setequal(legacy_drv, names(expected_types))
   for (col in names(expected_types)) {
     expect_type(legacy_subj[[col]], expected_types[[col]])
     expect_type(config_subj[[col]], expected_types[[col]])
