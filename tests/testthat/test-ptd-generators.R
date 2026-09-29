@@ -1,5 +1,4 @@
-# Dosed subjects S1..Sn, enrolled 2025-01-01 and dosed 0-4 days later; n = 10000
-# spreads subjids evenly over every digit bucket the derivation reads.
+# The default 10,000 sequential subject IDs cover every digit bucket used by the derivation.
 make_dosed_subj <- function(n = 10000) {
   df <- data.frame(
     studyid = "X",

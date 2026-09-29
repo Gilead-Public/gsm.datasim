@@ -242,7 +242,6 @@ enrollyn_enrolldt_timeonstudy_firstparticipantdate_firstdosedate_timeontreatment
   timeonstudy_dat <- timeonstudy(n, enrolldt_dat, endDate, ...)
 
   firstparticipantdate_dat <- enrolldt_dat
-  # A short lag that includes same-day dosing, capped at the snapshot date.
   firstdosedate_dat <- pmin(
     enrolldt_dat + sample(0:14, n, replace = TRUE),
     as.Date(endDate)
@@ -270,7 +269,7 @@ enrollyn_enrolldt_timeonstudy_firstparticipantdate_firstdosedate_timeontreatment
   ))
 }
 
-# Reasons a dosed subject stops treatment early; no drug name or phase.
+# Reasons must not include drug names or phases.
 ptd_reason_values <- c(
   "Adverse Event",
   "Lack of Efficacy",

@@ -195,8 +195,7 @@ test_that("the legacy and config-native generation paths produce the same drv_ c
   }
 })
 
-# Same seed, size and snapshots as gsm.core's data-raw/simulate_longitudinal_data.R,
-# so the scenarios the regenerated lSource must carry are proven here first.
+# Same seed, size and snapshots as gsm.core's data-raw/simulate_longitudinal_data.R.
 core_shaped_run <- local({
   run <- NULL
   function() {

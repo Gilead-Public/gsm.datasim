@@ -14,8 +14,7 @@ make_subj <- function() {
   )
 }
 
-# Completion records for make_subj(): S1 (dosed) completed with a Death reason on
-# a date before its first dose; S2 has a blank record; S4 is not enrolled; S3 has none.
+# Includes inconsistent completion values, a pre-dose timestamp, and a missing record.
 make_studcomp <- function() {
   data.frame(
     studyid = "X",
