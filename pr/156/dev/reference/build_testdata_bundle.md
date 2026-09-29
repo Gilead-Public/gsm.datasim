@@ -51,6 +51,9 @@ folder), `manifest` (the parsed `manifest.json`), `config`, and `study`
         analytics/    Analysis_<metric>_<table>.parquet / .csv
         reporting/    Reporting_*.parquet / .csv
 
+Snapshots are cumulative: all snapshots are simulated in one run, so the
+subjects, sites and rows of one snapshot persist in the next.
+
 The two edits the original maintainer script applied silently are
 explicit, configurable steps: `Raw_SITE$site_status` is forced to
 `config$post_processing$site_status` on every snapshot, and

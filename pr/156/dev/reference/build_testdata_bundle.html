@@ -106,6 +106,8 @@ folder), <code>manifest</code> (the parsed <code>manifest.json</code>), <code>co
 <span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>    mapped<span class="sc">/</span>       Mapped_<span class="sc">*</span>.parquet <span class="sc">/</span> .csv</span>
 <span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>    analytics<span class="sc">/</span>    Analysis_<span class="sc">&lt;</span>metric<span class="sc">&gt;</span>_<span class="sc">&lt;</span>table<span class="sc">&gt;</span>.parquet <span class="sc">/</span> .csv</span>
 <span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>    reporting<span class="sc">/</span>    Reporting_<span class="sc">*</span>.parquet <span class="sc">/</span> .csv</span></code></pre><p></p></div>
+<p>Snapshots are cumulative: all snapshots are simulated in one run, so the
+subjects, sites and rows of one snapshot persist in the next.</p>
 <p>The two edits the original maintainer script applied silently are explicit,
 configurable steps: <code>Raw_SITE$site_status</code> is forced to
 <code>config$post_processing$site_status</code> on every snapshot, and <code>SnapshotDate</code>
