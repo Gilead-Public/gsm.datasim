@@ -6,6 +6,10 @@
   `drv_ip_nonstarter_status`), impersonating the upstream Stride contract
   gsm now consumes rather than derives (#140).
 
+## Bug Fixes
+
+- `create_longitudinal_study()` / `generate_study_snapshots()` no longer generate independent single-snapshot studies. Snapshots are now produced by a single generation pass so each snapshot receives the previous one as `previous_data`, preserving subject, site, and enrollment continuity and letting exposure accumulate across snapshots (#165).
+
 # gsm.datasim v2.0.0
 
 This major release introduces a composable study builder API, longitudinal multi-snapshot study support, workflow-driven data generation, a domain registry, and parquet export. Analytics and reporting are now powered by the `workr` workflow engine.
