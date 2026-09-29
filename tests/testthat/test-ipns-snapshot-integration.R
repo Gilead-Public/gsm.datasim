@@ -266,6 +266,20 @@ test_that("a core-shaped run carries every IP non-starter scenario the IP Compli
   }
 })
 
+test_that("time on treatment runs to the latest snapshot date for carried-forward subjects (#157)", {
+  test_at_log_threshold()
+  skip_if_not_installed("gsm.mapping")
+  snaps <- core_shaped_run()
+  subj <- snaps[[3]]$Raw_SUBJ
+  carried <- subj$subjid %in% snaps[[1]]$Raw_SUBJ$subjid & !is.na(subj$firstdosedate)
+
+  expect_true(any(carried))
+  expect_equal(
+    subj$timeontreatment[carried],
+    as.integer(as.Date(names(snaps)[[3]]) - subj$firstdosedate[carried])
+  )
+})
+
 native_subj_config <- function(study_id, participant_count, snapshot_count) {
   config <- create_standard_study_config(
     study_id,

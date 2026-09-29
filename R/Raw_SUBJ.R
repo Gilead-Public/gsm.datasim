@@ -67,6 +67,7 @@ Raw_SUBJ <- function(data, previous_data, spec, startDate, endDate, ...) {
 
   # Recalculate for all data
   res$timeonstudy <- timeonstudy(n, res$enrolldt, endDate)
+  res$timeontreatment <- as.integer(as.Date(endDate) - res$firstdosedate)
 
   return(res)
 }
