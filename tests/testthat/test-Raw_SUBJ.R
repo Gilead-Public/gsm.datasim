@@ -126,3 +126,16 @@ test_that("first dose lags enrollment by 0-14 days and never passes the snapshot
   expect_true(any(lag[dosed] == 0))
   expect_true(any(lag[dosed] > 0))
 })
+
+test_that("time on treatment counts from first dose and is NA when never dosed (#157)", {
+  set.seed(6318)
+  end <- as.Date("2012-03-01")
+  res <- enrollyn_enrolldt_timeonstudy_firstparticipantdate_firstdosedate_timeontreatment(
+    n = 200,
+    startDate = as.Date("2012-01-01"),
+    endDate = end
+  )
+
+  expect_equal(res$timeontreatment, as.integer(end - res$firstdosedate))
+  expect_true(any(is.na(res$timeontreatment) & !is.na(res$enrolldt)))
+})

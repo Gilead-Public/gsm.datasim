@@ -246,7 +246,6 @@ enrollyn_enrolldt_timeonstudy_firstparticipantdate_firstdosedate_timeontreatment
     enrolldt_dat + sample(0:14, n, replace = TRUE),
     as.Date(endDate)
   )
-  timeontreatment_dat <- timeonstudy_dat
 
   # IP non-starter scenario (#122): a deterministic subset of enrolled subjects
   # are enrolled but never dosed, so their firstdosedate is NA. Drawn after the
@@ -258,6 +257,7 @@ enrollyn_enrolldt_timeonstudy_firstparticipantdate_firstdosedate_timeontreatment
     nonstarter_idx <- sample(enrolled_idx, size = k, replace = FALSE)
     firstdosedate_dat[nonstarter_idx] <- as.Date(NA)
   }
+  timeontreatment_dat <- as.integer(as.Date(endDate) - firstdosedate_dat)
 
   return(list(
     enrollyn = enrollyn_dat,
