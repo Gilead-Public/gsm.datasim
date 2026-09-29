@@ -110,21 +110,17 @@ completion_date <- function(n, ...) {
   rep(as.Date(Sys.Date()), n)
 }
 
-#' Align Raw_STUDCOMP with the simulated IP non-starter status
+#' Align study completion with IP non-starter status
 #'
-#' Confirmed non-starters need a completion record, Potential non-starters
-#' carry no completion value, and a reason accompanies `compyn == "N"` only.
-#' Every rule is a
-#' function of `subjid` and only rows that break a rule are rewritten, so rows
-#' carried into later snapshots stay unchanged.
+#' Adds missing Confirmed records with `compyn = "N"`, clears Potential
+#' completion values, and repairs reasons and timestamps without RNG draws.
 #'
-#' @param studcomp a `Raw_STUDCOMP` frame, or `NULL`.
-#' @param subj the same snapshot's `Raw_SUBJ` after [apply_ipns_derivations()].
-#' @param endDate the snapshot date.
-#' @param nConsentWithdrawnShare share of Confirmed non-starters whose reason
-#'   is consent withdrawal; the rest are lost to follow-up.
-#' @returns `studcomp` with aligned rows plus one row per Confirmed subject
-#'   that had none.
+#' @param studcomp A `Raw_STUDCOMP` frame, or `NULL`.
+#' @param subj The snapshot's `Raw_SUBJ` after [apply_ipns_derivations()].
+#' @param endDate Snapshot date.
+#' @param nConsentWithdrawnShare Share of replacement Confirmed reasons set
+#'   to "Withdrew Consent"; otherwise "Lost to Follow-Up".
+#' @returns Aligned `studcomp`, including missing Confirmed records, or `NULL`.
 #' @keywords internal
 #' @noRd
 apply_ipns_studcomp <- function(studcomp, subj, endDate, nConsentWithdrawnShare = 0.3) {

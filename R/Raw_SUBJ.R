@@ -281,17 +281,16 @@ ptd_reason_values <- c(
   "Lost to Follow-up"
 )
 
-#' Derive the upstream premature treatment discontinuation fields
+#' Derive premature treatment discontinuation fields
 #'
-#' Impersonates the Stride derivation of the three PTD fields. Every rule is a
-#' function of the `subjid` digits, so a date or reason never changes once
-#' present and the derivation makes no RNG draw. Separate digits drive separate
-#' rules so the scenarios do not co-vary.
+#' Uses subject IDs and first-dose dates without RNG draws. With unchanged
+#' inputs and settings, dates and reasons remain stable across snapshots.
 #'
-#' @param df a `Raw_SUBJ` frame after [apply_ipns_derivations()].
-#' @param endDate the snapshot date; planned dates after it stay `NA`.
-#' @param nDiscontinuedShare share of dosed subjects who discontinue.
-#' @returns `df` with the three PTD `drv_*` columns.
+#' @param df A `Raw_SUBJ` frame after [apply_ipns_derivations()].
+#' @param endDate Snapshot date; future discontinuation dates remain `NA`.
+#' @param nDiscontinuedShare Target share of dosed subjects selected to discontinue.
+#' @returns `df` with discontinuation date, reason and inclusive days
+#'   from enrollment to discontinuation.
 #' @keywords internal
 #' @noRd
 apply_ptd_derivations <- function(df, endDate, nDiscontinuedShare = 0.3) {
