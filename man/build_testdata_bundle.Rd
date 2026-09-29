@@ -42,6 +42,9 @@ writes the result as a versioned bundle:
     reporting/    Reporting_*.parquet / .csv
 }\if{html}{\out{</div>}}
 
+Snapshots are cumulative: all snapshots are simulated in one run, so the
+subjects, sites and rows of one snapshot persist in the next.
+
 The two edits the original maintainer script applied silently are explicit,
 configurable steps: \code{Raw_SITE$site_status} is forced to
 \code{config$post_processing$site_status} on every snapshot, and \code{SnapshotDate}

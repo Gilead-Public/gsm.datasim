@@ -38,6 +38,29 @@ test_that("the two silent gsm.core post-processing edits are applied explicitly 
   }
 })
 
+test_that("snapshots are cumulative: earlier subjects, sites and rows persist in later snapshots (#151)", {
+  bundle <- local_tiny_bundle()
+  snaps <- as.character(bundle$config$snapshot_dates)
+  first <- snaps[[1]]
+  last <- snaps[[length(snaps)]]
+
+  subj_first <- read_bundle_df(bundle, first, "raw", "Raw_SUBJ")
+  subj_last <- read_bundle_df(bundle, last, "raw", "Raw_SUBJ")
+  expect_gt(nrow(subj_last), nrow(subj_first))
+  expect_true(all(subj_first$subjid %in% subj_last$subjid))
+
+  site_first <- read_bundle_df(bundle, first, "raw", "Raw_SITE")
+  site_last <- read_bundle_df(bundle, last, "raw", "Raw_SITE")
+  expect_true(all(site_first$pi_number %in% site_last$pi_number))
+
+  # rows already present keep their values: the first snapshot's AEs are the head of the last snapshot's
+  ae_first <- read_bundle_df(bundle, first, "raw", "Raw_AE")
+  ae_last <- read_bundle_df(bundle, last, "raw", "Raw_AE")
+  expect_gt(nrow(ae_last), nrow(ae_first))
+  expect_equal(ae_last$subjid[seq_len(nrow(ae_first))], ae_first$subjid)
+  expect_equal(ae_last$aeser[seq_len(nrow(ae_first))], ae_first$aeser)
+})
+
 test_that("manifest.json records provenance, parameters, package versions, tables and checksums (#151)", {
   bundle <- local_tiny_bundle()
   m <- read_testdata_manifest(bundle$path)

@@ -15,6 +15,9 @@
 #'     reporting/    Reporting_*.parquet / .csv
 #' ```
 #'
+#' Snapshots are cumulative: all snapshots are simulated in one run, so the
+#' subjects, sites and rows of one snapshot persist in the next.
+#'
 #' The two edits the original maintainer script applied silently are explicit,
 #' configurable steps: `Raw_SITE$site_status` is forced to
 #' `config$post_processing$site_status` on every snapshot, and `SnapshotDate`
@@ -85,16 +88,7 @@ build_testdata_bundle <- function(config = read_testdata_config(),
 
   # -- 1. raw layer -----------------------------------------------------------
   vcat("Generating ", config$snapshots, " snapshot(s) of raw data ...")
-  raw <- quietly(generate_study_snapshots(
-    study_id = config$study_id,
-    participants = config$participants,
-    sites = config$sites,
-    snapshots = config$snapshots,
-    interval = config$interval,
-    mappings = ensure_core_mappings(config$domains),
-    base_date = config$start_date,
-    verbose = verbose
-  ))
+  raw <- quietly(generate_cumulative_snapshots(config, verbose = verbose))
   raw <- apply_site_status(raw, config$post_processing$site_status)
 
   study <- create_longitudinal_study_data(
@@ -154,6 +148,31 @@ build_testdata_bundle <- function(config = read_testdata_config(),
     ),
     class = c("testdata_bundle", "list")
   )
+}
+
+# -- raw generation -----------------------------------------------------------
+
+# Generate all snapshots in ONE run so they are cumulative: each snapshot carries
+# the previous snapshot's subjects, sites and rows forward and appends new ones,
+# as the original gsm.core script did. (generate_study_snapshots() simulates every
+# snapshot independently, so no subject or site would persist between snapshots.)
+generate_cumulative_snapshots <- function(config, verbose = FALSE) {
+  gen <- create_study_config(
+    study_id = config$study_id,
+    participant_count = config$participants,
+    site_count = config$sites
+  )
+  gen <- set_temporal_config(
+    gen,
+    start_date = config$start_date,
+    snapshot_count = config$snapshots,
+    snapshot_width = parse_interval_to_snapshot_width(config$interval)
+  )
+  for (mapping in ensure_core_mappings(config$domains)) {
+    gen <- add_dataset_config(gen, mapping, enabled = TRUE)
+  }
+  gen$verbose <- verbose
+  generate_raw_data_from_config(gen, verbose = verbose)
 }
 
 # -- post-processing -----------------------------------------------------------
