@@ -27,3 +27,21 @@ test_that(".toc_quiet() falls back to verbose for unparseable values (#noissue)"
   withr::local_envvar(GSM_SHOW_TOC = "")
   expect_false(.toc_quiet())
 })
+
+test_that("combination_var_splitter names a split var that was never generated (#113, #143)", {
+  variable_data <- list(
+    studyid = rep("S", 3),
+    combo = list(subjid = rep("A", 3), visit = rep("V", 3))
+  )
+
+  # The split var exists: elements are spliced in at its position.
+  out <- combination_var_splitter(variable_data, list("combo"))
+  expect_equal(names(out), c("studyid", "subjid", "visit"))
+
+  # It does not: previously an opaque "attempt to select less than one
+  # element in get1index" from deep inside `[[`.
+  expect_error(
+    combination_var_splitter(variable_data, list("absent_var")),
+    "'absent_var' was not generated"
+  )
+})

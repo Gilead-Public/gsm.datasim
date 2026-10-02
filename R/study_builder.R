@@ -8,10 +8,18 @@
 #' @param site_count Number of sites
 #' @param analytics_package Analytics package to use
 #' @param analytics_workflows Specific workflows to run
-#' @param reporting_package Reporting package to use (default: \code{"gsm.reporting"})
+#' @param reporting_package Reporting package to use (default: 
+#'   `"gsm.reporting"`)
 #' @param reporting_workflows Specific reporting workflows to run (default: all)
-#' @param outlier_intensity Global multiplier for outlier-like values in domain generators.
-#'   Use \code{1} for current baseline, values \code{>1} to increase outlier prevalence.
+#' @param outlier_intensity Global multiplier for outlier-like values in domain 
+#'   generators. Use `1` for current baseline, values `>1` to increase outlier 
+#'   prevalence.
+#' @param vs_risk_profile Optional named list controlling site-targeted 
+#'   consecutive-run injection in `Raw_VS`. Recognized fields are `dPctRed` and 
+#'   `dPctAmber` (share of sites in each band), `nWindowLength` (rolling window 
+#'   length, whole number `>= 2`), `dRateNormal` / `dRateAmber` / `dRateRed`
+#'   (target repeat rate per band), and `vVitals` (character vector of vitals to
+#'   target, or `NULL` for all eight). `NULL` uses the generator defaults.
 #'
 #' @return A list containing study configuration
 #' @examples
@@ -22,7 +30,7 @@
 create_study_config <- function(study_id = "STUDY001", participant_count = 100, site_count = 10,
                                 analytics_package = NULL, analytics_workflows = NULL,
                                 reporting_package = NULL, reporting_workflows = NULL,
-                                outlier_intensity = 1) {
+                                outlier_intensity = 1, vs_risk_profile = NULL) {
   config <- list(
     study_params = list(
       study_id = study_id,
@@ -32,7 +40,8 @@ create_study_config <- function(study_id = "STUDY001", participant_count = 100, 
       analytics_workflows = analytics_workflows,
       reporting_package = reporting_package,
       reporting_workflows = reporting_workflows,
-      outlier_intensity = outlier_intensity
+      outlier_intensity = outlier_intensity,
+      vs_risk_profile = vs_risk_profile
     ),
     temporal_config = list(
       start_date = as.Date("2023-01-01"),
@@ -193,6 +202,10 @@ validate_study_config <- function(config) {
     stop("outlier_intensity must be a single non-negative numeric value")
   }
 
+  # Resolving validates; the resolved profile is discarded here because the
+  # generator resolves again from the stored config.
+  .resolve_vs_risk_profile(config$study_params$vs_risk_profile)
+
   return(TRUE)
 }
 
@@ -226,6 +239,7 @@ validate_study_config <- function(config) {
 #' @param randomization Include randomization data (Raw_Randomization)
 #' @param overall_response Include overall response data (Raw_OverallResponse)
 #' @param outlier_intensity Global multiplier for outlier-like values in domain generators.
+#' @inheritParams create_study_config
 #'
 #' @return Study configuration with standard datasets
 #' @examples
@@ -253,14 +267,15 @@ create_standard_study_config <- function(study_id = "STUDY001", participant_coun
                                          inclusion_exclusion = TRUE,
                                          country = TRUE,
                                          death = TRUE, randomization = TRUE, overall_response = TRUE,
-                                         outlier_intensity = 1) {
+                                         outlier_intensity = 1, vs_risk_profile = NULL) {
   config <- create_study_config(
     study_id = study_id,
     participant_count = participant_count,
     site_count = site_count,
     analytics_package = analytics_package,
     analytics_workflows = analytics_workflows,
-    outlier_intensity = outlier_intensity
+    outlier_intensity = outlier_intensity,
+    vs_risk_profile = vs_risk_profile
   )
 
   # Core datasets (override automatic inclusion if user wants to disable)
@@ -336,8 +351,10 @@ NULL
 #'
 #' @return A longitudinal study data structure
 #' @examples
-#' config <- list(participants = 50, sites = 5, snapshots = 2, interval = "1 month",
-#'                domains = c("AE", "LB"))
+#' config <- list(
+#'   participants = 50, sites = 5, snapshots = 2, interval = "1 month",
+#'   domains = c("AE", "LB")
+#' )
 #' study <- create_longitudinal_study_data("MY-STUDY", raw_data = list(), config = config)
 #' study$study_id
 #' @export
@@ -410,7 +427,8 @@ summarize_longitudinal_study <- function(study, verbose = TRUE) {
 #' @examples
 #' \dontrun{
 #' study <- create_longitudinal_study(
-#'   "STUDY-001", participants = 50, sites = 5, snapshots = 2,
+#'   "STUDY-001",
+#'   participants = 50, sites = 5, snapshots = 2,
 #'   analytics_package = "gsm.kri"
 #' )
 #' study <- run_longitudinal_analytics(study)
@@ -442,7 +460,8 @@ run_longitudinal_analytics <- function(study, verbose = FALSE) {
 #' @examples
 #' \dontrun{
 #' study <- create_longitudinal_study(
-#'   "STUDY-001", participants = 50, sites = 5, snapshots = 2,
+#'   "STUDY-001",
+#'   participants = 50, sites = 5, snapshots = 2,
 #'   run_analytics = TRUE, analytics_package = "gsm.kri"
 #' )
 #' study <- run_longitudinal_reporting(study)
@@ -497,8 +516,10 @@ get_snapshot_data <- function(study, snapshot) {
 #' @return Timeline data for the specified domain
 #' @examples
 #' \dontrun{
-#' study <- create_longitudinal_study("STUDY-001", participants = 50, sites = 5,
-#'                                     snapshots = 3, domains = c("AE", "LB"))
+#' study <- create_longitudinal_study("STUDY-001",
+#'   participants = 50, sites = 5,
+#'   snapshots = 3, domains = c("AE", "LB")
+#' )
 #' ae_timeline <- get_domain_timeline(study, "AE")
 #' length(ae_timeline) # one entry per snapshot
 #' }

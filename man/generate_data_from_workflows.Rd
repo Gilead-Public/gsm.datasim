@@ -15,7 +15,8 @@ generate_data_from_workflows(
   snapshot_width = "months",
   domain_counts = NULL,
   desired_domains = NULL,
-  column_overrides = NULL
+  column_overrides = NULL,
+  vs_risk_profile = NULL
 )
 }
 \arguments{
@@ -68,14 +69,21 @@ for custom distributions or categorical values.}
 }
 Example:
 \preformatted{
-  column_overrides = list(
-    Raw_LB = list(
-      score_val  = function(n)    round(runif(n, 0, 10), 1),
-      lbstresu   = c("mg/dL", "mmol/L", "g/L"),
-      visit_flag = function(n, df) ifelse(df$visnam == "SCREENING", "S", "F")
-    )
+column_overrides = list(
+  Raw_LB = list(
+    score_val  = function(n)    round(runif(n, 0, 10), 1),
+    lbstresu   = c("mg/dL", "mmol/L", "g/L"),
+    visit_flag = function(n, df) ifelse(df$visnam == "SCREENING", "S", "F")
   )
-  }}
+)
+}}
+
+\item{vs_risk_profile}{Optional named list controlling site-targeted
+consecutive-run injection in \code{Raw_VS}. Recognized fields are \code{dPctRed} and
+\code{dPctAmber} (share of sites in each band), \code{nWindowLength} (rolling window
+length, whole number \verb{>= 2}), \code{dRateNormal} / \code{dRateAmber} / \code{dRateRed}
+(target repeat rate per band), and \code{vVitals} (character vector of vitals to
+target, or \code{NULL} for all eight). \code{NULL} uses the generator defaults.}
 }
 \value{
 When \code{snapshot_count == 1}, a named list of \code{data.frame}s (one per

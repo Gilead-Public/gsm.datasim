@@ -30,7 +30,8 @@ create_standard_study_config(
   death = TRUE,
   randomization = TRUE,
   overall_response = TRUE,
-  outlier_intensity = 1
+  outlier_intensity = 1,
+  vs_risk_profile = NULL
 )
 }
 \arguments{
@@ -85,6 +86,13 @@ create_standard_study_config(
 \item{overall_response}{Include overall response data (Raw_OverallResponse)}
 
 \item{outlier_intensity}{Global multiplier for outlier-like values in domain generators.}
+
+\item{vs_risk_profile}{Optional named list controlling site-targeted
+consecutive-run injection in \code{Raw_VS}. Recognized fields are \code{dPctRed} and
+\code{dPctAmber} (share of sites in each band), \code{nWindowLength} (rolling window
+length, whole number \verb{>= 2}), \code{dRateNormal} / \code{dRateAmber} / \code{dRateRed}
+(target repeat rate per band), and \code{vVitals} (character vector of vitals to
+target, or \code{NULL} for all eight). \code{NULL} uses the generator defaults.}
 }
 \value{
 Study configuration with standard datasets

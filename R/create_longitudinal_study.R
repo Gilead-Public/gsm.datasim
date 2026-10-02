@@ -6,6 +6,7 @@
 #' Create longitudinal study data
 #'
 #' Creates a complete longitudinal study with multiple snapshots
+#' 
 #' @param study_id Study identifier
 #' @param participants Number of participants
 #' @param sites Number of sites
@@ -18,6 +19,7 @@
 #' @param run_reporting Whether to run the reporting pipeline after analytics (default FALSE)
 #' @param outlier_intensity Global multiplier for outlier-like values in domain generators.
 #' @param verbose Whether to print progress/output messages
+#' @inheritParams create_study_config
 #' @return LongitudinalStudy object with generated data
 #' @examples
 #' \dontrun{
@@ -44,6 +46,7 @@ create_longitudinal_study <- function(study_id = "STUDY-001",
                                       analytics_workflows = NULL,
                                       run_reporting = FALSE,
                                       outlier_intensity = 1,
+                                      vs_risk_profile = NULL,
                                       verbose = FALSE) {
   # Validate inputs
   validate_study_inputs(participants, sites, snapshots, domains)
@@ -60,6 +63,7 @@ create_longitudinal_study <- function(study_id = "STUDY-001",
     interval,
     mappings,
     outlier_intensity = outlier_intensity,
+    vs_risk_profile = vs_risk_profile,
     verbose = verbose
   )
 
@@ -73,6 +77,7 @@ create_longitudinal_study <- function(study_id = "STUDY-001",
     study_type = "standard", # default for this function
     analytics_package = analytics_package,
     analytics_workflows = analytics_workflows,
+    vs_risk_profile = vs_risk_profile,
     verbose = verbose
   )
 
@@ -128,6 +133,7 @@ create_longitudinal_study <- function(study_id = "STUDY-001",
 #' @param include_pipeline Whether to run both the analytics and reporting pipelines (default FALSE)
 #' @param outlier_intensity Global multiplier for outlier-like values in domain generators.
 #' @param verbose Whether to print progress/output messages
+#' @inheritParams create_study_config
 #' @return LongitudinalStudy object with complete data and analytics
 #' @examples
 #' \dontrun{
@@ -148,6 +154,7 @@ quick_longitudinal_study <- function(study_name = "GS-US-000-0001",
                                      study_type = "standard",
                                      include_pipeline = FALSE,
                                      outlier_intensity = 1,
+                                     vs_risk_profile = NULL,
                                      verbose = FALSE) {
   if (isTRUE(verbose)) {
     cat("Creating", study_type, "longitudinal study:", study_name, "\n")
@@ -174,6 +181,7 @@ quick_longitudinal_study <- function(study_name = "GS-US-000-0001",
       analytics_package = pkg,
       run_reporting = include_pipeline,
       outlier_intensity = outlier_intensity,
+      vs_risk_profile = vs_risk_profile,
       verbose = verbose
     )
   } else if (study_type == "endpoints") {
@@ -185,7 +193,8 @@ quick_longitudinal_study <- function(study_name = "GS-US-000-0001",
       study_id = study_id,
       participant_count = participants,
       site_count = sites,
-      outlier_intensity = outlier_intensity
+      outlier_intensity = outlier_intensity,
+      vs_risk_profile = vs_risk_profile
     )
     # Add all endpoint/mapping domains
     for (d in domains) {
@@ -207,6 +216,7 @@ quick_longitudinal_study <- function(study_name = "GS-US-000-0001",
         domains = domains,
         study_type = "endpoints",
         analytics_package = "gsm.endpoints",
+        vs_risk_profile = vs_risk_profile,
         verbose = verbose
       )
     )
@@ -308,6 +318,7 @@ quick_longitudinal_study <- function(study_name = "GS-US-000-0001",
 #' @param export_studies Whether to automatically export all studies to disk (default FALSE)
 #' @param export_dir Directory to export studies to if export_studies = TRUE
 #' @param verbose Whether to print progress/output messages (default FALSE)
+#' @inheritParams create_study_config
 #'
 #' @return Named list of LongitudinalStudy objects, with names corresponding to study_names
 #' @export
@@ -348,6 +359,7 @@ create_multiple_longitudinal_studies <- function(study_names,
                                                  analytics_workflows = NULL,
                                                  run_reporting = FALSE,
                                                  outlier_intensity = 1,
+                                                 vs_risk_profile = NULL,
                                                  study_configs = NULL,
                                                  parallel = FALSE,
                                                  export_studies = FALSE,
@@ -377,6 +389,7 @@ create_multiple_longitudinal_studies <- function(study_names,
       analytics_workflows = analytics_workflows,
       run_reporting = run_reporting,
       outlier_intensity = if (length(outlier_intensity) == 1) outlier_intensity else outlier_intensity[index],
+      vs_risk_profile = vs_risk_profile,
       verbose = verbose
     )
 

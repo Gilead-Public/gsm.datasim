@@ -186,7 +186,9 @@ run_domain_generation_loop <- function(combined_specs, config, source_domains) {
         snapshot_idx   = snapshot_idx,
         snapshot_count = snapshot_count,
         snapshot_width = snapshot_width,
-        study_id       = study_id
+        study_id       = study_id,
+        vs_risk_profile = config$study_params$vs_risk_profile,
+        total_site_count = max(site_count_vec)
       )
 
       migrated_data <- generate_domain_from_registry(data_type, registry_context)
@@ -372,6 +374,7 @@ ensure_core_mappings <- function(domains) {
 #' @param base_date Base date for snapshot generation (defaults to "2012-01-31" if NULL)
 #' @param outlier_intensity Global multiplier for outlier-like values in domain generators.
 #' @param verbose Whether to print progress/output messages
+#' @inheritParams create_study_config
 #' @return List of raw data for each snapshot
 #' @examples
 #' \dontrun{
@@ -385,7 +388,8 @@ ensure_core_mappings <- function(domains) {
 #' }
 #' @export
 generate_study_snapshots <- function(study_id, participants, sites, snapshots, interval, mappings,
-                                     base_date = NULL, outlier_intensity = 1, verbose = FALSE) {
+                                     base_date = NULL, outlier_intensity = 1,
+                                     vs_risk_profile = NULL, verbose = FALSE) {
   snapshot_width <- parse_interval_to_snapshot_width(interval)
 
   # Calculate start dates for each snapshot
@@ -411,7 +415,8 @@ generate_study_snapshots <- function(study_id, participants, sites, snapshots, i
     study_id = study_id,
     participant_count = participants,
     site_count = sites,
-    outlier_intensity = outlier_intensity
+    outlier_intensity = outlier_intensity,
+    vs_risk_profile = vs_risk_profile
   )
 
   config <- set_temporal_config(

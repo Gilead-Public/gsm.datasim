@@ -16,6 +16,7 @@ create_multiple_longitudinal_studies(
   analytics_workflows = NULL,
   run_reporting = FALSE,
   outlier_intensity = 1,
+  vs_risk_profile = NULL,
   study_configs = NULL,
   parallel = FALSE,
   export_studies = FALSE,
@@ -51,6 +52,13 @@ Applied to all studies unless overridden in study_configs.}
 
 \item{outlier_intensity}{Global multiplier for outlier-like values (default 1).
 Can be a single value applied to all studies or a vector of values per study.}
+
+\item{vs_risk_profile}{Optional named list controlling site-targeted
+consecutive-run injection in \code{Raw_VS}. Recognized fields are \code{dPctRed} and
+\code{dPctAmber} (share of sites in each band), \code{nWindowLength} (rolling window
+length, whole number \verb{>= 2}), \code{dRateNormal} / \code{dRateAmber} / \code{dRateRed}
+(target repeat rate per band), and \code{vVitals} (character vector of vitals to
+target, or \code{NULL} for all eight). \code{NULL} uses the generator defaults.}
 
 \item{study_configs}{Optional named list of per-study configurations to override defaults.
 Names should match study_names. Each element can contain any of the parameters

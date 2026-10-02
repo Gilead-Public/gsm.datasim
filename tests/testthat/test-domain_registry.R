@@ -78,7 +78,7 @@ test_that("Raw_AE migrated domain adapter generates data frame", {
     mappings = c("STUDY", "SITE", "SUBJ", "ENROLL", "SV", "VISIT", "AE"),
     package = "gsm.mapping"
   ) |> 
-    expect_warning("deprecated")
+    lifecycle::expect_deprecated()
 
   combined_specs <- load_specs(
     workflow_path = "workflow/1_mappings",

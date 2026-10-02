@@ -108,7 +108,11 @@ generate_snapshots_from_combined_specs <- function(SnapshotCount,
                                                    StudyID,
                                                    combined_specs,
                                                    mappings,
-                                                   strStartDate = "2012-01-01") {
+                                                   strStartDate = "2012-01-01",
+                                                   vs_risk_profile = NULL) {
+  # Resolve up front so a bad profile fails before any snapshot work.
+  vs_risk_profile <- .resolve_vs_risk_profile(vs_risk_profile)
+
   # Generate start and end dates for snapshots
   start_dates <- seq(as.Date(strStartDate), length.out = SnapshotCount, by = SnapshotWidth)
   end_dates <- start_dates + 28
@@ -197,7 +201,9 @@ generate_snapshots_from_combined_specs <- function(SnapshotCount,
         snapshot_idx = snapshot_idx,
         snapshot_count = SnapshotCount,
         snapshot_width = SnapshotWidth,
-        study_id = StudyID
+        study_id = StudyID,
+        vs_risk_profile = vs_risk_profile,
+        total_site_count = max(site_count)
       )
 
       migrated_data <- generate_domain_from_registry(
@@ -288,6 +294,7 @@ generate_snapshots_from_combined_specs <- function(SnapshotCount,
 #' @param package Package name used to locate specs.
 #' @param strStartDate Study start date as a string (default `"2012-01-01"`).
 #' @param desired_specs Optional character vector of dataset names to keep.
+#' @inheritParams create_study_config
 #'
 #' @return A named list of snapshot data frames, named by snapshot end date.
 #'
@@ -295,16 +302,18 @@ generate_snapshots_from_combined_specs <- function(SnapshotCount,
 #' @export
 #' @seealso [create_study_config()], [add_dataset_config()], [generate_study_data()]
 generate_rawdata_for_single_study <- function(
-    SnapshotCount,
-    SnapshotWidth,
-    ParticipantCount,
-    SiteCount,
-    StudyID,
-    workflow_path,
-    mappings,
-    package,
-    strStartDate = "2012-01-01",
-    desired_specs = NULL) {
+  SnapshotCount,
+  SnapshotWidth,
+  ParticipantCount,
+  SiteCount,
+  StudyID,
+  workflow_path,
+  mappings,
+  package,
+  strStartDate = "2012-01-01",
+  desired_specs = NULL,
+  vs_risk_profile = NULL
+) {
   lifecycle::deprecate_warn(
     when = "1.1.3",
     what = "generate_rawdata_for_single_study()",
@@ -327,6 +336,7 @@ generate_rawdata_for_single_study <- function(
     StudyID = StudyID,
     combined_specs = prepared_specs,
     mappings = mappings,
-    strStartDate = strStartDate
+    strStartDate = strStartDate,
+    vs_risk_profile = vs_risk_profile
   )
 }

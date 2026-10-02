@@ -206,3 +206,39 @@ test_that("Raw_VISIT returns previous data unchanged when the target count is me
 
   expect_identical(again, first)
 })
+
+# `add_new_var_data()` resolves generators by column name, so a domain whose
+# spec carries a `visit`/`foldername`/`instancename` column reaches these
+# generators via its `default` args, which supply no visit grid. Erroring there
+# aborted the whole domain; a NULL default degrades to a placeholder instead.
+test_that("foldername and instancename default possible_visits to NULL (#109)", {
+  expect_null(formals(foldername)$possible_visits)
+  expect_null(formals(instancename)$possible_visits)
+  expect_null(formals(visit)$possible_visits)
+})
+
+test_that("foldername and instancename return a sized placeholder without a visit grid (#109)", {
+  subjs <- c("S1", "S2", "S3")
+
+  for (fn in list(foldername = foldername, instancename = instancename)) {
+    out <- fn(5, subjs)
+    expect_type(out, "character")
+    expect_length(out, 5)
+    expect_true(all(is.na(out)))
+  }
+
+  # The two positional args the `default` fallback supplies must not error.
+  expect_length(visit(4, subjs), 4)
+})
+
+test_that("supplying possible_visits still tiles the grid (#109)", {
+  possible_visits <- data.frame(
+    foldername = c("Screening", "VISIT 1"),
+    instancename = c("Screening", "VISIT 1"),
+    stringsAsFactors = FALSE
+  )
+  subjs <- c("S1", "S2", "S3")
+
+  expect_equal(foldername(1, subjs, possible_visits), rep(possible_visits$foldername, 3))
+  expect_equal(instancename(1, subjs, possible_visits), rep(possible_visits$instancename, 3))
+})

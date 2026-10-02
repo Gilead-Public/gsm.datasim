@@ -59,6 +59,7 @@
 #'     )
 #'   )
 #'   }
+#' @inheritParams create_study_config
 #'
 #' @return When `snapshot_count == 1`, a named list of `data.frame`s (one per
 #'   domain). When `snapshot_count > 1`, a named list of snapshots keyed by
@@ -180,7 +181,8 @@ generate_data_from_workflows <- function(
     snapshot_width = "months",
     domain_counts = NULL,
     desired_domains = NULL,
-    column_overrides = NULL) {
+    column_overrides = NULL,
+    vs_risk_profile = NULL) {
   # -- Validate inputs -------------------------------------------------------
   workflow_names <- names(lWorkflows)
   if (
@@ -241,7 +243,9 @@ generate_data_from_workflows <- function(
         snapshot_width   = snapshot_width,
         study_id         = study_id,
         previous_data    = list(),
-        column_overrides = column_overrides
+        column_overrides = column_overrides,
+        total_site_count = n_sites,
+        vs_risk_profile  = vs_risk_profile
       )
     )
   }
@@ -286,7 +290,9 @@ generate_data_from_workflows <- function(
       snapshot_width   = snapshot_width,
       study_id         = study_id,
       previous_data    = previous_data,
-      column_overrides = column_overrides
+      column_overrides = column_overrides,
+      total_site_count = n_sites,
+      vs_risk_profile  = vs_risk_profile
     )
 
     snapshots[[snapshot_idx]] <- snapshot_data
@@ -312,8 +318,12 @@ generate_data_from_workflows <- function(
                                       start_date, end_date,
                                       snapshot_idx, snapshot_count, snapshot_width,
                                       study_id, previous_data,
-                                      column_overrides = NULL) {
+                                      column_overrides = NULL,
+                                      total_site_count = NULL,
+                                      vs_risk_profile = NULL) {
   data <- list()
+
+  vs_risk_profile <- .resolve_vs_risk_profile(vs_risk_profile)
 
   for (domain in names(combined_specs)) {
     n <- domain_n[[domain]]
@@ -332,7 +342,9 @@ generate_data_from_workflows <- function(
       snapshot_idx   = snapshot_idx,
       snapshot_count = snapshot_count,
       snapshot_width = snapshot_width,
-      study_id       = study_id
+      study_id       = study_id,
+      total_site_count = total_site_count,
+      vs_risk_profile = vs_risk_profile
     )
 
     registry_result <- tryCatch(
@@ -477,6 +489,7 @@ generate_data_from_workflows <- function(
     Raw_Randomization = function(np, ns) np,
     Raw_OverallResponse = function(np, ns) np,
     Raw_PK = function(np, ns) np,
+    Raw_VS = function(np, ns) np,
     Raw_Baseline = function(np, ns) np
   )
 

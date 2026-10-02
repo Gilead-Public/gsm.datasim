@@ -1,5 +1,11 @@
 # gsm.datasim (development version)
 
+- `Raw_VS` simulates consecutive repeated measurements at site-specific
+  rates, and each site keeps its risk band across snapshots. A new
+  `vs_risk_profile` argument, accepted by the study-creation functions
+  alongside `participants`/`sites`, controls how many sites land in each risk
+  band (#113, #143).
+
 - `Raw_SUBJ` now carries six simulated `drv_*` IP non-starter fields
   (`drv_enrollment_dt`, `drv_ip_dosed`, `drv_ip_first_dose_dt`,
   `drv_enrl_first_dose_days`, `drv_days_lapsed_since_enrl`,
