@@ -146,9 +146,12 @@ create_standard_study_config(
 - vs_risk_profile:
 
   Optional named list controlling site-targeted consecutive-run
-  injection in `Raw_VS`. Passed through to
-  [`create_study_config`](https://gilead-public.github.io/gsm.datasim/dev/reference/create_study_config.md);
-  see there for the recognized fields.
+  injection in `Raw_VS`. Recognized fields are `dPctRed` and `dPctAmber`
+  (share of sites in each band), `nWindowLength` (rolling window length,
+  whole number `>= 2`), `dRateNormal` / `dRateAmber` / `dRateRed`
+  (target repeat rate per band), and `vVitals` (character vector of
+  vitals to target, or `NULL` for all eight). `NULL` uses the generator
+  defaults.
 
 ## Value
 

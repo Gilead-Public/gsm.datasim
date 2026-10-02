@@ -124,9 +124,12 @@ for a full walkthrough.</p>
 
 
 <dt id="arg-vs-risk-profile">vs_risk_profile<a class="anchor" aria-label="anchor" href="#arg-vs-risk-profile"></a></dt>
-<dd><p>Optional <code>Raw_VS</code> consecutive-repeat risk profile, in
-the same form accepted by <code><a href="create_study_config.html">create_study_config()</a></code>. <code>NULL</code> (the default)
-uses the built-in profile.</p></dd>
+<dd><p>Optional named list controlling site-targeted
+consecutive-run injection in <code>Raw_VS</code>. Recognized fields are <code>dPctRed</code> and
+<code>dPctAmber</code> (share of sites in each band), <code>nWindowLength</code> (rolling window
+length, whole number <code>&gt;= 2</code>), <code>dRateNormal</code> / <code>dRateAmber</code> / <code>dRateRed</code>
+(target repeat rate per band), and <code>vVitals</code> (character vector of vitals to
+target, or <code>NULL</code> for all eight). <code>NULL</code> uses the generator defaults.</p></dd>
 
 </dl></div>
     <div class="section level2">

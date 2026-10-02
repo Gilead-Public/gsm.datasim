@@ -3,9 +3,10 @@
 ## gsm.datasim (development version)
 
 - `Raw_VS` simulates consecutive repeated measurements at site-specific
-  rates; the new `vs_risk_profile` argument on
-  [`create_study_config()`](https://gilead-public.github.io/gsm.datasim/dev/reference/create_study_config.md)
-  controls how many sites land in each risk band
+  rates, and each site keeps its risk band across snapshots. A new
+  `vs_risk_profile` argument, accepted by the study-creation functions
+  alongside `participants`/`sites`, controls how many sites land in each
+  risk band
   ([\#113](https://github.com/Gilead-Public/gsm.datasim/issues/113),
   [\#143](https://github.com/Gilead-Public/gsm.datasim/issues/143)).
 
@@ -15,6 +16,17 @@
   `drv_ip_nonstarter_status`), impersonating the upstream Stride
   contract gsm now consumes rather than derives
   ([\#140](https://github.com/Gilead-Public/gsm.datasim/issues/140)).
+
+### Bug Fixes
+
+- [`create_longitudinal_study()`](https://gilead-public.github.io/gsm.datasim/dev/reference/create_longitudinal_study.md)
+  /
+  [`generate_study_snapshots()`](https://gilead-public.github.io/gsm.datasim/dev/reference/generate_study_snapshots.md)
+  snapshots no longer generate independent single-snapshot studies.
+  Instead, each snapshot builds off the previous one, preserving
+  subject, site, and enrollment continuity and letting exposure
+  accumulate across snapshots
+  ([\#165](https://github.com/Gilead-Public/gsm.datasim/issues/165)).
 
 ## gsm.datasim v2.0.0
 

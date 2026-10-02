@@ -74,10 +74,13 @@ generate_rawdata_for_single_study(
 
 - vs_risk_profile:
 
-  Optional `Raw_VS` consecutive-repeat risk profile, in the same form
-  accepted by
-  [`create_study_config()`](https://gilead-public.github.io/gsm.datasim/dev/reference/create_study_config.md).
-  `NULL` (the default) uses the built-in profile.
+  Optional named list controlling site-targeted consecutive-run
+  injection in `Raw_VS`. Recognized fields are `dPctRed` and `dPctAmber`
+  (share of sites in each band), `nWindowLength` (rolling window length,
+  whole number `>= 2`), `dRateNormal` / `dRateAmber` / `dRateRed`
+  (target repeat rate per band), and `vVitals` (character vector of
+  vitals to target, or `NULL` for all eight). `NULL` uses the generator
+  defaults.
 
 ## Value
 

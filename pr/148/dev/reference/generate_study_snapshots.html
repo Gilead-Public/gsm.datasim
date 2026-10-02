@@ -61,6 +61,7 @@
 <span>  <span class="va">mappings</span>,</span>
 <span>  base_date <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  outlier_intensity <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  vs_risk_profile <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -99,6 +100,15 @@
 
 <dt id="arg-outlier-intensity">outlier_intensity<a class="anchor" aria-label="anchor" href="#arg-outlier-intensity"></a></dt>
 <dd><p>Global multiplier for outlier-like values in domain generators.</p></dd>
+
+
+<dt id="arg-vs-risk-profile">vs_risk_profile<a class="anchor" aria-label="anchor" href="#arg-vs-risk-profile"></a></dt>
+<dd><p>Optional named list controlling site-targeted
+consecutive-run injection in <code>Raw_VS</code>. Recognized fields are <code>dPctRed</code> and
+<code>dPctAmber</code> (share of sites in each band), <code>nWindowLength</code> (rolling window
+length, whole number <code>&gt;= 2</code>), <code>dRateNormal</code> / <code>dRateAmber</code> / <code>dRateRed</code>
+(target repeat rate per band), and <code>vVitals</code> (character vector of vitals to
+target, or <code>NULL</code> for all eight). <code>NULL</code> uses the generator defaults.</p></dd>
 
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>

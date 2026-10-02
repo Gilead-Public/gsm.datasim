@@ -93,7 +93,8 @@ and dataset specifications for clinical trial data generation.</p>
 
 
 <dt id="arg-reporting-package">reporting_package<a class="anchor" aria-label="anchor" href="#arg-reporting-package"></a></dt>
-<dd><p>Reporting package to use (default: <code>"gsm.reporting"</code>)</p></dd>
+<dd><p>Reporting package to use (default:
+<code>"gsm.reporting"</code>)</p></dd>
 
 
 <dt id="arg-reporting-workflows">reporting_workflows<a class="anchor" aria-label="anchor" href="#arg-reporting-workflows"></a></dt>
@@ -101,19 +102,18 @@ and dataset specifications for clinical trial data generation.</p>
 
 
 <dt id="arg-outlier-intensity">outlier_intensity<a class="anchor" aria-label="anchor" href="#arg-outlier-intensity"></a></dt>
-<dd><p>Global multiplier for outlier-like values in domain generators.
-Use <code>1</code> for current baseline, values <code>&gt;1</code> to increase outlier prevalence.</p></dd>
+<dd><p>Global multiplier for outlier-like values in domain
+generators. Use <code>1</code> for current baseline, values <code>&gt;1</code> to increase outlier
+prevalence.</p></dd>
 
 
 <dt id="arg-vs-risk-profile">vs_risk_profile<a class="anchor" aria-label="anchor" href="#arg-vs-risk-profile"></a></dt>
 <dd><p>Optional named list controlling site-targeted
-consecutive-run injection in <code>Raw_VS</code>, for the repeat-measure KRIs.
-Recognized fields are <code>dPctRed</code> and <code>dPctAmber</code> (share of sites
-in each band), <code>nWindowLength</code> (rolling window length, whole number
-<code>&gt;= 2</code>), <code>dRateNormal</code> / <code>dRateAmber</code> / <code>dRateRed</code>
-(target repeat rate per band), and <code>vVitals</code> (character vector of
-vitals to target, or <code>NULL</code> for all eight). <code>NULL</code> uses the
-generator defaults.</p></dd>
+consecutive-run injection in <code>Raw_VS</code>. Recognized fields are <code>dPctRed</code> and
+<code>dPctAmber</code> (share of sites in each band), <code>nWindowLength</code> (rolling window
+length, whole number <code>&gt;= 2</code>), <code>dRateNormal</code> / <code>dRateAmber</code> / <code>dRateRed</code>
+(target repeat rate per band), and <code>vVitals</code> (character vector of vitals to
+target, or <code>NULL</code> for all eight). <code>NULL</code> uses the generator defaults.</p></dd>
 
 </dl></div>
     <div class="section level2">

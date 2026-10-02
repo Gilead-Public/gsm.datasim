@@ -19,6 +19,7 @@ create_multiple_longitudinal_studies(
   analytics_workflows = NULL,
   run_reporting = FALSE,
   outlier_intensity = 1,
+  vs_risk_profile = NULL,
   study_configs = NULL,
   parallel = FALSE,
   export_studies = FALSE,
@@ -78,6 +79,16 @@ create_multiple_longitudinal_studies(
 
   Global multiplier for outlier-like values (default 1). Can be a single
   value applied to all studies or a vector of values per study.
+
+- vs_risk_profile:
+
+  Optional named list controlling site-targeted consecutive-run
+  injection in `Raw_VS`. Recognized fields are `dPctRed` and `dPctAmber`
+  (share of sites in each band), `nWindowLength` (rolling window length,
+  whole number `>= 2`), `dRateNormal` / `dRateAmber` / `dRateRed`
+  (target repeat rate per band), and `vVitals` (character vector of
+  vitals to target, or `NULL` for all eight). `NULL` uses the generator
+  defaults.
 
 - study_configs:
 

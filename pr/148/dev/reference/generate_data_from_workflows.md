@@ -124,14 +124,13 @@ generate_data_from_workflows(
 
 - vs_risk_profile:
 
-  Optional named list configuring `Raw_VS` site risk bands, matching the
-  `vs_risk_profile` argument of
-  [`create_study_config()`](https://gilead-public.github.io/gsm.datasim/dev/reference/create_study_config.md).
-  Controls the share of sites placed in the red and amber bands
-  (`dPctRed` / `dPctAmber`), their target consecutive-repeat rates
-  (`dRateRed` / `dRateAmber` / `dRateNormal`), the rolling window length
-  (`nWindowLength`), and which vitals are targeted (`vVitals`). `NULL`
-  uses the built-in defaults.
+  Optional named list controlling site-targeted consecutive-run
+  injection in `Raw_VS`. Recognized fields are `dPctRed` and `dPctAmber`
+  (share of sites in each band), `nWindowLength` (rolling window length,
+  whole number `>= 2`), `dRateNormal` / `dRateAmber` / `dRateRed`
+  (target repeat rate per band), and `vVitals` (character vector of
+  vitals to target, or `NULL` for all eight). `NULL` uses the generator
+  defaults.
 
 ## Value
 
