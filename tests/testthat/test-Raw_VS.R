@@ -907,3 +907,52 @@ test_that("Raw_VS bands stay independent per vital across snapshots (#143)", {
 
   expect_false(identical(red_for("sysbp"), red_for("pulse")))
 })
+
+test_that("create_longitudinal_study() persists Raw_VS risk bands (#143)", {
+  set.seed(5518)
+
+  study <- suppressMessages(create_longitudinal_study(
+    "DEMO",
+    participants = 100,
+    sites = 10,
+    snapshots = 5,
+    domains = "VS",
+    vs_risk_profile = list(dPctRed = 0.1, dPctAmber = 0.2)
+  ))
+  data <- study$raw_data
+
+  top_site_by_snapshot <- vapply(
+    data,
+    function(snapshot) {
+      rates <- site_repeat_rate(
+        as.data.frame(attach_vs_site(snapshot$Raw_VS, snapshot)),
+        strValueCol = "sysbp"
+      )
+      rates <- rates[!is.na(rates$rate), ]
+      rates$invid[which.max(rates$rate)]
+    },
+    character(1)
+  )
+
+  # Snapshot 1 has a single enrolled site; see the generate_study_data() test.
+  multi_site <- top_site_by_snapshot[-1]
+  expect_equal(length(unique(multi_site)), 1)
+
+  final <- data[[length(data)]]
+  final_rates <- site_repeat_rate(
+    as.data.frame(attach_vs_site(final$Raw_VS, final)),
+    strValueCol = "sysbp"
+  )
+  expect_gte(final_rates$rate[final_rates$invid == multi_site[[1]]], 0.30)
+})
+
+test_that("create_longitudinal_study() validates vs_risk_profile (#143)", {
+  expect_error(
+    create_longitudinal_study(
+      "DEMO",
+      participants = 20, sites = 2, snapshots = 2, domains = "VS",
+      vs_risk_profile = list(dPctRedd = 0.1)
+    ),
+    "unknown field"
+  )
+})

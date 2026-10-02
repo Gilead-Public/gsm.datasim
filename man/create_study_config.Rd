@@ -27,21 +27,21 @@ create_study_config(
 
 \item{analytics_workflows}{Specific workflows to run}
 
-\item{reporting_package}{Reporting package to use (default: \code{"gsm.reporting"})}
+\item{reporting_package}{Reporting package to use (default:
+\code{"gsm.reporting"})}
 
 \item{reporting_workflows}{Specific reporting workflows to run (default: all)}
 
-\item{outlier_intensity}{Global multiplier for outlier-like values in domain generators.
-Use \code{1} for current baseline, values \code{>1} to increase outlier prevalence.}
+\item{outlier_intensity}{Global multiplier for outlier-like values in domain
+generators. Use \code{1} for current baseline, values \verb{>1} to increase outlier
+prevalence.}
 
 \item{vs_risk_profile}{Optional named list controlling site-targeted
-consecutive-run injection in \code{Raw_VS}, for the repeat-measure KRIs.
-Recognized fields are \code{dPctRed} and \code{dPctAmber} (share of sites
-in each band), \code{nWindowLength} (rolling window length, whole number
-\code{>= 2}), \code{dRateNormal} / \code{dRateAmber} / \code{dRateRed}
-(target repeat rate per band), and \code{vVitals} (character vector of
-vitals to target, or \code{NULL} for all eight). \code{NULL} uses the
-generator defaults.}
+consecutive-run injection in \code{Raw_VS}. Recognized fields are \code{dPctRed} and
+\code{dPctAmber} (share of sites in each band), \code{nWindowLength} (rolling window
+length, whole number \verb{>= 2}), \code{dRateNormal} / \code{dRateAmber} / \code{dRateRed}
+(target repeat rate per band), and \code{vVitals} (character vector of vitals to
+target, or \code{NULL} for all eight). \code{NULL} uses the generator defaults.}
 }
 \value{
 A list containing study configuration

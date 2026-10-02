@@ -59,13 +59,7 @@
 #'     )
 #'   )
 #'   }
-#' @param vs_risk_profile Optional named list configuring `Raw_VS` site risk
-#'   bands, matching the `vs_risk_profile` argument of [create_study_config()].
-#'   Controls the share of sites placed in the red and amber bands
-#'   (`dPctRed` / `dPctAmber`), their target consecutive-repeat rates
-#'   (`dRateRed` / `dRateAmber` / `dRateNormal`), the rolling window length
-#'   (`nWindowLength`), and which vitals are targeted (`vVitals`). `NULL` uses
-#'   the built-in defaults.
+#' @inheritParams create_study_config
 #'
 #' @return When `snapshot_count == 1`, a named list of `data.frame`s (one per
 #'   domain). When `snapshot_count > 1`, a named list of snapshots keyed by

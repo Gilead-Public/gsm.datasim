@@ -8,18 +8,18 @@
 #' @param site_count Number of sites
 #' @param analytics_package Analytics package to use
 #' @param analytics_workflows Specific workflows to run
-#' @param reporting_package Reporting package to use (default: \code{"gsm.reporting"})
+#' @param reporting_package Reporting package to use (default: 
+#'   `"gsm.reporting"`)
 #' @param reporting_workflows Specific reporting workflows to run (default: all)
-#' @param outlier_intensity Global multiplier for outlier-like values in domain generators.
-#'   Use \code{1} for current baseline, values \code{>1} to increase outlier prevalence.
-#' @param vs_risk_profile Optional named list controlling site-targeted
-#'   consecutive-run injection in \code{Raw_VS}, for the repeat-measure KRIs.
-#'   Recognized fields are \code{dPctRed} and \code{dPctAmber} (share of sites
-#'   in each band), \code{nWindowLength} (rolling window length, whole number
-#'   \code{>= 2}), \code{dRateNormal} / \code{dRateAmber} / \code{dRateRed}
-#'   (target repeat rate per band), and \code{vVitals} (character vector of
-#'   vitals to target, or \code{NULL} for all eight). \code{NULL} uses the
-#'   generator defaults.
+#' @param outlier_intensity Global multiplier for outlier-like values in domain 
+#'   generators. Use `1` for current baseline, values `>1` to increase outlier 
+#'   prevalence.
+#' @param vs_risk_profile Optional named list controlling site-targeted 
+#'   consecutive-run injection in `Raw_VS`. Recognized fields are `dPctRed` and 
+#'   `dPctAmber` (share of sites in each band), `nWindowLength` (rolling window 
+#'   length, whole number `>= 2`), `dRateNormal` / `dRateAmber` / `dRateRed`
+#'   (target repeat rate per band), and `vVitals` (character vector of vitals to
+#'   target, or `NULL` for all eight). `NULL` uses the generator defaults.
 #'
 #' @return A list containing study configuration
 #' @examples
@@ -239,9 +239,7 @@ validate_study_config <- function(config) {
 #' @param randomization Include randomization data (Raw_Randomization)
 #' @param overall_response Include overall response data (Raw_OverallResponse)
 #' @param outlier_intensity Global multiplier for outlier-like values in domain generators.
-#' @param vs_risk_profile Optional named list controlling site-targeted
-#'   consecutive-run injection in \code{Raw_VS}. Passed through to
-#'   \code{\link{create_study_config}}; see there for the recognized fields.
+#' @inheritParams create_study_config
 #'
 #' @return Study configuration with standard datasets
 #' @examples

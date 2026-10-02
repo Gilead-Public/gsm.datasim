@@ -39,9 +39,12 @@ generate_rawdata_for_single_study(
 
 \item{desired_specs}{Optional character vector of dataset names to keep.}
 
-\item{vs_risk_profile}{Optional \code{Raw_VS} consecutive-repeat risk profile, in
-the same form accepted by \code{\link[=create_study_config]{create_study_config()}}. \code{NULL} (the default)
-uses the built-in profile.}
+\item{vs_risk_profile}{Optional named list controlling site-targeted
+consecutive-run injection in \code{Raw_VS}. Recognized fields are \code{dPctRed} and
+\code{dPctAmber} (share of sites in each band), \code{nWindowLength} (rolling window
+length, whole number \verb{>= 2}), \code{dRateNormal} / \code{dRateAmber} / \code{dRateRed}
+(target repeat rate per band), and \code{vVitals} (character vector of vitals to
+target, or \code{NULL} for all eight). \code{NULL} uses the generator defaults.}
 }
 \value{
 A named list of snapshot data frames, named by snapshot end date.

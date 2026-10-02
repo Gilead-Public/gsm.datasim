@@ -294,9 +294,7 @@ generate_snapshots_from_combined_specs <- function(SnapshotCount,
 #' @param package Package name used to locate specs.
 #' @param strStartDate Study start date as a string (default `"2012-01-01"`).
 #' @param desired_specs Optional character vector of dataset names to keep.
-#' @param vs_risk_profile Optional `Raw_VS` consecutive-repeat risk profile, in
-#'   the same form accepted by [create_study_config()]. `NULL` (the default)
-#'   uses the built-in profile.
+#' @inheritParams create_study_config
 #'
 #' @return A named list of snapshot data frames, named by snapshot end date.
 #'
