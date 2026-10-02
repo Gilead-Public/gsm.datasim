@@ -14,10 +14,10 @@
 - [`create_longitudinal_study()`](https://gilead-public.github.io/gsm.datasim/dev/reference/create_longitudinal_study.md)
   /
   [`generate_study_snapshots()`](https://gilead-public.github.io/gsm.datasim/dev/reference/generate_study_snapshots.md)
-  no longer generate independent single-snapshot studies. Snapshots are
-  now produced by a single generation pass so each snapshot receives the
-  previous one as `previous_data`, preserving subject, site, and
-  enrollment continuity and letting exposure accumulate across snapshots
+  snapshots no longer generate independent single-snapshot studies.
+  Instead, each snapshot builds off the previous one, preserving
+  subject, site, and enrollment continuity and letting exposure
+  accumulate across snapshots
   ([\#165](https://github.com/Gilead-Public/gsm.datasim/issues/165)).
 
 ## gsm.datasim v2.0.0

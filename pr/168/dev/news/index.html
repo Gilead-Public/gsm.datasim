@@ -52,7 +52,7 @@
 </ul><div class="section level3">
 <h3 id="bug-fixes-development-version">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-development-version"></a></h3>
 <ul><li>
-<code><a href="../reference/create_longitudinal_study.html">create_longitudinal_study()</a></code> / <code><a href="../reference/generate_study_snapshots.html">generate_study_snapshots()</a></code> no longer generate independent single-snapshot studies. Snapshots are now produced by a single generation pass so each snapshot receives the previous one as <code>previous_data</code>, preserving subject, site, and enrollment continuity and letting exposure accumulate across snapshots (<a href="https://github.com/Gilead-Public/gsm.datasim/issues/165" class="external-link">#165</a>).</li>
+<code><a href="../reference/create_longitudinal_study.html">create_longitudinal_study()</a></code> / <code><a href="../reference/generate_study_snapshots.html">generate_study_snapshots()</a></code> snapshots no longer generate independent single-snapshot studies. Instead, each snapshot builds off the previous one, preserving subject, site, and enrollment continuity and letting exposure accumulate across snapshots (<a href="https://github.com/Gilead-Public/gsm.datasim/issues/165" class="external-link">#165</a>).</li>
 </ul></div>
 </div>
     <div class="section level2">
