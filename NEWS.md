@@ -8,7 +8,7 @@
 
 ## Bug Fixes
 
-- `create_longitudinal_study()` / `generate_study_snapshots()` no longer generate independent single-snapshot studies. Snapshots are now produced by a single generation pass so each snapshot receives the previous one as `previous_data`, preserving subject, site, and enrollment continuity and letting exposure accumulate across snapshots (#165).
+- `create_longitudinal_study()` / `generate_study_snapshots()` snapshots no longer generate independent single-snapshot studies. Instead, each snapshot builds off the previous one, preserving subject, site, and enrollment continuity and letting exposure accumulate across snapshots (#165).
 
 # gsm.datasim v2.0.0
 
