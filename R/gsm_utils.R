@@ -98,7 +98,13 @@ run_domain_generation_loop <- function(combined_specs, config, source_domains) {
   participant_count <- sp$participant_count
   site_count_param <- sp$site_count
 
-  start_dates <- seq(as.Date(tc$start_date), length.out = snapshot_count, by = snapshot_width)
+  # Callers may supply explicit per-snapshot start dates (e.g. month-end aligned
+  # dates from generate_study_snapshots()); otherwise derive them from start_date.
+  start_dates <- if (!is.null(tc$snapshot_dates)) {
+    as.Date(tc$snapshot_dates)[seq_len(snapshot_count)]
+  } else {
+    seq(as.Date(tc$start_date), length.out = snapshot_count, by = snapshot_width)
+  }
   end_dates <- start_dates + 28
   global_max_date <- max(end_dates)
 
@@ -400,48 +406,35 @@ generate_study_snapshots <- function(study_id, participants, sites, snapshots, i
 
   # Ramp up participants and sites gradually across snapshots, mimicking real
   # enrollment patterns (the same approach used in generate_rawdata_for_single_study).
-  subject_counts <- count_gen(participants, snapshots)
-  site_counts <- count_gen(sites, snapshots)
+  # NOTE: the ramp is applied inside the generation loop via count_gen(); a single
+  # config spanning all snapshots is required so that each snapshot receives the
+  # previous one as `previous_data` and longitudinal continuity is preserved (#165).
+  config <- create_study_config(
+    study_id = study_id,
+    participant_count = participants,
+    site_count = sites,
+    outlier_intensity = outlier_intensity
+  )
 
-  raw_data_list <- list()
+  config <- set_temporal_config(
+    config,
+    start_date = start_dates[1],
+    snapshot_count = snapshots,
+    snapshot_width = snapshot_width
+  )
+  config$temporal_config$snapshot_dates <- start_dates
 
-  for (i in 1:snapshots) {
-    if (isTRUE(verbose)) {
-      cat(
-        "Generating snapshot", i, "of", snapshots,
-        "(", subject_counts[i], "participants,",
-        site_counts[i], "sites)\n"
-      )
-    }
-
-    config <- create_study_config(
-      study_id = study_id,
-      participant_count = subject_counts[i],
-      site_count = site_counts[i],
-      outlier_intensity = outlier_intensity
-    )
-
-    # Set temporal configuration with the specific start date for this snapshot
-    config <- set_temporal_config(
-      config,
-      start_date = start_dates[i],
-      snapshot_count = 1,
-      snapshot_width = snapshot_width
-    )
-
-    # Add enabled datasets based on mappings
-    for (mapping in mappings) {
-      config <- add_dataset_config(config, mapping, enabled = TRUE)
-    }
-    config$verbose <- verbose
-
-    raw_data <- generate_study_data(config, verbose = verbose)
-    # Unwrap single-snapshot lists to avoid nested date keys
-    if (is.list(raw_data) && length(raw_data) == 1 && is.list(raw_data[[1]])) {
-      raw_data <- raw_data[[1]]
-    }
-    raw_data_list[[i]] <- raw_data
+  # Add enabled datasets based on mappings
+  for (mapping in mappings) {
+    config <- add_dataset_config(config, mapping, enabled = TRUE)
   }
+  config$verbose <- verbose
+
+  if (isTRUE(verbose)) {
+    cat("Generating", snapshots, "longitudinal snapshots for", study_id, "\n")
+  }
+
+  raw_data_list <- generate_study_data(config, verbose = verbose)
 
   # Add the calculated dates as names to the list
   names(raw_data_list) <- as.character(start_dates)
