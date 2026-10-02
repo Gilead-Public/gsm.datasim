@@ -1,5 +1,20 @@
 # gsm.datasim (development version)
 
+- New test data bundle tooling (gsm.roadmap#118): `build_testdata_bundle()` reproduces the
+  shared gsm test data that used to ship inside `gsm.core` (`lSource` and the
+  `reporting*` / `analytics*` objects) from the checked-in `inst/testdata/bundle-config.yaml`
+  (read with `read_testdata_config()`), writes a four-layer bundle (raw / mapped / analytics /
+  reporting, three snapshots) and a `manifest.json` with provenance, package versions and
+  per-file SHA-256 checksums. The two edits the old maintainer script applied silently
+  (`Raw_SITE$site_status`, `SnapshotDate` stamping) are explicit, configurable steps (#151).
+- New `explore_testdata()` htmlwidget and *Test Data Explorer* example page: bundle header,
+  snapshot / layer / table tree, sortable and searchable table viewer with per-column
+  summaries, and overview charts. Backed by `summarize_testdata_bundle()`,
+  `read_testdata_bundle()` and `read_testdata_manifest()`. The table viewer and tree are
+  adapted from the `open.gismo` / `workr` front-end; charts use `gsm.viz` (#155).
+- `execute_analytics_pipeline()` (and therefore `create_longitudinal_study()` /
+  `run_longitudinal_analytics()`) accepts a vector of analytics packages, e.g.
+  `analytics_package = c("gsm.kri", "gsm.qtl")`, and concatenates their metric workflows.
 - `Raw_SUBJ` now carries six simulated `drv_*` IP non-starter fields
   (`drv_enrollment_dt`, `drv_ip_dosed`, `drv_ip_first_dose_dt`,
   `drv_enrl_first_dose_days`, `drv_days_lapsed_since_enrl`,
