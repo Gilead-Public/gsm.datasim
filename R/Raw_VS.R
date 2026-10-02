@@ -260,6 +260,19 @@ resp <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NUL
     }
   }
 
+  # Bands must be ordered so red sites score above amber, and amber above
+  # normal. The KRI thresholds themselves are configured downstream (gsm.kri),
+  # so they are not hard-coded here; choosing rates on the correct side of
+  # them is the caller's responsibility.
+  if (!(profile$dRateNormal <= profile$dRateAmber &&
+    profile$dRateAmber <= profile$dRateRed)) {
+    stop(
+      "vs_risk_profile rates must satisfy dRateNormal <= dRateAmber <= dRateRed",
+      " (effective values, after defaults are applied: ",
+      profile$dRateNormal, ", ", profile$dRateAmber, ", ", profile$dRateRed, ")"
+    )
+  }
+
   if (profile$dPctRed + profile$dPctAmber > 1) {
     stop(
       "vs_risk_profile$dPctRed + vs_risk_profile$dPctAmber must not exceed 1",

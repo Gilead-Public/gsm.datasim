@@ -77,6 +77,7 @@ create_longitudinal_study <- function(study_id = "STUDY-001",
     study_type = "standard", # default for this function
     analytics_package = analytics_package,
     analytics_workflows = analytics_workflows,
+    vs_risk_profile = vs_risk_profile,
     verbose = verbose
   )
 
@@ -215,6 +216,7 @@ quick_longitudinal_study <- function(study_name = "GS-US-000-0001",
         domains = domains,
         study_type = "endpoints",
         analytics_package = "gsm.endpoints",
+        vs_risk_profile = vs_risk_profile,
         verbose = verbose
       )
     )

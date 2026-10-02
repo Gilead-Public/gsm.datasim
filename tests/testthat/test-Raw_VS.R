@@ -1,18 +1,19 @@
 # ---- known-answer sequences -------------------------------------------------
 
 test_that("count_repeat_windows matches the hand-computed worked examples (#143)", {
-  # Worked examples from #143 / gsm.roadmap#250. The expected denominators are
-  # worked out by hand rather than computed, so this checks the rule rather
-  # than recording whatever the implementation happens to produce.
+  # Worked examples from #143 / gsm.roadmap#250. The expected numerators and
+  # denominators are worked out by hand rather than computed, so this checks
+  # the rule rather than recording whatever the implementation happens to
+  # produce.
   #
   # Missing values are dropped before windows form, so `not_performed`
   # reduces to five measurements (10, 10, 10, 4, 5) and yields 3 windows, not
   # the 4 its six rows would suggest.
   cases <- list(
-    scattered = list(values = c(10, 10, 5, 3, 10), denominator = 3),
-    all_repeated = list(values = c(10, 10, 10, 10, 10), denominator = 3),
-    one_run = list(values = c(10, 10, 10, 1, 5, 6), denominator = 4),
-    not_performed = list(values = c(10, 10, NA, 10, 4, 5), denominator = 3)
+    scattered = list(values = c(10, 10, 5, 3, 10), numerator = 0, denominator = 3),
+    all_repeated = list(values = c(10, 10, 10, 10, 10), numerator = 3, denominator = 3),
+    one_run = list(values = c(10, 10, 10, 1, 5, 6), numerator = 1, denominator = 4),
+    not_performed = list(values = c(10, 10, NA, 10, 4, 5), numerator = 1, denominator = 3)
   )
 
   for (nm in names(cases)) {
@@ -20,6 +21,11 @@ test_that("count_repeat_windows matches the hand-computed worked examples (#143)
     expect_equal(
       count_repeat_windows(sum(!is.na(case$values)), nWindowLength = 3),
       case$denominator,
+      info = nm
+    )
+    expect_equal(
+      count_consecutive_repeat_windows(case$values, nWindowLength = 3),
+      list(numerator = case$numerator, denominator = case$denominator),
       info = nm
     )
   }
@@ -944,6 +950,32 @@ test_that("create_longitudinal_study() persists Raw_VS risk bands (#143)", {
     strValueCol = "sysbp"
   )
   expect_gte(final_rates$rate[final_rates$invid == multi_site[[1]]], 0.30)
+})
+
+test_that("vs_risk_profile rejects out-of-order band rates (#143)", {
+  expect_error(
+    .resolve_vs_risk_profile(list(dRateRed = 0.1)),
+    "dRateNormal <= dRateAmber <= dRateRed"
+  )
+  expect_error(
+    .resolve_vs_risk_profile(list(dRateNormal = 0.5)),
+    "dRateNormal <= dRateAmber <= dRateRed"
+  )
+  # Equal rates are allowed (e.g. disabling targeting by flattening bands).
+  expect_no_error(
+    .resolve_vs_risk_profile(list(dRateNormal = 0.2, dRateAmber = 0.2, dRateRed = 0.2))
+  )
+})
+
+test_that("create_longitudinal_study() records vs_risk_profile on the study (#143)", {
+  set.seed(2967)
+  profile <- list(dPctRed = 0.2, dPctAmber = 0.2)
+  study <- suppressMessages(create_longitudinal_study(
+    "DEMO",
+    participants = 20, sites = 2, snapshots = 2, domains = "VS",
+    vs_risk_profile = profile
+  ))
+  expect_identical(study$config$vs_risk_profile, profile)
 })
 
 test_that("create_longitudinal_study() validates vs_risk_profile (#143)", {
