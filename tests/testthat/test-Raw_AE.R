@@ -6,11 +6,13 @@ test_that("aeongo and aerel sample only Y and N", {
   expect_length(aeongo(0), 0)
 })
 
-test_that("mdrpt_nsv and mdrsoc_nsv sample their fixed term sets", {
+test_that("mdrpt_nsv and mdrsoc_nsv sample from the AE term catalog", {
   set.seed(2286)
+  catalog <- ae_term_catalog()
 
-  expect_setequal(unique(mdrpt_nsv(500)), c("term1", "term2"))
-  expect_setequal(unique(mdrsoc_nsv(500)), c("soc1", "soc2"))
+  expect_true(all(mdrpt_nsv(500) %in% catalog$mdrpt_nsv))
+  expect_true(all(mdrsoc_nsv(500) %in% catalog$mdrsoc_nsv))
+  expect_false(any(c("term1", "term2") %in% mdrpt_nsv(500)))
 })
 
 test_that("aest_dt draws within the start/end window and aeen_dt follows it", {
@@ -45,10 +47,11 @@ test_that("aeser and aetoxgr work with and without a Raw_SUBJ key map", {
 
   expect_setequal(unique(aeser(500)), c("Y", "N"))
   expect_true(all(aetoxgr(500) %in% 1:5))
+  expect_type(aetoxgr(10), "integer")
 
-  # Supplying Raw_SUBJ enables the site-hotspot path.
-  expect_true(all(aeser(200, Raw_SUBJ_data = subj) %in% c("Y", "N")))
-  expect_true(all(aetoxgr(200, Raw_SUBJ_data = subj) %in% 1:5))
+  # Supplying Raw_SUBJ plus each record's subjid enables the site-hotspot path.
+  expect_true(all(aeser(200, Raw_SUBJ_data = subj, row_keys = sample(subj$subjid, 200, TRUE)) %in% c("Y", "N")))
+  expect_true(all(aetoxgr(200, mdrpt_nsv = rep("Nausea", 200), site_shift = 2) %in% 1:5))
 })
 
 test_that("Raw_AE generates a complete dataset from scratch", {
@@ -88,6 +91,12 @@ test_that("Raw_AE generates a complete dataset from scratch", {
   expect_true(all(res$studyid == "PROT-001"))
   expect_true(all(res$aest_dt >= start_date & res$aest_dt <= end_date))
   expect_true(all(res$aeen_dt > res$aest_dt))
+
+  catalog <- ae_term_catalog()
+  expect_true(all(res$mdrpt_nsv %in% catalog$mdrpt_nsv))
+  # SOC is the one paired with the record's preferred term.
+  expect_equal(res$mdrsoc_nsv, catalog$mdrsoc_nsv[match(res$mdrpt_nsv, catalog$mdrpt_nsv)])
+  expect_true(all(res$aetoxgr %in% 1:5))
 })
 
 test_that("Raw_AE appends only the delta rows to previous data", {

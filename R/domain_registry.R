@@ -229,9 +229,16 @@ get_domain_registry <- function() {
           default         = list(n, context$start_date)
         )
 
-        as.data.frame(add_new_var_data(dataset, curr_spec, args, spec$Raw_AE,
+        res <- as.data.frame(add_new_var_data(dataset, curr_spec, args, spec$Raw_AE,
           split_vars = list("aest_dt_aeen_dt")
         ))
+        simulate_ae_grading(
+          res,
+          new_rows = seq_len(n) + previous_row_num,
+          Raw_SUBJ_data = data$Raw_SUBJ,
+          studyid = data$Raw_STUDY$protocol_number[[1]],
+          spec = spec$Raw_AE
+        )
       }
     ),
     Raw_LB = list(
