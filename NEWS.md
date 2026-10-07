@@ -1,9 +1,9 @@
 # gsm.datasim (development version)
 
-- Added simulated IP non-starter scenarios for IP Compliance reporting (#140).
-- Added kit assignment scenarios, more realistic dosing timelines, and
-  consistent study completion records (#157).
-- Added simulated premature treatment discontinuation scenarios (#138).
+- Simulated `Raw_SUBJ` data now covers IP non-starter, kit assignment and
+  premature treatment discontinuation scenarios, with more realistic dosing
+  timelines and study completion records consistent with each subject's status
+  (#140, #157, #138).
 
 # gsm.datasim v2.0.0
 
