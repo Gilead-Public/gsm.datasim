@@ -4,12 +4,13 @@
 # of the two generation paths) shows up here even though the unit tests in
 # test-nonstarter-generators.R already cover the derivation rules themselves.
 #
-# All three tests use ParticipantCount = 1 with a 2012-01-01 "months"-width,
-# 2-snapshot study: count_gen() distributes 1 participant deterministically
-# as c(1, 1), so snapshot 2 adds zero new subjects and Raw_SUBJ() takes its
-# early-return path for that snapshot. seed 1 is fixed because it draws that
-# lone subject enrolled and undosed, which is required for the window
-# transition below; it is not tuned to any other property of the output.
+# The two window-transition tests use ParticipantCount = 1 with a 2012-01-01
+# "months"-width, 2-snapshot study: count_gen() distributes 1 participant
+# deterministically as c(1, 1), so snapshot 2 adds zero new subjects and
+# Raw_SUBJ() takes its early-return path for that snapshot. seed 1 is fixed
+# because it draws that lone subject enrolled and undosed, which is required
+# for the window transition; it is not tuned to any other property of the
+# output.
 
 test_that("a later snapshot with no new subjects still advances an undosed subject from within- to outside-window, legacy path (#140)", {
   test_at_log_threshold()
