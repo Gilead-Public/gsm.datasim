@@ -47,10 +47,13 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="gsmdatasim-development-version">gsm.datasim (development version)<a class="anchor" aria-label="anchor" href="#gsmdatasim-development-version"></a></h2>
-<ul><li>Added simulated IP non-starter scenarios for IP Compliance reporting (<a href="https://github.com/Gilead-Public/gsm.datasim/issues/140" class="external-link">#140</a>).</li>
-<li>Added kit assignment scenarios, more realistic dosing timelines, and consistent study completion records (<a href="https://github.com/Gilead-Public/gsm.datasim/issues/157" class="external-link">#157</a>).</li>
-<li>Added simulated premature treatment discontinuation scenarios (<a href="https://github.com/Gilead-Public/gsm.datasim/issues/138" class="external-link">#138</a>).</li>
+<ul><li>Simulated <code>Raw_SUBJ</code> data now covers IP non-starter, kit assignment and premature treatment discontinuation scenarios, with more realistic dosing timelines and study completion records consistent with each subject’s status (<a href="https://github.com/Gilead-Public/gsm.datasim/issues/140" class="external-link">#140</a>, <a href="https://github.com/Gilead-Public/gsm.datasim/issues/157" class="external-link">#157</a>, <a href="https://github.com/Gilead-Public/gsm.datasim/issues/138" class="external-link">#138</a>).</li>
+</ul><div class="section level3">
+<h3 id="bug-fixes-development-version">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-development-version"></a></h3>
+<ul><li>
+<code><a href="../reference/create_longitudinal_study.html">create_longitudinal_study()</a></code> / <code><a href="../reference/generate_study_snapshots.html">generate_study_snapshots()</a></code> snapshots no longer generate independent single-snapshot studies. Instead, each snapshot builds off the previous one, preserving subject, site, and enrollment continuity and letting exposure accumulate across snapshots (<a href="https://github.com/Gilead-Public/gsm.datasim/issues/165" class="external-link">#165</a>).</li>
 </ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.0.0" id="gsmdatasim-v200">gsm.datasim v2.0.0<a class="anchor" aria-label="anchor" href="#gsmdatasim-v200"></a></h2>
 <p>This major release introduces a composable study builder API, longitudinal multi-snapshot study support, workflow-driven data generation, a domain registry, and parquet export. Analytics and reporting are now powered by the <code>workr</code> workflow engine.</p>
