@@ -1,23 +1,3 @@
-# The default 10,000 sequential subject IDs cover every digit bucket used by the derivation.
-make_dosed_subj <- function(n = 10000) {
-  df <- data.frame(
-    studyid = "X",
-    invid = paste0("I", seq_len(n) %% 50),
-    subjid = paste0("S", seq_len(n)),
-    enrollyn = "Y",
-    enrolldt = as.Date("2025-01-01"),
-    firstdosedate = as.Date("2025-01-01") + seq_len(n) %% 5,
-    stringsAsFactors = FALSE
-  )
-  apply_ipns_derivations(df, as.Date("2026-01-01"))
-}
-
-ptd_cols <- c(
-  "drv_treatment_discontinuation_dt",
-  "drv_premature_discontinuation_reason",
-  "drv_days_lapsed_enrl_discontinuation"
-)
-
 test_that("non-dosed and non-enrolled subjects carry NA in all three fields (#138)", {
   subj <- apply_ipns_derivations(make_subj(), as.Date("2025-03-15"))
   res <- apply_ptd_derivations(subj, as.Date("2025-03-15"))
@@ -109,7 +89,7 @@ test_that("reasons cover NA, a comma-joined pair and single vocabulary values (#
   expect_true(all(lengths(pairs) == 2 & !vapply(pairs, anyDuplicated, 0L)))
   expect_true(all(
     unlist(strsplit(stats::na.omit(reason), ", ", fixed = TRUE)) %in%
-      ptd_reason_values
+      .ptd_reason_values
   ))
 })
 
