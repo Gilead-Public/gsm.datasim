@@ -775,6 +775,7 @@ test_that("Raw_VS emits no invid or bmi column under the real spec (#113, #143)"
 })
 
 test_that("Raw_VS generates through the standard study config (#113, #143)", {
+  test_at_log_threshold()
   skip_if_not_installed("gsm.mapping", minimum_version = "1.1.6.9000")
   set.seed(4471)
 
@@ -846,6 +847,7 @@ test_that("create_standard_study_config forwards vs_risk_profile (#143)", {
 })
 
 test_that("Raw_VS risk bands persist across snapshots (#143)", {
+  test_at_log_threshold()
   # The regression this guards: bands were drawn independently inside every
   # snapshot, so the elevated site moved from snapshot to snapshot and no site
   # held a persistently elevated rate over the life of the study.
@@ -889,6 +891,7 @@ test_that("Raw_VS risk bands persist across snapshots (#143)", {
 })
 
 test_that("Raw_VS bands stay independent per vital across snapshots (#143)", {
+  test_at_log_threshold()
   # Persistence must not collapse the vitals onto one shared band: each vital
   # is its own KRI, so a site red on sysbp need not be red on pulse.
   set.seed(7731)
@@ -915,6 +918,7 @@ test_that("Raw_VS bands stay independent per vital across snapshots (#143)", {
 })
 
 test_that("create_longitudinal_study() persists Raw_VS risk bands (#143)", {
+  test_at_log_threshold()
   set.seed(5518)
 
   study <- suppressMessages(create_longitudinal_study(
@@ -968,6 +972,7 @@ test_that("vs_risk_profile rejects out-of-order band rates (#143)", {
 })
 
 test_that("create_longitudinal_study() records vs_risk_profile on the study (#143)", {
+  test_at_log_threshold()
   set.seed(2967)
   profile <- list(dPctRed = 0.2, dPctAmber = 0.2)
   study <- suppressMessages(create_longitudinal_study(
@@ -979,6 +984,7 @@ test_that("create_longitudinal_study() records vs_risk_profile on the study (#14
 })
 
 test_that("create_longitudinal_study() validates vs_risk_profile (#143)", {
+  test_at_log_threshold()
   expect_error(
     create_longitudinal_study(
       "DEMO",

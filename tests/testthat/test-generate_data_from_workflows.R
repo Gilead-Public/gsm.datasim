@@ -887,6 +887,7 @@ test_that("single-row domains repeat their count across snapshots via the legacy
 })
 
 test_that("generate_data_from_workflows threads vs_risk_profile to Raw_VS (#143)", {
+  test_at_log_threshold()
   # This path previously assembled `registry_context` without
   # `vs_risk_profile`, so `Raw_VS` silently fell back to the built-in profile
   # and the argument had no effect here.
@@ -952,6 +953,7 @@ test_that("generate_data_from_workflows threads vs_risk_profile to Raw_VS (#143)
 })
 
 test_that("an invalid vs_risk_profile is rejected identically on every route (#143)", {
+  test_at_log_threshold()
   # The rules live in `.resolve_vs_risk_profile()`, which every route passes
   # through, so a profile must be accepted or rejected the same way whether it
   # arrives via a study config or via this entry point. Previously only the
