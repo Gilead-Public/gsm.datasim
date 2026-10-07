@@ -228,6 +228,42 @@ test_that("a core-shaped run carries every IP non-starter scenario the IP Compli
   }
 })
 
+test_that("the config-native path aligns Raw_STUDCOMP with IP non-starter status on every snapshot (#157)", {
+  test_at_log_threshold()
+  skip_if_not_installed("gsm.mapping")
+  set.seed(1234)
+  snaps <- suppressWarnings(generate_study_data(
+    native_subj_config("IPNS-STUDCOMP", 300, 3, study_completion = TRUE)
+  ))
+
+  for (k in seq_along(snaps)) {
+    subj <- snaps[[k]]$Raw_SUBJ
+    sc <- snaps[[k]]$Raw_STUDCOMP
+    as_of <- as.Date(names(snaps)[[k]])
+    i <- match(sc$subjid, subj$subjid)
+    status <- subj$drv_ip_nonstarter_status[i]
+    confirmed <- subj$subjid[subj$drv_ip_nonstarter_status %in% "Confirmed Non-Starter"]
+
+    expect_gt(length(confirmed), 0)
+    expect_true(all(confirmed %in% sc$subjid[sc$compyn %in% "N"]))
+    expect_false(any(grepl("^Potential", status) & !is_blank(sc$compyn)))
+    expect_true(all(status[sc$compyn %in% "Y"] == "Dosed"))
+    expect_identical(!is_blank(sc$compreas), sc$compyn %in% "N")
+
+    anchor <- dplyr::coalesce(subj$drv_ip_first_dose_dt, subj$drv_enrollment_dt)[i]
+    created <- as.Date(sc$mincreated_dts)
+    # Non-enrolled subjects have no status or anchor, so they are left as drawn.
+    has_status <- !is.na(status)
+    expect_true(all(created[has_status] >= anchor[has_status] & created[has_status] <= as_of))
+  }
+
+  now <- snaps[[3]]$Raw_STUDCOMP
+  for (earlier in snaps[1:2]) {
+    prev <- earlier$Raw_STUDCOMP
+    expect_equal(now[match(prev$subjid, now$subjid), names(prev)], prev, ignore_attr = TRUE)
+  }
+})
+
 test_that("time on treatment runs to the latest snapshot date for carried-forward subjects (#157)", {
   test_at_log_threshold()
   skip_if_not_installed("gsm.mapping")

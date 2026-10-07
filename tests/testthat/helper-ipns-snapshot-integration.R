@@ -15,7 +15,8 @@ subj_seed_config <- function(participant_count = 1, snapshot_count = 2) {
   )
 }
 
-native_subj_config <- function(study_id, participant_count, snapshot_count) {
+native_subj_config <- function(study_id, participant_count, snapshot_count,
+                               study_completion = FALSE) {
   config <- create_standard_study_config(
     study_id,
     participant_count = participant_count,
@@ -24,7 +25,7 @@ native_subj_config <- function(study_id, participant_count, snapshot_count) {
     subject_visits = FALSE, visit_schedule = FALSE, enrollment = TRUE,
     data_changes = FALSE, data_entry = FALSE, queries = FALSE,
     pharmacokinetics = FALSE, study_drug_completion = FALSE,
-    study_completion = FALSE, inclusion_exclusion = FALSE, country = FALSE,
+    study_completion = study_completion, inclusion_exclusion = FALSE, country = FALSE,
     death = FALSE, randomization = FALSE, overall_response = FALSE
   )
   set_temporal_config(
