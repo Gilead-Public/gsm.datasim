@@ -233,8 +233,16 @@ apply_ipns_derivations <- function(
   df
 }
 
-# Named after the spec column so add_new_var_data() calls it instead of the
-# RNG-consuming type fallback; apply_ipns_derivations() fills in the value.
+#' Placeholder generator for `drv_kit_assigned`
+#'
+#' Named after the spec column so `add_new_var_data()` calls it instead of the
+#' RNG-consuming type fallback; [apply_ipns_derivations()] fills in the value.
+#'
+#' @param n Number of rows.
+#' @param ... Ignored.
+#' @returns A character vector of `n` `NA`s.
+#' @keywords internal
+#' @noRd
 drv_kit_assigned <- function(n, ...) rep(NA_character_, n)
 
 enrollyn_enrolldt_timeonstudy_firstparticipantdate_firstdosedate_timeontreatment <- function(n, startDate, endDate, nonstarter_rate = 0.1, ...) {
@@ -270,8 +278,9 @@ enrollyn_enrolldt_timeonstudy_firstparticipantdate_firstdosedate_timeontreatment
   ))
 }
 
-# Reasons must not include drug names or phases.
-ptd_reason_values <- c(
+# Reasons must not include drug names or phases. Used in apply_ptd_derivations()
+# and tests.
+.ptd_reason_values <- c(
   "Adverse Event",
   "Lack of Efficacy",
   "Physician Decision",
@@ -305,8 +314,8 @@ apply_ptd_derivations <- function(df, endDate, nDiscontinuedShare = 0.3) {
   planned <- df$drv_ip_first_dose_dt + lag
   dated <- discontinuing & planned <= as.Date(endDate)
 
-  first <- ptd_reason_values[k %% 7L + 1L]
-  second <- ptd_reason_values[(k %% 7L + 1L + (k %/% 7L) %% 6L) %% 7L + 1L]
+  first <- .ptd_reason_values[k %% 7L + 1L]
+  second <- .ptd_reason_values[(k %% 7L + 1L + (k %/% 7L) %% 6L) %% 7L + 1L]
   shape <- (k %/% 10L) %% 100L
   reason <- dplyr::case_when(
     shape < 10L ~ NA_character_,
@@ -330,8 +339,16 @@ apply_ptd_derivations <- function(df, endDate, nDiscontinuedShare = 0.3) {
   df
 }
 
-# Named after the spec columns so add_new_var_data() skips the RNG-consuming
-# type fallback; apply_ptd_derivations() fills in the values.
+#' Placeholder generators for the premature discontinuation columns
+#'
+#' Named after the spec columns so `add_new_var_data()` skips the
+#' RNG-consuming type fallback; [apply_ptd_derivations()] fills in the values.
+#'
+#' @param n Number of rows.
+#' @param ... Ignored.
+#' @returns A vector of `n` `NA`s of the column's type.
+#' @keywords internal
+#' @noRd
 drv_treatment_discontinuation_dt <- function(n, ...) rep(as.Date(NA), n)
 drv_premature_discontinuation_reason <- function(n, ...) rep(NA_character_, n)
 drv_days_lapsed_enrl_discontinuation <- function(n, ...) rep(NA_integer_, n)
