@@ -8,7 +8,7 @@ test_that("ovrlresp samples only the RECIST response categories", {
   x <- ovrlresp(1000)
 
   expect_length(x, 1000)
-  expect_true(all(x %in% overallresponse_values))
+  expect_in(x, overallresponse_values)
 })
 
 test_that("ovrlresp accepts a Raw_SUBJ key map for site hotspotting", {
@@ -18,7 +18,7 @@ test_that("ovrlresp accepts a Raw_SUBJ key map for site hotspotting", {
   x <- ovrlresp(200, Raw_SUBJ_data = subj)
 
   expect_length(x, 200)
-  expect_true(all(x %in% overallresponse_values))
+  expect_in(x, overallresponse_values)
 })
 
 test_that("subjid_rs_dt draws visit dates belonging to the requested subjects", {
@@ -30,7 +30,7 @@ test_that("subjid_rs_dt draws visit dates belonging to the requested subjects", 
 
   expect_named(res, c("subjid", "rs_dt"))
   expect_length(res$subjid, 10)
-  expect_true(all(res$subjid %in% subjids))
+  expect_in(res$subjid, subjids)
   expect_s3_class(res$rs_dt, "Date")
 })
 
@@ -52,9 +52,9 @@ test_that("Raw_OverallResponse generates a complete dataset from scratch", {
     names(res),
     c("subjid", "rs_dt", "studyid", "ovrlresp", "response_folder")
   )
-  expect_true(all(res$subjid %in% data$Raw_SUBJ$subjid))
+  expect_in(res$subjid, data$Raw_SUBJ$subjid)
   expect_true(all(res$studyid == "PROT-001"))
-  expect_true(all(res$ovrlresp %in% overallresponse_values))
+  expect_in(res$ovrlresp, overallresponse_values)
   expect_true(all(res$response_folder == "final response"))
 })
 
@@ -119,6 +119,6 @@ test_that("Raw_OverallResponse renames columns per source_col in the spec", {
     split_vars = overallresponse_split
   )
 
-  expect_true("OVRLRESP" %in% names(res))
-  expect_false("ovrlresp" %in% names(res))
+  expect_contains(names(res), "OVRLRESP")
+  expect_disjoint(names(res), "ovrlresp")
 })

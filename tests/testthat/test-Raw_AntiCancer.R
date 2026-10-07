@@ -35,10 +35,10 @@ test_that("Raw_AntiCancer generates a complete dataset from scratch", {
   expect_s3_class(res, "data.frame")
   expect_equal(nrow(res), 5)
   expect_named(res, c("subjid", "studyid", "cmtrt", "cmst_dt"))
-  expect_true(all(res$subjid %in% data$Raw_SUBJ$subjid))
+  expect_in(res$subjid, data$Raw_SUBJ$subjid)
   expect_equal(anyDuplicated(res$subjid), 0)
   expect_true(all(res$studyid == "PROT-001"))
-  expect_true(all(res$cmtrt %in% c("RADIOTHERAPY", "OTHER CHEMOTHERAPY")))
+  expect_in(res$cmtrt, c("RADIOTHERAPY", "OTHER CHEMOTHERAPY"))
   expect_true(all(
     res$cmst_dt >= start_date - 5 & res$cmst_dt <= start_date + 5
   ))
@@ -94,6 +94,6 @@ test_that("Raw_AntiCancer renames columns per source_col in the spec", {
     n = 5
   )
 
-  expect_true("CMTRT" %in% names(res))
-  expect_false("cmtrt" %in% names(res))
+  expect_contains(names(res), "CMTRT")
+  expect_disjoint(names(res), "cmtrt")
 })

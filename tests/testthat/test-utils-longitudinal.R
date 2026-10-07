@@ -61,7 +61,7 @@ test_that("allocate_site_risk assigns every site exactly one band (#143)", {
 
   expect_named(bands, sites, ignore.order = TRUE)
   expect_length(bands, length(sites))
-  expect_true(all(bands %in% c("red", "amber", "normal")))
+  expect_in(bands, c("red", "amber", "normal"))
   expect_false(any(duplicated(names(bands))))
 })
 
@@ -73,7 +73,7 @@ test_that("allocate_site_risk errors when red + amber exceeds the site count (#1
 })
 
 # Rounding each band independently can total more than the site count even
-# when the percentages are a profile `.resolve_vs_risk_profile()` accepts.
+# when the percentages are a profile `.resolve_risk_profile()` accepts.
 test_that("allocate_site_risk caps rounding overshoot rather than erroring (#143)", {
   set.seed(3382)
 
@@ -130,8 +130,8 @@ test_that("allocate_site_risk never over-allocates across a sweep (#143)", {
       )
     )
     expect_length(bands, grid$n_sites[i])
-    expect_setequal(names(bands), sites)
-    expect_true(all(bands %in% c("red", "amber", "normal")))
+    expect_named(bands, sites, ignore.order = TRUE)
+    expect_in(bands, c("red", "amber", "normal"))
   }
 })
 
@@ -144,7 +144,7 @@ test_that("allocate_site_risk degrades sensibly for very few sites (#143)", {
   bands <- allocate_site_risk(sites, dPctRed = 0.1, dPctAmber = 0.2)
 
   expect_length(bands, 3)
-  expect_true(all(bands %in% c("red", "amber", "normal")))
+  expect_in(bands, c("red", "amber", "normal"))
   expect_lte(sum(bands == "red") + sum(bands == "amber"), 3)
 
   # A single site still works.
@@ -173,10 +173,9 @@ test_that("inject_targeted_runs lands within one window of the target rate (#143
       strValueCol = "value"
     )
 
-    expect_equal(
-      realized$rate, target,
-      tolerance = 1 / realized$denominator,
-      info = paste("target:", target)
+    expect_lte(
+      abs(realized$rate - target),
+      1 / realized$denominator + 1e-8
     )
   }
 })
@@ -265,7 +264,7 @@ test_that("inject_targeted_runs reports a realized numerator and denominator tha
 
   realized <- attr(out, "realized")
   expect_type(realized, "list")
-  expect_true(all(c("numerator", "denominator") %in% names(realized)))
+  expect_contains(names(realized), c("numerator", "denominator"))
 
   independent <- site_repeat_rate(
     data.frame(
@@ -362,7 +361,7 @@ test_that("assign_schedule_dates sorts by group then date and joins the right da
 
   out <- assign_schedule_dates(fx$df, fx$visits, strDateCol = "vs_dt")
 
-  expect_true("vs_dt" %in% names(out))
+  expect_contains(names(out), "vs_dt")
   expect_s3_class(out$vs_dt, "Date")
 
   # Sorted by subject, then date within subject.
@@ -407,8 +406,8 @@ test_that("assign_schedule_dates honors a caller-supplied date column name (#143
 
   out <- assign_schedule_dates(fx$df, fx$visits, strDateCol = "lb_dt")
 
-  expect_true("lb_dt" %in% names(out))
-  expect_false("vs_dt" %in% names(out))
+  expect_contains(names(out), "lb_dt")
+  expect_disjoint(names(out), "vs_dt")
   expect_s3_class(out$lb_dt, "Date")
 })
 
@@ -575,7 +574,7 @@ test_that("allocate_site_risk takes percentages over the full roster (#143)", {
   )
 
   expect_named(bands, c("A", "B"))
-  expect_true(all(bands %in% c("red", "amber", "normal")))
+  expect_in(bands, c("red", "amber", "normal"))
 })
 
 test_that("allocate_site_risk is stable as the roster grows (#143)", {

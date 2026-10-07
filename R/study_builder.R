@@ -14,12 +14,22 @@
 #' @param outlier_intensity Global multiplier for outlier-like values in domain 
 #'   generators. Use `1` for current baseline, values `>1` to increase outlier 
 #'   prevalence.
-#' @param vs_risk_profile Optional named list controlling site-targeted 
-#'   consecutive-run injection in `Raw_VS`. Recognized fields are `dPctRed` and 
-#'   `dPctAmber` (share of sites in each band), `nWindowLength` (rolling window 
+#' @param risk_profile Optional named list controlling site-targeted
+#'   consecutive-run injection. Only `Raw_VS` currently supports it. `NULL`
+#'   uses the generator defaults. Recognized fields are `dPctRed` and
+#'   `dPctAmber` (share of sites in each band), `nWindowLength` (rolling window
 #'   length, whole number `>= 2`), `dRateNormal` / `dRateAmber` / `dRateRed`
-#'   (target repeat rate per band), and `vVitals` (character vector of vitals to
-#'   target, or `NULL` for all eight). `NULL` uses the generator defaults.
+#'   (target repeat rate per band), and `vVitals` (character vector of vitals
+#'   to target, or `NULL` for all eight). Fields can be given at three levels,
+#'   with more specific levels overriding less specific ones:
+#'   * Top level: applies to every domain that supports it.
+#'   * Domain level: `list(Raw_VS = list(dPctRed = 0.3))`.
+#'   * Vital level: `list(Raw_VS = list(sysbp = list(dRateRed = 0.6)))`. Each
+#'     vital's bands are allocated independently, so vitals can have different
+#'     profiles. The targeted vitals are the domain's `vVitals` if given (named
+#'     vitals must then be among them), else the vitals the domain names, else
+#'     the top-level `vVitals`, else all eight. `vVitals` cannot be set inside
+#'     a vital.
 #'
 #' @return A list containing study configuration
 #' @examples
@@ -30,7 +40,7 @@
 create_study_config <- function(study_id = "STUDY001", participant_count = 100, site_count = 10,
                                 analytics_package = NULL, analytics_workflows = NULL,
                                 reporting_package = NULL, reporting_workflows = NULL,
-                                outlier_intensity = 1, vs_risk_profile = NULL) {
+                                outlier_intensity = 1, risk_profile = NULL) {
   config <- list(
     study_params = list(
       study_id = study_id,
@@ -41,7 +51,7 @@ create_study_config <- function(study_id = "STUDY001", participant_count = 100, 
       reporting_package = reporting_package,
       reporting_workflows = reporting_workflows,
       outlier_intensity = outlier_intensity,
-      vs_risk_profile = vs_risk_profile
+      risk_profile = risk_profile
     ),
     temporal_config = list(
       start_date = as.Date("2023-01-01"),
@@ -204,7 +214,7 @@ validate_study_config <- function(config) {
 
   # Resolving validates; the resolved profile is discarded here because the
   # generator resolves again from the stored config.
-  .resolve_vs_risk_profile(config$study_params$vs_risk_profile)
+  .validate_risk_profile(config$study_params$risk_profile)
 
   return(TRUE)
 }
@@ -267,7 +277,7 @@ create_standard_study_config <- function(study_id = "STUDY001", participant_coun
                                          inclusion_exclusion = TRUE,
                                          country = TRUE,
                                          death = TRUE, randomization = TRUE, overall_response = TRUE,
-                                         outlier_intensity = 1, vs_risk_profile = NULL) {
+                                         outlier_intensity = 1, risk_profile = NULL) {
   config <- create_study_config(
     study_id = study_id,
     participant_count = participant_count,
@@ -275,7 +285,7 @@ create_standard_study_config <- function(study_id = "STUDY001", participant_coun
     analytics_package = analytics_package,
     analytics_workflows = analytics_workflows,
     outlier_intensity = outlier_intensity,
-    vs_risk_profile = vs_risk_profile
+    risk_profile = risk_profile
   )
 
   # Core datasets (override automatic inclusion if user wants to disable)

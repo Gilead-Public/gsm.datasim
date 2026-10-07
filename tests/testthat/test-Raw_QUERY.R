@@ -4,7 +4,7 @@ test_that("querystatus samples only the three query states", {
   x <- querystatus(1000)
 
   expect_length(x, 1000)
-  expect_true(all(x %in% c("Answered", "Closed", "Open")))
+  expect_in(x, c("Answered", "Closed", "Open"))
 })
 
 test_that("queryage returns integers inside the clamped 1-359 range", {
@@ -56,9 +56,9 @@ test_that("Raw_QUERY generates a complete dataset from scratch", {
     names(res),
     c("subject_nsv", "visnam", "studyid", "querystatus", "queryage")
   )
-  expect_true(all(res$subject_nsv %in% data$Raw_SUBJ$subject_nsv))
+  expect_in(res$subject_nsv, data$Raw_SUBJ$subject_nsv)
   expect_true(all(res$studyid == "PROT-001"))
-  expect_true(all(res$querystatus %in% c("Answered", "Closed", "Open")))
+  expect_in(res$querystatus, c("Answered", "Closed", "Open"))
   # Two query rows are generated per subject-visit pair.
   expect_equal(nrow(res) %% 2, 0)
 })
@@ -102,8 +102,8 @@ test_that("Raw_QUERY renames columns per source_col in the spec", {
     split_vars = query_split
   )
 
-  expect_true("QUERYSTATUS" %in% names(res))
-  expect_false("querystatus" %in% names(res))
+  expect_contains(names(res), "QUERYSTATUS")
+  expect_disjoint(names(res), "querystatus")
 })
 
 # visnam is injected by the generator when the spec omits it, which the
@@ -128,6 +128,6 @@ test_that("Raw_QUERY injects visnam when absent from the spec", {
     split_vars = query_split
   )
 
-  expect_true("visnam" %in% names(res))
-  expect_true(all(res$visnam %in% c("Visit 1", "Visit 2")))
+  expect_contains(names(res), "visnam")
+  expect_in(res$visnam, c("Visit 1", "Visit 2"))
 })

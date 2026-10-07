@@ -579,7 +579,7 @@ get_domain_registry <- function() {
         # missing rows.
         performed <- vsperf_std(all_n)
 
-        risk_profile <- context$vs_risk_profile
+        risk_profile <- context$risk_profile
 
         # Bands are assigned by rank over the site roster, not by sampling the
         # sites present in this snapshot, so a site keeps its band as the study

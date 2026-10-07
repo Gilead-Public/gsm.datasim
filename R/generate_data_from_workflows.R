@@ -182,7 +182,7 @@ generate_data_from_workflows <- function(
     domain_counts = NULL,
     desired_domains = NULL,
     column_overrides = NULL,
-    vs_risk_profile = NULL) {
+    risk_profile = NULL) {
   # -- Validate inputs -------------------------------------------------------
   workflow_names <- names(lWorkflows)
   if (
@@ -245,7 +245,7 @@ generate_data_from_workflows <- function(
         previous_data    = list(),
         column_overrides = column_overrides,
         total_site_count = n_sites,
-        vs_risk_profile  = vs_risk_profile
+        risk_profile  = risk_profile
       )
     )
   }
@@ -292,7 +292,7 @@ generate_data_from_workflows <- function(
       previous_data    = previous_data,
       column_overrides = column_overrides,
       total_site_count = n_sites,
-      vs_risk_profile  = vs_risk_profile
+      risk_profile  = risk_profile
     )
 
     snapshots[[snapshot_idx]] <- snapshot_data
@@ -320,10 +320,10 @@ generate_data_from_workflows <- function(
                                       study_id, previous_data,
                                       column_overrides = NULL,
                                       total_site_count = NULL,
-                                      vs_risk_profile = NULL) {
+                                      risk_profile = NULL) {
   data <- list()
 
-  vs_risk_profile <- .resolve_vs_risk_profile(vs_risk_profile)
+  .validate_risk_profile(risk_profile)
 
   for (domain in names(combined_specs)) {
     n <- domain_n[[domain]]
@@ -344,7 +344,7 @@ generate_data_from_workflows <- function(
       snapshot_width = snapshot_width,
       study_id       = study_id,
       total_site_count = total_site_count,
-      vs_risk_profile = vs_risk_profile
+      risk_profile = risk_profile
     )
 
     registry_result <- tryCatch(

@@ -16,7 +16,7 @@ test_that("invid excludes identifiers already present in previous data", {
   x <- invid(50, previous_data = previous)
 
   expect_length(x, 50)
-  expect_false(any(x %in% previous$invid))
+  expect_disjoint(x, previous$invid)
 })
 
 test_that("invid errors when the identifier pool is exhausted", {
@@ -44,7 +44,7 @@ test_that("City samples from the reference city list", {
   x <- City(200)
 
   expect_length(x, 200)
-  expect_true(all(x %in% Country_State_City_data$city))
+  expect_in(x, Country_State_City_data$city)
 })
 
 # State and Country each have two modes: keyed to supplied cities, or sampled
@@ -64,8 +64,8 @@ test_that("State and Country sample independently when no cities are supplied", 
 
   expect_length(states, 50)
   expect_length(countries, 50)
-  expect_true(all(states %in% Country_State_City_data$state))
-  expect_true(all(countries %in% Country_State_City_data$country))
+  expect_in(states, Country_State_City_data$state)
+  expect_in(countries, Country_State_City_data$country)
 })
 
 test_that("Country_State_City returns a geographically consistent triple", {
@@ -96,9 +96,7 @@ test_that("Raw_SITE generates a complete dataset from scratch", {
 
   expect_s3_class(res, "data.frame")
   expect_equal(nrow(res), 5)
-  expect_true(all(
-    c("studyid", "invid", "Country", "State", "City") %in% names(res)
-  ))
+  expect_contains(names(res), c("studyid", "invid", "Country", "State", "City"))
   expect_true(all(res$studyid == "PROT-001"))
   expect_equal(anyDuplicated(res$invid), 0)
 })
@@ -169,6 +167,6 @@ test_that("Raw_SITE renames columns per source_col in the spec", {
     split_vars = site_split
   )
 
-  expect_true("SITE_STATUS" %in% names(res))
-  expect_false("site_status" %in% names(res))
+  expect_contains(names(res), "SITE_STATUS")
+  expect_disjoint(names(res), "site_status")
 })

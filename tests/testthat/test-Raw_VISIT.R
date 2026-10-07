@@ -62,18 +62,8 @@ test_that("Raw_VISIT generates a complete dataset from scratch", {
   )
 
   expect_s3_class(res, "data.frame")
-  expect_true(all(
-    c(
-      "subjid",
-      "invid",
-      "studyid",
-      "foldername",
-      "instancename",
-      "visit_dt"
-    ) %in%
-      names(res)
-  ))
-  expect_true(all(res$subjid %in% data$Raw_SUBJ$subjid))
+  expect_contains(names(res), c("subjid", "invid", "studyid", "foldername", "instancename", "visit_dt"))
+  expect_in(res$subjid, data$Raw_SUBJ$subjid)
   expect_true(all(res$studyid == "PROT-001"))
   # Eight visits are generated per subject.
   expect_equal(nrow(res), 3 * 8)
@@ -97,17 +87,7 @@ test_that("Raw_VISIT injects subjid, studyid, invid and the visit columns when a
     split_vars = visit_split
   )
 
-  expect_true(all(
-    c(
-      "subjid",
-      "invid",
-      "studyid",
-      "foldername",
-      "instancename",
-      "visit_dt"
-    ) %in%
-      names(res)
-  ))
+  expect_contains(names(res), c("subjid", "invid", "studyid", "foldername", "instancename", "visit_dt"))
 })
 
 # A spec column carrying source_col = "foldername" is renamed to foldername on
@@ -147,8 +127,8 @@ test_that("Raw_VISIT does not double-generate foldername when a source_col suppl
   # The renamed columns land under their source_col names, exactly once each.
   expect_equal(sum(names(res) == "foldername"), 1)
   expect_equal(sum(names(res) == "instancename"), 1)
-  expect_false("VISNAM" %in% names(res))
-  expect_false("VISINST" %in% names(res))
+  expect_disjoint(names(res), "VISNAM")
+  expect_disjoint(names(res), "VISINST")
 })
 
 test_that("Raw_VISIT draws new subjects when appending to previous data", {

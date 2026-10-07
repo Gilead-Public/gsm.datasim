@@ -36,7 +36,7 @@ test_that("combination_var_splitter names a split var that was never generated (
 
   # The split var exists: elements are spliced in at its position.
   out <- combination_var_splitter(variable_data, list("combo"))
-  expect_equal(names(out), c("studyid", "subjid", "visit"))
+  expect_named(out, c("studyid", "subjid", "visit"))
 
   # It does not: previously an opaque "attempt to select less than one
   # element in get1index" from deep inside `[[`.

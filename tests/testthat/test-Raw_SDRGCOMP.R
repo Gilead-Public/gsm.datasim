@@ -23,10 +23,10 @@ test_that("Raw_SDRGCOMP generates a complete dataset from scratch", {
   expect_s3_class(res, "data.frame")
   expect_equal(nrow(res), 5)
   expect_named(res, c("subjid", "studyid", "sdrgyn"))
-  expect_true(all(res$subjid %in% data$Raw_VISIT$subjid))
+  expect_in(res$subjid, data$Raw_VISIT$subjid)
   expect_equal(anyDuplicated(res$subjid), 0)
   expect_true(all(res$studyid == "PROT-001"))
-  expect_true(all(res$sdrgyn %in% c("Y", "N")))
+  expect_in(res$sdrgyn, c("Y", "N"))
 })
 
 # The available-subject pool is the setdiff against subjects already present,
@@ -82,8 +82,8 @@ test_that("Raw_SDRGCOMP renames columns per source_col in the spec", {
     n = 5
   )
 
-  expect_true("SDRGYN" %in% names(res))
-  expect_false("sdrgyn" %in% names(res))
+  expect_contains(names(res), "SDRGYN")
+  expect_disjoint(names(res), "sdrgyn")
 })
 
 # nonstarter_subjids lives in this file; its happy path is covered in

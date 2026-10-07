@@ -56,7 +56,7 @@ test_that("generate_column_by_type produces correct types and lengths (#106)", {
 
   yns <- generate_column_by_type("enrolled_yn", list(), 10, ctx)
   expect_length(yns, 10)
-  expect_true(all(yns %in% c("Y", "N")))
+  expect_in(yns, c("Y", "N"))
 
   logicals <- generate_column_by_type("is_active", list(), 10, ctx)
   expect_length(logicals, 10)
@@ -90,7 +90,7 @@ test_that("generate_column_by_type samples FK from parent domain (#106)", {
 
   fk_vals <- generate_column_by_type("subjid", list(), 20, ctx)
   expect_length(fk_vals, 20)
-  expect_true(all(fk_vals %in% parent_subj$subjid))
+  expect_in(fk_vals, parent_subj$subjid)
 })
 
 # ── generate_unknown_domain ───────────────────────────────────────────────────
@@ -108,12 +108,10 @@ test_that("generate_unknown_domain creates data.frame with correct shape (#106)"
   result <- generate_unknown_domain("Raw_CUSTOM", spec, 15, ctx)
   expect_s3_class(result, "data.frame")
   expect_equal(nrow(result), 15)
-  expect_true(all(
-    c("patient_id", "visit_dt", "lab_val", "flag_yn") %in% names(result)
-  ))
+  expect_contains(names(result), c("patient_id", "visit_dt", "lab_val", "flag_yn"))
   expect_s3_class(result$visit_dt, "Date")
   expect_type(result$lab_val, "double")
-  expect_true(all(result$flag_yn %in% c("Y", "N")))
+  expect_in(result$flag_yn, c("Y", "N"))
 })
 
 test_that("generate_unknown_domain applies source_col renames (#106)", {
@@ -125,8 +123,8 @@ test_that("generate_unknown_domain applies source_col renames (#106)", {
   ctx <- list(data = list(), start_date = "2012-01-01", end_date = "2012-12-31")
 
   result <- generate_unknown_domain("Raw_TEST", spec, 5, ctx)
-  expect_true("foldername" %in% names(result))
-  expect_false("visit" %in% names(result))
+  expect_contains(names(result), "foldername")
+  expect_disjoint(names(result), "visit")
 })
 
 test_that("generate_unknown_domain returns empty data.frame for n=0 (#106)", {
@@ -150,7 +148,7 @@ test_that("generate_unknown_domain uses FK from parent data (#106)", {
   )
 
   result <- generate_unknown_domain("Raw_CUSTOM", spec, 10, ctx)
-  expect_true(all(result$subjid %in% parent_subj$subjid))
+  expect_in(result$subjid, parent_subj$subjid)
 })
 
 # ── generate_data_from_workflows ──────────────────────────────────────────────
@@ -196,14 +194,12 @@ test_that("generate_data_from_workflows handles pure-unknown workflows (#106)", 
   # Should contain both custom domains (Raw_STUDY/Raw_SITE/Raw_SUBJ/Raw_ENROLL
   # are auto-added by prepare_combined_specs_for_generation if Raw_VISIT
   # is missing, but the custom domains should definitely be there)
-  expect_true("Raw_CUSTOM1" %in% names(result))
-  expect_true("Raw_CUSTOM2" %in% names(result))
+  expect_contains(names(result), "Raw_CUSTOM1")
+  expect_contains(names(result), "Raw_CUSTOM2")
 
   expect_s3_class(result$Raw_CUSTOM1, "data.frame")
   expect_equal(nrow(result$Raw_CUSTOM1), 20)
-  expect_true(all(
-    c("col_a", "col_dt", "col_num") %in% names(result$Raw_CUSTOM1)
-  ))
+  expect_contains(names(result$Raw_CUSTOM1), c("col_a", "col_dt", "col_num"))
 
   expect_s3_class(result$Raw_CUSTOM2, "data.frame")
   expect_equal(nrow(result$Raw_CUSTOM2), 20)
@@ -256,9 +252,9 @@ test_that("generate_data_from_workflows respects desired_domains filter (#106)",
     desired_domains = c("Raw_A")
   )
 
-  expect_true("Raw_A" %in% names(result))
+  expect_contains(names(result), "Raw_A")
   # Raw_B should NOT be generated since we filtered
-  expect_false("Raw_B" %in% names(result))
+  expect_disjoint(names(result), "Raw_B")
 })
 
 # ── .resolve_domain_counts ────────────────────────────────────────────────────
@@ -332,7 +328,7 @@ test_that("generate_data_from_workflows produces multiple snapshots (#106)", {
 
   # Each snapshot should be a named list containing domain data.frames
   for (snap in result) {
-    expect_true("Raw_CUSTOM" %in% names(snap))
+    expect_contains(names(snap), "Raw_CUSTOM")
     expect_s3_class(snap$Raw_CUSTOM, "data.frame")
   }
 
@@ -428,7 +424,7 @@ test_that("single snapshot returns flat list (backward compatible) (#106)", {
   )
 
   # Single snapshot returns a flat named list of data.frames, not nested
-  expect_true("Raw_FLAT" %in% names(result))
+  expect_contains(names(result), "Raw_FLAT")
   expect_s3_class(result$Raw_FLAT, "data.frame")
 })
 
@@ -498,7 +494,7 @@ test_that(".apply_column_overrides adds new column via function(n) (#106)", {
   df <- data.frame(a = 1:10, stringsAsFactors = FALSE)
   overrides <- list(Raw_X = list(score = function(n) rep(7.5, n)))
   result <- .apply_column_overrides(df, "Raw_X", overrides)
-  expect_true("score" %in% names(result))
+  expect_contains(names(result), "score")
   expect_equal(result$score, rep(7.5, 10))
 })
 
@@ -513,7 +509,7 @@ test_that(".apply_column_overrides passes df to function(n, df) (#106)", {
   df <- data.frame(base_val = c(1, 2, 3, 4, 5), stringsAsFactors = FALSE)
   overrides <- list(Raw_X = list(double_val = function(n, df) df$base_val * 2))
   result <- .apply_column_overrides(df, "Raw_X", overrides)
-  expect_true("double_val" %in% names(result))
+  expect_contains(names(result), "double_val")
   expect_equal(result$double_val, c(2, 4, 6, 8, 10))
 })
 
@@ -523,7 +519,7 @@ test_that(".apply_column_overrides samples vector with replacement (#106)", {
   overrides <- list(Raw_X = list(unit = c("mg/dL", "mmol/L")))
   result <- .apply_column_overrides(df, "Raw_X", overrides)
   expect_equal(nrow(result), 20)
-  expect_true(all(result$unit %in% c("mg/dL", "mmol/L")))
+  expect_in(result$unit, c("mg/dL", "mmol/L"))
 })
 
 test_that(".apply_column_overrides broadcasts scalar to all rows (#106)", {
@@ -543,7 +539,7 @@ test_that(".apply_column_overrides handles multiple columns in one call (#106)",
     )
   )
   result <- .apply_column_overrides(df, "Raw_X", overrides)
-  expect_true(all(c("col1", "col2", "col3") %in% names(result)))
+  expect_contains(names(result), c("col1", "col2", "col3"))
   expect_equal(result$col1, rep("A", 5))
   expect_equal(result$col2, 1:5)
   expect_equal(result$col3, rep("fixed", 5))
@@ -562,7 +558,7 @@ test_that("column_overrides function(n) adds new column to generated domain (#10
       Raw_CUSTOM = list(score_val = function(n) round(runif(n, 0, 10), 1))
     )
   )
-  expect_true("score_val" %in% names(result$Raw_CUSTOM))
+  expect_contains(names(result$Raw_CUSTOM), "score_val")
   expect_equal(nrow(result$Raw_CUSTOM), 20)
   expect_true(all(
     result$Raw_CUSTOM$score_val >= 0 & result$Raw_CUSTOM$score_val <= 10
@@ -581,7 +577,7 @@ test_that("column_overrides function(n, df) can derive from existing columns (#1
       )
     )
   )
-  expect_true("double_val" %in% names(result$Raw_CUSTOM))
+  expect_contains(names(result$Raw_CUSTOM), "double_val")
   expect_equal(result$Raw_CUSTOM$double_val, result$Raw_CUSTOM$base_val * 2)
 })
 
@@ -595,8 +591,8 @@ test_that("column_overrides vector is sampled into generated domain (#106)", {
       Raw_CUSTOM = list(unit = c("mg/dL", "mmol/L", "g/L"))
     )
   )
-  expect_true("unit" %in% names(result$Raw_CUSTOM))
-  expect_true(all(result$Raw_CUSTOM$unit %in% c("mg/dL", "mmol/L", "g/L")))
+  expect_contains(names(result$Raw_CUSTOM), "unit")
+  expect_in(result$Raw_CUSTOM$unit, c("mg/dL", "mmol/L", "g/L"))
 })
 
 test_that("column_overrides scalar is broadcast to all rows (#106)", {
@@ -609,7 +605,7 @@ test_that("column_overrides scalar is broadcast to all rows (#106)", {
       Raw_CUSTOM = list(category = "FIXED")
     )
   )
-  expect_true("category" %in% names(result$Raw_CUSTOM))
+  expect_contains(names(result$Raw_CUSTOM), "category")
   expect_true(all(result$Raw_CUSTOM$category == "FIXED"))
 })
 
@@ -717,9 +713,7 @@ test_that("a domain matching the registry's expected spec is generated via the r
 
   expect_s3_class(result$Raw_SITE, "data.frame")
   expect_equal(nrow(result$Raw_SITE), 5)
-  expect_true(all(
-    c("invid", "Country", "State", "City", "site_status") %in% names(result$Raw_SITE)
-  ))
+  expect_contains(names(result$Raw_SITE), c("invid", "Country", "State", "City", "site_status"))
 })
 
 test_that("column_overrides are applied on every snapshot in multi-snapshot mode (#106)", {
@@ -735,7 +729,7 @@ test_that("column_overrides are applied on every snapshot in multi-snapshot mode
     )
   )
   for (snap in result) {
-    expect_true("flag" %in% names(snap$Raw_CUSTOM))
+    expect_contains(names(snap$Raw_CUSTOM), "flag")
     expect_true(all(snap$Raw_CUSTOM$flag == "HOT"))
   }
 })
@@ -753,7 +747,7 @@ test_that("add_new_var_data falls back to type-based generation for unknown colu
   result <- add_new_var_data(NULL, vars, args, orig_spec)
   expect_s3_class(result, "data.frame")
   expect_equal(nrow(result), n)
-  expect_true("score_val" %in% names(result))
+  expect_contains(names(result), "score_val")
   expect_type(result$score_val, "double")
 })
 
@@ -790,7 +784,7 @@ test_that("unknown spec column in workflow does not drop to type-based fallback 
     lWorkflows = wf,
     n_participants = 15
   )
-  expect_true("mystery_score" %in% names(result$Raw_CUSTOM))
+  expect_contains(names(result$Raw_CUSTOM), "mystery_score")
   expect_type(result$Raw_CUSTOM$mystery_score, "double")
   expect_equal(nrow(result$Raw_CUSTOM), 15)
 })
@@ -847,8 +841,7 @@ test_that("a workflow-supplied Raw_VISIT spec is restored and generated via the 
 
   result <- generate_data_from_workflows(wf, n_participants = 6, n_sites = 2)
 
-  expect_true(all(c("subjid", "foldername", "instancename", "visit_dt") %in%
-    names(result$Raw_VISIT)))
+  expect_contains(names(result$Raw_VISIT), c("subjid", "foldername", "instancename", "visit_dt"))
   expect_gte(nrow(result$Raw_VISIT), 6)
 })
 
@@ -883,13 +876,13 @@ test_that("single-row domains repeat their count across snapshots via the legacy
   expect_equal(nrow(snapshots[[1]]$Raw_STUDY), 1)
   # Legacy Raw_STUDY appends one row per snapshot from previous_data.
   expect_equal(nrow(snapshots[[2]]$Raw_STUDY), 2)
-  expect_setequal(names(snapshots[[1]]$Raw_STUDY), c("nickname", "protocol_title"))
+  expect_named(snapshots[[1]]$Raw_STUDY, c("nickname", "protocol_title"), ignore.order = TRUE)
 })
 
-test_that("generate_data_from_workflows threads vs_risk_profile to Raw_VS (#143)", {
+test_that("generate_data_from_workflows threads risk_profile to Raw_VS (#143)", {
   test_at_log_threshold()
   # This path previously assembled `registry_context` without
-  # `vs_risk_profile`, so `Raw_VS` silently fell back to the built-in profile
+  # `risk_profile`, so `Raw_VS` silently fell back to the built-in profile
   # and the argument had no effect here.
   skip_if_not_installed("gsm.mapping")
   set.seed(6125)
@@ -936,7 +929,7 @@ test_that("generate_data_from_workflows threads vs_risk_profile to Raw_VS (#143)
     study_id = "TEST-VS",
     # Enough visits per subject for rolling windows to exist.
     domain_counts = list(Raw_VISIT = 200),
-    vs_risk_profile = list(
+    risk_profile = list(
       dPctRed = 1, dPctAmber = 0,
       dRateNormal = 0.05, dRateAmber = 0.25, dRateRed = 0.45
     )
@@ -952,9 +945,9 @@ test_that("generate_data_from_workflows threads vs_risk_profile to Raw_VS (#143)
   expect_true(all(rates$rate >= 0.30))
 })
 
-test_that("an invalid vs_risk_profile is rejected identically on every route (#143)", {
+test_that("an invalid risk_profile is rejected identically on every route (#143)", {
   test_at_log_threshold()
-  # The rules live in `.resolve_vs_risk_profile()`, which every route passes
+  # The rules live in `.resolve_risk_profile()`, which every route passes
   # through, so a profile must be accepted or rejected the same way whether it
   # arrives via a study config or via this entry point. Previously only the
   # config path validated: here the registry error was swallowed by the
@@ -976,7 +969,7 @@ test_that("an invalid vs_risk_profile is rejected identically on every route (#1
     config_msg <- tryCatch(
       {
         validate_study_config(
-          create_study_config("VS-PARITY", vs_risk_profile = profile)
+          create_study_config("VS-PARITY", risk_profile = profile)
         )
         NA_character_
       },
@@ -989,7 +982,7 @@ test_that("an invalid vs_risk_profile is rejected identically on every route (#1
           lWorkflows = vs_workflows,
           n_participants = 12,
           n_sites = 3,
-          vs_risk_profile = profile
+          risk_profile = profile
         )
         NA_character_
       },
@@ -1007,7 +1000,7 @@ test_that("an invalid vs_risk_profile is rejected identically on every route (#1
       lWorkflows = vs_workflows,
       n_participants = 12,
       n_sites = 3,
-      vs_risk_profile = list(dPctRed = 0.2, dPctAmber = 0.3)
+      risk_profile = list(dPctRed = 0.2, dPctAmber = 0.3)
     )
   )
 })

@@ -18,7 +18,7 @@ test_that("pkperf returns one Y/N value per subject", {
   res <- pkperf(1, subjs = subjs, possible_visits = NULL)
 
   expect_length(res, 50)
-  expect_true(all(res %in% c("Yes", "No")))
+  expect_in(res, c("Yes", "No"))
 })
 
 test_that("pkperf accepts a Raw_SUBJ key map for site hotspotting", {
@@ -33,7 +33,7 @@ test_that("pkperf accepts a Raw_SUBJ key map for site hotspotting", {
   )
 
   expect_length(res, 50)
-  expect_true(all(res %in% c("Yes", "No")))
+  expect_in(res, c("Yes", "No"))
 })
 
 test_that("subjid_visit_pkdat draws aligned subject/visit/date triples", {
@@ -45,7 +45,7 @@ test_that("subjid_visit_pkdat draws aligned subject/visit/date triples", {
 
   expect_named(res, c("subjid", "visit", "pkdat"))
   expect_length(res$subjid, 8)
-  expect_true(all(res$subjid %in% subjs))
+  expect_in(res$subjid, subjs)
   expect_s3_class(res$pkdat, "Date")
 })
 
@@ -66,9 +66,9 @@ test_that("Raw_PK generates a complete dataset from scratch", {
     names(res),
     c("subjid", "visit", "pkdat", "studyid", "pktpt", "pkperf")
   )
-  expect_true(all(res$subjid %in% data$Raw_SUBJ$subjid))
+  expect_in(res$subjid, data$Raw_SUBJ$subjid)
   expect_true(all(res$studyid == "PROT-001"))
-  expect_true(all(res$pkperf %in% c("Yes", "No")))
+  expect_in(res$pkperf, c("Yes", "No"))
 })
 
 test_that("Raw_PK returns previous data unchanged when the target count is met", {
@@ -101,8 +101,8 @@ test_that("Raw_PK renames columns per source_col in the spec", {
     split_vars = pk_split
   )
 
-  expect_true("PKPERF" %in% names(res))
-  expect_false("pkperf" %in% names(res))
+  expect_contains(names(res), "PKPERF")
+  expect_disjoint(names(res), "pkperf")
 })
 
 # pktpt and pkperf are injected by the generator when the spec omits them,
@@ -126,6 +126,6 @@ test_that("Raw_PK injects pktpt and pkperf when absent from the spec", {
     split_vars = pk_split
   )
 
-  expect_true(all(c("pktpt", "pkperf") %in% names(res)))
-  expect_true(all(res$pkperf %in% c("Yes", "No")))
+  expect_contains(names(res), c("pktpt", "pkperf"))
+  expect_in(res$pkperf, c("Yes", "No"))
 })

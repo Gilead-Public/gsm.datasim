@@ -109,9 +109,9 @@ generate_snapshots_from_combined_specs <- function(SnapshotCount,
                                                    combined_specs,
                                                    mappings,
                                                    strStartDate = "2012-01-01",
-                                                   vs_risk_profile = NULL) {
+                                                   risk_profile = NULL) {
   # Resolve up front so a bad profile fails before any snapshot work.
-  vs_risk_profile <- .resolve_vs_risk_profile(vs_risk_profile)
+  .validate_risk_profile(risk_profile)
 
   # Generate start and end dates for snapshots
   start_dates <- seq(as.Date(strStartDate), length.out = SnapshotCount, by = SnapshotWidth)
@@ -202,7 +202,7 @@ generate_snapshots_from_combined_specs <- function(SnapshotCount,
         snapshot_count = SnapshotCount,
         snapshot_width = SnapshotWidth,
         study_id = StudyID,
-        vs_risk_profile = vs_risk_profile,
+        risk_profile = risk_profile,
         total_site_count = max(site_count)
       )
 
@@ -312,7 +312,7 @@ generate_rawdata_for_single_study <- function(
   package,
   strStartDate = "2012-01-01",
   desired_specs = NULL,
-  vs_risk_profile = NULL
+  risk_profile = NULL
 ) {
   lifecycle::deprecate_warn(
     when = "1.1.3",
@@ -337,6 +337,6 @@ generate_rawdata_for_single_study <- function(
     combined_specs = prepared_specs,
     mappings = mappings,
     strStartDate = strStartDate,
-    vs_risk_profile = vs_risk_profile
+    risk_profile = risk_profile
   )
 }

@@ -17,7 +17,7 @@
   previous_data,
   column_overrides = NULL,
   total_site_count = NULL,
-  vs_risk_profile = NULL
+  risk_profile = NULL
 )
 }
 \description{

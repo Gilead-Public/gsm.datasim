@@ -24,22 +24,20 @@ test_that("organize_analytics_results respects verbose flag and organizes Analys
   # Test new flat structure
   expect_true(is.list(organized))
   expect_equal(length(organized), 1)
-  expect_true("cou0001" %in% names(organized))
+  expect_contains(names(organized), "cou0001")
 
   metric_output <- organized$cou0001
   expect_true(is.list(metric_output))
   expect_equal(metric_output$metric_id, "cou0001")
   expect_true(is.list(metric_output$data_frames))
-  expect_true("Analysis_Summary" %in% names(metric_output$data_frames))
+  expect_contains(names(metric_output$data_frames), "Analysis_Summary")
   expect_s3_class(metric_output$data_frames$Analysis_Summary, "data.frame")
   expect_equal(nrow(metric_output$data_frames$Analysis_Summary), 1)
   expect_equal(
     metric_output$data_frames$Analysis_Summary$GroupLevel[[1]],
     "Country"
   )
-  expect_true(
-    "Metric_ID" %in% names(metric_output$data_frames$Analysis_Summary)
-  )
+  expect_contains(names(metric_output$data_frames$Analysis_Summary), "Metric_ID")
   expect_equal(
     metric_output$data_frames$Analysis_Summary$Metric_ID[[1]],
     "cou0001"
@@ -84,11 +82,11 @@ test_that("organize_analytics_results preserves snapshot date keys for per-snaps
 
   organized <- organize_analytics_results(pipeline_results, verbose = FALSE)
 
-  expect_equal(names(organized), c("2012-01-31", "2012-02-29"))
+  expect_named(organized, c("2012-01-31", "2012-02-29"))
   expect_equal(length(organized[["2012-01-31"]]), 1)
   expect_equal(length(organized[["2012-02-29"]]), 1)
-  expect_true("cou0001" %in% names(organized[["2012-01-31"]]))
-  expect_true("cou0002" %in% names(organized[["2012-02-29"]]))
+  expect_contains(names(organized[["2012-01-31"]]), "cou0001")
+  expect_contains(names(organized[["2012-02-29"]]), "cou0002")
   expect_equal(organized[["2012-01-31"]]$cou0001$metric_id, "cou0001")
   expect_equal(organized[["2012-02-29"]]$cou0002$metric_id, "cou0002")
 })
@@ -140,7 +138,7 @@ test_that("generate_analytics_layers returns organized analytics for all snapsho
   )
 
   expect_true(is.list(analytics))
-  expect_equal(names(analytics), c("2012-01-31", "2012-02-29"))
+  expect_named(analytics, c("2012-01-31", "2012-02-29"))
   expect_equal(length(analytics[["2012-01-31"]]), 1)
   expect_equal(length(analytics[["2012-02-29"]]), 1)
 })

@@ -212,32 +212,162 @@ resp <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NUL
 }
 
 
-#' Resolve a caller-supplied VS risk profile against the defaults
+# Fields that may appear at any level of a risk profile, and domains that
+# support a profile at all. `vVitals` is a top-level/domain-level field only.
+RISK_PROFILE_FIELDS <- setdiff(names(VS_DEFAULT_RISK_PROFILE), "vVitals")
+RISK_PROFILE_DOMAINS <- "Raw_VS"
+
+
+#' Resolve a caller-supplied risk profile for one domain (and vital)
+#'
+#' A profile is a named list whose names are scalar fields (`dPctRed`,
+#' `dPctAmber`, `nWindowLength`, `dRateNormal`, `dRateAmber`, `dRateRed`,
+#' `vVitals`) and/or domain names (currently only `Raw_VS`). A domain entry is
+#' itself a list of scalar fields and/or vital names; a vital entry is a list
+#' of scalar fields. More specific levels override less specific ones:
+#' defaults < top level < domain < vital. Targeted vitals are the domain's
+#' `vVitals` if given, else the vitals it names, else the top-level `vVitals`.
+#'
+#' The whole profile is validated on every call, whatever `strDomain` and
+#' `strVital` are, so a malformed profile is rejected identically on every
+#' route.
 #'
 #' @param lRiskProfile Named list, or `NULL` for defaults.
-#' @returns A complete, validated risk profile list.
+#' @param strDomain Domain to resolve for.
+#' @param strVital Vital to resolve for, or `NULL` for the domain-level profile.
+#' @returns A complete flat profile list. With `strVital` supplied, `NULL` if
+#'   that vital is not targeted.
 #' @keywords internal
 #' @noRd
-.resolve_vs_risk_profile <- function(lRiskProfile = NULL) {
+.resolve_risk_profile <- function(lRiskProfile = NULL,
+                                  strDomain = "Raw_VS",
+                                  strVital = NULL) {
+  .validate_risk_profile(lRiskProfile)
+
   if (is.null(lRiskProfile)) {
     return(VS_DEFAULT_RISK_PROFILE)
   }
+
+  .resolve_risk_profile_layers(lRiskProfile, strDomain, strVital)
+}
+
+
+#' Merge profile layers for one domain/vital without validating
+#' @noRd
+.resolve_risk_profile_layers <- function(lRiskProfile, strDomain, strVital) {
+  top <- lRiskProfile[setdiff(names(lRiskProfile), RISK_PROFILE_DOMAINS)]
+  dom <- as.list(lRiskProfile[[strDomain]])
+  dom_vitals <- intersect(names(dom), VS_VITALS)
+  dom_fields <- dom[setdiff(names(dom), dom_vitals)]
+
+  profile <- utils::modifyList(VS_DEFAULT_RISK_PROFILE, top)
+  profile <- utils::modifyList(profile, dom_fields)
+
+  # An explicit domain-level `vVitals` wins; otherwise naming vitals targets
+  # exactly those vitals.
+  if (length(dom_vitals) > 0 && is.null(dom$vVitals)) {
+    profile$vVitals <- dom_vitals
+  }
+  if (is.null(strVital)) {
+    return(profile)
+  }
+  if (!is.null(profile$vVitals) && !(strVital %in% profile$vVitals)) {
+    return(NULL)
+  }
+  profile <- utils::modifyList(profile, as.list(dom[[strVital]]))
+  profile
+}
+
+
+#' Validate a risk profile of any nesting depth
+#'
+#' @param lRiskProfile Named list, or `NULL`.
+#' @returns `TRUE` invisibly, or an error.
+#' @keywords internal
+#' @noRd
+.validate_risk_profile <- function(lRiskProfile) {
+  if (is.null(lRiskProfile)) {
+    return(invisible(TRUE))
+  }
   if (!is.list(lRiskProfile)) {
-    stop("`vs_risk_profile` must be a list or NULL")
+    stop("`risk_profile` must be a list or NULL")
   }
 
   # Catch misspellings against the profile as written.
-  unknown <- setdiff(names(lRiskProfile), names(VS_DEFAULT_RISK_PROFILE))
+  .check_names(lRiskProfile, c(names(VS_DEFAULT_RISK_PROFILE), RISK_PROFILE_DOMAINS),
+    "risk_profile", "field(s)"
+  )
+
+  # Top-level fields alone must form a valid profile.
+  .validate_resolved_risk_profile(
+    .resolve_risk_profile_layers(lRiskProfile, RISK_PROFILE_DOMAINS[[1]], NULL)
+  )
+
+  for (domain in intersect(names(lRiskProfile), RISK_PROFILE_DOMAINS)) {
+    dom <- lRiskProfile[[domain]]
+    label <- paste0("risk_profile$", domain)
+    if (!is.list(dom)) {
+      stop(label, " must be a named list")
+    }
+    .check_names(dom, c(names(VS_DEFAULT_RISK_PROFILE), VS_VITALS), label, "field(s) or vital(s)")
+
+    vital_names <- intersect(names(dom), VS_VITALS)
+    # Vitals given overrides must be among the vitals being targeted.
+    if (!is.null(dom$vVitals) && !all(vital_names %in% dom$vVitals)) {
+      stop(
+        label, " has settings for vital(s) not in `vVitals`: ",
+        paste(setdiff(vital_names, dom$vVitals), collapse = ", ")
+      )
+    }
+
+    .with_label(label, .validate_resolved_risk_profile(
+      .resolve_risk_profile_layers(lRiskProfile, domain, NULL)
+    ))
+
+    for (vital in vital_names) {
+      entry <- dom[[vital]]
+      vlabel <- paste0(label, "$", vital)
+      if (!is.null(entry) && !is.list(entry)) {
+        stop(vlabel, " must be a named list")
+      }
+      .check_names(entry, RISK_PROFILE_FIELDS, vlabel, "field(s)")
+      .with_label(vlabel, .validate_resolved_risk_profile(
+        .resolve_risk_profile_layers(lRiskProfile, domain, vital)
+      ))
+    }
+  }
+
+  invisible(TRUE)
+}
+
+
+#' Error on unnamed or unrecognized names in a profile list
+#' @noRd
+.check_names <- function(x, strAllowed, strLabel, strWhat) {
+  if (length(x) == 0) {
+    return(invisible(TRUE))
+  }
+  nms <- names(x)
+  if (is.null(nms) || any(is.na(nms) | nms == "")) {
+    stop(strLabel, " must be a named list")
+  }
+  unknown <- setdiff(nms, strAllowed)
   if (length(unknown) > 0) {
     stop(
-      "vs_risk_profile contains unknown field(s): ",
+      strLabel, " contains unknown ", strWhat, ": ",
       paste(unknown, collapse = ", ")
     )
   }
+  invisible(TRUE)
+}
 
-  profile <- utils::modifyList(VS_DEFAULT_RISK_PROFILE, lRiskProfile)
-  .validate_resolved_vs_risk_profile(profile)
-  profile
+
+#' Prefix an error with the profile location it came from
+#' @noRd
+.with_label <- function(strLabel, expr) {
+  tryCatch(expr, error = function(e) {
+    stop("In ", strLabel, ": ", conditionMessage(e), call. = FALSE)
+  })
 }
 
 
@@ -249,14 +379,14 @@ resp <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NUL
 #' @returns `TRUE` invisibly, or an error describing the first problem found.
 #' @keywords internal
 #' @noRd
-.validate_resolved_vs_risk_profile <- function(profile) {
+.validate_resolved_risk_profile <- function(profile) {
   is_proportion <- function(x) {
     is.numeric(x) && length(x) == 1 && !is.na(x) && x >= 0 && x <= 1
   }
 
   for (field in c("dPctRed", "dPctAmber", "dRateNormal", "dRateAmber", "dRateRed")) {
     if (!is_proportion(profile[[field]])) {
-      stop("vs_risk_profile$", field, " must be a single number between 0 and 1")
+      stop("risk_profile$", field, " must be a single number between 0 and 1")
     }
   }
 
@@ -267,7 +397,7 @@ resp <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NUL
   if (!(profile$dRateNormal <= profile$dRateAmber &&
     profile$dRateAmber <= profile$dRateRed)) {
     stop(
-      "vs_risk_profile rates must satisfy dRateNormal <= dRateAmber <= dRateRed",
+      "risk_profile rates must satisfy dRateNormal <= dRateAmber <= dRateRed",
       " (effective values, after defaults are applied: ",
       profile$dRateNormal, ", ", profile$dRateAmber, ", ", profile$dRateRed, ")"
     )
@@ -275,7 +405,7 @@ resp <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NUL
 
   if (profile$dPctRed + profile$dPctAmber > 1) {
     stop(
-      "vs_risk_profile$dPctRed + vs_risk_profile$dPctAmber must not exceed 1",
+      "risk_profile$dPctRed + risk_profile$dPctAmber must not exceed 1",
       " (effective values, after defaults are applied: ",
       profile$dPctRed, " + ", profile$dPctAmber, ")"
     )
@@ -284,18 +414,18 @@ resp <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NUL
   window <- profile$nWindowLength
   if (!is.numeric(window) || length(window) != 1 || is.na(window) ||
     window < 2 || window != round(window)) {
-    stop("vs_risk_profile$nWindowLength must be a single whole number >= 2")
+    stop("risk_profile$nWindowLength must be a single whole number >= 2")
   }
 
   vitals <- profile$vVitals
   if (!is.null(vitals)) {
     if (!is.character(vitals) || length(vitals) == 0) {
-      stop("vs_risk_profile$vVitals must be a non-empty character vector or NULL")
+      stop("risk_profile$vVitals must be a non-empty character vector or NULL")
     }
     unknown_vitals <- setdiff(vitals, VS_VITALS)
     if (length(unknown_vitals) > 0) {
       stop(
-        "vs_risk_profile$vVitals contains unknown vital(s): ",
+        "risk_profile$vVitals contains unknown vital(s): ",
         paste(unknown_vitals, collapse = ", "),
         ". Valid vitals: ", paste(VS_VITALS, collapse = ", ")
       )
@@ -357,10 +487,9 @@ resp <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NUL
     return(values)
   }
 
-  profile <- .resolve_vs_risk_profile(lRiskProfile)
-
-  # A profile may target only a subset of vitals; others get plain draws.
-  if (!is.null(profile$vVitals) && !(strVital %in% profile$vVitals)) {
+  # `NULL` when the profile does not target this vital; it gets plain draws.
+  profile <- .resolve_risk_profile(lRiskProfile, "Raw_VS", strVital)
+  if (is.null(profile)) {
     return(values)
   }
 

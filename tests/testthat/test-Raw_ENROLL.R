@@ -22,7 +22,7 @@ test_that("subject_to_enrollment excludes previously enrolled subjects", {
 
   res <- subject_to_enrollment(4, data, previous_data = already)
 
-  expect_false(any(res$subjid %in% already))
+  expect_disjoint(res$subjid, already)
 })
 
 test_that("Raw_ENROLL generates a complete dataset from scratch", {
@@ -45,7 +45,7 @@ test_that("Raw_ENROLL generates a complete dataset from scratch", {
     c("studyid", "invid", "country", "subjid", "subjectid", "enrollyn")
   )
   expect_true(all(res$studyid == "PROT-001"))
-  expect_true(all(res$subjid %in% data$Raw_SUBJ$subjid))
+  expect_in(res$subjid, data$Raw_SUBJ$subjid)
 })
 
 test_that("Raw_ENROLL appends only the delta when previous data exists", {
@@ -107,6 +107,6 @@ test_that("Raw_ENROLL renames columns per source_col in the spec", {
     split_vars = enroll_split
   )
 
-  expect_true("STUDYID" %in% names(res))
-  expect_false("studyid" %in% names(res))
+  expect_contains(names(res), "STUDYID")
+  expect_disjoint(names(res), "studyid")
 })

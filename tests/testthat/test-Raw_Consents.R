@@ -32,7 +32,7 @@ test_that("Raw_Consents generates a complete dataset from scratch", {
   expect_s3_class(res, "data.frame")
   expect_equal(nrow(res), 5)
   expect_named(res, c("subjid", "studyid", "cons_dt", "constype", "conscat"))
-  expect_true(all(res$subjid %in% data$Raw_SUBJ$subjid))
+  expect_in(res$subjid, data$Raw_SUBJ$subjid)
   expect_equal(anyDuplicated(res$subjid), 0)
   expect_true(all(res$studyid == "PROT-001"))
   expect_true(all(res$cons_dt == start_date))
@@ -90,6 +90,6 @@ test_that("Raw_Consents renames columns per source_col in the spec", {
     n = 5
   )
 
-  expect_true("CONSTYPE" %in% names(res))
-  expect_false("constype" %in% names(res))
+  expect_contains(names(res), "CONSTYPE")
+  expect_disjoint(names(res), "constype")
 })

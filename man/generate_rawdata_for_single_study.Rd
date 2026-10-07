@@ -15,7 +15,7 @@ generate_rawdata_for_single_study(
   package,
   strStartDate = "2012-01-01",
   desired_specs = NULL,
-  vs_risk_profile = NULL
+  risk_profile = NULL
 )
 }
 \arguments{
@@ -39,12 +39,24 @@ generate_rawdata_for_single_study(
 
 \item{desired_specs}{Optional character vector of dataset names to keep.}
 
-\item{vs_risk_profile}{Optional named list controlling site-targeted
-consecutive-run injection in \code{Raw_VS}. Recognized fields are \code{dPctRed} and
+\item{risk_profile}{Optional named list controlling site-targeted
+consecutive-run injection. Only \code{Raw_VS} currently supports it. \code{NULL}
+uses the generator defaults. Recognized fields are \code{dPctRed} and
 \code{dPctAmber} (share of sites in each band), \code{nWindowLength} (rolling window
 length, whole number \verb{>= 2}), \code{dRateNormal} / \code{dRateAmber} / \code{dRateRed}
-(target repeat rate per band), and \code{vVitals} (character vector of vitals to
-target, or \code{NULL} for all eight). \code{NULL} uses the generator defaults.}
+(target repeat rate per band), and \code{vVitals} (character vector of vitals
+to target, or \code{NULL} for all eight). Fields can be given at three levels,
+with more specific levels overriding less specific ones:
+\itemize{
+\item Top level: applies to every domain that supports it.
+\item Domain level: \code{list(Raw_VS = list(dPctRed = 0.3))}.
+\item Vital level: \code{list(Raw_VS = list(sysbp = list(dRateRed = 0.6)))}. Each
+vital's bands are allocated independently, so vitals can have different
+profiles. The targeted vitals are the domain's \code{vVitals} if given (named
+vitals must then be among them), else the vitals the domain names, else
+the top-level \code{vVitals}, else all eight. \code{vVitals} cannot be set inside
+a vital.
+}}
 }
 \value{
 A named list of snapshot data frames, named by snapshot end date.

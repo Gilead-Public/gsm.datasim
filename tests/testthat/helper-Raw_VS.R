@@ -135,7 +135,7 @@ make_vs_test_data <- function(n_subjects = 20, n_visits = 6, n_sites = 3,
 }
 
 make_vs_context <- function(data, spec = make_vs_test_spec(), n = NULL,
-                            vs_risk_profile = NULL,
+                            risk_profile = NULL,
                             start_date = as.Date("2012-01-01")) {
   list(
     data = data,
@@ -143,7 +143,7 @@ make_vs_context <- function(data, spec = make_vs_test_spec(), n = NULL,
     combined_specs = list(Raw_VS = spec),
     n = n %||% nrow(data$Raw_SUBJ),
     start_date = start_date,
-    vs_risk_profile = vs_risk_profile
+    risk_profile = risk_profile
   )
 }
 

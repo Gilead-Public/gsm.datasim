@@ -44,11 +44,11 @@ test_that("aeser and aetoxgr work with and without a Raw_SUBJ key map", {
   subj <- make_ae_data(100)$Raw_SUBJ
 
   expect_setequal(unique(aeser(500)), c("Y", "N"))
-  expect_true(all(aetoxgr(500) %in% 1:5))
+  expect_in(aetoxgr(500), 1:5)
 
   # Supplying Raw_SUBJ enables the site-hotspot path.
-  expect_true(all(aeser(200, Raw_SUBJ_data = subj) %in% c("Y", "N")))
-  expect_true(all(aetoxgr(200, Raw_SUBJ_data = subj) %in% 1:5))
+  expect_in(aeser(200, Raw_SUBJ_data = subj), c("Y", "N"))
+  expect_in(aetoxgr(200, Raw_SUBJ_data = subj), 1:5)
 })
 
 test_that("Raw_AE generates a complete dataset from scratch", {
@@ -84,7 +84,7 @@ test_that("Raw_AE generates a complete dataset from scratch", {
       "aerel"
     )
   )
-  expect_true(all(res$subjid %in% data$Raw_SUBJ$subjid))
+  expect_in(res$subjid, data$Raw_SUBJ$subjid)
   expect_true(all(res$studyid == "PROT-001"))
   expect_true(all(res$aest_dt >= start_date & res$aest_dt <= end_date))
   expect_true(all(res$aeen_dt > res$aest_dt))
@@ -160,6 +160,6 @@ test_that("Raw_AE renames columns per source_col in the spec", {
     split_vars = ae_split
   )
 
-  expect_true("AESER" %in% names(res))
-  expect_false("aeser" %in% names(res))
+  expect_contains(names(res), "AESER")
+  expect_disjoint(names(res), "aeser")
 })

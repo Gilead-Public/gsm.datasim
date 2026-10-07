@@ -46,7 +46,7 @@ create_longitudinal_study <- function(study_id = "STUDY-001",
                                       analytics_workflows = NULL,
                                       run_reporting = FALSE,
                                       outlier_intensity = 1,
-                                      vs_risk_profile = NULL,
+                                      risk_profile = NULL,
                                       verbose = FALSE) {
   # Validate inputs
   validate_study_inputs(participants, sites, snapshots, domains)
@@ -63,7 +63,7 @@ create_longitudinal_study <- function(study_id = "STUDY-001",
     interval,
     mappings,
     outlier_intensity = outlier_intensity,
-    vs_risk_profile = vs_risk_profile,
+    risk_profile = risk_profile,
     verbose = verbose
   )
 
@@ -77,7 +77,7 @@ create_longitudinal_study <- function(study_id = "STUDY-001",
     study_type = "standard", # default for this function
     analytics_package = analytics_package,
     analytics_workflows = analytics_workflows,
-    vs_risk_profile = vs_risk_profile,
+    risk_profile = risk_profile,
     verbose = verbose
   )
 
@@ -154,7 +154,7 @@ quick_longitudinal_study <- function(study_name = "GS-US-000-0001",
                                      study_type = "standard",
                                      include_pipeline = FALSE,
                                      outlier_intensity = 1,
-                                     vs_risk_profile = NULL,
+                                     risk_profile = NULL,
                                      verbose = FALSE) {
   if (isTRUE(verbose)) {
     cat("Creating", study_type, "longitudinal study:", study_name, "\n")
@@ -181,7 +181,7 @@ quick_longitudinal_study <- function(study_name = "GS-US-000-0001",
       analytics_package = pkg,
       run_reporting = include_pipeline,
       outlier_intensity = outlier_intensity,
-      vs_risk_profile = vs_risk_profile,
+      risk_profile = risk_profile,
       verbose = verbose
     )
   } else if (study_type == "endpoints") {
@@ -194,7 +194,7 @@ quick_longitudinal_study <- function(study_name = "GS-US-000-0001",
       participant_count = participants,
       site_count = sites,
       outlier_intensity = outlier_intensity,
-      vs_risk_profile = vs_risk_profile
+      risk_profile = risk_profile
     )
     # Add all endpoint/mapping domains
     for (d in domains) {
@@ -216,7 +216,7 @@ quick_longitudinal_study <- function(study_name = "GS-US-000-0001",
         domains = domains,
         study_type = "endpoints",
         analytics_package = "gsm.endpoints",
-        vs_risk_profile = vs_risk_profile,
+        risk_profile = risk_profile,
         verbose = verbose
       )
     )
@@ -359,7 +359,7 @@ create_multiple_longitudinal_studies <- function(study_names,
                                                  analytics_workflows = NULL,
                                                  run_reporting = FALSE,
                                                  outlier_intensity = 1,
-                                                 vs_risk_profile = NULL,
+                                                 risk_profile = NULL,
                                                  study_configs = NULL,
                                                  parallel = FALSE,
                                                  export_studies = FALSE,
@@ -389,7 +389,7 @@ create_multiple_longitudinal_studies <- function(study_names,
       analytics_workflows = analytics_workflows,
       run_reporting = run_reporting,
       outlier_intensity = if (length(outlier_intensity) == 1) outlier_intensity else outlier_intensity[index],
-      vs_risk_profile = vs_risk_profile,
+      risk_profile = risk_profile,
       verbose = verbose
     )
 
@@ -410,14 +410,14 @@ create_multiple_longitudinal_studies <- function(study_names,
 
   if (parallel) {
     # Check if parallel backend is available
-    if (!requireNamespace("parallel", quietly = TRUE)) {
+    if (!pkg_available("parallel")) {
       warning("parallel package not available, proceeding sequentially")
       parallel <- FALSE
     }
   }
 
   # Generate studies
-  if (parallel && requireNamespace("parallel", quietly = TRUE)) {
+  if (parallel && pkg_available("parallel")) {
     if (isTRUE(verbose)) cat("Generating studies in parallel...\n")
 
     # Set up cluster
