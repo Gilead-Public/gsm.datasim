@@ -1,3 +1,5 @@
+# Mocks and test-environment utilities.
+
 mock_workflow_engine <- function(env = parent.frame()) {
   testthat::local_mocked_bindings(
     MakeWorkflowList = function(strNames = NULL, strPath = NULL, strPackage = NULL, ...) {
@@ -44,4 +46,24 @@ reporting_input <- function() {
     skipped = NULL,
     incomplete = list(mapped = list(m = 1))
   )
+}
+
+#' Temporarily set the logger threshold for a test
+#'
+#' Silences (or, with a more verbose `level`, exposes) `logger` output for the
+#' duration of the calling test, restoring the previous threshold on exit.
+#'
+#' @param level Log threshold to set, e.g. "FATAL" (default) or "INFO".
+#' @param envir Environment whose exit triggers restoration of the threshold.
+#'
+#' @return The previous log threshold, invisibly.
+#' @noRd
+test_at_log_threshold <- function(
+  level = "FATAL",
+  envir = rlang::caller_env()
+) {
+  old <- logger::log_threshold()
+  withr::defer(logger::log_threshold(old), envir = envir)
+  logger::log_threshold(level)
+  invisible(old)
 }

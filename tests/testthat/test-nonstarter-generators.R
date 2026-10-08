@@ -43,7 +43,7 @@ test_that("nonstarter_subjids is the shared predicate: enrolled AND firstdosedat
 
 # The simulator is gsm's only expression of the status model, so these tests
 # double as the readable statement of the precedence rules. make_subj() lives
-# in helper-nonstarter-generators.R.
+# in helper-study-fixtures.R.
 
 # The two Potential statuses are only reachable when a subject is not drawn as
 # Confirmed, so each branch is driven explicitly by nConfirmedShare rather than

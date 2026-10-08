@@ -546,7 +546,7 @@ test_that(".apply_column_overrides handles multiple columns in one call (#106)",
 })
 
 # ── column_overrides integration via generate_data_from_workflows ─────────────
-# make_override_workflows() lives in helper-generate_data_from_workflows.R.
+# make_override_workflows() lives in helper-study-fixtures.R.
 
 test_that("column_overrides function(n) adds new column to generated domain (#106)", {
   set.seed(42)
