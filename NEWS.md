@@ -2,7 +2,7 @@
 
 - `Raw_VS` simulates consecutive repeated measurements at site-specific
   rates, and each site keeps its risk band across snapshots. A new
-  `vs_risk_profile` argument, accepted by the study-creation functions
+  `risk_profile` argument, accepted by the study-creation functions
   alongside `participants`/`sites`, controls how many sites land in each risk
   band (#113, #143).
 
