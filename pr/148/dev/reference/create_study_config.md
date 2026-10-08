@@ -16,7 +16,7 @@ create_study_config(
   reporting_package = NULL,
   reporting_workflows = NULL,
   outlier_intensity = 1,
-  vs_risk_profile = NULL
+  risk_profile = NULL
 )
 ```
 
@@ -55,15 +55,27 @@ create_study_config(
   Global multiplier for outlier-like values in domain generators. Use
   `1` for current baseline, values `>1` to increase outlier prevalence.
 
-- vs_risk_profile:
+- risk_profile:
 
   Optional named list controlling site-targeted consecutive-run
-  injection in `Raw_VS`. Recognized fields are `dPctRed` and `dPctAmber`
+  injection. Only `Raw_VS` currently supports it. `NULL` uses the
+  generator defaults. Recognized fields are `dPctRed` and `dPctAmber`
   (share of sites in each band), `nWindowLength` (rolling window length,
   whole number `>= 2`), `dRateNormal` / `dRateAmber` / `dRateRed`
   (target repeat rate per band), and `vVitals` (character vector of
-  vitals to target, or `NULL` for all eight). `NULL` uses the generator
-  defaults.
+  vitals to target, or `NULL` for all eight). Fields can be given at
+  three levels, with more specific levels overriding less specific ones:
+
+  - Top level: applies to every domain that supports it.
+
+  - Domain level: `list(Raw_VS = list(dPctRed = 0.3))`.
+
+  - Vital level: `list(Raw_VS = list(sysbp = list(dRateRed = 0.6)))`.
+    Each vital's bands are allocated independently, so vitals can have
+    different profiles. The targeted vitals are the domain's `vVitals`
+    if given (named vitals must then be among them), else the vitals the
+    domain names, else the top-level `vVitals`, else all eight.
+    `vVitals` cannot be set inside a vital.
 
 ## Value
 

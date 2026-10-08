@@ -79,7 +79,7 @@
 <span>  randomization <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  overall_response <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  outlier_intensity <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  vs_risk_profile <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  risk_profile <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -191,13 +191,23 @@
 <dd><p>Global multiplier for outlier-like values in domain generators.</p></dd>
 
 
-<dt id="arg-vs-risk-profile">vs_risk_profile<a class="anchor" aria-label="anchor" href="#arg-vs-risk-profile"></a></dt>
+<dt id="arg-risk-profile">risk_profile<a class="anchor" aria-label="anchor" href="#arg-risk-profile"></a></dt>
 <dd><p>Optional named list controlling site-targeted
-consecutive-run injection in <code>Raw_VS</code>. Recognized fields are <code>dPctRed</code> and
+consecutive-run injection. Only <code>Raw_VS</code> currently supports it. <code>NULL</code>
+uses the generator defaults. Recognized fields are <code>dPctRed</code> and
 <code>dPctAmber</code> (share of sites in each band), <code>nWindowLength</code> (rolling window
 length, whole number <code>&gt;= 2</code>), <code>dRateNormal</code> / <code>dRateAmber</code> / <code>dRateRed</code>
-(target repeat rate per band), and <code>vVitals</code> (character vector of vitals to
-target, or <code>NULL</code> for all eight). <code>NULL</code> uses the generator defaults.</p></dd>
+(target repeat rate per band), and <code>vVitals</code> (character vector of vitals
+to target, or <code>NULL</code> for all eight). Fields can be given at three levels,
+with more specific levels overriding less specific ones:</p><ul><li><p>Top level: applies to every domain that supports it.</p></li>
+<li><p>Domain level: <code>list(Raw_VS = list(dPctRed = 0.3))</code>.</p></li>
+<li><p>Vital level: <code>list(Raw_VS = list(sysbp = list(dRateRed = 0.6)))</code>. Each
+vital's bands are allocated independently, so vitals can have different
+profiles. The targeted vitals are the domain's <code>vVitals</code> if given (named
+vitals must then be among them), else the vitals the domain names, else
+the top-level <code>vVitals</code>, else all eight. <code>vVitals</code> cannot be set inside
+a vital.</p></li>
+</ul></dd>
 
 </dl></div>
     <div class="section level2">
