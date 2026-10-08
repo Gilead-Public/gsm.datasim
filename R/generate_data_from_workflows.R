@@ -307,6 +307,25 @@ generate_data_from_workflows <- function(
 
 # -- Internal helpers ---------------------------------------------------------
 
+#' Can a Domain Run Through the Registry?
+#'
+#' Registry generators assume their upstream domains were themselves built by
+#' the registry (site -> subject -> everything else; `Raw_STUDY` is not registered). When an upstream
+#' domain came from a fallback tier (sparse custom specs), the registry
+#' generator cannot run, so the domain falls through to later tiers. Failures
+#' with all prerequisites in place are real errors and are not masked.
+#'
+#' @keywords internal
+.registry_prerequisites_met <- function(domain, registry_domains) {
+  upstream <- switch(domain,
+    Raw_STUDY = character(0),
+    Raw_SITE = character(0),
+    Raw_SUBJ = "Raw_SITE",
+    c("Raw_SITE", "Raw_SUBJ")
+  )
+  all(upstream %in% registry_domains)
+}
+
 #' Generate a Single Snapshot of Domain Data
 #'
 #' Iterates over all domains in `combined_specs` using the three-tier fallback
@@ -322,6 +341,7 @@ generate_data_from_workflows <- function(
                                       total_site_count = NULL,
                                       risk_profile = NULL) {
   data <- list()
+  registry_domains <- character(0)
 
   .validate_risk_profile(risk_profile)
 
@@ -344,23 +364,26 @@ generate_data_from_workflows <- function(
       snapshot_width = snapshot_width,
       study_id       = study_id,
       total_site_count = total_site_count,
-      risk_profile = risk_profile
+      risk_profile   = risk_profile
     )
 
-    registry_result <- tryCatch(
+    # Fall through to later tiers only when the domain is unregistered (NULL)
+    # or an upstream domain was not registry-generated. Errors from registered
+    # domains with their prerequisites in place propagate.
+    registry_result <- if (.registry_prerequisites_met(domain, registry_domains)) {
       generate_domain_from_registry(
         data_type = domain,
         context   = registry_context,
         registry  = registry
-      ),
-      error = function(e) {
-        logger::log_debug("Registry generation failed for {domain}: {conditionMessage(e)}")
-        NULL
-      }
-    )
+      )
+    } else {
+      logger::log_debug("Skipping registry for {domain}: upstream domains not registry-generated")
+      NULL
+    }
 
     if (!is.null(registry_result)) {
       data[[domain]] <- as.data.frame(registry_result)
+      registry_domains <- c(registry_domains, domain)
       data[[domain]] <- .apply_column_overrides(data[[domain]], domain, column_overrides)
       logger::log_info("{domain} generated via domain registry ({nrow(data[[domain]])} rows)")
       next

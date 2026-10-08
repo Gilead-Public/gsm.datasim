@@ -826,7 +826,15 @@ test_that("a workflow-supplied Raw_VISIT spec is restored and generated via the 
         Raw_SUBJ = list(
           studyid = list(type = "character"),
           subjid = list(type = "character"),
-          invid = list(type = "character")
+          subject_nsv = list(type = "character"),
+          invid = list(type = "character"),
+          country = list(type = "character"),
+          enrollyn = list(type = "character"),
+          enrolldt = list(type = "Date"),
+          timeonstudy = list(type = "numeric"),
+          firstparticipantdate = list(type = "Date"),
+          firstdosedate = list(type = "Date"),
+          timeontreatment = list(type = "numeric")
         ),
         Raw_VISIT = list(
           subjid = list(type = "character"),
@@ -900,13 +908,24 @@ test_that("generate_data_from_workflows threads risk_profile to Raw_VS (#143)", 
         Raw_SITE = list(
           studyid = list(type = "character"),
           invid = list(type = "character"),
-          pi_number = list(type = "character")
+          pi_number = list(type = "character"),
+          Country = list(type = "character"),
+          State = list(type = "character"),
+          City = list(type = "character"),
+          country = list(type = "character")
         ),
         Raw_SUBJ = list(
           studyid = list(type = "character"),
           subjid = list(type = "character"),
+          subject_nsv = list(type = "character"),
           invid = list(type = "character"),
-          enrollyn = list(type = "character")
+          country = list(type = "character"),
+          enrollyn = list(type = "character"),
+          enrolldt = list(type = "Date"),
+          timeonstudy = list(type = "numeric"),
+          firstparticipantdate = list(type = "Date"),
+          firstdosedate = list(type = "Date"),
+          timeontreatment = list(type = "numeric")
         ),
         Raw_VISIT = list(
           subjid = list(type = "character"),
@@ -927,8 +946,9 @@ test_that("generate_data_from_workflows threads risk_profile to Raw_VS (#143)", 
     n_participants = 20,
     n_sites = 5,
     study_id = "TEST-VS",
-    # Enough visits per subject for rolling windows to exist.
-    domain_counts = list(Raw_VISIT = 200),
+    # `Raw_VISIT` counts subjects (drawn without replacement), so this must not
+    # exceed `n_participants`; visits per subject come from the schedule.
+    domain_counts = list(Raw_VISIT = 20),
     risk_profile = list(
       dPctRed = 1, dPctAmber = 0,
       dRateNormal = 0.05, dRateAmber = 0.25, dRateRed = 0.45
@@ -943,6 +963,54 @@ test_that("generate_data_from_workflows threads risk_profile to Raw_VS (#143)", 
   # without ever consulting the profile, and they do so silently.
   expect_equal(nrow(rates), 5)
   expect_true(all(rates$rate >= 0.30))
+})
+
+test_that("a failing registered Raw_VS raises instead of falling back (#143)", {
+  test_at_log_threshold()
+  skip_if_not_installed("gsm.mapping")
+  set.seed(4817)
+
+  chr <- function(...) {
+    stats::setNames(rep(list(list(type = "character")), length(c(...))), c(...))
+  }
+  dt <- function(...) {
+    stats::setNames(rep(list(list(type = "Date")), length(c(...))), c(...))
+  }
+
+  vs_workflows <- list(
+    vs = list(
+      spec = list(
+        Raw_STUDY = chr("studyid", "protocol_number"),
+        Raw_SITE = chr("studyid", "invid", "pi_number", "Country", "State", "City", "country"),
+        Raw_SUBJ = c(
+          chr("studyid", "subjid", "subject_nsv", "invid", "country", "enrollyn"),
+          dt("enrolldt", "firstparticipantdate", "firstdosedate"),
+          list(timeonstudy = list(type = "numeric"), timeontreatment = list(type = "numeric"))
+        ),
+        Raw_VISIT = c(chr("subjid", "instancename", "foldername"), dt("visit_dt")),
+        Raw_VS = make_vs_full_spec()
+      ),
+      steps = list()
+    )
+  )
+
+  # Simulates e.g. an unmatched visit being rejected during scheduling. The
+  # registry generator for a registered domain must surface this, not let a
+  # generic Raw_VS (without scheduled dates or targeted rates) stand in for it.
+  testthat::local_mocked_bindings(
+    assign_schedule_dates = function(...) stop("unmatched visit")
+  )
+
+  expect_error(
+    generate_data_from_workflows(
+      lWorkflows = vs_workflows,
+      n_participants = 20,
+      n_sites = 5,
+      study_id = "TEST-VS",
+      domain_counts = list(Raw_VISIT = 20)
+    ),
+    "unmatched visit"
+  )
 })
 
 test_that("an invalid risk_profile is rejected identically on every route (#143)", {
