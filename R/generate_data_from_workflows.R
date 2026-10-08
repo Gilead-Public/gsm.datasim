@@ -321,6 +321,7 @@ generate_data_from_workflows <- function(
     Raw_STUDY = character(0),
     Raw_SITE = character(0),
     Raw_SUBJ = "Raw_SITE",
+    Raw_VS = c("Raw_SITE", "Raw_SUBJ", "Raw_VISIT"),
     c("Raw_SITE", "Raw_SUBJ")
   )
   all(upstream %in% registry_domains)
