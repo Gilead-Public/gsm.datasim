@@ -6,11 +6,10 @@
   alongside `participants`/`sites`, controls how many sites land in each risk
   band (#113, #143).
 
-- `Raw_SUBJ` now carries six simulated `drv_*` IP non-starter fields
-  (`drv_enrollment_dt`, `drv_ip_dosed`, `drv_ip_first_dose_dt`,
-  `drv_enrl_first_dose_days`, `drv_days_lapsed_since_enrl`,
-  `drv_ip_nonstarter_status`), impersonating the upstream Stride contract
-  gsm now consumes rather than derives (#140).
+- Simulated `Raw_SUBJ` data now covers IP non-starter, kit assignment and
+  premature treatment discontinuation scenarios, with more realistic dosing
+  timelines and study completion records consistent with each subject's status
+  (#140, #157, #138).
 
 ## Bug Fixes
 

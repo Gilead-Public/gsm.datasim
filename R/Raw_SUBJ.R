@@ -67,6 +67,7 @@ Raw_SUBJ <- function(data, previous_data, spec, startDate, endDate, ...) {
 
   # Recalculate for all data
   res$timeonstudy <- timeonstudy(n, res$enrolldt, endDate)
+  res$timeontreatment <- as.integer(as.Date(endDate) - res$firstdosedate)
 
   return(res)
 }
@@ -160,7 +161,7 @@ race <- function(n, ...) {
 }
 #' Derive the upstream IP non-starter contract fields
 #'
-#' Impersonates the Stride derivation so simulated data carries the same six
+#' Impersonates the Stride derivation so simulated data carries the same seven
 #' fields production data will. gsm never computes these outside the simulator.
 #'
 #' Runs over the whole frame on every snapshot, so days lapsed re-accrue and an
@@ -173,14 +174,16 @@ race <- function(n, ...) {
 #' @param endDate the snapshot date, acting as "today".
 #' @param nWindowDays days separating the two potential statuses.
 #' @param nConfirmedShare share of never-dosed subjects that are Confirmed.
-#' @returns `df` with the six `drv_*` columns.
+#' @param nKitAssignedShare share of never-dosed subjects with a kit assigned.
+#' @returns `df` with the seven `drv_*` columns.
 #' @keywords internal
 #' @noRd
 apply_ipns_derivations <- function(
   df,
   endDate,
   nWindowDays = 30,
-  nConfirmedShare = 0.4
+  nConfirmedShare = 0.4,
+  nKitAssignedShare = 0.5
 ) {
   if (is.null(df) || nrow(df) == 0 || !("subjid" %in% names(df))) {
     return(df)
@@ -206,7 +209,8 @@ apply_ipns_derivations <- function(
 
   # subjid() draws each subject's number uniformly at random, so its last two
   # digits bucket subjects faithfully and stay stable across snapshots.
-  bucket <- as.integer(sub("^S", "", df$subjid)) %% 100L
+  id <- as.integer(sub("^S", "", df$subjid))
+  bucket <- id %% 100L
   confirmed <- undosed & bucket < round(nConfirmedShare * 100)
 
   df$drv_ip_nonstarter_status <- dplyr::case_when(
@@ -218,8 +222,28 @@ apply_ipns_derivations <- function(
     TRUE ~ "Potential Non-Starter within window"
   )
 
+  # Dosing implies a kit. For the rest, the hundreds and thousands digits keep
+  # kit assignment independent of the Confirmed bucket.
+  df$drv_kit_assigned <- dplyr::case_when(
+    !enrolled ~ NA_character_,
+    dosed | (id %/% 100L) %% 100L < round(nKitAssignedShare * 100) ~ "Y",
+    TRUE ~ "N"
+  )
+
   df
 }
+
+#' Placeholder generator for `drv_kit_assigned`
+#'
+#' Named after the spec column so `add_new_var_data()` calls it instead of the
+#' RNG-consuming type fallback; [apply_ipns_derivations()] fills in the value.
+#'
+#' @param n Number of rows.
+#' @param ... Ignored.
+#' @returns A character vector of `n` `NA`s.
+#' @keywords internal
+#' @noRd
+drv_kit_assigned <- function(n, ...) rep(NA_character_, n)
 
 enrollyn_enrolldt_timeonstudy_firstparticipantdate_firstdosedate_timeontreatment <- function(n, startDate, endDate, nonstarter_rate = 0.1, ...) {
   enrollyn_dat <- enrollyn(n, ...)
@@ -227,8 +251,10 @@ enrollyn_enrolldt_timeonstudy_firstparticipantdate_firstdosedate_timeontreatment
   timeonstudy_dat <- timeonstudy(n, enrolldt_dat, endDate, ...)
 
   firstparticipantdate_dat <- enrolldt_dat
-  firstdosedate_dat <- enrolldt_dat
-  timeontreatment_dat <- timeonstudy_dat
+  firstdosedate_dat <- pmin(
+    enrolldt_dat + sample(0:14, n, replace = TRUE),
+    as.Date(endDate)
+  )
 
   # IP non-starter scenario (#122): a deterministic subset of enrolled subjects
   # are enrolled but never dosed, so their firstdosedate is NA. Drawn after the
@@ -240,6 +266,7 @@ enrollyn_enrolldt_timeonstudy_firstparticipantdate_firstdosedate_timeontreatment
     nonstarter_idx <- sample(enrolled_idx, size = k, replace = FALSE)
     firstdosedate_dat[nonstarter_idx] <- as.Date(NA)
   }
+  timeontreatment_dat <- as.integer(as.Date(endDate) - firstdosedate_dat)
 
   return(list(
     enrollyn = enrollyn_dat,
@@ -250,3 +277,78 @@ enrollyn_enrolldt_timeonstudy_firstparticipantdate_firstdosedate_timeontreatment
     timeontreatment = timeontreatment_dat
   ))
 }
+
+# Reasons must not include drug names or phases. Used in apply_ptd_derivations()
+# and tests.
+.ptd_reason_values <- c(
+  "Adverse Event",
+  "Lack of Efficacy",
+  "Physician Decision",
+  "Withdrawal by Subject",
+  "Protocol Deviation",
+  "Progressive Disease",
+  "Lost to Follow-up"
+)
+
+#' Derive premature treatment discontinuation fields
+#'
+#' Uses subject IDs and first-dose dates without RNG draws. With unchanged
+#' inputs and settings, dates and reasons remain stable across snapshots.
+#'
+#' @param df A `Raw_SUBJ` frame after [apply_ipns_derivations()].
+#' @param endDate Snapshot date; future discontinuation dates remain `NA`.
+#' @param nDiscontinuedShare Target share of dosed subjects selected to discontinue.
+#' @returns `df` with discontinuation date, reason and inclusive days
+#'   from enrollment to discontinuation.
+#' @keywords internal
+#' @noRd
+apply_ptd_derivations <- function(df, endDate, nDiscontinuedShare = 0.3) {
+  if (is.null(df) || nrow(df) == 0 || !("drv_ip_dosed" %in% names(df))) {
+    return(df)
+  }
+
+  k <- as.integer(sub("^S", "", df$subjid))
+  dosed <- df$drv_ip_dosed %in% "Y"
+  discontinuing <- dosed & (k %/% 100L) %% 100L < round(nDiscontinuedShare * 100)
+  lag <- ifelse(k %% 10L < 3L, 0L, 1L + (k %/% 10L) %% 27L)
+  planned <- df$drv_ip_first_dose_dt + lag
+  dated <- discontinuing & planned <= as.Date(endDate)
+
+  first <- .ptd_reason_values[k %% 7L + 1L]
+  second <- .ptd_reason_values[(k %% 7L + 1L + (k %/% 7L) %% 6L) %% 7L + 1L]
+  shape <- (k %/% 10L) %% 100L
+  reason <- dplyr::case_when(
+    shape < 10L ~ NA_character_,
+    shape < 25L ~ paste(first, second, sep = ", "),
+    TRUE ~ first
+  )
+
+  df$drv_treatment_discontinuation_dt <- dplyr::if_else(dated, planned, as.Date(NA))
+  # A reason without a date is a real delivery shape; the metric ignores it.
+  df$drv_premature_discontinuation_reason <- dplyr::case_when(
+    dated ~ reason,
+    dosed & !discontinuing & k %% 100L >= 97L ~ first,
+    TRUE ~ NA_character_
+  )
+  df$drv_days_lapsed_enrl_discontinuation <- ifelse(
+    dated,
+    as.integer(df$drv_treatment_discontinuation_dt - df$drv_enrollment_dt) + 1L,
+    NA_integer_
+  )
+
+  df
+}
+
+#' Placeholder generators for the premature discontinuation columns
+#'
+#' Named after the spec columns so `add_new_var_data()` skips the
+#' RNG-consuming type fallback; [apply_ptd_derivations()] fills in the values.
+#'
+#' @param n Number of rows.
+#' @param ... Ignored.
+#' @returns A vector of `n` `NA`s of the column's type.
+#' @keywords internal
+#' @noRd
+drv_treatment_discontinuation_dt <- function(n, ...) rep(as.Date(NA), n)
+drv_premature_discontinuation_reason <- function(n, ...) rep(NA_character_, n)
+drv_days_lapsed_enrl_discontinuation <- function(n, ...) rep(NA_integer_, n)

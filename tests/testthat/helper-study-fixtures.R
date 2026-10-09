@@ -46,16 +46,58 @@ make_override_workflows <- function() {
   )
 }
 
-# Fixture shared by the IP non-starter derivation tests
-# (test-nonstarter-generators.R): a small, deterministic Raw_SUBJ frame whose
-# rows are hand-picked to exercise the dosed/undosed and enrolled/not-enrolled
-# branches of apply_ipns_derivations().
+# ---- IP non-starter / premature treatment discontinuation fixtures ----
+# (test-nonstarter-generators.R, test-ptd-generators.R, test-Raw_SUBJ.R,
+# test-Raw_STUDCOMP.R)
+
+# A small, deterministic Raw_SUBJ frame whose rows are hand-picked to exercise
+# the dosed/undosed and enrolled/not-enrolled branches of
+# apply_ipns_derivations().
 make_subj <- function() {
   data.frame(
+    studyid = "X",
+    invid = "I1",
     subjid = c("S1", "S2", "S3", "S4"),
     enrollyn = c("Y", "Y", "Y", "N"),
     enrolldt = as.Date(c("2025-01-01", "2025-01-01", "2025-03-01", NA)),
     firstdosedate = as.Date(c("2025-01-05", NA, NA, NA)),
+    stringsAsFactors = FALSE
+  )
+}
+
+# The default 10,000 sequential subject IDs cover every digit bucket used by
+# apply_ptd_derivations() (test-ptd-generators.R).
+make_dosed_subj <- function(n = 10000) {
+  df <- data.frame(
+    studyid = "X",
+    invid = paste0("I", seq_len(n) %% 50),
+    subjid = paste0("S", seq_len(n)),
+    enrollyn = "Y",
+    enrolldt = as.Date("2025-01-01"),
+    firstdosedate = as.Date("2025-01-01") + seq_len(n) %% 5,
+    stringsAsFactors = FALSE
+  )
+  apply_ipns_derivations(df, as.Date("2026-01-01"))
+}
+
+ptd_cols <- c(
+  "drv_treatment_discontinuation_dt",
+  "drv_premature_discontinuation_reason",
+  "drv_days_lapsed_enrl_discontinuation"
+)
+
+# Includes inconsistent completion values, a pre-dose timestamp, and a missing record.
+make_studcomp <- function() {
+  data.frame(
+    studyid = "X",
+    invid = "I1",
+    subjid = c("S1", "S2", "S4"),
+    compyn = c("Y", NA, "N"),
+    compreas = c("Death", "", "Death"),
+    mincreated_dts = as.POSIXct(
+      c("2024-12-01", "2025-01-01", "2024-12-01"),
+      tz = "UTC"
+    ),
     stringsAsFactors = FALSE
   )
 }
@@ -93,3 +135,66 @@ make_schedule_fixture <- function() {
 
   list(df = df, visits = visits)
 }
+
+# ---- IP non-starter snapshot integration fixtures ----
+# (test-ipns-snapshot-integration.R)
+
+subj_seed_config <- function(participant_count = 1, snapshot_count = 2) {
+  list(
+    SnapshotCount = snapshot_count,
+    SnapshotWidth = "months",
+    ParticipantCount = participant_count,
+    SiteCount = 2,
+    StudyID = "IPNS-SNAP",
+    workflow_path = "workflow/1_mappings",
+    mappings = "AE",
+    package = "gsm.mapping",
+    strStartDate = "2012-01-01",
+    desired_specs = NULL
+  )
+}
+
+native_subj_config <- function(study_id, participant_count, snapshot_count,
+                               study_completion = FALSE) {
+  config <- create_standard_study_config(
+    study_id,
+    participant_count = participant_count,
+    site_count = 2,
+    adverse_events = FALSE, protocol_deviations = FALSE, lab_data = FALSE,
+    subject_visits = FALSE, visit_schedule = FALSE, enrollment = TRUE,
+    data_changes = FALSE, data_entry = FALSE, queries = FALSE,
+    pharmacokinetics = FALSE, study_drug_completion = FALSE,
+    study_completion = study_completion, inclusion_exclusion = FALSE, country = FALSE,
+    death = FALSE, randomization = FALSE, overall_response = FALSE
+  )
+  set_temporal_config(
+    config,
+    start_date = "2012-01-01",
+    snapshot_count = snapshot_count,
+    snapshot_width = "months"
+  )
+}
+
+# Generated on first call and reused, so the tests sharing it pay for one run.
+.core_run_cache <- new.env(parent = emptyenv())
+
+# Same seed, size and snapshots as gsm.core's data-raw/simulate_longitudinal_data.R.
+core_shaped_run <- function() {
+  if (is.null(.core_run_cache$run)) {
+    set.seed(1234)
+    .core_run_cache$run <- suppressWarnings(generate_rawdata_for_single_study(
+      SnapshotCount = 3,
+      SnapshotWidth = "months",
+      ParticipantCount = 1000,
+      SiteCount = 150,
+      StudyID = "AA-AA-000-0000",
+      workflow_path = "workflow/1_mappings",
+      mappings = c("SUBJ", "ENROLL", "STUDCOMP", "SITE", "STUDY"),
+      package = "gsm.mapping",
+      desired_specs = NULL
+    ))
+  }
+  .core_run_cache$run
+}
+
+is_blank <- function(x) is.na(x) | x == ""

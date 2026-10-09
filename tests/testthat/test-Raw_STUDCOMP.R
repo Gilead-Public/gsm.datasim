@@ -133,6 +133,31 @@ test_that("Raw_STUDCOMP renames columns per source_col in the spec", {
   expect_disjoint(names(res), "compyn")
 })
 
+test_that("Raw_STUDCOMP returns previous data unchanged when it already exceeds the target count (#157)", {
+  set.seed(5528)
+  data <- make_studcomp_data()
+  spec <- make_studcomp_spec()
+
+  first <- Raw_STUDCOMP(
+    data,
+    list(),
+    spec,
+    as.Date("2012-01-01"),
+    n = 6,
+    split_vars = studcomp_split
+  )
+  again <- Raw_STUDCOMP(
+    data,
+    previous_data = list(Raw_STUDCOMP = first),
+    spec = spec,
+    startDate = as.Date("2012-01-01"),
+    n = 4,
+    split_vars = studcomp_split
+  )
+
+  expect_identical(again, first)
+})
+
 # Raw_StudyCompletion is a separate, simpler generator living in the same file.
 test_that("Raw_StudyCompletion generates, appends, and short-circuits", {
   set.seed(5528)
