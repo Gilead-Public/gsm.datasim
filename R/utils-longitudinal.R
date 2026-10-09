@@ -229,8 +229,7 @@ inject_targeted_runs <- function(values, groups, dTargetRate, nWindowLength = 3)
   }
 
   # `dTargetRate` is validated into [0, 1], so this never exceeds
-  # `total_windows` -- which is also the loop's total capacity below, meaning
-  # the loop always delivers the full numerator.
+  # `total_windows`.
   target_numerator <- round(dTargetRate * total_windows)
 
   if (target_numerator == 0) {
@@ -250,29 +249,40 @@ inject_targeted_runs <- function(values, groups, dTargetRate, nWindowLength = 3)
   eligible <- names(window_counts)[window_counts >= 1]
   if (length(eligible) > 1) eligible <- sample(eligible)
 
-  remaining <- target_numerator
+  # Identical windows already present (rounded measurements collide) count
+  # toward the target, so only the shortfall is injected. Otherwise they stack
+  # on top of the injected runs and can push a site into a higher band.
+  group_count <- function(v, idx) {
+    .count_identical_windows(v, list(idx), nWindowLength)
+  }
+  remaining <- target_numerator -
+    .count_identical_windows(values, idx_by_group, nWindowLength)
 
   for (grp in eligible) {
     if (remaining <= 0) break
 
     idx <- idx_by_group[[grp]]
-    capacity <- window_counts[[grp]]
+    baseline <- group_count(values, idx)
 
-    # A run of length `nWindowLength + k` contributes `k + 1` windows, and a
-    # group's whole capacity is consumed by a single run covering it.
-    take <- min(remaining, capacity)
-    run_length <- nWindowLength + take - 1
-    run_idx <- idx[seq_len(run_length)]
+    # Score every prefix-run length by its *recounted* gain for the group: an
+    # overwritten prefix can destroy pre-existing windows, and a tie with the
+    # following element can extend the run, so nominal gain is unreliable.
+    # Take the largest gain that does not overshoot what is still needed.
+    best <- NULL
+    for (run_length in seq(nWindowLength, length(idx))) {
+      candidate <- values
+      candidate[idx[seq_len(run_length)]] <-
+        .choose_run_value(values, idx, run_length)
+      gain <- group_count(candidate, idx) - baseline
+      if (gain > 0 && gain <= remaining && (is.null(best) || gain > best$gain)) {
+        best <- list(values = candidate, gain = gain)
+      }
+      if (!is.null(best) && best$gain == remaining) break
+    }
+    if (is.null(best)) next
 
-    # The run takes a value from the block it overwrites. The element just past
-    # the run may already carry that value -- rounded measurements collide
-    # often enough that this is not rare -- and left alone it silently extends
-    # the run by a window. Prefer a block value that differs from that
-    # neighbour; no values are synthesised, so the group's value distribution
-    # is unchanged.
-    values[run_idx] <- .choose_run_value(values, idx, run_length)
-
-    remaining <- remaining - take
+    values <- best$values
+    remaining <- remaining - best$gain
   }
 
   # Recount rather than trust the construction: when a group holds a single

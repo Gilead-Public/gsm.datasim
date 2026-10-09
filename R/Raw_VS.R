@@ -264,8 +264,9 @@ RISK_PROFILE_DOMAINS <- "Raw_VS"
   profile <- utils::modifyList(profile, dom_fields)
 
   # An explicit domain-level `vVitals` wins; otherwise naming vitals targets
-  # exactly those vitals.
-  if (length(dom_vitals) > 0 && is.null(dom$vVitals)) {
+  # exactly those vitals. Test presence, not `is.null()`: an explicit
+  # `vVitals = NULL` means "all vitals" and must not be replaced.
+  if (length(dom_vitals) > 0 && !("vVitals" %in% names(dom))) {
     profile$vVitals <- dom_vitals
   }
   if (is.null(strVital)) {

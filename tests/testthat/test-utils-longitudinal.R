@@ -642,3 +642,27 @@ test_that("allocate_site_risk works before the RNG is initialized (#143)", {
     expect_false(exists(".Random.seed", envir = globalenv(), inherits = FALSE))
   })
 })
+
+test_that("inject_targeted_runs counts pre-existing windows toward the target (#143)", {
+  # Reported case: the trailing 4, 4, 4 already repeats, so injecting a full
+  # window on top used to give 2/4 (red) for a 1/4 (amber) target.
+  values <- c(1, 2, 3, 4, 4, 4)
+  groups <- rep("G1", 6)
+
+  out <- inject_targeted_runs(values, groups, dTargetRate = 0.25, nWindowLength = 3)
+  realized <- attr(out, "realized")
+
+  expect_equal(realized$denominator, 4)
+  expect_equal(realized$numerator, 1)
+  expect_equal(as.numeric(out), values)
+})
+
+test_that("inject_targeted_runs tops up only the shortfall over pre-existing windows (#143)", {
+  values <- c(1, 2, 3, 4, 5, 6, 7, 7, 7)
+  groups <- rep("G1", 9)
+
+  out <- inject_targeted_runs(values, groups, dTargetRate = 3 / 7, nWindowLength = 3)
+
+  expect_equal(attr(out, "realized")$numerator, 3)
+  expect_equal(count_identical_windows_naive(as.numeric(out), groups, 3), 3)
+})

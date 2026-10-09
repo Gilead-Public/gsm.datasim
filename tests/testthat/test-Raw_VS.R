@@ -1129,3 +1129,11 @@ test_that("risk_profile layers mix and match at every level (#143)", {
   # pulse is not targeted
   expect_true(all(p$rate < 0.1, na.rm = TRUE))
 })
+
+test_that("an explicit domain-level vVitals = NULL targets all vitals (#143)", {
+  profile <- list(Raw_VS = list(vVitals = NULL, weight = list(dRateRed = 0.8)))
+
+  expect_equal(.resolve_risk_profile(profile, "Raw_VS", "weight")$dRateRed, 0.8)
+  expect_false(is.null(.resolve_risk_profile(profile, "Raw_VS", "pulse")))
+  expect_null(.resolve_risk_profile(profile, "Raw_VS")$vVitals)
+})

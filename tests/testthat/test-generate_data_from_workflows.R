@@ -1077,3 +1077,9 @@ test_that("an invalid risk_profile is rejected identically on every route (#143)
     )
   )
 })
+
+test_that("Raw_VS registry generation requires a usable Raw_STUDY (#143)", {
+  upstream <- c("Raw_SITE", "Raw_SUBJ", "Raw_VISIT")
+  expect_false(.registry_prerequisites_met("Raw_VS", upstream))
+  expect_true(.registry_prerequisites_met("Raw_VS", c("Raw_STUDY", upstream)))
+})

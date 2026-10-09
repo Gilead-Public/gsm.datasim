@@ -321,7 +321,8 @@ generate_data_from_workflows <- function(
     Raw_STUDY = character(0),
     Raw_SITE = character(0),
     Raw_SUBJ = "Raw_SITE",
-    Raw_VS = c("Raw_SITE", "Raw_SUBJ", "Raw_VISIT"),
+    # Raw_VS reads `Raw_STUDY$protocol_number` unconditionally.
+    Raw_VS = c("Raw_STUDY", "Raw_SITE", "Raw_SUBJ", "Raw_VISIT"),
     c("Raw_SITE", "Raw_SUBJ")
   )
   all(upstream %in% registry_domains)
@@ -371,7 +372,13 @@ generate_data_from_workflows <- function(
     # Fall through to later tiers only when the domain is unregistered (NULL)
     # or an upstream domain was not registry-generated. Errors from registered
     # domains with their prerequisites in place propagate.
-    registry_result <- if (.registry_prerequisites_met(domain, registry_domains)) {
+    # Raw_STUDY is never registry-built; it counts as available whenever some
+    # tier produced it with the `protocol_number` downstream generators read.
+    available_domains <- c(
+      registry_domains,
+      if ("protocol_number" %in% names(data$Raw_STUDY)) "Raw_STUDY"
+    )
+    registry_result <- if (.registry_prerequisites_met(domain, available_domains)) {
       generate_domain_from_registry(
         data_type = domain,
         context   = registry_context,
