@@ -4,27 +4,13 @@
 # of the two generation paths) shows up here even though the unit tests in
 # test-nonstarter-generators.R already cover the derivation rules themselves.
 #
-# All three tests use ParticipantCount = 1 with a 2012-01-01 "months"-width,
-# 2-snapshot study: count_gen() distributes 1 participant deterministically
-# as c(1, 1), so snapshot 2 adds zero new subjects and Raw_SUBJ() takes its
-# early-return path for that snapshot. seed 1 is fixed because it draws that
-# lone subject enrolled and undosed, which is required for the window
-# transition below; it is not tuned to any other property of the output.
-
-subj_seed_config <- function(participant_count = 1, snapshot_count = 2) {
-  list(
-    SnapshotCount = snapshot_count,
-    SnapshotWidth = "months",
-    ParticipantCount = participant_count,
-    SiteCount = 2,
-    StudyID = "IPNS-SNAP",
-    workflow_path = "workflow/1_mappings",
-    mappings = "AE",
-    package = "gsm.mapping",
-    strStartDate = "2012-01-01",
-    desired_specs = NULL
-  )
-}
+# The two window-transition tests use ParticipantCount = 1 with a 2012-01-01
+# "months"-width, 2-snapshot study: count_gen() distributes 1 participant
+# deterministically as c(1, 1), so snapshot 2 adds zero new subjects and
+# Raw_SUBJ() takes its early-return path for that snapshot. seed 1 is fixed
+# because it draws that lone subject enrolled and undosed, which is required
+# for the window transition; it is not tuned to any other property of the
+# output.
 
 test_that("a later snapshot with no new subjects still advances an undosed subject from within- to outside-window, legacy path (#140)", {
   test_at_log_threshold()
@@ -109,7 +95,7 @@ test_that("a later snapshot with no new subjects still advances an undosed subje
   )
 })
 
-test_that("the final Raw_ENROLL reconciliation leaves every non-enrolled subject with NA in all six drv_ fields (#140)", {
+test_that("the final Raw_ENROLL reconciliation leaves every non-enrolled subject with NA in every drv_ field (#140, #157, #138)", {
   test_at_log_threshold()
   skip_if_not_installed("gsm.mapping")
   set.seed(42)
@@ -123,7 +109,7 @@ test_that("the final Raw_ENROLL reconciliation leaves every non-enrolled subject
   expect_gt(nrow(unenrolled), 0)
 
   drv_cols <- grep("^drv_", names(subj), value = TRUE)
-  expect_length(drv_cols, 6)
+  expect_true(all(c("drv_kit_assigned", "drv_treatment_discontinuation_dt", "drv_premature_discontinuation_reason", "drv_days_lapsed_enrl_discontinuation") %in% drv_cols))
   expect_true(all(vapply(
     drv_cols,
     function(col) all(is.na(unenrolled[[col]])),
@@ -131,7 +117,7 @@ test_that("the final Raw_ENROLL reconciliation leaves every non-enrolled subject
   )))
 })
 
-test_that("the legacy and config-native generation paths produce the same six-column drv_ contract (#140)", {
+test_that("the legacy and config-native generation paths produce the same drv_ contract (#140, #157, #138)", {
   test_at_log_threshold()
   skip_if_not_installed("gsm.mapping")
 
@@ -176,7 +162,6 @@ test_that("the legacy and config-native generation paths produce the same six-co
   config_drv <- grep("^drv_", names(config_subj), value = TRUE)
 
   expect_setequal(legacy_drv, config_drv)
-  expect_length(legacy_drv, 6)
 
   expected_types <- c(
     drv_enrollment_dt = "double", # Date is stored as a double
@@ -184,10 +169,158 @@ test_that("the legacy and config-native generation paths produce the same six-co
     drv_ip_first_dose_dt = "double",
     drv_enrl_first_dose_days = "integer",
     drv_days_lapsed_since_enrl = "integer",
-    drv_ip_nonstarter_status = "character"
+    drv_ip_nonstarter_status = "character",
+    drv_kit_assigned = "character",
+    drv_treatment_discontinuation_dt = "double",
+    drv_premature_discontinuation_reason = "character",
+    drv_days_lapsed_enrl_discontinuation = "integer"
   )
+  expect_setequal(legacy_drv, names(expected_types))
   for (col in names(expected_types)) {
     expect_type(legacy_subj[[col]], expected_types[[col]])
     expect_type(config_subj[[col]], expected_types[[col]])
   }
+})
+
+test_that("a core-shaped run carries every IP non-starter scenario the IP Compliance report needs (#157)", {
+  test_at_log_threshold()
+  skip_if_not_installed("gsm.mapping")
+  snaps <- core_shaped_run()
+  subj <- snaps[[3]]$Raw_SUBJ
+  enr <- subj[subj$enrollyn %in% "Y", ]
+  as_of <- max(enr$drv_enrollment_dt + enr$drv_days_lapsed_since_enrl - 1L, na.rm = TRUE)
+  sc <- snaps[[3]]$Raw_STUDCOMP
+  sc <- sc[sc$subjid %in% enr$subjid, ]
+  i <- match(sc$subjid, enr$subjid)
+  status <- enr$drv_ip_nonstarter_status[i]
+  undosed_kit <- enr$drv_kit_assigned[enr$drv_ip_dosed == "N"]
+
+  expect_setequal(unique(enr$drv_ip_nonstarter_status), c(
+    "Dosed", "Confirmed Non-Starter",
+    "Potential Non-Starter outside window", "Potential Non-Starter within window"
+  ))
+  expect_gte(sum(status == "Confirmed Non-Starter" & sc$compreas == "Withdrew Consent"), 3)
+  expect_gte(sum(status == "Dosed" & sc$compyn %in% "Y"), 3)
+  expect_gte(sum(undosed_kit == "Y"), 3)
+  expect_gte(sum(undosed_kit == "N"), 3)
+
+  confirmed <- enr$subjid[enr$drv_ip_nonstarter_status == "Confirmed Non-Starter"]
+  expect_true(all(confirmed %in% sc$subjid[sc$compyn %in% "N"]))
+  expect_false(any(grepl("^Potential", status) & !is_blank(sc$compyn)))
+  expect_true(all(status[sc$compyn %in% "Y"] == "Dosed"))
+  expect_identical(!is_blank(sc$compreas), sc$compyn %in% "N")
+
+  anchor <- dplyr::coalesce(enr$drv_ip_first_dose_dt, enr$drv_enrollment_dt)[i]
+  created <- as.Date(sc$mincreated_dts)
+  expect_true(all(created >= anchor & created <= as_of))
+  expect_true(all(enr$firstdosedate <= as_of, na.rm = TRUE))
+  expect_true(any(enr$drv_enrl_first_dose_days %in% 1L))
+  expect_true(any(enr$drv_enrl_first_dose_days > 1L, na.rm = TRUE))
+
+  for (earlier in snaps[1:2]) {
+    prev <- earlier$Raw_STUDCOMP
+    now <- snaps[[3]]$Raw_STUDCOMP
+    expect_equal(now[match(prev$subjid, now$subjid), names(prev)], prev, ignore_attr = TRUE)
+    later <- subj[match(earlier$Raw_SUBJ$subjid, subj$subjid), ]
+    expect_identical(later$drv_kit_assigned, earlier$Raw_SUBJ$drv_kit_assigned)
+    was_confirmed <- earlier$Raw_SUBJ$drv_ip_nonstarter_status %in% "Confirmed Non-Starter"
+    expect_true(all(later$drv_ip_nonstarter_status[was_confirmed] == "Confirmed Non-Starter"))
+  }
+})
+
+test_that("the config-native path aligns Raw_STUDCOMP with IP non-starter status on every snapshot (#157)", {
+  test_at_log_threshold()
+  skip_if_not_installed("gsm.mapping")
+  set.seed(1234)
+  snaps <- suppressWarnings(generate_study_data(
+    native_subj_config("IPNS-STUDCOMP", 300, 3, study_completion = TRUE)
+  ))
+
+  for (k in seq_along(snaps)) {
+    subj <- snaps[[k]]$Raw_SUBJ
+    sc <- snaps[[k]]$Raw_STUDCOMP
+    as_of <- as.Date(names(snaps)[[k]])
+    i <- match(sc$subjid, subj$subjid)
+    status <- subj$drv_ip_nonstarter_status[i]
+    confirmed <- subj$subjid[subj$drv_ip_nonstarter_status %in% "Confirmed Non-Starter"]
+
+    expect_gt(length(confirmed), 0)
+    expect_true(all(confirmed %in% sc$subjid[sc$compyn %in% "N"]))
+    expect_false(any(grepl("^Potential", status) & !is_blank(sc$compyn)))
+    expect_true(all(status[sc$compyn %in% "Y"] == "Dosed"))
+    expect_identical(!is_blank(sc$compreas), sc$compyn %in% "N")
+
+    anchor <- dplyr::coalesce(subj$drv_ip_first_dose_dt, subj$drv_enrollment_dt)[i]
+    created <- as.Date(sc$mincreated_dts)
+    # Non-enrolled subjects have no status or anchor, so they are left as drawn.
+    has_status <- !is.na(status)
+    expect_true(all(created[has_status] >= anchor[has_status] & created[has_status] <= as_of))
+  }
+
+  now <- snaps[[3]]$Raw_STUDCOMP
+  for (earlier in snaps[1:2]) {
+    prev <- earlier$Raw_STUDCOMP
+    expect_equal(now[match(prev$subjid, now$subjid), names(prev)], prev, ignore_attr = TRUE)
+  }
+})
+
+test_that("time on treatment runs to the latest snapshot date for carried-forward subjects (#157)", {
+  test_at_log_threshold()
+  skip_if_not_installed("gsm.mapping")
+  snaps <- core_shaped_run()
+  subj <- snaps[[3]]$Raw_SUBJ
+  carried <- subj$subjid %in% snaps[[1]]$Raw_SUBJ$subjid & !is.na(subj$firstdosedate)
+
+  expect_true(any(carried))
+  expect_equal(
+    subj$timeontreatment[carried],
+    as.integer(as.Date(names(snaps)[[3]]) - subj$firstdosedate[carried])
+  )
+})
+
+test_that("a discontinuation date stays the same on a later snapshot in both generation paths (#138)", {
+  test_at_log_threshold()
+  skip_if_not_installed("gsm.mapping")
+  set.seed(7)
+  legacy <- suppressWarnings(do.call(
+    generate_rawdata_for_single_study,
+    subj_seed_config(participant_count = 300, snapshot_count = 2)
+  ))
+  set.seed(7)
+  native <- suppressWarnings(generate_study_data(native_subj_config("PTD-SNAP", 300, 2)))
+
+  for (snaps in list(legacy, native)) {
+    s1 <- snaps[[1]]$Raw_SUBJ
+    s2 <- snaps[[2]]$Raw_SUBJ
+    dated <- s1$subjid[!is.na(s1$drv_treatment_discontinuation_dt)]
+    expect_gt(length(dated), 0)
+    expect_identical(
+      s2$drv_treatment_discontinuation_dt[match(dated, s2$subjid)],
+      s1$drv_treatment_discontinuation_dt[match(dated, s1$subjid)]
+    )
+  }
+})
+
+test_that("a core-shaped run carries every premature discontinuation scenario (#138)", {
+  test_at_log_threshold()
+  skip_if_not_installed("gsm.mapping")
+  snaps <- core_shaped_run()
+  subj <- snaps[[3]]$Raw_SUBJ
+  sc <- snaps[[3]]$Raw_STUDCOMP
+  d <- subj[subj$drv_ip_dosed %in% "Y", ]
+  dated <- !is.na(d$drv_treatment_discontinuation_dt)
+  reason <- d$drv_premature_discontinuation_reason
+  completed <- d$subjid %in% sc$subjid[sc$compyn %in% "Y"]
+  undosed <- subj[!subj$drv_ip_dosed %in% "Y", ]
+
+  expect_gte(sum(table(d$invid[dated]) >= 3), 5)
+  expect_true(any(dated & is.na(reason)))
+  expect_true(any(dated & grepl(", ", reason)))
+  expect_true(any(dated & completed))
+  expect_true(any(!dated & completed))
+  expect_true(any(!dated & !completed))
+  expect_true(any(!dated & !is.na(reason)))
+  expect_true(any(d$drv_days_lapsed_enrl_discontinuation %in% 1L))
+  expect_true(all(is.na(undosed$drv_treatment_discontinuation_dt)))
+  expect_true(all(is.na(undosed$drv_premature_discontinuation_reason)))
 })

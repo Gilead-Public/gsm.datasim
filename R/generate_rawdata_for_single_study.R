@@ -241,6 +241,15 @@ generate_snapshots_from_combined_specs <- function(SnapshotCount,
         data$Raw_SUBJ,
         endDate = end_dates[[snapshot_idx]]
       )
+      data$Raw_SUBJ <- apply_ptd_derivations(
+        data$Raw_SUBJ,
+        endDate = end_dates[[snapshot_idx]]
+      )
+      data$Raw_STUDCOMP <- apply_ipns_studcomp(
+        data$Raw_STUDCOMP,
+        data$Raw_SUBJ,
+        endDate = end_dates[[snapshot_idx]]
+      )
     }
     if (!("gilda_STUDY" %in% mappings)) {
       data$raw_gilda_study_data <- NULL
