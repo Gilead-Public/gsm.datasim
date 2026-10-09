@@ -44,7 +44,10 @@ prepare_combined_specs_for_generation <- function(combined_specs, desired_specs 
   combined_specs <- combined_specs[c(desired_order, setdiff(names(combined_specs), desired_order))]
 
   if (!is.null(desired_specs)) {
-    combined_specs <- combined_specs[desired_specs]
+    # Keep core prerequisites in dependency order regardless of caller order,
+    # so registry generators (e.g. Raw_VS) see their upstream domains first.
+    core_first <- desired_order[desired_order %in% desired_specs]
+    combined_specs <- combined_specs[c(core_first, setdiff(desired_specs, core_first))]
   }
 
   combined_specs

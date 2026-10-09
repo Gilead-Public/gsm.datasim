@@ -663,11 +663,6 @@ test_that("column_overrides NULL leaves output unchanged (backward compat) (#106
   expect_equal(result_no_override, result_null_override)
 })
 
-# Raw_SITE only succeeds via the domain registry tier (not the legacy Raw_*()
-# path, since that requires split_vars applied by the legacy dispatcher) when
-# its spec matches the registry's expected columns and Raw_STUDY is present in
-# the same workflow. This exercises the "generated via domain registry"
-# success branch (data[[domain]] <- ...; .apply_column_overrides(); next).
 test_that("a domain matching the registry's expected spec is generated via the registry tier", {
   set.seed(9137)
   test_at_log_threshold()
@@ -791,9 +786,22 @@ test_that("unknown spec column in workflow does not drop to type-based fallback 
 
 # ── Spec preparation and generation-tier branches ─────────────────────────────
 
-# A workflow whose only domain is Mapped_* is stripped by
-# prepare_combined_specs_for_generation(), and desired_domains then filters the
-# auto-injected Raw_VISIT back out, leaving nothing to generate.
+test_that("prepare_combined_specs_for_generation keeps core order under desired_specs (#noissue)", {
+  specs <- list(
+    Raw_VS = list(subjid = list(required = TRUE)),
+    Raw_SUBJ = list(subjid = list(required = TRUE)),
+    Raw_SITE = list(invid = list(required = TRUE)),
+    Raw_VISIT = list(subjid = list(required = TRUE))
+  )
+
+  prepared <- prepare_combined_specs_for_generation(
+    specs,
+    desired_specs = c("Raw_VS", "Raw_VISIT", "Raw_SITE", "Raw_SUBJ")
+  )
+
+  expect_named(prepared, c("Raw_SITE", "Raw_SUBJ", "Raw_VISIT", "Raw_VS"))
+})
+
 test_that("generate_data_from_workflows warns when no domains remain (#106)", {
   test_at_log_threshold()
 
@@ -812,9 +820,6 @@ test_that("generate_data_from_workflows warns when no domains remain (#106)", {
   expect_equal(result, list())
 })
 
-# A workflow that declares its own Raw_VISIT spec has it restored after
-# prepare_combined_specs_for_generation() replaces it with the default, and the
-# fully-specified Raw_VISIT then generates via the domain registry.
 test_that("a workflow-supplied Raw_VISIT spec is restored and generated via the registry", {
   set.seed(42)
   test_at_log_threshold()
