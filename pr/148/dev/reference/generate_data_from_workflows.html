@@ -133,7 +133,10 @@ each itself a named list of domain data.frames.</p></dd>
 <em>final</em> row counts (e.g. <code>list(Raw_AE = 300, Raw_LB = 500)</code>). In
 multi-snapshot mode these are the targets for the <em>last</em> snapshot; earlier
 snapshots ramp up via <code>count_gen()</code>. Domains not listed here receive a
-default based on heuristic multipliers of <code>n_participants</code>.</p></dd>
+default based on heuristic multipliers of <code>n_participants</code>. Exception:
+<code>Raw_VS</code> is generated per subject-visit, so its value is a <em>subject</em>
+count (capped at the enrolled roster); each selected subject contributes
+one row per scheduled visit.</p></dd>
 
 
 <dt id="arg-desired-domains">desired_domains<a class="anchor" aria-label="anchor" href="#arg-desired-domains"></a></dt>

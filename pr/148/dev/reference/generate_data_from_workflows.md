@@ -78,7 +78,10 @@ generate_data_from_workflows(
   (e.g. `list(Raw_AE = 300, Raw_LB = 500)`). In multi-snapshot mode
   these are the targets for the *last* snapshot; earlier snapshots ramp
   up via `count_gen()`. Domains not listed here receive a default based
-  on heuristic multipliers of `n_participants`.
+  on heuristic multipliers of `n_participants`. Exception: `Raw_VS` is
+  generated per subject-visit, so its value is a *subject* count (capped
+  at the enrolled roster); each selected subject contributes one row per
+  scheduled visit.
 
 - desired_domains:
 
