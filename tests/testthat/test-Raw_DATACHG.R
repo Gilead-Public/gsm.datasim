@@ -67,7 +67,7 @@ test_that("Raw_DATACHG generates a complete dataset from scratch", {
     names(res),
     c("subject_nsv", "visnam", "studyid", "form", "field", "n_changes")
   )
-  expect_true(all(res$subject_nsv %in% data$Raw_SUBJ$subject_nsv))
+  expect_in(res$subject_nsv, data$Raw_SUBJ$subject_nsv)
   expect_true(all(res$studyid == "PROT-001"))
   # 32 form/field rows are generated per subject-visit pair.
   expect_equal(nrow(res) %% 32, 0)
@@ -112,8 +112,8 @@ test_that("Raw_DATACHG renames columns per source_col in the spec", {
     split_vars = datachg_split
   )
 
-  expect_true("N_CHANGES" %in% names(res))
-  expect_false("n_changes" %in% names(res))
+  expect_contains(names(res), "N_CHANGES")
+  expect_disjoint(names(res), "n_changes")
 })
 
 # visnam, form and field are injected by the generator when the spec omits
@@ -137,7 +137,7 @@ test_that("Raw_DATACHG injects visnam, form and field when absent from the spec"
     split_vars = datachg_split
   )
 
-  expect_true(all(c("visnam", "form", "field") %in% names(res)))
+  expect_contains(names(res), c("visnam", "form", "field"))
   expect_true(all(grepl("^form", res$form)))
   expect_true(all(grepl("^field", res$field)))
 })

@@ -21,7 +21,7 @@ test_that("subjid_invid_unique excludes subjects already present in previous dat
 
   expect_named(res, c("subjid", "invid"))
   expect_length(res$subjid, 5)
-  expect_false(any(res$subjid %in% previous$subjid))
+  expect_disjoint(res$subjid, previous$subjid)
   expect_equal(res$invid, subj$invid[match(res$subjid, subj$subjid)])
 })
 
@@ -32,7 +32,7 @@ test_that("subjid_invid_unique samples with replacement by default", {
   res <- subjid_invid_unique(10, subj, NULL)
 
   expect_length(res$subjid, 10)
-  expect_true(all(res$subjid %in% subj$subjid))
+  expect_in(res$subjid, subj$subjid)
 })
 
 test_that("Raw_STUDCOMP generates a complete dataset from scratch", {
@@ -54,10 +54,10 @@ test_that("Raw_STUDCOMP generates a complete dataset from scratch", {
     names(res),
     c("subjid", "invid", "studyid", "compyn", "compreas")
   )
-  expect_true(all(res$subjid %in% data$Raw_SUBJ$subjid))
+  expect_in(res$subjid, data$Raw_SUBJ$subjid)
   expect_equal(anyDuplicated(res$subjid), 0)
   expect_true(all(res$studyid == "PROT-001"))
-  expect_true(all(res$compreas %in% studcomp_compreas_values))
+  expect_in(res$compreas, studcomp_compreas_values)
 })
 
 test_that("Raw_STUDCOMP appends only the delta rows to previous data", {
@@ -129,8 +129,8 @@ test_that("Raw_STUDCOMP renames columns per source_col in the spec", {
     split_vars = studcomp_split
   )
 
-  expect_true("COMPYN" %in% names(res))
-  expect_false("compyn" %in% names(res))
+  expect_contains(names(res), "COMPYN")
+  expect_disjoint(names(res), "compyn")
 })
 
 test_that("Raw_STUDCOMP returns previous data unchanged when it already exceeds the target count (#157)", {

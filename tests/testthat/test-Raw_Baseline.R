@@ -25,7 +25,7 @@ test_that("Raw_Baseline generates a complete dataset from scratch", {
   expect_s3_class(res, "data.frame")
   expect_equal(nrow(res), 5)
   expect_named(res, c("subjid", "studyid", "scan_dt"))
-  expect_true(all(res$subjid %in% data$Raw_SUBJ$subjid))
+  expect_in(res$subjid, data$Raw_SUBJ$subjid)
   expect_equal(anyDuplicated(res$subjid), 0)
   expect_true(all(res$studyid == "PROT-001"))
   expect_true(all(res$scan_dt >= start_date & res$scan_dt <= start_date + 2))
@@ -81,6 +81,6 @@ test_that("Raw_Baseline renames columns per source_col in the spec", {
     n = 5
   )
 
-  expect_true("SCAN_DT" %in% names(res))
-  expect_false("scan_dt" %in% names(res))
+  expect_contains(names(res), "SCAN_DT")
+  expect_disjoint(names(res), "scan_dt")
 })

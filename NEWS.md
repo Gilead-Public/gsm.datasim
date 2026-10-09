@@ -1,5 +1,11 @@
 # gsm.datasim (development version)
 
+- `Raw_VS` simulates consecutive repeated measurements at site-specific
+  rates, and each site keeps its risk band across snapshots. A new
+  `risk_profile` argument, accepted by the study-creation functions
+  alongside `participants`/`sites`, controls how many sites land in each risk
+  band (#113, #143).
+
 - Simulated `Raw_SUBJ` data now covers IP non-starter, kit assignment and
   premature treatment discontinuation scenarios, with more realistic dosing
   timelines and study completion records consistent with each subject's status

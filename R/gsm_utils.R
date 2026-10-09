@@ -24,6 +24,9 @@ generate_raw_data_for_endpoints <- function(config, domain_package_df) {
   )
 }
 
+# Thin wrapper so package availability can be mocked in tests.
+pkg_available <- function(pkg) requireNamespace(pkg, quietly = TRUE)
+
 # WP1 core helper: resolve enabled mapping names from study config
 get_enabled_mapping_names <- function(config) {
   enabled_datasets <- names(config$dataset_configs)[
@@ -186,7 +189,9 @@ run_domain_generation_loop <- function(combined_specs, config, source_domains) {
         snapshot_idx   = snapshot_idx,
         snapshot_count = snapshot_count,
         snapshot_width = snapshot_width,
-        study_id       = study_id
+        study_id       = study_id,
+        risk_profile = config$study_params$risk_profile,
+        total_site_count = max(site_count_vec)
       )
 
       migrated_data <- generate_domain_from_registry(data_type, registry_context)
@@ -285,8 +290,6 @@ generate_snapshots_from_config <- function(config,
 
   for (pkg in pkgs) {
     domains_in_pkg <- domain_pkgs$domain[domain_pkgs$package == pkg]
-    if (length(domains_in_pkg) == 0) next
-
     if (isTRUE(verbose)) {
       cat("Generating raw data for package", pkg, "with", length(domains_in_pkg), "domains...\n")
     }
@@ -303,10 +306,6 @@ generate_snapshots_from_config <- function(config,
       config         = config,
       source_domains = domains_in_pkg
     )
-  }
-
-  if (length(raw_by_package) == 0) {
-    return(list())
   }
 
   if (length(raw_by_package) == 1) {
@@ -381,6 +380,7 @@ ensure_core_mappings <- function(domains) {
 #' @param base_date Base date for snapshot generation (defaults to "2012-01-31" if NULL)
 #' @param outlier_intensity Global multiplier for outlier-like values in domain generators.
 #' @param verbose Whether to print progress/output messages
+#' @inheritParams create_study_config
 #' @return List of raw data for each snapshot
 #' @examples
 #' \dontrun{
@@ -394,7 +394,8 @@ ensure_core_mappings <- function(domains) {
 #' }
 #' @export
 generate_study_snapshots <- function(study_id, participants, sites, snapshots, interval, mappings,
-                                     base_date = NULL, outlier_intensity = 1, verbose = FALSE) {
+                                     base_date = NULL, outlier_intensity = 1,
+                                     risk_profile = NULL, verbose = FALSE) {
   snapshot_width <- parse_interval_to_snapshot_width(interval)
 
   # Calculate start dates for each snapshot
@@ -420,7 +421,8 @@ generate_study_snapshots <- function(study_id, participants, sites, snapshots, i
     study_id = study_id,
     participant_count = participants,
     site_count = sites,
-    outlier_intensity = outlier_intensity
+    outlier_intensity = outlier_intensity,
+    risk_profile = risk_profile
   )
 
   config <- set_temporal_config(
@@ -492,11 +494,11 @@ execute_analytics_pipeline <- function(raw_data, config) {
   tryCatch(
     {
       # Check if workr is available
-      if (!requireNamespace("workr", quietly = TRUE)) {
+      if (!pkg_available("workr")) {
         if (isTRUE(verbose)) message("workr package not available. Skipping analytics pipeline.")
         return(NULL)
       }
-      if (!requireNamespace("gsm.mapping", quietly = TRUE)) {
+      if (!pkg_available("gsm.mapping")) {
         if (isTRUE(verbose)) message("gsm.mapping package not available. Skipping analytics pipeline.")
         return(NULL)
       }
@@ -770,11 +772,11 @@ execute_reporting_pipeline <- function(analytics_results, config) {
 
   tryCatch(
     {
-      if (!requireNamespace("gsm.reporting", quietly = TRUE)) {
+      if (!pkg_available("gsm.reporting")) {
         if (isTRUE(verbose)) message("gsm.reporting package not available. Skipping reporting pipeline.")
         return(NULL)
       }
-      if (!requireNamespace("workr", quietly = TRUE)) {
+      if (!pkg_available("workr")) {
         if (isTRUE(verbose)) message("workr package not available. Skipping reporting pipeline.")
         return(NULL)
       }

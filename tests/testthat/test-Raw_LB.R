@@ -36,7 +36,7 @@ test_that("toxgrg_nsv returns values from the tox grade set", {
   x <- toxgrg_nsv(500)
 
   expect_length(x, 500)
-  expect_true(all(x %in% c("", "0", "1", "2", "3", "4")))
+  expect_in(x, c("", "0", "1", "2", "3", "4"))
 })
 
 # Passing subj_visits plus tests_n activates the row-key construction and the
@@ -54,7 +54,7 @@ test_that("toxgrg_nsv builds row keys from subject visits for hotspotting", {
   )
 
   expect_length(x, 50)
-  expect_true(all(x %in% c("", "0", "1", "2", "3", "4")))
+  expect_in(x, c("", "0", "1", "2", "3", "4"))
 })
 
 test_that("Raw_LB generates a complete dataset from scratch", {
@@ -83,7 +83,7 @@ test_that("Raw_LB generates a complete dataset from scratch", {
       "toxgrg_nsv"
     )
   )
-  expect_true(all(res$subjid %in% data$Raw_SUBJ$subjid))
+  expect_in(res$subjid, data$Raw_SUBJ$subjid)
   expect_true(all(res$studyid == "PROT-001"))
   # 45 lab tests are generated per subject-visit row.
   expect_equal(nrow(res) %% 45, 0)
@@ -128,8 +128,8 @@ test_that("Raw_LB renames columns per source_col in the spec", {
     split_vars = lb_split
   )
 
-  expect_true("TOXGRG" %in% names(res))
-  expect_false("toxgrg_nsv" %in% names(res))
+  expect_contains(names(res), "TOXGRG")
+  expect_disjoint(names(res), "toxgrg_nsv")
 })
 
 # battrnam, lbtstnam and visnam are injected by the generator when the spec
@@ -154,8 +154,6 @@ test_that("Raw_LB injects battrnam, lbtstnam and visnam when absent from the spe
     split_vars = lb_split
   )
 
-  expect_true(all(c("battrnam", "lbtstnam", "visnam") %in% names(res)))
-  expect_true(all(
-    res$battrnam %in% c("CHEMISTRY PANEL", "HEMATOLOGY&DIFFERENTIAL PANEL")
-  ))
+  expect_contains(names(res), c("battrnam", "lbtstnam", "visnam"))
+  expect_in(res$battrnam, c("CHEMISTRY PANEL", "HEMATOLOGY&DIFFERENTIAL PANEL"))
 })

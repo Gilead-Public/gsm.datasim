@@ -62,18 +62,8 @@ test_that("Raw_VISIT generates a complete dataset from scratch", {
   )
 
   expect_s3_class(res, "data.frame")
-  expect_true(all(
-    c(
-      "subjid",
-      "invid",
-      "studyid",
-      "foldername",
-      "instancename",
-      "visit_dt"
-    ) %in%
-      names(res)
-  ))
-  expect_true(all(res$subjid %in% data$Raw_SUBJ$subjid))
+  expect_contains(names(res), c("subjid", "invid", "studyid", "foldername", "instancename", "visit_dt"))
+  expect_in(res$subjid, data$Raw_SUBJ$subjid)
   expect_true(all(res$studyid == "PROT-001"))
   # Eight visits are generated per subject.
   expect_equal(nrow(res), 3 * 8)
@@ -97,17 +87,7 @@ test_that("Raw_VISIT injects subjid, studyid, invid and the visit columns when a
     split_vars = visit_split
   )
 
-  expect_true(all(
-    c(
-      "subjid",
-      "invid",
-      "studyid",
-      "foldername",
-      "instancename",
-      "visit_dt"
-    ) %in%
-      names(res)
-  ))
+  expect_contains(names(res), c("subjid", "invid", "studyid", "foldername", "instancename", "visit_dt"))
 })
 
 # A spec column carrying source_col = "foldername" is renamed to foldername on
@@ -147,8 +127,8 @@ test_that("Raw_VISIT does not double-generate foldername when a source_col suppl
   # The renamed columns land under their source_col names, exactly once each.
   expect_equal(sum(names(res) == "foldername"), 1)
   expect_equal(sum(names(res) == "instancename"), 1)
-  expect_false("VISNAM" %in% names(res))
-  expect_false("VISINST" %in% names(res))
+  expect_disjoint(names(res), "VISNAM")
+  expect_disjoint(names(res), "VISINST")
 })
 
 test_that("Raw_VISIT draws new subjects when appending to previous data", {
@@ -205,4 +185,40 @@ test_that("Raw_VISIT returns previous data unchanged when the target count is me
   )
 
   expect_identical(again, first)
+})
+
+# `add_new_var_data()` resolves generators by column name, so a domain whose
+# spec carries a `visit`/`foldername`/`instancename` column reaches these
+# generators via its `default` args, which supply no visit grid. Erroring there
+# aborted the whole domain; a NULL default degrades to a placeholder instead.
+test_that("foldername and instancename default possible_visits to NULL (#109)", {
+  expect_null(formals(foldername)$possible_visits)
+  expect_null(formals(instancename)$possible_visits)
+  expect_null(formals(visit)$possible_visits)
+})
+
+test_that("foldername and instancename return a sized placeholder without a visit grid (#109)", {
+  subjs <- c("S1", "S2", "S3")
+
+  for (fn in list(foldername = foldername, instancename = instancename)) {
+    out <- fn(5, subjs)
+    expect_type(out, "character")
+    expect_length(out, 5)
+    expect_true(all(is.na(out)))
+  }
+
+  # The two positional args the `default` fallback supplies must not error.
+  expect_length(visit(4, subjs), 4)
+})
+
+test_that("supplying possible_visits still tiles the grid (#109)", {
+  possible_visits <- data.frame(
+    foldername = c("Screening", "VISIT 1"),
+    instancename = c("Screening", "VISIT 1"),
+    stringsAsFactors = FALSE
+  )
+  subjs <- c("S1", "S2", "S3")
+
+  expect_equal(foldername(1, subjs, possible_visits), rep(possible_visits$foldername, 3))
+  expect_equal(instancename(1, subjs, possible_visits), rep(possible_visits$instancename, 3))
 })

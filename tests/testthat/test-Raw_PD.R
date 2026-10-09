@@ -16,7 +16,7 @@ test_that("dvdecod samples only the expected deviation codes", {
 
   expect_type(x, "character")
   expect_length(x, 1000)
-  expect_true(all(x %in% pd_dvdecod_values))
+  expect_in(x, pd_dvdecod_values)
 })
 
 # The Raw_SUBJ argument is what lets dvdecod concentrate outliers on a site, so
@@ -28,7 +28,7 @@ test_that("dvdecod accepts a Raw_SUBJ key map for site hotspotting", {
   x <- dvdecod(200, Raw_SUBJ_data = subj)
 
   expect_length(x, 200)
-  expect_true(all(x %in% pd_dvdecod_values))
+  expect_in(x, pd_dvdecod_values)
 })
 
 test_that("Raw_PD generates a complete dataset from scratch", {
@@ -49,10 +49,10 @@ test_that("Raw_PD generates a complete dataset from scratch", {
     res,
     c("subjid", "studyid", "dvdecod", "dvterm", "deemedimportant", "category")
   )
-  expect_true(all(res$subjid %in% data$Raw_SUBJ$subjid))
+  expect_in(res$subjid, data$Raw_SUBJ$subjid)
   expect_true(all(res$studyid == "PROT-001"))
-  expect_true(all(res$dvdecod %in% pd_dvdecod_values))
-  expect_true(all(res$deemedimportant %in% c("Yes", "No")))
+  expect_in(res$dvdecod, pd_dvdecod_values)
+  expect_in(res$deemedimportant, c("Yes", "No"))
 })
 
 test_that("Raw_PD appends only the delta rows to previous data", {
@@ -105,6 +105,6 @@ test_that("Raw_PD renames columns per source_col in the spec", {
     n = 5
   )
 
-  expect_true("DVDECOD" %in% names(res))
-  expect_false("dvdecod" %in% names(res))
+  expect_contains(names(res), "DVDECOD")
+  expect_disjoint(names(res), "dvdecod")
 })
