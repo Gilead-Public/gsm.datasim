@@ -33,7 +33,10 @@
 #'   *final* row counts (e.g. `list(Raw_AE = 300, Raw_LB = 500)`). In
 #'   multi-snapshot mode these are the targets for the *last* snapshot; earlier
 #'   snapshots ramp up via `count_gen()`. Domains not listed here receive a
-#'   default based on heuristic multipliers of `n_participants`.
+#'   default based on heuristic multipliers of `n_participants`. Exception:
+#'   `Raw_VS` is generated per subject-visit, so its value is a *subject*
+#'   count (capped at the enrolled roster); each selected subject contributes
+#'   one row per scheduled visit.
 #' @param desired_domains Optional character vector of domain names to generate.
 #'   `NULL` (default) generates all `Raw_*` domains found in the spec.
 #' @param column_overrides Optional named list for specifying or overriding
@@ -520,6 +523,7 @@ generate_data_from_workflows <- function(
     Raw_Randomization = function(np, ns) np,
     Raw_OverallResponse = function(np, ns) np,
     Raw_PK = function(np, ns) np,
+    # Subject count, not rows: Raw_VS emits every visit per selected subject.
     Raw_VS = function(np, ns) np,
     Raw_Baseline = function(np, ns) np
   )

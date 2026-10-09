@@ -49,7 +49,10 @@ each itself a named list of domain data.frames.}
 \emph{final} row counts (e.g. \code{list(Raw_AE = 300, Raw_LB = 500)}). In
 multi-snapshot mode these are the targets for the \emph{last} snapshot; earlier
 snapshots ramp up via \code{count_gen()}. Domains not listed here receive a
-default based on heuristic multipliers of \code{n_participants}.}
+default based on heuristic multipliers of \code{n_participants}. Exception:
+\code{Raw_VS} is generated per subject-visit, so its value is a \emph{subject}
+count (capped at the enrolled roster); each selected subject contributes
+one row per scheduled visit.}
 
 \item{desired_domains}{Optional character vector of domain names to generate.
 \code{NULL} (default) generates all \verb{Raw_*} domains found in the spec.}

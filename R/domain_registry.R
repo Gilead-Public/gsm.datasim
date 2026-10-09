@@ -556,6 +556,12 @@ get_domain_registry <- function() {
         # cumulative roster would re-select already-written subjects and append
         # a second copy of their visit history (#143).
         available_subjids <- setdiff(data$Raw_SUBJ$subjid, dataset$subjid)
+        # `n` is a subject count (each subject emits its full visit history),
+        # so it cannot exceed the roster; cap rather than fail in `sample()`.
+        n <- min(n, length(available_subjids))
+        if (n <= 0) {
+          return(dataset)
+        }
         subjs <- subjid(n, external_subjid = available_subjids, replace = FALSE)
         subj_visits <- data$Raw_VISIT %>%
           dplyr::filter(subjid %in% subjs) %>%

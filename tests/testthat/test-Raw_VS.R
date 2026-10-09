@@ -96,6 +96,24 @@ test_that("Raw_VS respects the cumulative snapshot pattern via previous_data (#1
   expect_equal(length(unique(vs_snapshot2$subjid)), 20)
 })
 
+test_that("Raw_VS treats n as a subject count capped at the available roster (#143)", {
+  set.seed(6203)
+  data <- make_vs_test_data(n_subjects = 20, n_visits = 4)
+
+  # `n` selects subjects; each contributes its full visit history.
+  vs_df <- generate_domain_from_registry("Raw_VS", make_vs_context(data, n = 5))
+  expect_length(unique(vs_df$subjid), 5)
+  expect_shape(vs_df, nrow = 5 * 4)
+
+  # A count above the roster (e.g. a row-count-style `domain_counts` value)
+  # must not fail sampling; it is capped at the subjects available.
+  expect_no_error(
+    vs_big <- generate_domain_from_registry("Raw_VS", make_vs_context(data, n = 80))
+  )
+  expect_length(unique(vs_big$subjid), 20)
+  expect_shape(vs_big, nrow = 20 * 4)
+})
+
 test_that("Raw_VS appends only newly enrolled subjects as the roster grows (#143)", {
   set.seed(4417)
 
