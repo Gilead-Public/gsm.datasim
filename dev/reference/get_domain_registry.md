@@ -21,7 +21,7 @@ registry-based migration path.
 
 ``` r
 registry <- get_domain_registry()
-names(registry)              # all supported domain keys
+names(registry) # all supported domain keys
 #>  [1] "Raw_SITE"            "Raw_SUBJ"            "Raw_ENROLL"         
 #>  [4] "Raw_IE"              "Raw_VISIT"           "Raw_STUDCOMP"       
 #>  [7] "Raw_DATACHG"         "Raw_DATAENT"         "Raw_QUERY"          

@@ -25,7 +25,8 @@ generate_rawdata_for_single_study(
   mappings,
   package,
   strStartDate = "2012-01-01",
-  desired_specs = NULL
+  desired_specs = NULL,
+  risk_profile = NULL
 )
 ```
 
@@ -70,6 +71,28 @@ generate_rawdata_for_single_study(
 - desired_specs:
 
   Optional character vector of dataset names to keep.
+
+- risk_profile:
+
+  Optional named list controlling site-targeted consecutive-run
+  injection. Only `Raw_VS` currently supports it. `NULL` uses the
+  generator defaults. Recognized fields are `dPctRed` and `dPctAmber`
+  (share of sites in each band), `nWindowLength` (rolling window length,
+  whole number `>= 2`), `dRateNormal` / `dRateAmber` / `dRateRed`
+  (target repeat rate per band), and `vVitals` (character vector of
+  vitals to target, or `NULL` for all eight). Fields can be given at
+  three levels, with more specific levels overriding less specific ones:
+
+  - Top level: applies to every domain that supports it.
+
+  - Domain level: `list(Raw_VS = list(dPctRed = 0.3))`.
+
+  - Vital level: `list(Raw_VS = list(sysbp = list(dRateRed = 0.6)))`.
+    Each vital's bands are allocated independently, so vitals can have
+    different profiles. The targeted vitals are the domain's `vVitals`
+    if given (named vitals must then be among them), else the vitals the
+    domain names, else the top-level `vVitals`, else all eight.
+    `vVitals` cannot be set inside a vital.
 
 ## Value
 

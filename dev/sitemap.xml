@@ -14,6 +14,11 @@
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/index.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/news/index.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/add_dataset_config.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/allocate_site_risk.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/apply_ipns_derivations.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/apply_ptd_derivations.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/assign_schedule_dates.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/count_repeat_windows.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/create_longitudinal_study.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/create_longitudinal_study_data.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/create_multiple_longitudinal_studies.html</loc></url>
@@ -21,6 +26,7 @@
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/create_study_config.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-apply_column_overrides.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-generate_single_snapshot.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-registry_prerequisites_met.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-resolve_domain_counts.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/ensure_core_mappings.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/execute_analytics_pipeline.html</loc></url>
@@ -45,6 +51,7 @@
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/gsm.datasim-package.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/index.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/infer_column_type.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/inject_targeted_runs.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/parse_interval_to_snapshot_width.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/pipe.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/prepare_combined_specs_for_generation.html</loc></url>
@@ -61,6 +68,7 @@
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/study_portfolio.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/summarize_longitudinal_study.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/summary.multiple_longitudinal_studies.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/utils-longitudinal.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/validate_study_config.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/validate_study_inputs.html</loc></url>
 </urlset>
