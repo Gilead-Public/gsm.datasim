@@ -33,7 +33,7 @@ test_that("raw_gilda_study_data generates a single-row study record", {
   expect_equal(res$protocol, "STUDY-001")
   expect_equal(res$num_plan_site, 10)
   expect_equal(res$num_plan_subj, 100)
-  expect_true(res$phase %in% c("P1", "P2", "P3", "P4"))
+  expect_in(res$phase, c("P1", "P2", "P3", "P4"))
 })
 
 # The previous_data branch feeds the prior snapshot's dates back into the
@@ -82,6 +82,6 @@ test_that("raw_gilda_study_data renames columns per source_col in the spec", {
     )
   )
 
-  expect_true("PROTOCOL" %in% names(res))
-  expect_false("protocol" %in% names(res))
+  expect_contains(names(res), "PROTOCOL")
+  expect_disjoint(names(res), "protocol")
 })

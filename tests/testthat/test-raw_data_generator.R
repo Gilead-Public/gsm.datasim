@@ -7,7 +7,7 @@ test_that("raw_data_generator works with a template file (#96)", {
   )
 
   expect_equal(length(result), 3)
-  expect_equal(names(result), c("S0001", "S0004", "S0006"))
+  expect_named(result, c("S0001", "S0004", "S0006"))
 })
 
 test_that("raw_data_generator works with explicit study parameters (#96)", {
@@ -25,12 +25,13 @@ test_that("raw_data_generator works with explicit study parameters (#96)", {
   )
 
   expect_equal(length(result), 1) # 1 study
-  expect_equal(names(result), c("ABC")) # 1 study with StudyID ABC
+  expect_named(result, c("ABC")) # 1 study with StudyID ABC
   expect_equal(length(result$ABC), 2) # 2 snapshots
 })
 
 test_that("raw_data_generator supports explicit legacy generation mode (#96)", {
   test_at_log_threshold()
+  withr::local_options(lifecycle_verbosity = "quiet")
   withr::local_envvar(GSM_SHOW_TOC = "FALSE")
   old_warned <- .gsm_datasim_runtime_state$legacy_mode_warned
   on.exit(
@@ -83,6 +84,6 @@ test_that("raw_data_generator supports explicit legacy generation mode (#96)", {
   )
 
   expect_equal(length(result), 1)
-  expect_equal(names(result), c("ABC_LEGACY"))
+  expect_named(result, c("ABC_LEGACY"))
   expect_equal(length(result$ABC_LEGACY), 2)
 })

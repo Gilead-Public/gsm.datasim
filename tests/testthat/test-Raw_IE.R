@@ -5,7 +5,7 @@ test_that("tiver returns a constant and ietestcd samples the incl/excl codes", {
 
   codes <- ietestcd(500)
   expect_length(codes, 500)
-  expect_true(all(codes %in% c(paste0("incl", 1:10), paste0("excl", 1:10))))
+  expect_in(codes, c(paste0("incl", 1:10), paste0("excl", 1:10)))
 })
 
 test_that("ieorres samples Yes/No and iecat classifies on the INC prefix", {
@@ -35,7 +35,7 @@ test_that("tiver_ietestcd_ietest_ieorres_iecat returns all five aligned fields",
 
   expect_named(res, c("tiver", "ietestcd", "ietest", "ieorres", "iecat"))
   expect_length(res$ietestcd, 10)
-  expect_true(all(res$iecat %in% c("Inclusion", "Exclusion")))
+  expect_in(res$iecat, c("Inclusion", "Exclusion"))
 })
 
 test_that("subject_to_ie returns the full subject pool when no previous data exists", {
@@ -54,7 +54,7 @@ test_that("subject_to_ie excludes subjects already assessed", {
 
   expect_named(res, "subjid")
   expect_equal(nrow(res), 8)
-  expect_false(any(res$subjid %in% c("S0001", "S0002")))
+  expect_disjoint(res$subjid, c("S0001", "S0002"))
 })
 
 test_that("Raw_IE generates a complete dataset from scratch", {
@@ -74,7 +74,7 @@ test_that("Raw_IE generates a complete dataset from scratch", {
     names(res),
     c("studyid", "subjid", "tiver", "ietestcd", "ietest", "ieorres", "iecat")
   )
-  expect_true(all(res$subjid %in% data$Raw_SUBJ$subjid))
+  expect_in(res$subjid, data$Raw_SUBJ$subjid)
   expect_true(all(res$studyid == "PROT-001"))
   expect_true(all(res$tiver == "A1"))
 })
@@ -109,6 +109,6 @@ test_that("Raw_IE renames columns per source_col in the spec", {
     split_vars = ie_split
   )
 
-  expect_true("IEORRES" %in% names(res))
-  expect_false("ieorres" %in% names(res))
+  expect_contains(names(res), "IEORRES")
+  expect_disjoint(names(res), "ieorres")
 })

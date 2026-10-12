@@ -33,7 +33,7 @@ test_that("combine_domain unions columns across per-workflow specs", {
 
   res <- combine_domain(domain_specs)
 
-  expect_setequal(names(res), c("subjid", "invid"))
+  expect_named(res, c("subjid", "invid"), ignore.order = TRUE)
   expect_equal(res$subjid$type, "character")
 })
 
@@ -50,8 +50,8 @@ test_that("CombineSpecs merges multiple domains from workflow objects", {
 
   res <- CombineSpecs(workflows, bIsWorkflow = TRUE)
 
-  expect_setequal(names(res), c("Raw_SUBJ", "Raw_AE"))
-  expect_setequal(names(res$Raw_SUBJ), c("subjid", "invid"))
+  expect_named(res, c("Raw_SUBJ", "Raw_AE"), ignore.order = TRUE)
+  expect_named(res$Raw_SUBJ, c("subjid", "invid"), ignore.order = TRUE)
   expect_named(res$Raw_AE, "aeser")
 })
 
@@ -66,5 +66,5 @@ test_that("CombineSpecs accepts plain specs when bIsWorkflow is FALSE", {
   res <- CombineSpecs(specs, bIsWorkflow = FALSE)
 
   expect_named(res, "Raw_SUBJ")
-  expect_setequal(names(res$Raw_SUBJ), c("subjid", "invid"))
+  expect_named(res$Raw_SUBJ, c("subjid", "invid"), ignore.order = TRUE)
 })

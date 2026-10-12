@@ -17,7 +17,7 @@ test_that("deathcls samples only the expected death classifications (#120)", {
   expect_type(x, "character")
   expect_length(x, 1000)
   expect_setequal(unique(x), death_classes)
-  expect_equal(names(which.max(table(x))), "Progressive Disease")
+  expect_named(which.max(table(x)), "Progressive Disease")
 })
 
 test_that("deathcls handles edge-case sizes (#120)", {
@@ -25,7 +25,7 @@ test_that("deathcls handles edge-case sizes (#120)", {
 
   single <- deathcls(1)
   expect_length(single, 1)
-  expect_true(single %in% death_classes)
+  expect_in(single, death_classes)
 })
 
 test_that("Raw_Death generates a complete dataset from scratch (#120)", {
@@ -45,13 +45,13 @@ test_that("Raw_Death generates a complete dataset from scratch (#120)", {
   expect_s3_class(res, "data.frame")
   expect_equal(nrow(res), 5)
   expect_named(res, c("subjid", "studyid", "death_dt", "deathcls"))
-  expect_true(all(res$subjid %in% data$Raw_SUBJ$subjid))
+  expect_in(res$subjid, data$Raw_SUBJ$subjid)
   expect_equal(anyDuplicated(res$subjid), 0)
   expect_true(all(res$studyid == "PROT-001"))
   expect_s3_class(res$death_dt, "Date")
   expect_true(all(res$death_dt >= start_date & res$death_dt <= start_date + 27))
   expect_type(res$deathcls, "character")
-  expect_true(all(res$deathcls %in% death_classes))
+  expect_in(res$deathcls, death_classes)
 })
 
 test_that("Raw_Death appends only the delta rows to previous data (#120)", {
@@ -77,7 +77,7 @@ test_that("Raw_Death appends only the delta rows to previous data (#120)", {
 
   expect_equal(nrow(second), 7)
   expect_equal(second[seq_len(3), ], first)
-  expect_true(all(second$deathcls %in% death_classes))
+  expect_in(second$deathcls, death_classes)
 })
 
 test_that("Raw_Death returns previous data unchanged when target count is met (#120)", {
@@ -118,15 +118,15 @@ test_that("Raw_Death renames columns per source_col in the spec (#120)", {
     n = 5
   )
 
-  expect_true("DEATHCLS" %in% names(res))
-  expect_false("deathcls" %in% names(res))
-  expect_true(all(res$DEATHCLS %in% death_classes))
+  expect_contains(names(res), "DEATHCLS")
+  expect_disjoint(names(res), "deathcls")
+  expect_in(res$DEATHCLS, death_classes)
 })
 
 test_that("domain registry exposes Raw_Death with expected schema and count function (#120)", {
   registry <- get_domain_registry()
 
-  expect_true("Raw_Death" %in% names(registry))
+  expect_contains(names(registry), "Raw_Death")
 
   entry <- registry$Raw_Death
   expect_equal(
@@ -158,7 +158,7 @@ test_that("Raw_Death registry adapter generates and increments data (#120)", {
   expect_s3_class(df, "data.frame")
   expect_equal(nrow(df), 5)
   expect_named(df, c("subjid", "studyid", "death_dt", "deathcls"))
-  expect_true(all(df$deathcls %in% death_classes))
+  expect_in(df$deathcls, death_classes)
 
   context$previous_data <- list(Raw_Death = df)
   context$n <- 8

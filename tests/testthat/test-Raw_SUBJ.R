@@ -9,7 +9,7 @@ test_that("subjid samples from an external pool when one is supplied", {
   x <- subjid(5, external_subjid = pool, replace = FALSE)
 
   expect_length(x, 5)
-  expect_true(all(x %in% pool))
+  expect_in(x, pool)
   expect_equal(anyDuplicated(x), 0)
 })
 
@@ -29,7 +29,7 @@ test_that("subjid excludes identifiers already used in a previous snapshot", {
 
   x <- subjid(50, previous_subjid = previous)
 
-  expect_false(any(x %in% previous))
+  expect_disjoint(x, previous)
 })
 
 test_that("subjid errors when the identifier pool is exhausted", {
@@ -47,7 +47,7 @@ test_that("subject_nsv derives from subjid or samples an external pool", {
   pool <- paste0("S", 1:10, "-XXXX")
   sampled <- subject_nsv(5, subjid = NULL, subject_nsv = pool, replace = FALSE)
   expect_length(sampled, 5)
-  expect_true(all(sampled %in% pool))
+  expect_in(sampled, pool)
 })
 
 test_that("subjid_subject_nsv returns an aligned id/nsv pair", {
@@ -91,7 +91,7 @@ test_that("subject_site_synq maps site rows onto invid and country", {
 
   expect_named(res, c("invid", "country"))
   expect_equal(nrow(res), 10)
-  expect_true(all(res$invid %in% sites$pi_number))
+  expect_in(res$invid, sites$pi_number)
 })
 
 # apply_ipns_derivations short-circuits on unusable input rather than erroring;

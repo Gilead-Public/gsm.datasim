@@ -73,7 +73,7 @@ Raw_VISIT <- function(data, previous_data, spec, startDate, SnapshotWidth, ...) 
   available_subjs <- setdiff(unique(data$Raw_SUBJ$subjid), existing_subjs)
   subjs <- subjid(n, external_subjid = available_subjs, replace = FALSE)
   invids <- data.frame(subjid = subjs) %>%
-    left_join(., select(data$Raw_SUBJ, subjid, invid), by = "subjid") %>%
+    left_join(select(data$Raw_SUBJ, subjid, invid), by = "subjid") %>%
     pull(invid)
 
   args <- list(
@@ -100,11 +100,23 @@ invid_repeated <- function(n, invids, ...) {
     invid = repeat_rows(n, invids)
   ))
 }
-foldername <- function(n, subjs, possible_visits, ...) {
+# `add_new_var_data()` dispatches generators by column name, so any domain
+# whose spec has a `foldername`, `instancename`, or `visit` column reaches
+# these even when it has no visit grid to pass (it falls through to its
+# `default` args). Defaulting `possible_visits` to NULL lets that degrade to a
+# correctly-sized placeholder column instead of erroring on a missing argument
+# -- the same convention `pkperf()` uses for `Raw_SUBJ_data` (#109).
+foldername <- function(n, subjs, possible_visits = NULL, ...) {
+  if (is.null(possible_visits)) {
+    return(rep(NA_character_, n))
+  }
   rep(possible_visits$foldername, length(subjs))
 }
 
-instancename <- function(n, subjs, possible_visits, ...) {
+instancename <- function(n, subjs, possible_visits = NULL, ...) {
+  if (is.null(possible_visits)) {
+    return(rep(NA_character_, n))
+  }
   rep(possible_visits$instancename, length(subjs))
 }
 visit_dt <- function(n, start_date, possible_Visits, SnapshotWidth, ...) {

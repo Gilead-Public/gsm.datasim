@@ -41,7 +41,7 @@ test_that("Raw_Randomization generates a complete dataset from scratch", {
     names(res),
     c("studyid", "subjid", "invid", "country", "rgmn_dt")
   )
-  expect_true(all(res$subjid %in% data$Raw_SUBJ$subjid))
+  expect_in(res$subjid, data$Raw_SUBJ$subjid)
   expect_true(all(res$studyid == "PROT-001"))
   expect_true(all(res$rgmn_dt == start_date))
 })
@@ -113,6 +113,6 @@ test_that("Raw_Randomization renames columns per source_col in the spec", {
     split_vars = randomization_split
   )
 
-  expect_true("COUNTRY" %in% names(res))
-  expect_false("country" %in% names(res))
+  expect_contains(names(res), "COUNTRY")
+  expect_disjoint(names(res), "country")
 })

@@ -5,7 +5,7 @@ test_that("studyid unwraps a single id and samples when more are requested", {
 
   many <- studyid(10, c("A", "B"))
   expect_length(many, 10)
-  expect_true(all(many %in% c("A", "B")))
+  expect_in(many, c("A", "B"))
 })
 
 test_that("phase samples from an external phase list when supplied", {
@@ -14,7 +14,7 @@ test_that("phase samples from an external phase list when supplied", {
   x <- phase(20, external_phase = c("P1", "P2", "P3", "P4"))
 
   expect_length(x, 20)
-  expect_true(all(x %in% c("P1", "P2", "P3", "P4")))
+  expect_in(x, c("P1", "P2", "P3", "P4"))
 })
 
 # With no external_phase the function ignores n and returns a single constant.
@@ -70,7 +70,7 @@ test_that("Raw_STUDY generates a single-row study record", {
   expect_equal(res$studyid, "STUDY-001")
   expect_equal(res$num_plan_site, 10)
   expect_equal(res$num_plan_subj, 100)
-  expect_true(res$phase %in% c("P1", "P2", "P3", "P4"))
+  expect_in(res$phase, c("P1", "P2", "P3", "P4"))
 })
 
 # The previous_data branch carries prior dates forward into the next snapshot.
@@ -106,6 +106,6 @@ test_that("Raw_STUDY renames columns per source_col in the spec", {
     c(list(data = list(), previous_data = list(), spec = spec), study_inputs())
   )
 
-  expect_true("NICKNAME" %in% names(res))
-  expect_false("nickname" %in% names(res))
+  expect_contains(names(res), "NICKNAME")
+  expect_disjoint(names(res), "nickname")
 })

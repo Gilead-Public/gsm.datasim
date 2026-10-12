@@ -16,7 +16,7 @@ test_that("create_multiple_longitudinal_studies works with basic configuration (
   expect_s3_class(studies, "multiple_longitudinal_studies")
   expect_type(studies, "list")
   expect_equal(length(studies), 2)
-  expect_equal(names(studies), c("TEST-001", "TEST-002"))
+  expect_named(studies, c("TEST-001", "TEST-002"))
 
   # Check each study structure
   for (study_name in names(studies)) {

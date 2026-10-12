@@ -177,7 +177,6 @@ race <- function(n, ...) {
 #' @param nKitAssignedShare share of never-dosed subjects with a kit assigned.
 #' @returns `df` with the seven `drv_*` columns.
 #' @keywords internal
-#' @noRd
 apply_ipns_derivations <- function(
   df,
   endDate,
@@ -301,7 +300,6 @@ enrollyn_enrolldt_timeonstudy_firstparticipantdate_firstdosedate_timeontreatment
 #' @returns `df` with discontinuation date, reason and inclusive days
 #'   from enrollment to discontinuation.
 #' @keywords internal
-#' @noRd
 apply_ptd_derivations <- function(df, endDate, nDiscontinuedShare = 0.3) {
   if (is.null(df) || nrow(df) == 0 || !("drv_ip_dosed" %in% names(df))) {
     return(df)

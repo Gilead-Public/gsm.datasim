@@ -49,7 +49,7 @@ test_that("Raw_DATAENT generates a complete dataset from scratch", {
       "data_entry_lag"
     )
   )
-  expect_true(all(res$subject_nsv %in% data$Raw_SUBJ$subject_nsv))
+  expect_in(res$subject_nsv, data$Raw_SUBJ$subject_nsv)
   expect_true(all(res$studyid == "PROT-001"))
   # Eight forms are generated per subject-visit pair.
   expect_equal(nrow(res) %% 8, 0)
@@ -122,8 +122,8 @@ test_that("Raw_DATAENT renames columns per source_col in the spec", {
     split_vars = dataent_split
   )
 
-  expect_true("DATA_ENTRY_LAG" %in% names(res))
-  expect_false("data_entry_lag" %in% names(res))
+  expect_contains(names(res), "DATA_ENTRY_LAG")
+  expect_disjoint(names(res), "data_entry_lag")
 })
 
 # visnam and form are injected by the generator when the spec omits them,
@@ -147,6 +147,6 @@ test_that("Raw_DATAENT injects visnam and form when absent from the spec", {
     split_vars = dataent_split
   )
 
-  expect_true(all(c("visnam", "form") %in% names(res)))
+  expect_contains(names(res), c("visnam", "form"))
   expect_true(all(grepl("^form", res$form)))
 })

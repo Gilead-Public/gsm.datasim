@@ -1,8 +1,8 @@
 test_that("domain registry exposes required schema for migrated domains", {
   registry <- get_domain_registry()
 
-  expect_true("Raw_AE" %in% names(registry))
-  expect_true("Raw_LB" %in% names(registry))
+  expect_contains(names(registry), "Raw_AE")
+  expect_contains(names(registry), "Raw_LB")
 
   expected_fields <- sort(c(
     "dataset",
@@ -12,13 +12,13 @@ test_that("domain registry exposes required schema for migrated domains", {
   ))
 
   ae_entry <- registry$Raw_AE
-  expect_equal(sort(names(ae_entry)), expected_fields)
+  expect_named(ae_entry, expected_fields, ignore.order = TRUE)
   expect_equal(ae_entry$dataset, "Raw_AE")
   expect_true(is.function(ae_entry$count_fn))
   expect_true(is.function(ae_entry$generate_fn))
 
   lb_entry <- registry$Raw_LB
-  expect_equal(sort(names(lb_entry)), expected_fields)
+  expect_named(lb_entry, expected_fields, ignore.order = TRUE)
   expect_equal(lb_entry$dataset, "Raw_LB")
   expect_true(is.function(lb_entry$count_fn))
   expect_true(is.function(lb_entry$generate_fn))
@@ -67,18 +67,19 @@ test_that("every domain registry entry conforms to the required schema (#124)", 
 test_that("Raw_AE migrated domain adapter generates data frame", {
   test_at_log_threshold()
   set.seed(123)
-
-  snapshot_data <- generate_rawdata_for_single_study(
-    SnapshotCount = 1,
-    SnapshotWidth = "months",
-    ParticipantCount = 20,
-    SiteCount = 5,
-    StudyID = "REGISTRY-TEST",
-    workflow_path = "workflow/1_mappings",
-    mappings = c("STUDY", "SITE", "SUBJ", "ENROLL", "SV", "VISIT", "AE"),
-    package = "gsm.mapping"
-  ) |> 
-    expect_warning("deprecated")
+  lifecycle::expect_deprecated(
+    snapshot_data <- generate_rawdata_for_single_study(
+      SnapshotCount = 1,
+      SnapshotWidth = "months",
+      ParticipantCount = 20,
+      SiteCount = 5,
+      StudyID = "REGISTRY-TEST",
+      workflow_path = "workflow/1_mappings",
+      mappings = c("STUDY", "SITE", "SUBJ", "ENROLL", "SV", "VISIT", "AE"),
+      package = "gsm.mapping"
+    ),
+    "generate_rawdata_for_single_study"
+  )
 
   combined_specs <- load_specs(
     workflow_path = "workflow/1_mappings",
@@ -106,16 +107,18 @@ test_that("Raw_AE migrated domain adapter generates data frame", {
 test_that("Raw_LB migrated domain adapter generates data frame", {
   test_at_log_threshold()
   set.seed(123)
-
-  snapshot_data <- generate_rawdata_for_single_study(
-    SnapshotCount = 1,
-    SnapshotWidth = "months",
-    ParticipantCount = 20,
-    SiteCount = 5,
-    StudyID = "REGISTRY-TEST-LB",
-    workflow_path = "workflow/1_mappings",
-    mappings = c("STUDY", "SITE", "SUBJ", "ENROLL", "SV", "VISIT", "LB"),
-    package = "gsm.mapping"
+  lifecycle::expect_deprecated(
+    snapshot_data <- generate_rawdata_for_single_study(
+      SnapshotCount = 1,
+      SnapshotWidth = "months",
+      ParticipantCount = 20,
+      SiteCount = 5,
+      StudyID = "REGISTRY-TEST-LB",
+      workflow_path = "workflow/1_mappings",
+      mappings = c("STUDY", "SITE", "SUBJ", "ENROLL", "SV", "VISIT", "LB"),
+      package = "gsm.mapping"
+    ),
+    "generate_rawdata_for_single_study"
   )
 
   combined_specs <- load_specs(
