@@ -11,6 +11,12 @@
   timelines and study completion records consistent with each subject's status
   (#140, #157, #138).
 
+- Simulated `Raw_AE` data now carries AE outcome (`aeout`), derived
+  relatedness (`aereldrv`) and serious-death flag (`aesdth`), with
+  deterministic fatal-AE cases linked to `Raw_Death`: participants with one,
+  several or no qualifying fatal AEs, related, not related and missing
+  relatedness, plus a fatal AE on a participant with no death record (#142).
+
 ## Bug Fixes
 
 - `create_longitudinal_study()` / `generate_study_snapshots()` snapshots no longer generate independent single-snapshot studies. Instead, each snapshot builds off the previous one, preserving subject, site, and enrollment continuity and letting exposure accumulate across snapshots (#165).
