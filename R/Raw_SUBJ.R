@@ -292,13 +292,16 @@ enrollyn_enrolldt_timeonstudy_firstparticipantdate_firstdosedate_timeontreatment
 #' Derive premature treatment discontinuation fields
 #'
 #' Uses subject IDs and first-dose dates without RNG draws. With unchanged
-#' inputs and settings, dates and reasons remain stable across snapshots.
+#' inputs and settings, dates, reasons and completion outcomes remain stable
+#' across snapshots.
 #'
 #' @param df A `Raw_SUBJ` frame after [apply_ipns_derivations()].
 #' @param endDate Snapshot date; future discontinuation dates remain `NA`.
 #' @param nDiscontinuedShare Target share of dosed subjects selected to discontinue.
-#' @returns `df` with discontinuation date, reason and inclusive days
-#'   from enrollment to discontinuation.
+#' @returns `df` with discontinuation date, reason, inclusive days
+#'   from enrollment to discontinuation, and the study drug completion outcome
+#'   `drv_drg_completion` (`"Y"`, `"N"`, `"Potential No"`, or `""` when not
+#'   dosed or still on treatment).
 #' @keywords internal
 apply_ptd_derivations <- function(df, endDate, nDiscontinuedShare = 0.3) {
   if (is.null(df) || nrow(df) == 0 || !("drv_ip_dosed" %in% names(df))) {
@@ -333,6 +336,19 @@ apply_ptd_derivations <- function(df, endDate, nDiscontinuedShare = 0.3) {
     as.integer(df$drv_treatment_discontinuation_dt - df$drv_enrollment_dt) + 1L,
     NA_integer_
   )
+  # Modulo 11 spreads the outcomes across the decimal-digit buckets above. The
+  # outcome need not agree with the date, so consumers can't assume they do.
+  m <- k %% 11L
+  df$drv_drg_completion <- dplyr::case_when(
+    !dosed | (discontinuing & !dated) ~ "",
+    dated & m <= 8L ~ "N",
+    dated & m == 9L ~ "Potential No",
+    dated ~ "Y",
+    m == 0L ~ "N",
+    m == 1L ~ "Potential No",
+    m <= 4L ~ "Y",
+    TRUE ~ ""
+  )
 
   df
 }
@@ -344,9 +360,12 @@ apply_ptd_derivations <- function(df, endDate, nDiscontinuedShare = 0.3) {
 #'
 #' @param n Number of rows.
 #' @param ... Ignored.
-#' @returns A vector of `n` `NA`s of the column's type.
+#' @returns A vector of `n` `NA`s of the column's type (`""` for
+#'   `drv_drg_completion`).
 #' @keywords internal
 #' @noRd
 drv_treatment_discontinuation_dt <- function(n, ...) rep(as.Date(NA), n)
 drv_premature_discontinuation_reason <- function(n, ...) rep(NA_character_, n)
 drv_days_lapsed_enrl_discontinuation <- function(n, ...) rep(NA_integer_, n)
+# Blank, not NA, so consumers exercise their empty-string null handling.
+drv_drg_completion <- function(n, ...) rep("", n)

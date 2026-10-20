@@ -9,7 +9,7 @@
 - Simulated `Raw_SUBJ` data now covers IP non-starter, kit assignment and
   premature treatment discontinuation scenarios, with more realistic dosing
   timelines and study completion records consistent with each subject's status
-  (#140, #157, #138).
+  (#140, #157, #138, #173).
 
 ## Bug Fixes
 
