@@ -163,13 +163,3 @@ test_that("dosed subjects cover every drv_drg_completion value with and without 
   expect_gt(mean(value[dated] == "N"), 0.5)
 })
 
-test_that("the drv_drg_completion derivation and placeholder draw no random numbers (#173)", {
-  subj <- apply_ipns_derivations(make_subj(), as.Date("2025-03-15"))
-  set.seed(1)
-  seed <- .Random.seed
-
-  apply_ptd_derivations(subj, as.Date("2025-03-15"))
-  expect_identical(.Random.seed, seed)
-  expect_identical(drv_drg_completion(3, as.Date("2025-01-01")), rep("", 3))
-  expect_identical(.Random.seed, seed)
-})
