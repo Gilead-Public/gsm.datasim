@@ -396,9 +396,12 @@ consecutive values at that band’s target rate:
 | Normal | the remainder | `dRateNormal = 0.05` |
 
 The repeat rate is the share of rolling windows of `nWindowLength`
-(default `3`) consecutive performed measurements in which every value is
-identical. The default rates sit mid-band relative to the 20% amber and
-30% red KRI thresholds, so small sites do not drift across a boundary.
+(default `3`) consecutive performed measurements within a subject in
+which every value is identical. The default target rates are chosen
+relative to the 20% amber and 30% red KRI thresholds, but realized rates
+are approximate: integer window counts can push small sites across a
+boundary. A persistent assigned band does not guarantee a matching
+observed KRI flag.
 
 Bands persist for the life of the study: a site’s band depends on its
 position in the site roster and on the eventual number of sites, not on
