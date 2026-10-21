@@ -599,7 +599,7 @@ execute_analytics_pipeline <- function(raw_data, config) {
         for (mwf_name in names(all_mappings_wf)) {
           single_mwf <- all_mappings_wf[mwf_name]
           result <- tryCatch(
-            workr::RunWorkflows(lWorkflow = single_mwf, lData = c(lRaw, mapped_data)),
+            workr::RunWorkflows(lWorkflows = single_mwf, lData = c(lRaw, mapped_data)),
             error = function(e) NULL
           )
           if (!is.null(result)) {
@@ -612,7 +612,7 @@ execute_analytics_pipeline <- function(raw_data, config) {
           single_wf <- lWorkflow[wf_name]
           wf_result <- tryCatch(
             workr::RunWorkflows(
-              lWorkflow = single_wf,
+              lWorkflows = single_wf,
               lData = mapped_data
             ),
             error = function(e) {
@@ -828,7 +828,7 @@ execute_reporting_pipeline <- function(analytics_results, config) {
 
         lReporting <- tryCatch(
           workr::RunWorkflows(
-            lWorkflow = reporting_wf,
+            lWorkflows = reporting_wf,
             lData     = c(mapped, list(lAnalyzed = lAnalyzed, lWorkflows = lWorkflow))
           ),
           error = function(e) {
