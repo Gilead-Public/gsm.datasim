@@ -140,3 +140,26 @@ test_that("the PTD derivation and the four drv_ generators draw no random number
     expect_identical(.Random.seed, seed)
   }
 })
+
+test_that("drv_drg_completion is blank, never NA, for non-dosed and non-enrolled subjects (#173)", {
+  subj <- apply_ipns_derivations(make_subj(), as.Date("2025-03-15"))
+  res <- apply_ptd_derivations(subj, as.Date("2025-03-15"))
+
+  expect_type(res$drv_drg_completion, "character")
+  expect_identical(res$drv_drg_completion[2:4], rep("", 3))
+})
+
+test_that("dosed subjects cover every drv_drg_completion value with and without a discontinuation date (#173)", {
+  res <- apply_ptd_derivations(make_dosed_subj(), as.Date("2026-01-01"))
+  value <- res$drv_drg_completion
+  dated <- !is.na(res$drv_treatment_discontinuation_dt)
+
+  expect_false(anyNA(value))
+  expect_setequal(unique(value), c("Y", "N", "Potential No", ""))
+  for (v in c("Y", "N", "Potential No")) {
+    expect_true(any(value == v & dated), label = paste(v, "with a date"))
+    expect_true(any(value == v & !dated), label = paste(v, "without a date"))
+  }
+  expect_gt(mean(value[dated] == "N"), 0.5)
+})
+

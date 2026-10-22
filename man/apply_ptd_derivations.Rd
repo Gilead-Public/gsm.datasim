@@ -14,11 +14,14 @@ apply_ptd_derivations(df, endDate, nDiscontinuedShare = 0.3)
 \item{nDiscontinuedShare}{Target share of dosed subjects selected to discontinue.}
 }
 \value{
-\code{df} with discontinuation date, reason and inclusive days
-from enrollment to discontinuation.
+\code{df} with discontinuation date, reason, inclusive days
+from enrollment to discontinuation, and the study drug completion outcome
+\code{drv_drg_completion} (\code{"Y"}, \code{"N"}, \code{"Potential No"}, or \code{""} when not
+dosed or still on treatment).
 }
 \description{
 Uses subject IDs and first-dose dates without RNG draws. With unchanged
-inputs and settings, dates and reasons remain stable across snapshots.
+inputs and settings, dates, reasons and completion outcomes remain stable
+across snapshots.
 }
 \keyword{internal}
