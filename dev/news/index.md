@@ -16,7 +16,8 @@
   subject’s status
   ([\#140](https://github.com/Gilead-Public/gsm.datasim/issues/140),
   [\#157](https://github.com/Gilead-Public/gsm.datasim/issues/157),
-  [\#138](https://github.com/Gilead-Public/gsm.datasim/issues/138)).
+  [\#138](https://github.com/Gilead-Public/gsm.datasim/issues/138),
+  [\#173](https://github.com/Gilead-Public/gsm.datasim/issues/173)).
 
 ### Bug Fixes
 

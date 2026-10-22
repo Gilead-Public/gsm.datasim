@@ -1,7 +1,8 @@
 # Derive premature treatment discontinuation fields
 
 Uses subject IDs and first-dose dates without RNG draws. With unchanged
-inputs and settings, dates and reasons remain stable across snapshots.
+inputs and settings, dates, reasons and completion outcomes remain
+stable across snapshots.
 
 ## Usage
 
@@ -26,5 +27,7 @@ apply_ptd_derivations(df, endDate, nDiscontinuedShare = 0.3)
 
 ## Value
 
-`df` with discontinuation date, reason and inclusive days from
-enrollment to discontinuation.
+`df` with discontinuation date, reason, inclusive days from enrollment
+to discontinuation, and the study drug completion outcome
+`drv_drg_completion` (`"Y"`, `"N"`, `"Potential No"`, or `""` when not
+dosed or still on treatment).
