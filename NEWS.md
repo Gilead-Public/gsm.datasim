@@ -12,6 +12,11 @@
   histories are configurable for action-weighted Site Risk Score testing. All
   synthetic layers, including the final ActionLog, are generated locally
   without ADO credentials or private package dependencies (#134).
+- Updated the source-neutral ActionLog domains and 33-column report to the
+  grail v1.7.0 contract: character identifiers, group labels, independent
+  signal/action states, action lifecycle dates, and typed unknown criticality.
+  Optional action counts and states generate unactioned and multi-action
+  signals without treating multiple actions as duplicate signals (#134).
 
 # gsm.datasim v2.0.0
 

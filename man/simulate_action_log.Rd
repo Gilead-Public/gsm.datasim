@@ -2,7 +2,7 @@
 % Please edit documentation in R/action_log_simulation.R
 \name{simulate_action_log}
 \alias{simulate_action_log}
-\title{Simulate an ActionLog history}
+\title{Simulate a frozen ActionLog extraction}
 \usage{
 simulate_action_log(
   df_results,
@@ -15,7 +15,9 @@ simulate_action_log(
   extraction_date = NULL,
   work_item_id_start = 900000L,
   organization = "Gilead-RND-CDS-RBQM",
-  include_intermediates = FALSE
+  include_intermediates = FALSE,
+  actions_per_signal = 1L,
+  action_states = NULL
 )
 }
 \arguments{
@@ -46,6 +48,13 @@ to seven days after the latest snapshot.}
 
 \item{include_intermediates}{If \code{TRUE}, return raw work items,
 \code{all_risk_signals}, \code{actions}, and the final \code{action_log} in a named list.}
+
+\item{actions_per_signal}{Non-negative action count, or one count per
+generated signal. Zero retains an unactioned signal; counts above one
+generate distinct character action identifiers.}
+
+\item{action_states}{Optional supported action state, or one state per
+generated action, independent of the risk-signal state.}
 }
 \value{
 An ActionLog data frame, or a named list of all three schema layers.
@@ -53,4 +62,7 @@ An ActionLog data frame, or a named list of all three schema layers.
 \description{
 Creates raw ADO-compatible work items, projects them to source-neutral
 domains, and builds a deterministic final ActionLog without network access.
+Multiple signal snapshots describe the current extracted states of those
+signals, not a state-change history. Generate and retain separate extractions
+to represent what was known at different scoring runs.
 }

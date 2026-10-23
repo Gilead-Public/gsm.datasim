@@ -25,7 +25,8 @@ action_log_names <- c(
   "ResolvedDate", "ExtractionDate", "RiskSignalDuplicateFlag",
   "RelevantSnapshotDate", "RelevantSnapshotFlag", "RiskSignalAge",
   "FunctionalArea", "GroupLabel", "MetricLabel", "MetricAbbreviation",
-  "Country"
+  "Country", "ActionID", "ActionURL", "ActionState", "RiskSignalState",
+  "ActionCreatedDate", "ActionResolvedDate", "ActionCriticality", "MetricType"
 )
 
 test_that("simulate_risk_signal_work_items returns GetWorkItems-compatible records (#134)", {
@@ -142,7 +143,7 @@ test_that("simulate_action_log builds the final synthetic report (#134)", {
   expect_identical(names(action_log), action_log_names)
   expect_s3_class(action_log$SnapshotDate, "Date")
   expect_s3_class(action_log$ExtractionDate, "Date")
-  expect_type(action_log$RiskSignalID, "integer")
+  expect_type(action_log$RiskSignalID, "character")
   expect_type(action_log$RiskSignalDuplicateFlag, "logical")
   expect_true(all(action_log$ExtractionDate == as.Date("2026-03-08")))
   expect_setequal(action_log$Country, c("US", "CA"))

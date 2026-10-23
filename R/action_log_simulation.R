@@ -148,7 +148,7 @@
     "System.WorkItemType" = "Risk Signal",
     "System.State" = state,
     "System.Reason" = "Synthetic risk signal",
-    "System.CreatedDate" = .action_log_datetime(as.Date(row$SnapshotDate) + 1),
+    "System.CreatedDate" = .action_log_datetime(min(as.Date(row$SnapshotDate) + 1, extraction_date)),
     "System.CreatedBy" = identity,
     "System.ChangedDate" = .action_log_datetime(state_change_date),
     "System.ChangedBy" = identity,
@@ -408,27 +408,29 @@ simulate_risk_signal_work_items <- function(
 
 .action_log_domain_types <- list(
   all_risk_signals = c(
-    RiskSignalID = "integer", RiskSignalURL = "character",
+    RiskSignalID = "character", RiskSignalURL = "character",
     StudyID = "character", SnapshotDate = "character",
-    GroupLevel = "character", GroupID = "character", Country = "character",
+    GroupLevel = "character", GroupID = "character", GroupLabel = "character",
+    Country = "character",
     MetricID = "character", MetricLabel = "character",
     MetricAbbreviation = "character", MetricType = "character",
     SignalDescription = "character", RiskSignalState = "character",
     RiskSignalCreatedDate = "character", RiskSignalResolvedDate = "character"
   ),
   actions = c(
-    ActionID = "integer", ActionURL = "character", RiskSignalID = "integer",
+    ActionID = "character", ActionURL = "character", RiskSignalID = "character",
     ActionState = "character", AssignedTo = "character",
     RecommendedAction = "character", ActionTaken = "character",
     FunctionalArea = "character", CTMSID = "character",
-    ActionCreatedDate = "character", ActionResolvedDate = "character"
+    ActionCreatedDate = "character", ActionResolvedDate = "character",
+    ActionCriticality = "logical"
   )
 )
 
 .action_log_types <- c(
   StudyID = "character", SnapshotDate = "Date", GroupLevel = "character",
   GroupID = "character", MetricID = "character", State = "character",
-  AssignedTo = "character", RiskSignalID = "integer",
+  AssignedTo = "character", RiskSignalID = "character",
   RiskSignalURL = "character", SignalDescription = "character",
   RecommendedAction = "character", ActionTaken = "character",
   CTMSID = "character", CreatedDate = "Date", ResolvedDate = "Date",
@@ -436,7 +438,10 @@ simulate_risk_signal_work_items <- function(
   RelevantSnapshotDate = "Date", RelevantSnapshotFlag = "logical",
   RiskSignalAge = "numeric", FunctionalArea = "character",
   GroupLabel = "character", MetricLabel = "character",
-  MetricAbbreviation = "character", Country = "character"
+  MetricAbbreviation = "character", Country = "character",
+  ActionID = "character", ActionURL = "character", ActionState = "character",
+  RiskSignalState = "character", ActionCreatedDate = "Date",
+  ActionResolvedDate = "Date", ActionCriticality = "logical", MetricType = "character"
 )
 
 .empty_action_log_data <- function(types) {
@@ -480,7 +485,7 @@ simulate_risk_signal_work_items <- function(
   if (!is.na(metric_type) && toupper(trimws(metric_type)) == "QTL") {
     return(NULL)
   }
-  work_item_id <- as.integer(work_item$id)
+  work_item_id <- as.character(work_item$id)
   project <- .work_item_character(work_item, "System.TeamProject")
   browser_url <- work_item$browser_url
   if (is.null(browser_url) || length(browser_url) == 0L || is.na(browser_url)) {
@@ -508,6 +513,7 @@ simulate_risk_signal_work_items <- function(
       SnapshotDate = .work_item_character(work_item, "Custom.SnapshotDate"),
       GroupLevel = .work_item_character(work_item, "Custom.GroupLevel"),
       GroupID = .work_item_character(work_item, "Custom.GroupID"),
+      GroupLabel = .work_item_character(work_item, "Custom.GroupLabel"),
       Country = .work_item_character(work_item, "Custom.Country"),
       MetricID = .work_item_character(work_item, "Custom.MetricID"),
       MetricLabel = .work_item_character(work_item, "Custom.MetricLabel"),
@@ -546,6 +552,7 @@ simulate_risk_signal_work_items <- function(
       CTMSID = .work_item_character(work_item, "Custom.CTMSID"),
       ActionCreatedDate = .work_item_character(work_item, "System.CreatedDate"),
       ActionResolvedDate = resolved_date,
+      ActionCriticality = NA,
       stringsAsFactors = FALSE
     )
   )
@@ -592,6 +599,44 @@ project_action_log_domains <- function(
   )
 }
 
+.configure_action_log_domains <- function(domains, actions_per_signal, action_states) {
+  signal_count <- nrow(domains$all_risk_signals)
+  if (!is.numeric(actions_per_signal) || anyNA(actions_per_signal) ||
+      any(!is.finite(actions_per_signal)) || any(actions_per_signal < 0) ||
+      any(actions_per_signal != floor(actions_per_signal)) ||
+      !length(actions_per_signal) %in% c(1L, signal_count)) {
+    stop("actions_per_signal must contain non-negative integer counts per signal.", call. = FALSE)
+  }
+  counts <- rep(actions_per_signal, length.out = signal_count)
+  indexes <- rep(seq_len(signal_count), times = counts)
+  domains$actions <- domains$actions[indexes, , drop = FALSE]
+  if (any(counts > 1L)) {
+    domains$actions$ActionID <- paste0(
+      "ACT-", domains$actions$RiskSignalID, "-", sequence(counts)
+    )
+    domains$actions$ActionURL <- paste0(
+      "https://example.invalid/actions/", domains$actions$ActionID
+    )
+  }
+  if (!is.null(action_states)) {
+    if (!is.character(action_states) || anyNA(action_states) ||
+        any(!action_states %in% .action_log_states) ||
+        !length(action_states) %in% c(1L, nrow(domains$actions))) {
+      stop("action_states must contain supported states for each generated action.", call. = FALSE)
+    }
+    domains$actions$ActionState <- rep(action_states, length.out = nrow(domains$actions))
+    domains$actions$ActionResolvedDate[
+      !domains$actions$ActionState %in% c("No Action", "Closed Action")
+    ] <- NA_character_
+    resolved <- domains$actions$ActionState %in% c("No Action", "Closed Action") &
+      is.na(domains$actions$ActionResolvedDate)
+    domains$actions$ActionResolvedDate[resolved] <-
+      domains$actions$ActionCreatedDate[resolved]
+  }
+  row.names(domains$actions) <- NULL
+  domains
+}
+
 .build_synthetic_action_log <- function(domains, extraction_date) {
   risk_signals <- domains$all_risk_signals
   actions <- domains$actions
@@ -601,25 +646,33 @@ project_action_log_domains <- function(
 
   risk_signals$SnapshotDate <- as.Date(substr(risk_signals$SnapshotDate, 1, 10))
   order_index <- order(
+    risk_signals$StudyID,
     risk_signals$SnapshotDate,
     risk_signals$GroupLevel,
     risk_signals$GroupID,
     risk_signals$MetricID,
-    risk_signals$RiskSignalID
+    factor(risk_signals$RiskSignalState, levels = c(
+      "Open Action", "Closed Action", "Awaiting Triage", "No Action"
+    ))
   )
   risk_signals <- risk_signals[order_index, , drop = FALSE]
-  action_index <- match(risk_signals$RiskSignalID, actions$RiskSignalID)
-  actions <- actions[action_index, , drop = FALSE]
-
   duplicate_key <- with(
     risk_signals,
-    paste(SnapshotDate, GroupLevel, GroupID, MetricID, sep = "\r")
+    paste(StudyID, SnapshotDate, GroupLevel, GroupID, MetricID, sep = "\r")
   )
-  duplicate_flag <- ave(
+  duplicate_flag <- stats::ave(
     seq_along(duplicate_key),
     duplicate_key,
     FUN = seq_along
   ) > 1L
+  action_indexes <- lapply(risk_signals$RiskSignalID, function(signal_id) {
+    matches <- which(actions$RiskSignalID == signal_id)
+    if (length(matches) == 0L) NA_integer_ else matches
+  })
+  signal_index <- rep(seq_len(nrow(risk_signals)), lengths(action_indexes))
+  risk_signals <- risk_signals[signal_index, , drop = FALSE]
+  actions <- actions[unlist(action_indexes), , drop = FALSE]
+  duplicate_flag <- duplicate_flag[signal_index]
   state <- ifelse(
     is.na(actions$ActionID),
     risk_signals$RiskSignalState,
@@ -637,7 +690,7 @@ project_action_log_domains <- function(
   relevant_date <- as.Date(rep(NA_character_, nrow(risk_signals)))
   history_key <- with(
     risk_signals,
-    paste(GroupLevel, GroupID, MetricID, sep = "\r")
+    paste(StudyID, GroupLevel, GroupID, MetricID, sep = "\r")
   )
   for (key in unique(history_key)) {
     indexes <- which(history_key == key)
@@ -684,13 +737,29 @@ project_action_log_domains <- function(
       as.Date(age_end) - risk_signals$SnapshotDate
     ) + 1,
     FunctionalArea = actions$FunctionalArea,
-    GroupLabel = NA_character_,
+    GroupLabel = risk_signals$GroupLabel,
     MetricLabel = risk_signals$MetricLabel,
     MetricAbbreviation = risk_signals$MetricAbbreviation,
     Country = risk_signals$Country,
+    ActionID = actions$ActionID,
+    ActionURL = actions$ActionURL,
+    ActionState = actions$ActionState,
+    RiskSignalState = risk_signals$RiskSignalState,
+    ActionCreatedDate = as.Date(substr(actions$ActionCreatedDate, 1, 10)),
+    ActionResolvedDate = as.Date(substr(actions$ActionResolvedDate, 1, 10)),
+    ActionCriticality = actions$ActionCriticality,
+    MetricType = risk_signals$MetricType,
     stringsAsFactors = FALSE
   )
-  action_log[names(.action_log_types)]
+  action_log <- action_log[order(
+    action_log$StudyID, action_log$SnapshotDate, action_log$GroupLevel,
+    action_log$GroupID, action_log$MetricID,
+    factor(action_log$State, levels = c(
+      "Open Action", "Closed Action", "Awaiting Triage", "No Action"
+    )), action_log$ActionID
+  ), names(.action_log_types), drop = FALSE]
+  row.names(action_log) <- NULL
+  action_log
 }
 
 #' Simulate source-neutral Action Log input domains
@@ -700,6 +769,11 @@ project_action_log_domains <- function(
 #' by the current `{grail}` Action Log contract.
 #'
 #' @inheritParams simulate_risk_signal_work_items
+#' @param actions_per_signal Non-negative action count, or one count per
+#'   generated signal. Zero retains an unactioned signal; counts above one
+#'   generate distinct character action identifiers.
+#' @param action_states Optional supported action state, or one state per
+#'   generated action, independent of the risk-signal state.
 #'
 #' @return A named list containing the raw `work_items`, projected
 #'   `all_risk_signals`, and projected `actions`.
@@ -718,7 +792,9 @@ simulate_action_log_domains <- function(
     seed = NULL,
     extraction_date = NULL,
     work_item_id_start = 900000L,
-    organization = "Gilead-RND-CDS-RBQM") {
+    organization = "Gilead-RND-CDS-RBQM",
+    actions_per_signal = 1L,
+    action_states = NULL) {
   work_items <- simulate_risk_signal_work_items(
     df_results = df_results,
     state_probabilities = state_probabilities,
@@ -735,15 +811,19 @@ simulate_action_log_domains <- function(
     organization = organization
   )
 
+  domains <- .configure_action_log_domains(domains, actions_per_signal, action_states)
   c(list(work_items = work_items), domains)
 }
 
-#' Simulate an ActionLog history
+#' Simulate a frozen ActionLog extraction
 #'
 #' Creates raw ADO-compatible work items, projects them to source-neutral
 #' domains, and builds a deterministic final ActionLog without network access.
+#' Multiple signal snapshots describe the current extracted states of those
+#' signals, not a state-change history. Generate and retain separate extractions
+#' to represent what was known at different scoring runs.
 #'
-#' @inheritParams simulate_risk_signal_work_items
+#' @inheritParams simulate_action_log_domains
 #' @param include_intermediates If `TRUE`, return raw work items,
 #'   `all_risk_signals`, `actions`, and the final `action_log` in a named list.
 #'
@@ -764,7 +844,9 @@ simulate_action_log <- function(
     extraction_date = NULL,
     work_item_id_start = 900000L,
     organization = "Gilead-RND-CDS-RBQM",
-    include_intermediates = FALSE) {
+    include_intermediates = FALSE,
+    actions_per_signal = 1L,
+    action_states = NULL) {
   if (is.null(extraction_date)) {
     snapshot_dates <- as.Date(df_results$SnapshotDate)
     if (length(snapshot_dates) == 0L || all(is.na(snapshot_dates))) {
@@ -789,6 +871,7 @@ simulate_action_log <- function(
     work_items,
     organization = organization
   )
+  domains <- .configure_action_log_domains(domains, actions_per_signal, action_states)
   action_log <- .build_synthetic_action_log(domains, extraction_date)
 
   if (isTRUE(include_intermediates)) {

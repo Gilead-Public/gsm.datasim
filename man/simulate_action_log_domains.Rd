@@ -14,7 +14,9 @@ simulate_action_log_domains(
   seed = NULL,
   extraction_date = NULL,
   work_item_id_start = 900000L,
-  organization = "Gilead-RND-CDS-RBQM"
+  organization = "Gilead-RND-CDS-RBQM",
+  actions_per_signal = 1L,
+  action_states = NULL
 )
 }
 \arguments{
@@ -42,6 +44,13 @@ to seven days after the latest snapshot.}
 \item{work_item_id_start}{First synthetic ADO work item ID.}
 
 \item{organization}{Azure DevOps organization used only to construct URLs.}
+
+\item{actions_per_signal}{Non-negative action count, or one count per
+generated signal. Zero retains an unactioned signal; counts above one
+generate distinct character action identifiers.}
+
+\item{action_states}{Optional supported action state, or one state per
+generated action, independent of the risk-signal state.}
 }
 \value{
 A named list containing the raw \code{work_items}, projected

@@ -34,7 +34,7 @@ test_that("simulate_action_log_domains projects PR 121 source-neutral domains (#
     names(simulated$all_risk_signals),
     c(
       "RiskSignalID", "RiskSignalURL", "StudyID", "SnapshotDate",
-      "GroupLevel", "GroupID", "Country", "MetricID", "MetricLabel",
+      "GroupLevel", "GroupID", "GroupLabel", "Country", "MetricID", "MetricLabel",
       "MetricAbbreviation", "MetricType", "SignalDescription",
       "RiskSignalState", "RiskSignalCreatedDate", "RiskSignalResolvedDate"
     )
@@ -45,7 +45,7 @@ test_that("simulate_action_log_domains projects PR 121 source-neutral domains (#
       "ActionID", "ActionURL", "RiskSignalID", "ActionState",
       "AssignedTo", "RecommendedAction", "ActionTaken",
       "FunctionalArea", "CTMSID", "ActionCreatedDate",
-      "ActionResolvedDate"
+      "ActionResolvedDate", "ActionCriticality"
     )
   )
   expect_identical(simulated$actions$ActionID, simulated$actions$RiskSignalID)
@@ -66,9 +66,9 @@ test_that("project_action_log_domains returns typed empty domains (#134)", {
   expect_identical(
     vapply(projected$all_risk_signals, typeof, character(1)),
     c(
-      RiskSignalID = "integer", RiskSignalURL = "character",
+      RiskSignalID = "character", RiskSignalURL = "character",
       StudyID = "character", SnapshotDate = "character",
-      GroupLevel = "character", GroupID = "character",
+      GroupLevel = "character", GroupID = "character", GroupLabel = "character",
       Country = "character", MetricID = "character",
       MetricLabel = "character", MetricAbbreviation = "character",
       MetricType = "character", SignalDescription = "character",
@@ -79,12 +79,12 @@ test_that("project_action_log_domains returns typed empty domains (#134)", {
   expect_identical(
     vapply(projected$actions, typeof, character(1)),
     c(
-      ActionID = "integer", ActionURL = "character",
-      RiskSignalID = "integer", ActionState = "character",
+      ActionID = "character", ActionURL = "character",
+      RiskSignalID = "character", ActionState = "character",
       AssignedTo = "character", RecommendedAction = "character",
       ActionTaken = "character", FunctionalArea = "character",
       CTMSID = "character", ActionCreatedDate = "character",
-      ActionResolvedDate = "character"
+      ActionResolvedDate = "character", ActionCriticality = "logical"
     )
   )
 })
@@ -159,4 +159,44 @@ test_that("lookback scenarios require three increasing snapshots (#134)", {
     ),
     "three increasing dates"
   )
+})
+
+test_that("source-neutral scenarios retain unactioned and multi-action signals (#134)", {
+  simulated <- simulate_action_log(
+    make_domain_results(), seed = 134, include_intermediates = TRUE,
+    actions_per_signal = c(0L, 2L, 1L, 0L),
+    action_states = c("Open Action", "Closed Action", "Open Action")
+  )
+  expect_equal(nrow(simulated$all_risk_signals), 4)
+  expect_equal(nrow(simulated$actions), 3)
+  expect_equal(nrow(simulated$action_log), 5)
+  expect_type(simulated$actions$ActionCriticality, "logical")
+  expect_true(all(is.na(simulated$actions$ActionCriticality)))
+  expect_equal(anyDuplicated(simulated$actions$ActionID), 0L)
+  expect_equal(sum(is.na(simulated$action_log$ActionID)), 2)
+  expect_false(any(simulated$action_log$RiskSignalDuplicateFlag))
+  unactioned <- simulated$action_log[is.na(simulated$action_log$ActionID), ]
+  expect_equal(unactioned$State, unactioned$RiskSignalState)
+  expect_true(all(is.na(unactioned$FunctionalArea)))
+  expect_true(any(simulated$action_log$ActionState !=
+    simulated$action_log$RiskSignalState, na.rm = TRUE))
+  expect_error(
+    simulate_action_log(make_domain_results(), actions_per_signal = -1),
+    "actions_per_signal"
+  )
+  expect_error(
+    simulate_action_log(make_domain_results(), action_states = "Unknown"),
+    "action_states"
+  )
+})
+
+test_that("separate extractions can preserve different states for one signal (#134)", {
+  results <- make_domain_results()[1, ]
+  results$State <- "Awaiting Triage"
+  earlier <- simulate_action_log(results, extraction_date = as.Date("2025-02-01"))
+  results$State <- "No Action"
+  later <- simulate_action_log(results, extraction_date = as.Date("2025-02-28"))
+  expect_identical(earlier$RiskSignalID, later$RiskSignalID)
+  expect_false(identical(earlier$State, later$State))
+  expect_lt(earlier$ExtractionDate, later$ExtractionDate)
 })
