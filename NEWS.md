@@ -1,5 +1,22 @@
 # gsm.datasim (development version)
 
+- `Raw_SUBJ` now carries six simulated `drv_*` IP non-starter fields
+  (`drv_enrollment_dt`, `drv_ip_dosed`, `drv_ip_first_dose_dt`,
+  `drv_enrl_first_dose_days`, `drv_days_lapsed_since_enrl`,
+  `drv_ip_nonstarter_status`), impersonating the upstream Stride contract
+  gsm now consumes rather than derives (#140).
+- Added deterministic ActionLog simulation utilities that produce
+  `grail.ado::GetWorkItems()`-compatible records and project them into the
+  source-neutral `AllRiskSignals` and `Actions` field contracts. State
+  transitions, missing work items, duplicate risk signals, and multi-snapshot
+  histories are configurable for action-weighted Site Risk Score testing. All
+  synthetic layers, including the final ActionLog, are generated locally
+  without ADO credentials or private package dependencies (#134).
+- Updated the source-neutral ActionLog domains and 33-column report to the
+  grail v1.7.0 contract: character identifiers, group labels, independent
+  signal/action states, action lifecycle dates, and typed unknown criticality.
+  Optional action counts and states generate unactioned and multi-action
+  signals without treating multiple actions as duplicate signals (#134).
 - `Raw_VS` simulates consecutive repeated measurements at site-specific
   rates, and each site keeps its risk band across snapshots. A new
   `risk_profile` argument, accepted by the study-creation functions
