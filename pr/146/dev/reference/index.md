@@ -76,7 +76,7 @@
 - [`set_temporal_config()`](https://gilead-public.github.io/gsm.datasim/dev/reference/set_temporal_config.md)
   : Set Temporal Configuration
 - [`simulate_action_log()`](https://gilead-public.github.io/gsm.datasim/dev/reference/simulate_action_log.md)
-  : Simulate an ActionLog history
+  : Simulate a frozen ActionLog extraction
 - [`simulate_action_log_domains()`](https://gilead-public.github.io/gsm.datasim/dev/reference/simulate_action_log_domains.md)
   : Simulate source-neutral Action Log input domains
 - [`simulate_action_log_lookback_scenarios()`](https://gilead-public.github.io/gsm.datasim/dev/reference/simulate_action_log_lookback_scenarios.md)

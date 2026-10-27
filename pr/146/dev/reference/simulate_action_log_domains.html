@@ -68,7 +68,9 @@ by the current <code>{grail}</code> Action Log contract.</p>
 <span>  seed <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  extraction_date <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  work_item_id_start <span class="op">=</span> <span class="fl">900000L</span>,</span>
-<span>  organization <span class="op">=</span> <span class="st">"Gilead-RND-CDS-RBQM"</span></span>
+<span>  organization <span class="op">=</span> <span class="st">"Gilead-RND-CDS-RBQM"</span>,</span>
+<span>  actions_per_signal <span class="op">=</span> <span class="fl">1L</span>,</span>
+<span>  action_states <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -117,6 +119,17 @@ to seven days after the latest snapshot.</p></dd>
 
 <dt id="arg-organization">organization<a class="anchor" aria-label="anchor" href="#arg-organization"></a></dt>
 <dd><p>Azure DevOps organization used only to construct URLs.</p></dd>
+
+
+<dt id="arg-actions-per-signal">actions_per_signal<a class="anchor" aria-label="anchor" href="#arg-actions-per-signal"></a></dt>
+<dd><p>Non-negative action count, or one count per
+generated signal. Zero retains an unactioned signal; counts above one
+generate distinct character action identifiers.</p></dd>
+
+
+<dt id="arg-action-states">action_states<a class="anchor" aria-label="anchor" href="#arg-action-states"></a></dt>
+<dd><p>Optional supported action state, or one state per
+generated action, independent of the risk-signal state.</p></dd>
 
 </dl></div>
     <div class="section level2">

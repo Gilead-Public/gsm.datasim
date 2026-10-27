@@ -95,7 +95,7 @@ raw_data_generator(
 - lWorkflows:
 
   Optional named list of workflow objects (from
-  [`workr::MakeWorkflowList()`](https://rdrr.io/pkg/workr/man/MakeWorkflowList.html)).
+  [`workr::MakeWorkflowList()`](https://gilead-public.github.io/workr/reference/MakeWorkflowList.html)).
   When supplied the function routes to
   [`generate_data_from_workflows()`](https://gilead-public.github.io/gsm.datasim/dev/reference/generate_data_from_workflows.md)
   to produce a single-snapshot dataset driven entirely by the workflow

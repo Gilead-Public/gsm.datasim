@@ -8,6 +8,7 @@
   `drv_ip_nonstarter_status`), impersonating the upstream Stride
   contract gsm now consumes rather than derives
   ([\#140](https://github.com/Gilead-Public/gsm.datasim/issues/140)).
+
 - Added deterministic ActionLog simulation utilities that produce
   `grail.ado::GetWorkItems()`-compatible records and project them into
   the source-neutral `AllRiskSignals` and `Actions` field contracts.
@@ -17,6 +18,42 @@
   ActionLog, are generated locally without ADO credentials or private
   package dependencies
   ([\#134](https://github.com/Gilead-Public/gsm.datasim/issues/134)).
+
+- Updated the source-neutral ActionLog domains and 33-column report to
+  the grail v1.7.0 contract: character identifiers, group labels,
+  independent signal/action states, action lifecycle dates, and typed
+  unknown criticality. Optional action counts and states generate
+  unactioned and multi-action signals without treating multiple actions
+  as duplicate signals
+  ([\#134](https://github.com/Gilead-Public/gsm.datasim/issues/134)).
+
+- `Raw_VS` simulates consecutive repeated measurements at site-specific
+  rates, and each site keeps its risk band across snapshots. A new
+  `risk_profile` argument, accepted by the study-creation functions
+  alongside `participants`/`sites`, controls how many sites land in each
+  risk band
+  ([\#113](https://github.com/Gilead-Public/gsm.datasim/issues/113),
+  [\#143](https://github.com/Gilead-Public/gsm.datasim/issues/143)).
+
+- Simulated `Raw_SUBJ` data now covers IP non-starter, kit assignment
+  and premature treatment discontinuation scenarios, with more realistic
+  dosing timelines and study completion records consistent with each
+  subject’s status
+  ([\#140](https://github.com/Gilead-Public/gsm.datasim/issues/140),
+  [\#157](https://github.com/Gilead-Public/gsm.datasim/issues/157),
+  [\#138](https://github.com/Gilead-Public/gsm.datasim/issues/138),
+  [\#173](https://github.com/Gilead-Public/gsm.datasim/issues/173)).
+
+### Bug Fixes
+
+- [`create_longitudinal_study()`](https://gilead-public.github.io/gsm.datasim/dev/reference/create_longitudinal_study.md)
+  /
+  [`generate_study_snapshots()`](https://gilead-public.github.io/gsm.datasim/dev/reference/generate_study_snapshots.md)
+  snapshots no longer generate independent single-snapshot studies.
+  Instead, each snapshot builds off the previous one, preserving
+  subject, site, and enrollment continuity and letting exposure
+  accumulate across snapshots
+  ([\#165](https://github.com/Gilead-Public/gsm.datasim/issues/165)).
 
 ## gsm.datasim v2.0.0
 

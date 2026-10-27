@@ -22,6 +22,8 @@ Useful links:
 
 Authors:
 
+- Laura Maxwell <laura.maxwell@atorusresearch.com>
+
 - Zelos Zhu <zelos.zhu@atorusresearch.com>
 
 - Roman Rogoza <roman.rogoza@atorusresearch.com>

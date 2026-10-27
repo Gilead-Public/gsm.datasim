@@ -444,9 +444,107 @@ the reporting pipeline.</p>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">study</span><span class="op">$</span><span class="va">reporting</span><span class="op">)</span> <span class="co"># snapshot dates</span></span>
 <span>  <span class="va">study</span><span class="op">$</span><span class="va">reporting</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span> <span class="co"># reporting output for first snapshot</span></span>
 <span><span class="op">}</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="targeted-repeat-runs-in-vital-signs">Targeted Repeat Runs in Vital Signs<a class="anchor" aria-label="anchor" href="#targeted-repeat-runs-in-vital-signs"></a>
+</h3>
+<p>The <code>VS</code> domain (<code>Raw_VS</code>) generates one row
+per subject-visit with eight vitals: <code>weight</code>,
+<code>height</code>, <code>bsa</code>, <code>sysbp</code>,
+<code>diabp</code>, <code>pulse</code>, <code>temp</code>, and
+<code>resp</code>. To exercise the repeat-measure KRIs
+(<code>kri0020a-f</code>), which flag sites where the same value is
+recorded at consecutive visits, each site is assigned a risk band and
+receives runs of identical consecutive values at that band’s target
+rate:</p>
+<table class="table">
+<colgroup>
+<col width="33%">
+<col width="33%">
+<col width="33%">
+</colgroup>
+<thead><tr class="header">
+<th>Band</th>
+<th>Default share of sites (<code>dPct*</code>)</th>
+<th>Default target repeat rate (<code>dRate*</code>)</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>Red</td>
+<td><code>dPctRed = 0.1</code></td>
+<td><code>dRateRed = 0.45</code></td>
+</tr>
+<tr class="even">
+<td>Amber</td>
+<td><code>dPctAmber = 0.2</code></td>
+<td><code>dRateAmber = 0.25</code></td>
+</tr>
+<tr class="odd">
+<td>Normal</td>
+<td>the remainder</td>
+<td><code>dRateNormal = 0.05</code></td>
+</tr>
+</tbody>
+</table>
+<p>The repeat rate is the share of rolling windows of
+<code>nWindowLength</code> (default <code>3</code>) consecutive
+performed measurements within a subject in which every value is
+identical. The default target rates are chosen relative to the 20% amber
+and 30% red KRI thresholds, but realized rates are approximate: integer
+window counts can push small sites across a boundary. A persistent
+assigned band does not guarantee a matching observed KRI flag.</p>
+<p>Bands persist for the life of the study: a site’s band depends on its
+position in the site roster and on the eventual number of sites, not on
+which sites have enrolled by a given snapshot, so the same sites stay
+elevated from snapshot to snapshot. Each vital is its own KRI, so bands
+are drawn independently per vital; a site that is red on
+<code>sysbp</code> need not be red on <code>pulse</code>.</p>
+<p>Control the allocation with <code>risk_profile</code>, accepted by
+<code><a href="../reference/create_longitudinal_study.html">create_longitudinal_study()</a></code>,
+<code><a href="../reference/create_multiple_longitudinal_studies.html">create_multiple_longitudinal_studies()</a></code>,
+<code><a href="../reference/quick_longitudinal_study.html">quick_longitudinal_study()</a></code>,
+<code><a href="../reference/create_study_config.html">create_study_config()</a></code>,
+<code><a href="../reference/create_standard_study_config.html">create_standard_study_config()</a></code>, and
+<code><a href="../reference/generate_data_from_workflows.html">generate_data_from_workflows()</a></code>. Omitted fields keep their
+defaults, and the whole profile is validated up front.</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Put a quarter of sites in each of the red and amber bands</span></span>
+<span><span class="va">vs_study</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_longitudinal_study.html">create_longitudinal_study</a></span><span class="op">(</span></span>
+<span>  study_id <span class="op">=</span> <span class="st">"VS-RISK-001"</span>,</span>
+<span>  participants <span class="op">=</span> <span class="fl">200</span>,</span>
+<span>  sites <span class="op">=</span> <span class="fl">20</span>,</span>
+<span>  snapshots <span class="op">=</span> <span class="fl">6</span>,</span>
+<span>  domains <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"VS"</span><span class="op">)</span>,</span>
+<span>  risk_profile <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>dPctRed <span class="op">=</span> <span class="fl">0.25</span>, dPctAmber <span class="op">=</span> <span class="fl">0.25</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>Settings can also be given per domain and per vital, with more
+specific levels overriding less specific ones (defaults &lt; top level
+&lt; domain &lt; vital). Naming vitals under <code>Raw_VS</code>
+restricts targeting to those vitals; the others get plain random draws.
+Use <code>vVitals</code> to restrict targeting without overriding any
+settings.</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">risk_profile</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  nWindowLength <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  Raw_VS <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    <span class="co"># Only these two vitals are targeted</span></span>
+<span>    sysbp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>dPctRed <span class="op">=</span> <span class="fl">0.2</span>, dRateRed <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span>,</span>
+<span>    pulse <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>dPctRed <span class="op">=</span> <span class="fl">0</span>, dPctAmber <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Equivalent restriction without per-vital overrides</span></span>
+<span><span class="va">risk_profile_subset</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>vVitals <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sysbp"</span>, <span class="st">"pulse"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>Vital signs recorded as not performed
+(<code>vsperf_std == "N"</code>) are left blank and do not count toward
+a site’s repeat rate, so realized rates match what the KRIs compute.</p>
+</div>
+<div class="section level3">
+<h3 id="running-pipelines-separately">Running Pipelines Separately<a class="anchor" aria-label="anchor" href="#running-pipelines-separately"></a>
+</h3>
 <p>You can also run the pipelines separately on an existing study
 object:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Build raw data only</span></span>
 <span><span class="va">study</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_longitudinal_study.html">create_longitudinal_study</a></span><span class="op">(</span></span>
 <span>  study_id <span class="op">=</span> <span class="st">"STEPWISE-001"</span>,</span>
@@ -481,7 +579,7 @@ provides an efficient approach. This is particularly useful for:</p>
 <h3 id="basic-multiple-studies-setup">Basic Multiple Studies Setup<a class="anchor" aria-label="anchor" href="#basic-multiple-studies-setup"></a>
 </h3>
 <p>Create multiple studies with shared configuration:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Generate three studies with identical configuration</span></span>
 <span><span class="va">studies</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_multiple_longitudinal_studies.html">create_multiple_longitudinal_studies</a></span><span class="op">(</span></span>
 <span>  study_names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"PHASE2-001"</span>, <span class="st">"PHASE2-002"</span>, <span class="st">"PHASE2-003"</span><span class="op">)</span>,</span>
@@ -507,7 +605,7 @@ provides an efficient approach. This is particularly useful for:</p>
 <h3 id="per-study-configuration">Per-Study Configuration<a class="anchor" aria-label="anchor" href="#per-study-configuration"></a>
 </h3>
 <p>Customize individual studies while maintaining shared defaults:</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create studies with different characteristics</span></span>
 <span><span class="va">studies</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_multiple_longitudinal_studies.html">create_multiple_longitudinal_studies</a></span><span class="op">(</span></span>
 <span>  study_names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"SMALL-PHASE2"</span>, <span class="st">"LARGE-PHASE3"</span>, <span class="st">"SAFETY-RUN"</span><span class="op">)</span>,</span>
@@ -545,7 +643,7 @@ provides an efficient approach. This is particularly useful for:</p>
 </h3>
 <p>For large batches, enable parallel processing to speed up
 generation:</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Generate studies in parallel (requires parallel package)</span></span>
 <span><span class="va">large_batch</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_multiple_longitudinal_studies.html">create_multiple_longitudinal_studies</a></span><span class="op">(</span></span>
 <span>  study_names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"BATCH-"</span>, <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"%03d"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">8</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -565,7 +663,7 @@ generation:</p>
 <h3 id="export-multiple-studies">Export Multiple Studies<a class="anchor" aria-label="anchor" href="#export-multiple-studies"></a>
 </h3>
 <p>Automatically export all studies to disk during generation:</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Generate and automatically export</span></span>
 <span><span class="va">studies</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_multiple_longitudinal_studies.html">create_multiple_longitudinal_studies</a></span><span class="op">(</span></span>
 <span>  study_names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"EXPORT-001"</span>, <span class="st">"EXPORT-002"</span><span class="op">)</span>,</span>
@@ -592,7 +690,7 @@ generation:</p>
 <h3 id="working-with-multiple-studies-collections">Working with Multiple Studies Collections<a class="anchor" aria-label="anchor" href="#working-with-multiple-studies-collections"></a>
 </h3>
 <p>The returned object has special methods for easy inspection:</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Print method shows overview</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">studies</span><span class="op">)</span></span>
 <span></span>
@@ -615,7 +713,7 @@ generation:</p>
 <h3 id="portfolio-level-analysis">Portfolio-Level Analysis<a class="anchor" aria-label="anchor" href="#portfolio-level-analysis"></a>
 </h3>
 <p>Use multiple studies for comparative analysis:</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Generate studies with different safety profiles</span></span>
 <span><span class="va">safety_portfolio</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_multiple_longitudinal_studies.html">create_multiple_longitudinal_studies</a></span><span class="op">(</span></span>
 <span>  study_names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"LOW-RISK"</span>, <span class="st">"MEDIUM-RISK"</span>, <span class="st">"HIGH-RISK"</span><span class="op">)</span>,</span>
@@ -650,7 +748,7 @@ generation:</p>
 <div class="section level3">
 <h3 id="exploring-generated-data">Exploring Generated Data<a class="anchor" aria-label="anchor" href="#exploring-generated-data"></a>
 </h3>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># After generating a study, examine the data structure</span></span>
 <span><span class="va">study</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_longitudinal_study.html">create_longitudinal_study</a></span><span class="op">(</span></span>
 <span>  study_id <span class="op">=</span> <span class="st">"EXPLORE-001"</span>,</span>
@@ -684,7 +782,7 @@ generation:</p>
 <div class="section level3">
 <h3 id="data-quality-checks">Data Quality Checks<a class="anchor" aria-label="anchor" href="#data-quality-checks"></a>
 </h3>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Function to validate study data</span></span>
 <span><span class="va">validate_study_data</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">study</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">validation_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -730,7 +828,7 @@ snapshot.</p>
 <div class="section level3">
 <h3 id="basic-export">Basic Export<a class="anchor" aria-label="anchor" href="#basic-export"></a>
 </h3>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Generate a small study to export</span></span>
 <span><span class="va">study</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_longitudinal_study.html">create_longitudinal_study</a></span><span class="op">(</span></span>
 <span>  study_id <span class="op">=</span> <span class="st">"EXPORT-001"</span>,</span>
@@ -757,7 +855,7 @@ snapshot.</p>
 <div class="section level3">
 <h3 id="controlling-the-output-location">Controlling the Output Location<a class="anchor" aria-label="anchor" href="#controlling-the-output-location"></a>
 </h3>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Write to a specific project folder</span></span>
 <span><span class="va">study_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/export_study_data.html">export_study_data</a></span><span class="op">(</span></span>
 <span>  study        <span class="op">=</span> <span class="va">study</span>,</span>
@@ -773,7 +871,7 @@ snapshot.</p>
 objects that cannot be flattened to CSV. Set
 <code>save_rds = TRUE</code> to write a companion
 <code>analytics_full.rds</code> file per snapshot:</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">study_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/export_study_data.html">export_study_data</a></span><span class="op">(</span></span>
 <span>  study      <span class="op">=</span> <span class="va">study</span>,</span>
 <span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>,</span>
@@ -791,7 +889,7 @@ objects that cannot be flattened to CSV. Set
 <div class="section level3">
 <h3 id="inspecting-the-exported-files">Inspecting the Exported Files<a class="anchor" aria-label="anchor" href="#inspecting-the-exported-files"></a>
 </h3>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># List all CSV files written across all snapshots</span></span>
 <span><span class="va">all_csvs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="va">study_path</span>, pattern <span class="op">=</span> <span class="st">"\\.csv$"</span>, recursive <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">all_csvs</span><span class="op">)</span>, <span class="st">"CSV files written\n"</span><span class="op">)</span></span>

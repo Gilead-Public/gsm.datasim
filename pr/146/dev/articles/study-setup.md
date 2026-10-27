@@ -380,6 +380,87 @@ if (!is.null(study$reporting)) {
 }
 ```
 
+### Targeted Repeat Runs in Vital Signs
+
+The `VS` domain (`Raw_VS`) generates one row per subject-visit with
+eight vitals: `weight`, `height`, `bsa`, `sysbp`, `diabp`, `pulse`,
+`temp`, and `resp`. To exercise the repeat-measure KRIs (`kri0020a-f`),
+which flag sites where the same value is recorded at consecutive visits,
+each site is assigned a risk band and receives runs of identical
+consecutive values at that band’s target rate:
+
+| Band | Default share of sites (`dPct*`) | Default target repeat rate (`dRate*`) |
+|----|----|----|
+| Red | `dPctRed = 0.1` | `dRateRed = 0.45` |
+| Amber | `dPctAmber = 0.2` | `dRateAmber = 0.25` |
+| Normal | the remainder | `dRateNormal = 0.05` |
+
+The repeat rate is the share of rolling windows of `nWindowLength`
+(default `3`) consecutive performed measurements within a subject in
+which every value is identical. The default target rates are chosen
+relative to the 20% amber and 30% red KRI thresholds, but realized rates
+are approximate: integer window counts can push small sites across a
+boundary. A persistent assigned band does not guarantee a matching
+observed KRI flag.
+
+Bands persist for the life of the study: a site’s band depends on its
+position in the site roster and on the eventual number of sites, not on
+which sites have enrolled by a given snapshot, so the same sites stay
+elevated from snapshot to snapshot. Each vital is its own KRI, so bands
+are drawn independently per vital; a site that is red on `sysbp` need
+not be red on `pulse`.
+
+Control the allocation with `risk_profile`, accepted by
+[`create_longitudinal_study()`](https://gilead-public.github.io/gsm.datasim/dev/reference/create_longitudinal_study.md),
+[`create_multiple_longitudinal_studies()`](https://gilead-public.github.io/gsm.datasim/dev/reference/create_multiple_longitudinal_studies.md),
+[`quick_longitudinal_study()`](https://gilead-public.github.io/gsm.datasim/dev/reference/quick_longitudinal_study.md),
+[`create_study_config()`](https://gilead-public.github.io/gsm.datasim/dev/reference/create_study_config.md),
+[`create_standard_study_config()`](https://gilead-public.github.io/gsm.datasim/dev/reference/create_standard_study_config.md),
+and
+[`generate_data_from_workflows()`](https://gilead-public.github.io/gsm.datasim/dev/reference/generate_data_from_workflows.md).
+Omitted fields keep their defaults, and the whole profile is validated
+up front.
+
+``` r
+
+# Put a quarter of sites in each of the red and amber bands
+vs_study <- create_longitudinal_study(
+  study_id = "VS-RISK-001",
+  participants = 200,
+  sites = 20,
+  snapshots = 6,
+  domains = c("VS"),
+  risk_profile = list(dPctRed = 0.25, dPctAmber = 0.25)
+)
+```
+
+Settings can also be given per domain and per vital, with more specific
+levels overriding less specific ones (defaults \< top level \< domain \<
+vital). Naming vitals under `Raw_VS` restricts targeting to those
+vitals; the others get plain random draws. Use `vVitals` to restrict
+targeting without overriding any settings.
+
+``` r
+
+risk_profile <- list(
+  nWindowLength = 3,
+  Raw_VS = list(
+    # Only these two vitals are targeted
+    sysbp = list(dPctRed = 0.2, dRateRed = 0.6),
+    pulse = list(dPctRed = 0, dPctAmber = 0.5)
+  )
+)
+
+# Equivalent restriction without per-vital overrides
+risk_profile_subset <- list(vVitals = c("sysbp", "pulse"))
+```
+
+Vital signs recorded as not performed (`vsperf_std == "N"`) are left
+blank and do not count toward a site’s repeat rate, so realized rates
+match what the KRIs compute.
+
+### Running Pipelines Separately
+
 You can also run the pipelines separately on an existing study object:
 
 ``` r

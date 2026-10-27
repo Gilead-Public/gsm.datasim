@@ -1,8 +1,11 @@
-# Simulate an ActionLog history
+# Simulate a frozen ActionLog extraction
 
 Creates raw ADO-compatible work items, projects them to source-neutral
 domains, and builds a deterministic final ActionLog without network
-access.
+access. Multiple signal snapshots describe the current extracted states
+of those signals, not a state-change history. Generate and retain
+separate extractions to represent what was known at different scoring
+runs.
 
 ## Usage
 
@@ -18,7 +21,9 @@ simulate_action_log(
   extraction_date = NULL,
   work_item_id_start = 900000L,
   organization = "Gilead-RND-CDS-RBQM",
-  include_intermediates = FALSE
+  include_intermediates = FALSE,
+  actions_per_signal = 1L,
+  action_states = NULL
 )
 ```
 
@@ -70,6 +75,17 @@ simulate_action_log(
 
   If `TRUE`, return raw work items, `all_risk_signals`, `actions`, and
   the final `action_log` in a named list.
+
+- actions_per_signal:
+
+  Non-negative action count, or one count per generated signal. Zero
+  retains an unactioned signal; counts above one generate distinct
+  character action identifiers.
+
+- action_states:
+
+  Optional supported action state, or one state per generated action,
+  independent of the risk-signal state.
 
 ## Value
 

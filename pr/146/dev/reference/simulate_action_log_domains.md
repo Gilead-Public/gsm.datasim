@@ -17,7 +17,9 @@ simulate_action_log_domains(
   seed = NULL,
   extraction_date = NULL,
   work_item_id_start = 900000L,
-  organization = "Gilead-RND-CDS-RBQM"
+  organization = "Gilead-RND-CDS-RBQM",
+  actions_per_signal = 1L,
+  action_states = NULL
 )
 ```
 
@@ -64,6 +66,17 @@ simulate_action_log_domains(
 - organization:
 
   Azure DevOps organization used only to construct URLs.
+
+- actions_per_signal:
+
+  Non-negative action count, or one count per generated signal. Zero
+  retains an unactioned signal; counts above one generate distinct
+  character action identifiers.
+
+- action_states:
+
+  Optional supported action state, or one state per generated action,
+  independent of the risk-signal state.
 
 ## Value
 
