@@ -17,6 +17,20 @@
   signal/action states, action lifecycle dates, and typed unknown criticality.
   Optional action counts and states generate unactioned and multi-action
   signals without treating multiple actions as duplicate signals (#134).
+- `Raw_VS` simulates consecutive repeated measurements at site-specific
+  rates, and each site keeps its risk band across snapshots. A new
+  `risk_profile` argument, accepted by the study-creation functions
+  alongside `participants`/`sites`, controls how many sites land in each risk
+  band (#113, #143).
+
+- Simulated `Raw_SUBJ` data now covers IP non-starter, kit assignment and
+  premature treatment discontinuation scenarios, with more realistic dosing
+  timelines and study completion records consistent with each subject's status
+  (#140, #157, #138, #173).
+
+## Bug Fixes
+
+- `create_longitudinal_study()` / `generate_study_snapshots()` snapshots no longer generate independent single-snapshot studies. Instead, each snapshot builds off the previous one, preserving subject, site, and enrollment continuity and letting exposure accumulate across snapshots (#165).
 
 # gsm.datasim v2.0.0
 

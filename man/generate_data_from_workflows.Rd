@@ -15,7 +15,8 @@ generate_data_from_workflows(
   snapshot_width = "months",
   domain_counts = NULL,
   desired_domains = NULL,
-  column_overrides = NULL
+  column_overrides = NULL,
+  risk_profile = NULL
 )
 }
 \arguments{
@@ -48,7 +49,10 @@ each itself a named list of domain data.frames.}
 \emph{final} row counts (e.g. \code{list(Raw_AE = 300, Raw_LB = 500)}). In
 multi-snapshot mode these are the targets for the \emph{last} snapshot; earlier
 snapshots ramp up via \code{count_gen()}. Domains not listed here receive a
-default based on heuristic multipliers of \code{n_participants}.}
+default based on heuristic multipliers of \code{n_participants}. Exception:
+\code{Raw_VS} is generated per subject-visit, so its value is a \emph{subject}
+count (capped at the enrolled roster); each selected subject contributes
+one row per scheduled visit.}
 
 \item{desired_domains}{Optional character vector of domain names to generate.
 \code{NULL} (default) generates all \verb{Raw_*} domains found in the spec.}
@@ -68,14 +72,33 @@ for custom distributions or categorical values.}
 }
 Example:
 \preformatted{
-  column_overrides = list(
-    Raw_LB = list(
-      score_val  = function(n)    round(runif(n, 0, 10), 1),
-      lbstresu   = c("mg/dL", "mmol/L", "g/L"),
-      visit_flag = function(n, df) ifelse(df$visnam == "SCREENING", "S", "F")
-    )
+column_overrides = list(
+  Raw_LB = list(
+    score_val  = function(n)    round(runif(n, 0, 10), 1),
+    lbstresu   = c("mg/dL", "mmol/L", "g/L"),
+    visit_flag = function(n, df) ifelse(df$visnam == "SCREENING", "S", "F")
   )
-  }}
+)
+}}
+
+\item{risk_profile}{Optional named list controlling site-targeted
+consecutive-run injection. Only \code{Raw_VS} currently supports it. \code{NULL}
+uses the generator defaults. Recognized fields are \code{dPctRed} and
+\code{dPctAmber} (share of sites in each band), \code{nWindowLength} (rolling window
+length, whole number \verb{>= 2}), \code{dRateNormal} / \code{dRateAmber} / \code{dRateRed}
+(target repeat rate per band), and \code{vVitals} (character vector of vitals
+to target, or \code{NULL} for all eight). Fields can be given at three levels,
+with more specific levels overriding less specific ones:
+\itemize{
+\item Top level: applies to every domain that supports it.
+\item Domain level: \code{list(Raw_VS = list(dPctRed = 0.3))}.
+\item Vital level: \code{list(Raw_VS = list(sysbp = list(dRateRed = 0.6)))}. Each
+vital's bands are allocated independently, so vitals can have different
+profiles. The targeted vitals are the domain's \code{vVitals} if given (named
+vitals must then be among them), else the vitals the domain names, else
+the top-level \code{vVitals}, else all eight. \code{vVitals} cannot be set inside
+a vital.
+}}
 }
 \value{
 When \code{snapshot_count == 1}, a named list of \code{data.frame}s (one per

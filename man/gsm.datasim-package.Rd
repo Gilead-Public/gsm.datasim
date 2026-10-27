@@ -22,6 +22,7 @@ Useful links:
 
 Authors:
 \itemize{
+  \item Laura Maxwell \email{laura.maxwell@atorusresearch.com}
   \item Zelos Zhu \email{zelos.zhu@atorusresearch.com}
   \item Roman Rogoza \email{roman.rogoza@atorusresearch.com}
 }
