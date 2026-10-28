@@ -172,8 +172,7 @@ This comment was drafted by Claude Code using Opus 4.8 and reviewed by @jwildfir
 
 ### Draft File Convention
 
-- Whenever drafting content, save it to `drafts/{repo}/{type}_{#}_{briefdescription}.md`.
-- The `drafts` directory is centralized in the `gsm.agent` repo (`.github`) with repo-specific subdirectories.
+- Whenever drafting content, save it as a file named `{repo}_{type}_{#}_{briefdescription}.md`, in whatever location your harness uses for drafts or temporary files.
 - Use `{repo}` as the repository name (for example: `workr`, `open.gismo`, `data.wg`).
 - Use `{type}` as `PR` or `ISSUE`; if it is not a PR or ISSUE, use `DISCUSSION`.
 - Use `{#}` as a sequential number per repo/type when posted; if it is not posted yet, use `N`.
@@ -249,7 +248,7 @@ Sample commands:
   cd /path/to/repo && gh issue create --template 3-feature.md --title "<title>" --assignee @me --label enhancement
 
   # Fallback (template-structured body when --template is not available)
-  gh issue create -R owner/repo --title "<title>" --body-file drafts/repo/ISSUE_N_topic.md --assignee @me --label enhancement
+  gh issue create -R owner/repo --title "<title>" --body-file repo_ISSUE_N_topic.md --assignee @me --label enhancement
 
 #### Example
 
