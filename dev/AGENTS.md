@@ -216,10 +216,9 @@ This comment was drafted by Claude Code using Opus 4.8 and reviewed by
 
 ### Draft File Convention
 
-- Whenever drafting content, save it to
-  `drafts/{repo}/{type}_{#}_{briefdescription}.md`.
-- The `drafts` directory is centralized in the `gsm.agent` repo
-  (`.github`) with repo-specific subdirectories.
+- Whenever drafting content, save it as a file named
+  `{repo}_{type}_N_{briefdescription}.md`, in whatever location your
+  harness uses for drafts or temporary files.
 - Use `{repo}` as the repository name (for example: `workr`,
   `open.gismo`, `data.wg`).
 - Use `{type}` as `PR` or `ISSUE`; if it is not a PR or ISSUE, use
@@ -227,9 +226,10 @@ This comment was drafted by Claude Code using Opus 4.8 and reviewed by
 - Use `{#}` as a sequential number per repo/type when posted; if it is
   not posted yet, use `N`.
 - Use `{briefdescription}` as a concise slug under 20 characters.
-- When posting a draft to GitHub, rename the file from `{type}_N_` to
-  `{type}_{#}_` (replacing `N` with the actual number) and **delete the
-  old `_N_` version** so only the posted copy remains.
+- When posting a draft to GitHub, rename the file from
+  `{repo}_{type}_N_` to `{repo}_{type}_{#}_` (replacing `N` with the
+  actual number) and **delete the old `_N_` version** so only the posted
+  copy remains.
 
 #### Posting Checklist
 
@@ -240,8 +240,8 @@ action, not optional follow-up:
 1.  Record the number GitHub assigned (from the command output).
 2.  Update the draft’s status header to
     `<!-- STATUS: Posted to {url} on {Date/Time} -->`.
-3.  Rename the draft `{type}_N_` → `{type}_{#}_` and delete the old
-    `_N_` version.
+3.  Rename the draft `{repo}_{type}_N_` → `{repo}_{type}_{#}_` and
+    delete the old `_N_` version.
 4.  Share the resulting URL as a clickable Markdown link (GitHub Link
     Sharing Convention).
 
@@ -341,8 +341,7 @@ issue create –template 3-feature.md –title “
 \# Fallback (template-structured body when –template is not available)
 gh issue create -R owner/repo –title “
 
-” –body-file drafts/repo/ISSUE_N_topic.md –assignee @me –label
-enhancement
+” –body-file repo_ISSUE_N_topic.md –assignee @me –label enhancement
 
 #### Example
 
