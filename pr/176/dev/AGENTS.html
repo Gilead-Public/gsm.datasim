@@ -189,18 +189,18 @@
 </ul></div>
 <div class="section level3">
 <h3 id="draft-file-convention">Draft File Convention<a class="anchor" aria-label="anchor" href="#draft-file-convention"></a></h3>
-<ul><li>Whenever drafting content, save it as a file named <code>{repo}_{type}_{#}_{briefdescription}.md</code>, in whatever location your harness uses for drafts or temporary files.</li>
+<ul><li>Whenever drafting content, save it as a file named <code>{repo}_{type}_N_{briefdescription}.md</code>, in whatever location your harness uses for drafts or temporary files.</li>
 <li>Use <code>{repo}</code> as the repository name (for example: <code>workr</code>, <code>open.gismo</code>, <code>data.wg</code>).</li>
 <li>Use <code>{type}</code> as <code>PR</code> or <code>ISSUE</code>; if it is not a PR or ISSUE, use <code>DISCUSSION</code>.</li>
 <li>Use <code>{#}</code> as a sequential number per repo/type when posted; if it is not posted yet, use <code>N</code>.</li>
 <li>Use <code>{briefdescription}</code> as a concise slug under 20 characters.</li>
-<li>When posting a draft to GitHub, rename the file from <code>{type}_N_</code> to <code>{type}_{#}_</code> (replacing <code>N</code> with the actual number) and <strong>delete the old <code>_N_</code> version</strong> so only the posted copy remains.</li>
+<li>When posting a draft to GitHub, rename the file from <code>{repo}_{type}_N_</code> to <code>{repo}_{type}_{#}_</code> (replacing <code>N</code> with the actual number) and <strong>delete the old <code>_N_</code> version</strong> so only the posted copy remains.</li>
 </ul><div class="section level4">
 <h4 id="posting-checklist">Posting Checklist<a class="anchor" aria-label="anchor" href="#posting-checklist"></a></h4>
 <p>Run these steps <strong>in the same response</strong> as the <code>gh issue create</code> / <code>gh pr create</code> call that posted the draft — they are part of the posting action, not optional follow-up:</p>
 <ol style="list-style-type: decimal"><li>Record the number GitHub assigned (from the command output).</li>
 <li>Update the draft’s status header to <code>&lt;!-- STATUS: Posted to {url} on {Date/Time} --&gt;</code>.</li>
-<li>Rename the draft <code>{type}_N_</code> → <code>{type}_{#}_</code> and delete the old <code>_N_</code> version.</li>
+<li>Rename the draft <code>{repo}_{type}_N_</code> → <code>{repo}_{type}_{#}_</code> and delete the old <code>_N_</code> version.</li>
 <li>Share the resulting URL as a clickable Markdown link (GitHub Link Sharing Convention).</li>
 </ol><p>Do not advance to the next phase (branching, writing tests, etc.) until the checklist is complete.</p>
 </div>
