@@ -24,6 +24,9 @@ generate_raw_data_for_endpoints <- function(config, domain_package_df) {
   )
 }
 
+# Thin wrapper so package availability can be mocked in tests.
+pkg_available <- function(pkg) requireNamespace(pkg, quietly = TRUE)
+
 # WP1 core helper: resolve enabled mapping names from study config
 get_enabled_mapping_names <- function(config) {
   enabled_datasets <- names(config$dataset_configs)[
@@ -98,7 +101,13 @@ run_domain_generation_loop <- function(combined_specs, config, source_domains) {
   participant_count <- sp$participant_count
   site_count_param <- sp$site_count
 
-  start_dates <- seq(as.Date(tc$start_date), length.out = snapshot_count, by = snapshot_width)
+  # Callers may supply explicit per-snapshot start dates (e.g. month-end aligned
+  # dates from generate_study_snapshots()); otherwise derive them from start_date.
+  start_dates <- if (!is.null(tc$snapshot_dates)) {
+    as.Date(tc$snapshot_dates)[seq_len(snapshot_count)]
+  } else {
+    seq(as.Date(tc$start_date), length.out = snapshot_count, by = snapshot_width)
+  }
   end_dates <- start_dates + 28
   global_max_date <- max(end_dates)
 
@@ -180,7 +189,9 @@ run_domain_generation_loop <- function(combined_specs, config, source_domains) {
         snapshot_idx   = snapshot_idx,
         snapshot_count = snapshot_count,
         snapshot_width = snapshot_width,
-        study_id       = study_id
+        study_id       = study_id,
+        risk_profile = config$study_params$risk_profile,
+        total_site_count = max(site_count_vec)
       )
 
       migrated_data <- generate_domain_from_registry(data_type, registry_context)
@@ -215,6 +226,21 @@ run_domain_generation_loop <- function(combined_specs, config, source_domains) {
           enrolldt    = dplyr::if_else(enrollyn == "N", as.Date(NA), enrolldt),
           timeonstudy = dplyr::if_else(enrollyn == "N", NA, timeonstudy)
         )
+    }
+    if (!is.null(data$Raw_SUBJ)) {
+      data$Raw_SUBJ <- apply_ipns_derivations(
+        data$Raw_SUBJ,
+        endDate = end_dates[[snapshot_idx]]
+      )
+      data$Raw_SUBJ <- apply_ptd_derivations(
+        data$Raw_SUBJ,
+        endDate = end_dates[[snapshot_idx]]
+      )
+      data$Raw_STUDCOMP <- apply_ipns_studcomp(
+        data$Raw_STUDCOMP,
+        data$Raw_SUBJ,
+        endDate = end_dates[[snapshot_idx]]
+      )
     }
     if ("Raw_IE" %in% names(data)) {
       unenrolled <- data$Raw_SUBJ %>%
@@ -264,8 +290,6 @@ generate_snapshots_from_config <- function(config,
 
   for (pkg in pkgs) {
     domains_in_pkg <- domain_pkgs$domain[domain_pkgs$package == pkg]
-    if (length(domains_in_pkg) == 0) next
-
     if (isTRUE(verbose)) {
       cat("Generating raw data for package", pkg, "with", length(domains_in_pkg), "domains...\n")
     }
@@ -282,10 +306,6 @@ generate_snapshots_from_config <- function(config,
       config         = config,
       source_domains = domains_in_pkg
     )
-  }
-
-  if (length(raw_by_package) == 0) {
-    return(list())
   }
 
   if (length(raw_by_package) == 1) {
@@ -360,6 +380,7 @@ ensure_core_mappings <- function(domains) {
 #' @param base_date Base date for snapshot generation (defaults to "2012-01-31" if NULL)
 #' @param outlier_intensity Global multiplier for outlier-like values in domain generators.
 #' @param verbose Whether to print progress/output messages
+#' @inheritParams create_study_config
 #' @return List of raw data for each snapshot
 #' @examples
 #' \dontrun{
@@ -373,7 +394,8 @@ ensure_core_mappings <- function(domains) {
 #' }
 #' @export
 generate_study_snapshots <- function(study_id, participants, sites, snapshots, interval, mappings,
-                                     base_date = NULL, outlier_intensity = 1, verbose = FALSE) {
+                                     base_date = NULL, outlier_intensity = 1,
+                                     risk_profile = NULL, verbose = FALSE) {
   snapshot_width <- parse_interval_to_snapshot_width(interval)
 
   # Calculate start dates for each snapshot
@@ -392,48 +414,36 @@ generate_study_snapshots <- function(study_id, participants, sites, snapshots, i
 
   # Ramp up participants and sites gradually across snapshots, mimicking real
   # enrollment patterns (the same approach used in generate_rawdata_for_single_study).
-  subject_counts <- count_gen(participants, snapshots)
-  site_counts <- count_gen(sites, snapshots)
+  # NOTE: the ramp is applied inside the generation loop via count_gen(); a single
+  # config spanning all snapshots is required so that each snapshot receives the
+  # previous one as `previous_data` and longitudinal continuity is preserved (#165).
+  config <- create_study_config(
+    study_id = study_id,
+    participant_count = participants,
+    site_count = sites,
+    outlier_intensity = outlier_intensity,
+    risk_profile = risk_profile
+  )
 
-  raw_data_list <- list()
+  config <- set_temporal_config(
+    config,
+    start_date = start_dates[1],
+    snapshot_count = snapshots,
+    snapshot_width = snapshot_width
+  )
+  config$temporal_config$snapshot_dates <- start_dates
 
-  for (i in 1:snapshots) {
-    if (isTRUE(verbose)) {
-      cat(
-        "Generating snapshot", i, "of", snapshots,
-        "(", subject_counts[i], "participants,",
-        site_counts[i], "sites)\n"
-      )
-    }
-
-    config <- create_study_config(
-      study_id = study_id,
-      participant_count = subject_counts[i],
-      site_count = site_counts[i],
-      outlier_intensity = outlier_intensity
-    )
-
-    # Set temporal configuration with the specific start date for this snapshot
-    config <- set_temporal_config(
-      config,
-      start_date = start_dates[i],
-      snapshot_count = 1,
-      snapshot_width = snapshot_width
-    )
-
-    # Add enabled datasets based on mappings
-    for (mapping in mappings) {
-      config <- add_dataset_config(config, mapping, enabled = TRUE)
-    }
-    config$verbose <- verbose
-
-    raw_data <- generate_study_data(config, verbose = verbose)
-    # Unwrap single-snapshot lists to avoid nested date keys
-    if (is.list(raw_data) && length(raw_data) == 1 && is.list(raw_data[[1]])) {
-      raw_data <- raw_data[[1]]
-    }
-    raw_data_list[[i]] <- raw_data
+  # Add enabled datasets based on mappings
+  for (mapping in mappings) {
+    config <- add_dataset_config(config, mapping, enabled = TRUE)
   }
+  config$verbose <- verbose
+
+  if (isTRUE(verbose)) {
+    cat("Generating", snapshots, "longitudinal snapshots for", study_id, "\n")
+  }
+
+  raw_data_list <- generate_study_data(config, verbose = verbose)
 
   # Add the calculated dates as names to the list
   names(raw_data_list) <- as.character(start_dates)
@@ -484,11 +494,11 @@ execute_analytics_pipeline <- function(raw_data, config) {
   tryCatch(
     {
       # Check if workr is available
-      if (!requireNamespace("workr", quietly = TRUE)) {
+      if (!pkg_available("workr")) {
         if (isTRUE(verbose)) message("workr package not available. Skipping analytics pipeline.")
         return(NULL)
       }
-      if (!requireNamespace("gsm.mapping", quietly = TRUE)) {
+      if (!pkg_available("gsm.mapping")) {
         if (isTRUE(verbose)) message("gsm.mapping package not available. Skipping analytics pipeline.")
         return(NULL)
       }
@@ -589,7 +599,7 @@ execute_analytics_pipeline <- function(raw_data, config) {
         for (mwf_name in names(all_mappings_wf)) {
           single_mwf <- all_mappings_wf[mwf_name]
           result <- tryCatch(
-            workr::RunWorkflows(lWorkflow = single_mwf, lData = c(lRaw, mapped_data)),
+            workr::RunWorkflows(lWorkflows = single_mwf, lData = c(lRaw, mapped_data)),
             error = function(e) NULL
           )
           if (!is.null(result)) {
@@ -602,7 +612,7 @@ execute_analytics_pipeline <- function(raw_data, config) {
           single_wf <- lWorkflow[wf_name]
           wf_result <- tryCatch(
             workr::RunWorkflows(
-              lWorkflow = single_wf,
+              lWorkflows = single_wf,
               lData = mapped_data
             ),
             error = function(e) {
@@ -762,11 +772,11 @@ execute_reporting_pipeline <- function(analytics_results, config) {
 
   tryCatch(
     {
-      if (!requireNamespace("gsm.reporting", quietly = TRUE)) {
+      if (!pkg_available("gsm.reporting")) {
         if (isTRUE(verbose)) message("gsm.reporting package not available. Skipping reporting pipeline.")
         return(NULL)
       }
-      if (!requireNamespace("workr", quietly = TRUE)) {
+      if (!pkg_available("workr")) {
         if (isTRUE(verbose)) message("workr package not available. Skipping reporting pipeline.")
         return(NULL)
       }
@@ -818,7 +828,7 @@ execute_reporting_pipeline <- function(analytics_results, config) {
 
         lReporting <- tryCatch(
           workr::RunWorkflows(
-            lWorkflow = reporting_wf,
+            lWorkflows = reporting_wf,
             lData     = c(mapped, list(lAnalyzed = lAnalyzed, lWorkflows = lWorkflow))
           ),
           error = function(e) {

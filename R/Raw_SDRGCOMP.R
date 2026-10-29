@@ -49,3 +49,22 @@ sdrgyn <- function(n, ...) {
     replace = TRUE
   )
 }
+
+#' Subjects that are enrolled but never dosed (IP non-starters)
+#'
+#' The single definition of "enrolled but never dosed", used to seed the
+#' simulated `drv_ip_nonstarter_status`.
+#'
+#' @param raw_subj a `Raw_SUBJ` data.frame carrying `subjid`, `enrollyn`,
+#'   `firstdosedate`.
+#' @returns a character vector of non-starter `subjid`s.
+#' @family internal
+#' @keywords internal
+#' @noRd
+nonstarter_subjids <- function(raw_subj) {
+  if (is.null(raw_subj) ||
+    !all(c("subjid", "enrollyn", "firstdosedate") %in% names(raw_subj))) {
+    return(character(0))
+  }
+  as.character(raw_subj$subjid[raw_subj$enrollyn %in% "Y" & is.na(raw_subj$firstdosedate)])
+}
