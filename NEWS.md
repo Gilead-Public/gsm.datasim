@@ -1,19 +1,28 @@
 # gsm.datasim (development version)
 
-- `Raw_VS` simulates consecutive repeated measurements at site-specific
+- New `build_testdata_bundle()` produces the shared gsm test data (`lSource`, `analytics*`, `reporting*`) for use in other gsm packages (#151).
+
+# gsm.datasim v2.1.0
+
+This minor release adds simulated data for the IP Compliance (IP non-starters and premature treatment discontinuation) and Repeat Measurements analytics, and keeps longitudinal snapshots consistent from one snapshot to the next.
+
+## New Features
+
+- `Raw_VS` is a new vital signs simulator (weight, systolic and diastolic blood pressure). It simulates consecutive repeated measurements at site-specific
   rates, and each site keeps its risk band across snapshots. A new
   `risk_profile` argument, accepted by the study-creation functions
   alongside `participants`/`sites`, controls how many sites land in each risk
-  band (#113, #143).
+  band (#113, #143, #170).
 
 - Simulated `Raw_SUBJ` data now covers IP non-starter, kit assignment and
   premature treatment discontinuation scenarios, with more realistic dosing
   timelines and study completion records consistent with each subject's status
-  (#140, #157, #138, #173).
+  (#122, #140, #157, #138, #173).
 
 ## Bug Fixes
 
 - `create_longitudinal_study()` / `generate_study_snapshots()` snapshots no longer generate independent single-snapshot studies. Instead, each snapshot builds off the previous one, preserving subject, site, and enrollment continuity and letting exposure accumulate across snapshots (#165).
+- `RunWorkflows()` is now called with its full `lWorkflows` argument name, removing a partial-match warning (#158).
 
 # gsm.datasim v2.0.0
 
