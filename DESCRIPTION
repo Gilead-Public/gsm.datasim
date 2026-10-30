@@ -1,6 +1,6 @@
 Package: gsm.datasim
 Title: Synthetic Test Data Generator
-Version: 2.0.0.9000
+Version: 2.1.0.9000
 Authors@R: c(
     person("Laura", "Maxwell", , "laura.maxwell@atorusresearch.com", role = c("aut", "cre")),
     person("Zelos", "Zhu", , "zelos.zhu@atorusresearch.com", role = "aut"),
@@ -20,8 +20,10 @@ Depends:
     R (>= 4.1.0)
 Imports:
     arrow,
+    digest,
     dplyr,
     glue,
+    jsonlite,
     lifecycle,
     logger,
     lubridate,
@@ -31,10 +33,12 @@ Imports:
     stringr,
     tictoc,
     utils,
-    workr (>= 1.0.0)
+    workr (>= 1.0.0),
+    yaml
 Suggests:
     gsm.kri,
     gsm.mapping,
+    gsm.qtl,
     gsm.reporting,
     knitr,
     rmarkdown,
@@ -45,6 +49,7 @@ VignetteBuilder:
 Remotes:
     gsm.kri=Gilead-Public/gsm.kri@dev,
     gsm.mapping=Gilead-Public/gsm.mapping@dev,
+    gsm.qtl=Gilead-Public/gsm.qtl@dev,
     gsm.reporting=Gilead-Public/gsm.reporting@dev,
     workr=Gilead-Public/workr@main
 Config/roxygen2/version: 8.1.1

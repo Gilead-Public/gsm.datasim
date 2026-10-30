@@ -1,9 +1,11 @@
 test_that(".toc_quiet() keeps timing output on by default (#noissue)", {
+  skip_if_not_installed("withr")
   withr::local_envvar(GSM_SHOW_TOC = NA)
   expect_false(.toc_quiet())
 })
 
 test_that(".toc_quiet() respects truthy GSM_SHOW_TOC values (#noissue)", {
+  skip_if_not_installed("withr")
   withr::local_envvar(GSM_SHOW_TOC = "TRUE")
   expect_false(.toc_quiet())
 
@@ -12,6 +14,7 @@ test_that(".toc_quiet() respects truthy GSM_SHOW_TOC values (#noissue)", {
 })
 
 test_that(".toc_quiet() silences timing output for explicit FALSE (#noissue)", {
+  skip_if_not_installed("withr")
   withr::local_envvar(GSM_SHOW_TOC = "FALSE")
   expect_true(.toc_quiet())
 
@@ -20,6 +23,7 @@ test_that(".toc_quiet() silences timing output for explicit FALSE (#noissue)", {
 })
 
 test_that(".toc_quiet() falls back to verbose for unparseable values (#noissue)", {
+  skip_if_not_installed("withr")
   # as.logical() returns NA here; isFALSE(NA) is FALSE, so timing stays on
   withr::local_envvar(GSM_SHOW_TOC = "garbage")
   expect_false(.toc_quiet())
