@@ -361,7 +361,17 @@ test_that("manifest records versions, checksums, size, and a data-only fingerpri
 test_that("identical builds share a fingerprint regardless of build metadata (#151)", {
   skip_if_not_installed("withr")
   skip_if_no_bundle_pipeline()
-  a <- read_testdata_manifest(build_fake_bundle())
+  github_vars <- c(
+    "GITHUB_REPOSITORY",
+    "GITHUB_SHA",
+    "GITHUB_SERVER_URL",
+    "GITHUB_RUN_ID"
+  )
+  # Unset only while building `a`, so the test also passes on GitHub Actions.
+  a <- withr::with_envvar(
+    stats::setNames(rep(NA_character_, length(github_vars)), github_vars),
+    read_testdata_manifest(build_fake_bundle())
+  )
   withr::local_envvar(
     GITHUB_REPOSITORY = "o/r",
     GITHUB_SHA = "abc",
