@@ -1,5 +1,6 @@
 test_that("create_multiple_longitudinal_studies works with basic configuration (#89, #95)", {
   skip_if_not_installed("gsm.mapping")
+  test_at_log_threshold()
 
   studies <- create_multiple_longitudinal_studies(
     study_names = c("TEST-001", "TEST-002"),
@@ -15,7 +16,7 @@ test_that("create_multiple_longitudinal_studies works with basic configuration (
   expect_s3_class(studies, "multiple_longitudinal_studies")
   expect_type(studies, "list")
   expect_equal(length(studies), 2)
-  expect_equal(names(studies), c("TEST-001", "TEST-002"))
+  expect_named(studies, c("TEST-001", "TEST-002"))
 
   # Check each study structure
   for (study_name in names(studies)) {
@@ -29,6 +30,7 @@ test_that("create_multiple_longitudinal_studies works with basic configuration (
 })
 
 test_that("create_multiple_longitudinal_studies works with per-study configuration (#89, #95)", {
+  test_at_log_threshold()
   skip_if_not_installed("gsm.mapping")
 
   studies <- create_multiple_longitudinal_studies(
@@ -63,12 +65,15 @@ test_that("create_multiple_longitudinal_studies validates inputs (#95)", {
 
   # Duplicate study names
   expect_error(
-    create_multiple_longitudinal_studies(study_names = c("TEST-001", "TEST-001")),
+    create_multiple_longitudinal_studies(
+      study_names = c("TEST-001", "TEST-001")
+    ),
     "study_names contains duplicate values"
   )
 })
 
 test_that("print method works for multiple_longitudinal_studies (#95)", {
+  test_at_log_threshold()
   skip_if_not_installed("gsm.mapping")
 
   studies <- create_multiple_longitudinal_studies(
@@ -88,6 +93,7 @@ test_that("print method works for multiple_longitudinal_studies (#95)", {
 })
 
 test_that("summary method works for multiple_longitudinal_studies (#95)", {
+  test_at_log_threshold()
   skip_if_not_installed("gsm.mapping")
 
   studies <- create_multiple_longitudinal_studies(

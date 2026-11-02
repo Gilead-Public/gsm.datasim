@@ -19,3 +19,6 @@
 ^\.claude$
 ^DEMO-
 ^TRIAL-
+^AGENTS\.md$
+^\.posit$
+^drafts$

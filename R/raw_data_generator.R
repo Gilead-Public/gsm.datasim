@@ -214,7 +214,7 @@ raw_data_generator <- function(
       )
 
       logger::log_info(glue::glue("Added {curr_vars$StudyID} successfully"))
-      tictoc::toc()
+      tictoc::toc(quiet = .toc_quiet())
 
       res
     })

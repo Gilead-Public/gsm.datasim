@@ -15,7 +15,9 @@
   snapshot_width,
   study_id,
   previous_data,
-  column_overrides = NULL
+  column_overrides = NULL,
+  total_site_count = NULL,
+  risk_profile = NULL
 )
 }
 \description{

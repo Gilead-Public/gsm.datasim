@@ -1,6 +1,6 @@
 ---
 title: "Domain Registry"
-author: "[gsm.datasim](https://gilead-biostats.github.io/gsm.datasim) Example"
+author: "[gsm.datasim](https://gilead-public.github.io/gsm.datasim) Example"
 description: "How to inspect, use, and extend the Domain Registry for custom data generation."
 index: 3
 date: "`r format(Sys.time(), '%B %d, %Y %H:%M:%S %Z')`"

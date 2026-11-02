@@ -4,17 +4,17 @@
 
 <div class="pkgdown-release">
 
-[![R-CMD-check](https://github.com/Gilead-BioStats/gsm.datasim/actions/workflows/R-CMD-check.yaml/badge.svg?branch=main)](https://github.com/Gilead-BioStats/gsm.datasim/actions/workflows/R-CMD-check.yaml)
-[![test-coverage](https://github.com/Gilead-BioStats/gsm.datasim/actions/workflows/test-coverage.yaml/badge.svg?branch=main)](https://github.com/Gilead-BioStats/gsm.datasim/actions/workflows/test-coverage.yaml)
-[![pkgdown-all](https://github.com/Gilead-BioStats/gsm.datasim/actions/workflows/pkgdown-all.yaml/badge.svg?branch=main)](https://github.com/Gilead-BioStats/gsm.datasim/actions/workflows/pkgdown-all.yaml)
+[![R-CMD-check](https://github.com/Gilead-Public/gsm.datasim/actions/workflows/R-CMD-check.yaml/badge.svg?branch=main)](https://github.com/Gilead-Public/gsm.datasim/actions/workflows/R-CMD-check.yaml)
+[![test-coverage](https://github.com/Gilead-Public/gsm.datasim/actions/workflows/test-coverage.yaml/badge.svg?branch=main)](https://github.com/Gilead-Public/gsm.datasim/actions/workflows/test-coverage.yaml)
+[![pkgdown-all](https://github.com/Gilead-Public/gsm.datasim/actions/workflows/pkgdown-all.yaml/badge.svg?branch=main)](https://github.com/Gilead-Public/gsm.datasim/actions/workflows/pkgdown-all.yaml)
 
 </div>
 
 <div class="pkgdown-devel">
 
-[![R-CMD-check](https://github.com/Gilead-BioStats/gsm.datasim/actions/workflows/R-CMD-check.yaml/badge.svg?branch=dev)](https://github.com/Gilead-BioStats/gsm.datasim/actions/workflows/R-CMD-check.yaml)
-[![test-coverage](https://github.com/Gilead-BioStats/gsm.datasim/actions/workflows/test-coverage.yaml/badge.svg?branch=dev)](https://github.com/Gilead-BioStats/gsm.datasim/actions/workflows/test-coverage.yaml)
-[![pkgdown-all](https://github.com/Gilead-BioStats/gsm.datasim/actions/workflows/pkgdown-all.yaml/badge.svg?branch=dev)](https://github.com/Gilead-BioStats/gsm.datasim/actions/workflows/pkgdown-all.yaml)
+[![R-CMD-check](https://github.com/Gilead-Public/gsm.datasim/actions/workflows/R-CMD-check.yaml/badge.svg?branch=dev)](https://github.com/Gilead-Public/gsm.datasim/actions/workflows/R-CMD-check.yaml)
+[![test-coverage](https://github.com/Gilead-Public/gsm.datasim/actions/workflows/test-coverage.yaml/badge.svg?branch=dev)](https://github.com/Gilead-Public/gsm.datasim/actions/workflows/test-coverage.yaml)
+[![pkgdown-all](https://github.com/Gilead-Public/gsm.datasim/actions/workflows/pkgdown-all.yaml/badge.svg?branch=dev)](https://github.com/Gilead-Public/gsm.datasim/actions/workflows/pkgdown-all.yaml)
 
 </div>
 
@@ -27,7 +27,7 @@ development of clinical monitoring applications. It produces multi-snapshot
 longitudinal datasets across a configurable set of clinical domains
 (SDTM-style and custom) and can run configurable analytics and reporting
 pipelines on the generated data via the
-[`workr`](https://github.com/Gilead-BioStats/workr) workflow engine.
+[`workr`](https://github.com/Gilead-Public/workr) workflow engine.
 
 ## Installation
 
@@ -35,7 +35,7 @@ You can install the latest release of gsm.datasim from [GitHub](https://github.c
 
 ``` r
 # install.packages("pak")
-pak::pak("Gilead-BioStats/gsm.datasim@*release")
+pak::pak("Gilead-Public/gsm.datasim@*release")
 ```
 
 <div class="pkgdown-devel">
@@ -45,7 +45,7 @@ You can install the development version of gsm.datasim from
 
 ``` r
 # install.packages("pak")
-pak::pak("Gilead-BioStats/gsm.datasim")
+pak::pak("Gilead-Public/gsm.datasim")
 ```
 
 </div>

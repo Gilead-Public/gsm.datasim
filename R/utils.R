@@ -3,6 +3,17 @@ combination_var_splitter <- function(variable_data, split_vars) {
     # Step 1: Find the index of the sublist in the main list
     sublist_index <- which(names(variable_data) == split_var_name)
 
+    # A split var the caller named but the spec never produced would index
+    # with integer(0) below and fail deep inside `[[` with an opaque
+    # "attempt to select less than one element" error. Name it instead.
+    if (length(sublist_index) != 1) {
+      stop(
+        "Split variable '", split_var_name, "' ",
+        if (length(sublist_index) == 0) "was not generated" else "is ambiguous",
+        "; available: ", paste(names(variable_data), collapse = ", ")
+      )
+    }
+
     # Step 2: Extract the elements of the sublist
     sublist_elements <- variable_data[[sublist_index]]
 
@@ -529,7 +540,19 @@ save_data_on_disk <- function(data, base_path = NULL) {
   close(pb)
 
   logger::log_info(glue::glue("Saved all data successfully"))
-  tictoc::toc()
+  tictoc::toc(quiet = .toc_quiet())
+}
+
+#' Should `tictoc::toc()` be silenced?
+#'
+#' Timing messages are shown by default. Setting the `GSM_SHOW_TOC` environment
+#' variable to `"FALSE"` (or `"false"`) suppresses them; any other value, or an
+#' unset variable, leaves them on.
+#'
+#' @return `TRUE` when timing output should be suppressed.
+#' @noRd
+.toc_quiet <- function() {
+  isFALSE(as.logical(Sys.getenv("GSM_SHOW_TOC", "TRUE")))
 }
 
 generate_random_fpfv <- function(min_date, max_date, canBeEmpty = FALSE, previous_date = NULL) {
