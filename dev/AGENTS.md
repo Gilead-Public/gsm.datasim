@@ -138,13 +138,13 @@ tests or examples rather than synthesizing inputs from scratch:
 - `gsm.core::lSource$Raw_SUBJ` — demographics
 - `gsm.core::lSource$Raw_AE` — adverse events (plus other `Raw_*`
   domains in `lSource`)
-- [`gsm.core::reportingResults`](https://gilead-biostats.github.io/gsm.core/reference/reportingResults.html)
+- [`gsm.core::reportingResults`](https://gilead-public.github.io/gsm.core/reference/reportingResults.html)
   — pre-calculated KRI results
-- [`gsm.core::reportingGroups`](https://gilead-biostats.github.io/gsm.core/reference/reportingGroups.html)
+- [`gsm.core::reportingGroups`](https://gilead-public.github.io/gsm.core/reference/reportingGroups.html)
   — site / study metadata
-- [`gsm.core::reportingMetrics`](https://gilead-biostats.github.io/gsm.core/reference/reportingMetrics.html)
+- [`gsm.core::reportingMetrics`](https://gilead-public.github.io/gsm.core/reference/reportingMetrics.html)
   — metric definitions
-- [`gsm.core::reportingBounds`](https://gilead-biostats.github.io/gsm.core/reference/reportingBounds.html)
+- [`gsm.core::reportingBounds`](https://gilead-public.github.io/gsm.core/reference/reportingBounds.html)
   — statistical bounds
 
 `gsm.datasim` is the source for additional synthetic test data when
@@ -336,172 +336,151 @@ Sample commands:
 \# Preferred (template + type via frontmatter) cd /path/to/repo && gh
 issue create –template 3-feature.md –title “
 
-” –assignee @me –label enhancement
-
-\# Fallback (template-structured body when –template is not available)
-gh issue create -R owner/repo –title “
-
-” –body-file repo_ISSUE_N_topic.md –assignee @me –label enhancement
-
-#### Example
-
-``` markdown
-<!-- STATUS: Drafted on 2026-04-02 10:43:48 EDT -->
-<!-- GITHUB_PROPERTIES: Milestone: v1.0.0, Labels: critical, refactor, Assignee: @me -->
-
-This Issue was drafted by Claude Code using Opus 4.8 and reviewed by @jwildfire
-
-# Issue Title
-...
-```
-
-### Approval Convention
-
-- For user approval gates, present a multiple-choice **Approval** prompt
-  rather than asking the user to type `approved`. Use whatever
-  interactive multiple-choice prompt the agent’s tool provides (for
-  example, `vscode_askQuestions` in VS Code, or `AskUserQuestion` in
-  Claude Code).
-- Offer options equivalent to:
-  - `Approve and continue`
-  - `Request changes`
-  - `Pause`
-- Treat only an explicit `Approve and continue` selection as approval to
-  proceed.
-- If the user selects `Request changes`, revise the draft and re-open
-  the Approval prompt.
-- If the user selects `Pause`, stop and wait for further direction.
-
-### Decision Prompt Convention
-
-- Whenever possible, present next implementation steps as
-  multiple-choice options rather than open-ended prompts, using the
-  agent’s interactive prompt.
-- Keep freeform input optional and only rely on open-ended text when
-  options are genuinely insufficient.
-- If uncertainty remains after an option is selected, follow up with a
-  narrow, targeted question.
-
-### Test-Driven Development Convention
-
-- For code changes — new functionality or bug fixes — default to
-  test-driven development: write or update tests first, confirm they
-  fail, then implement the minimal change to make them pass. The
-  [`tdd`](https://gilead-public.github.io/gsm.datasim/dev/skills/tdd/SKILL.md)
-  skill defines the full Red-Green flow.
-- This is a default to adapt, not an absolute. Changes that can’t be
-  meaningfully tested with `testthat` (docs, CI/YAML, templates) may
-  skip the test-first step with a brief rationale.
-- Keep changes minimal and scoped to the requirement; don’t refactor or
-  add unrelated features in the same change.
-
-### Using Skills
-
-- When a task matches an available skill’s `description` (see
-  [`skills/`](https://gilead-public.github.io/gsm.datasim/dev/skills/)),
-  use that skill rather than improvising — skills capture the
-  ecosystem’s repeatable workflows.
-- Skills are guidance to adapt, not rigid scripts; the Conventions here
-  always apply on top of them.
-
-### Parallel Worktree Convention
-
-Multiple development workflows may run concurrently in separate agent
-sessions. To prevent agents from interfering with each other’s branches,
-**always use `git worktree`** instead of `git checkout` when starting
-work on a branch.
-
-#### Why
-
-`git checkout` changes the branch in the shared working directory. If
-two agents start work at the same time, one agent’s checkout will
-silently switch the branch out from under the other. Git worktrees give
-each branch its own isolated directory while sharing a single `.git`
-object store.
-
-#### Directory Layout
-
-    {repo}/                          ← main worktree (stays on dev/main)
-    {repo}-worktrees/
-      {branch}/                      ← linked worktree for the work
-      {other-branch}/                ← another concurrent branch
-
-- Place linked worktrees in `../{repo}-worktrees/` (a sibling directory
-  to the main repo clone).
-- Name each worktree directory after the branch.
-
-#### Creating a Worktree
-
-``` bash
-# From the main repo directory; base off the repo's integration branch (dev if it exists, else main)
-git fetch origin
-git worktree add ../{repo}-worktrees/{branch} -b {branch} origin/{base}
-```
-
-#### Working in a Worktree
-
-- **All git and R/JS commands** for the work must run from within the
-  worktree directory.
-- Use `cd` to enter the worktree at the start of each phase. Do not
-  assume the terminal is already there.
-- File edits (tests, source, docs) must target paths inside the
-  worktree, not the main clone.
-
-#### Pushing and PR
-
-- Push from the worktree directory: `git push -u origin {branch}`.
-- `gh pr create` works normally from inside the worktree.
-
-#### Cleanup
-
-After the PR is merged (or the work is abandoned):
-
-``` bash
-# From the main repo directory
-git worktree remove ../{repo}-worktrees/{branch}
-git branch -d {branch}
-```
-
-- Do not delete worktrees for other agents’ in-flight work.
-- If cleanup fails because the worktree is still in use, skip it and
-  inform the user.
-
-#### Fallback
-
-If the user explicitly requests `git checkout` instead of worktrees
-(e.g., when only one branch is active), the agent may fall back to the
-checkout flow. In all other cases, default to worktrees.
-
-------------------------------------------------------------------------
-
-## Skills
-
-Task-specific capabilities live as skills in
-[`skills/`](https://gilead-public.github.io/gsm.datasim/dev/skills/),
-each a `skills/<name>/SKILL.md` with a `description` that tells the
-agent when to use it. The full skill loads only when a task matches, so
-procedures don’t tax every session. The agent invokes them as needed —
-they are flexible guidance, not rigid scripts — and the Conventions
-above always apply on top.
-
-Current skills:
-
-- **[`tdd`](https://gilead-public.github.io/gsm.datasim/dev/skills/tdd/SKILL.md)**
-  — the Red-Green TDD development workflow (write failing tests,
-  implement the minimal change, then optionally open a PR), driven by a
-  GitHub issue or any stated requirement.
-- **[`issue-review`](https://gilead-public.github.io/gsm.datasim/dev/skills/issue-review/SKILL.md)**
-  — preview a drafted GitHub issue, PR, or comment in the terminal and
-  capture sign-off before posting. Use when about to post a drafted
-  artifact (single or batch).
-- **[`pkgdown-assets`](https://gilead-public.github.io/gsm.datasim/dev/skills/pkgdown-assets/SKILL.md)**
-  — create and publish examples, cookbooks, and slide decks on a pkgdown
-  site; guides through authoring source files, `build_assets()`, local
-  verification, and CI wiring.
-- **[`sub-issue-linking`](https://gilead-public.github.io/gsm.datasim/dev/skills/sub-issue-linking/SKILL.md)**
-  — link existing GitHub issues as sub-issues of a parent issue using
-  the Relationships feature. Use when adding sub-tasks or connecting
-  cross-repo issues to a parent requirement.
-
-Add a new skill when a task type has a repeatable shape worth capturing;
-keep one-off guidance in the relevant repo’s `AGENT.md`/docs instead.
+\<p\>” –assignee @me –label enhancement\</p\> \# Fallback
+(template-structured body when –template is not available) gh issue
+create -R owner/repo –title “ \<title\> \<p\>” –body-file
+repo_ISSUE_N_topic.md –assignee @me –label enhancement\</p\> \</div\>
+\<div id="example" class="section level4"\> \<h4\>Example\</h4\> \<div
+class="sourceCode" id="cb2"\>\<pre class="sourceCode markdown"\>\<code
+class="sourceCode markdown"\>\<span id="cb2-1"\>\<a href="#cb2-1"
+tabindex="-1"\>\</a\>\<span class="co"\>\<!-- STATUS: Drafted on
+2026-04-02 10:43:48 EDT --\>\</span\>\</span\> \<span id="cb2-2"\>\<a
+href="#cb2-2" tabindex="-1"\>\</a\>\<span class="co"\>\<!--
+GITHUB_PROPERTIES: Milestone: v1.0.0, Labels: critical, refactor,
+Assignee: @me --\>\</span\>\</span\> \<span id="cb2-3"\>\<a
+href="#cb2-3" tabindex="-1"\>\</a\>\</span\> \<span id="cb2-4"\>\<a
+href="#cb2-4" tabindex="-1"\>\</a\>This Issue was drafted by Claude Code
+using Opus 4.8 and reviewed by @jwildfire\</span\> \<span
+id="cb2-5"\>\<a href="#cb2-5" tabindex="-1"\>\</a\>\</span\> \<span
+id="cb2-6"\>\<a href="#cb2-6" tabindex="-1"\>\</a\>\<span class="fu"\>#
+Issue Title\</span\>\</span\> \<span id="cb2-7"\>\<a href="#cb2-7"
+tabindex="-1"\>\</a\>...\</span\>\</code\>\</pre\>\</div\> \</div\>
+\</div\> \<div id="approval-convention" class="section level3"\>
+\<h3\>Approval Convention\</h3\> \<ul\> \<li\>For user approval gates,
+present a multiple-choice \<strong\>Approval\</strong\> prompt rather
+than asking the user to type \<code\>approved\</code\>. Use whatever
+interactive multiple-choice prompt the agent’s tool provides (for
+example, \<code\>vscode_askQuestions\</code\> in VS Code, or
+\<code\>AskUserQuestion\</code\> in Claude Code).\</li\> \<li\>Offer
+options equivalent to: \<ul\> \<li\>\<code\>Approve and
+continue\</code\>\</li\> \<li\>\<code\>Request changes\</code\>\</li\>
+\<li\>\<code\>Pause\</code\>\</li\> \</ul\>\</li\> \<li\>Treat only an
+explicit \<code\>Approve and continue\</code\> selection as approval to
+proceed.\</li\> \<li\>If the user selects \<code\>Request
+changes\</code\>, revise the draft and re-open the Approval
+prompt.\</li\> \<li\>If the user selects \<code\>Pause\</code\>, stop
+and wait for further direction.\</li\> \</ul\> \</div\> \<div
+id="decision-prompt-convention" class="section level3"\> \<h3\>Decision
+Prompt Convention\</h3\> \<ul\> \<li\>Whenever possible, present next
+implementation steps as multiple-choice options rather than open-ended
+prompts, using the agent’s interactive prompt.\</li\> \<li\>Keep
+freeform input optional and only rely on open-ended text when options
+are genuinely insufficient.\</li\> \<li\>If uncertainty remains after an
+option is selected, follow up with a narrow, targeted question.\</li\>
+\</ul\> \</div\> \<div id="test-driven-development-convention"
+class="section level3"\> \<h3\>Test-Driven Development Convention\</h3\>
+\<ul\> \<li\>For code changes — new functionality or bug fixes — default
+to test-driven development: write or update tests first, confirm they
+fail, then implement the minimal change to make them pass. The \<a
+href="skills/tdd/SKILL.md"\>\<code\>tdd\</code\>\</a\> skill defines the
+full Red-Green flow.\</li\> \<li\>This is a default to adapt, not an
+absolute. Changes that can’t be meaningfully tested with
+\<code\>testthat\</code\> (docs, CI/YAML, templates) may skip the
+test-first step with a brief rationale.\</li\> \<li\>Keep changes
+minimal and scoped to the requirement; don’t refactor or add unrelated
+features in the same change.\</li\> \</ul\> \</div\> \<div
+id="using-skills" class="section level3"\> \<h3\>Using Skills\</h3\>
+\<ul\> \<li\>When a task matches an available skill’s
+\<code\>description\</code\> (see \<a
+href="skills/"\>\<code\>skills/\</code\>\</a\>), use that skill rather
+than improvising — skills capture the ecosystem’s repeatable
+workflows.\</li\> \<li\>Skills are guidance to adapt, not rigid scripts;
+the Conventions here always apply on top of them.\</li\> \</ul\>
+\</div\> \<div id="parallel-worktree-convention" class="section
+level3"\> \<h3\>Parallel Worktree Convention\</h3\> \<p\>Multiple
+development workflows may run concurrently in separate agent sessions.
+To prevent agents from interfering with each other’s branches,
+\<strong\>always use \<code\>git worktree\</code\>\</strong\> instead of
+\<code\>git checkout\</code\> when starting work on a branch.\</p\>
+\<div id="why" class="section level4"\> \<h4\>Why\</h4\>
+\<p\>\<code\>git checkout\</code\> changes the branch in the shared
+working directory. If two agents start work at the same time, one
+agent’s checkout will silently switch the branch out from under the
+other. Git worktrees give each branch its own isolated directory while
+sharing a single \<code\>.git\</code\> object store.\</p\> \</div\>
+\<div id="directory-layout" class="section level4"\> \<h4\>Directory
+Layout\</h4\> \<pre\>\<code\>{repo}/ ← main worktree (stays on dev/main)
+{repo}-worktrees/ {branch}/ ← linked worktree for the work
+{other-branch}/ ← another concurrent branch\</code\>\</pre\> \<ul\>
+\<li\>Place linked worktrees in \<code\>../{repo}-worktrees/\</code\> (a
+sibling directory to the main repo clone).\</li\> \<li\>Name each
+worktree directory after the branch.\</li\> \</ul\> \</div\> \<div
+id="creating-a-worktree" class="section level4"\> \<h4\>Creating a
+Worktree\</h4\> \<div class="sourceCode" id="cb4"\>\<pre
+class="sourceCode bash"\>\<code class="sourceCode bash"\>\<span
+id="cb4-1"\>\<a href="#cb4-1" tabindex="-1"\>\</a\>\<span class="co"\>#
+From the main repo directory; base off the repo's integration branch
+(dev if it exists, else main)\</span\>\</span\> \<span id="cb4-2"\>\<a
+href="#cb4-2" tabindex="-1"\>\</a\>\<span class="fu"\>git\</span\> fetch
+origin\</span\> \<span id="cb4-3"\>\<a href="#cb4-3"
+tabindex="-1"\>\</a\>\<span class="fu"\>git\</span\> worktree add
+../{repo}-worktrees/{branch} \<span class="at"\>-b\</span\> {branch}
+origin/{base}\</span\>\</code\>\</pre\>\</div\> \</div\> \<div
+id="working-in-a-worktree" class="section level4"\> \<h4\>Working in a
+Worktree\</h4\> \<ul\> \<li\>\<strong\>All git and R/JS
+commands\</strong\> for the work must run from within the worktree
+directory.\</li\> \<li\>Use \<code\>cd\</code\> to enter the worktree at
+the start of each phase. Do not assume the terminal is already
+there.\</li\> \<li\>File edits (tests, source, docs) must target paths
+inside the worktree, not the main clone.\</li\> \</ul\> \</div\> \<div
+id="pushing-and-pr" class="section level4"\> \<h4\>Pushing and PR\</h4\>
+\<ul\> \<li\>Push from the worktree directory: \<code\>git push -u
+origin {branch}\</code\>.\</li\> \<li\>\<code\>gh pr create\</code\>
+works normally from inside the worktree.\</li\> \</ul\> \</div\> \<div
+id="cleanup" class="section level4"\> \<h4\>Cleanup\</h4\> \<p\>After
+the PR is merged (or the work is abandoned):\</p\> \<div
+class="sourceCode" id="cb5"\>\<pre class="sourceCode bash"\>\<code
+class="sourceCode bash"\>\<span id="cb5-1"\>\<a href="#cb5-1"
+tabindex="-1"\>\</a\>\<span class="co"\># From the main repo
+directory\</span\>\</span\> \<span id="cb5-2"\>\<a href="#cb5-2"
+tabindex="-1"\>\</a\>\<span class="fu"\>git\</span\> worktree remove
+../{repo}-worktrees/{branch}\</span\> \<span id="cb5-3"\>\<a
+href="#cb5-3" tabindex="-1"\>\</a\>\<span class="fu"\>git\</span\>
+branch \<span class="at"\>-d\</span\>
+{branch}\</span\>\</code\>\</pre\>\</div\> \<ul\> \<li\>Do not delete
+worktrees for other agents’ in-flight work.\</li\> \<li\>If cleanup
+fails because the worktree is still in use, skip it and inform the
+user.\</li\> \</ul\> \</div\> \<div id="fallback" class="section
+level4"\> \<h4\>Fallback\</h4\> \<p\>If the user explicitly requests
+\<code\>git checkout\</code\> instead of worktrees (e.g., when only one
+branch is active), the agent may fall back to the checkout flow. In all
+other cases, default to worktrees.\</p\> \<hr /\> \</div\> \</div\>
+\</div\> \<div id="skills" class="section level2"\> \<h2\>Skills\</h2\>
+\<p\>Task-specific capabilities live as skills in \<a
+href="skills/"\>\<code\>skills/\</code\>\</a\>, each a
+\<code\>skills/\<name\>/SKILL.md\</code\> with a
+\<code\>description\</code\> that tells the agent when to use it. The
+full skill loads only when a task matches, so procedures don’t tax every
+session. The agent invokes them as needed — they are flexible guidance,
+not rigid scripts — and the Conventions above always apply on top.\</p\>
+\<p\>Current skills:\</p\> \<ul\> \<li\>\<strong\>\<a
+href="skills/tdd/SKILL.md"\>\<code\>tdd\</code\>\</a\>\</strong\> — the
+Red-Green TDD development workflow (write failing tests, implement the
+minimal change, then optionally open a PR), driven by a GitHub issue or
+any stated requirement.\</li\> \<li\>\<strong\>\<a
+href="skills/issue-review/SKILL.md"\>\<code\>issue-review\</code\>\</a\>\</strong\>
+— preview a drafted GitHub issue, PR, or comment in the terminal and
+capture sign-off before posting. Use when about to post a drafted
+artifact (single or batch).\</li\> \<li\>\<strong\>\<a
+href="skills/pkgdown-assets/SKILL.md"\>\<code\>pkgdown-assets\</code\>\</a\>\</strong\>
+— create and publish examples, cookbooks, and slide decks on a pkgdown
+site; guides through authoring source files,
+\<code\>build_assets()\</code\>, local verification, and CI
+wiring.\</li\> \<li\>\<strong\>\<a
+href="skills/sub-issue-linking/SKILL.md"\>\<code\>sub-issue-linking\</code\>\</a\>\</strong\>
+— link existing GitHub issues as sub-issues of a parent issue using the
+Relationships feature. Use when adding sub-tasks or connecting
+cross-repo issues to a parent requirement.\</li\> \</ul\> \<p\>Add a new
+skill when a task type has a repeatable shape worth capturing; keep
+one-off guidance in the relevant repo’s \<code\>AGENT.md\</code\>/docs
+instead.\</p\> \</div\> \</div\>

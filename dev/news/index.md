@@ -1,20 +1,30 @@
 # Changelog
 
-## gsm.datasim (development version)
+## gsm.datasim v2.1.0
 
-- `Raw_VS` simulates consecutive repeated measurements at site-specific
-  rates, and each site keeps its risk band across snapshots. A new
-  `risk_profile` argument, accepted by the study-creation functions
-  alongside `participants`/`sites`, controls how many sites land in each
-  risk band
+This minor release adds simulated data for the IP Compliance (IP
+non-starters and premature treatment discontinuation) and Repeat
+Measurements analytics, and keeps longitudinal snapshots consistent from
+one snapshot to the next.
+
+### New Features
+
+- `Raw_VS` is a new vital signs simulator (weight, systolic and
+  diastolic blood pressure). It simulates consecutive repeated
+  measurements at site-specific rates, and each site keeps its risk band
+  across snapshots. A new `risk_profile` argument, accepted by the
+  study-creation functions alongside `participants`/`sites`, controls
+  how many sites land in each risk band
   ([\#113](https://github.com/Gilead-Public/gsm.datasim/issues/113),
-  [\#143](https://github.com/Gilead-Public/gsm.datasim/issues/143)).
+  [\#143](https://github.com/Gilead-Public/gsm.datasim/issues/143),
+  [\#170](https://github.com/Gilead-Public/gsm.datasim/issues/170)).
 
 - Simulated `Raw_SUBJ` data now covers IP non-starter, kit assignment
   and premature treatment discontinuation scenarios, with more realistic
   dosing timelines and study completion records consistent with each
   subject’s status
-  ([\#140](https://github.com/Gilead-Public/gsm.datasim/issues/140),
+  ([\#122](https://github.com/Gilead-Public/gsm.datasim/issues/122),
+  [\#140](https://github.com/Gilead-Public/gsm.datasim/issues/140),
   [\#157](https://github.com/Gilead-Public/gsm.datasim/issues/157),
   [\#138](https://github.com/Gilead-Public/gsm.datasim/issues/138),
   [\#173](https://github.com/Gilead-Public/gsm.datasim/issues/173)).
@@ -29,6 +39,9 @@
   subject, site, and enrollment continuity and letting exposure
   accumulate across snapshots
   ([\#165](https://github.com/Gilead-Public/gsm.datasim/issues/165)).
+- `RunWorkflows()` is now called with its full `lWorkflows` argument
+  name, removing a partial-match warning
+  ([\#158](https://github.com/Gilead-Public/gsm.datasim/issues/158)).
 
 ## gsm.datasim v2.0.0
 
@@ -163,7 +176,7 @@ many `gsm.endpoints` specific domains, such as `Anticancer` and
 `OverallResponse` that now have support as well.
 
 **Replacing `clindata` with `gsm.datasim`:** - The object
-[`gsm.core::lSource`](https://gilead-biostats.github.io/gsm.core/reference/lSource.html)
+[`gsm.core::lSource`](https://gilead-public.github.io/gsm.core/reference/lSource.html)
 was created using `gsm.datasim` for examples, tests, and vignettes
 across the `gsm` ecosystem. This object is based on “core mappings”
 which include: “AE”, “COUNTRY”, “DATACHG”, “DATAENT”, “ENROLL”, “LB”,
