@@ -176,7 +176,7 @@ many `gsm.endpoints` specific domains, such as `Anticancer` and
 `OverallResponse` that now have support as well.
 
 **Replacing `clindata` with `gsm.datasim`:** - The object
-[`gsm.core::lSource`](https://gilead-biostats.github.io/gsm.core/reference/lSource.html)
+[`gsm.core::lSource`](https://gilead-public.github.io/gsm.core/reference/lSource.html)
 was created using `gsm.datasim` for examples, tests, and vignettes
 across the `gsm` ecosystem. This object is based on “core mappings”
 which include: “AE”, “COUNTRY”, “DATACHG”, “DATAENT”, “ENROLL”, “LB”,
