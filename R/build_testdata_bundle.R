@@ -36,6 +36,9 @@
 #' ```
 #'
 #' @section Manifest:
+#' `schema_version` is an integer that increases with each breaking change to the
+#' manifest format.
+#'
 #' `fingerprint` is a SHA-256 hash over the per-file checksums of the data files
 #' only, so two builds with identical data share a fingerprint regardless of
 #' `built_at`, `built_by`, or `workflow_run`. `package_versions` records the
@@ -158,6 +161,7 @@ read_testdata_manifest <- function(path) {
 
 .bundle_packages <- c(
   "gsm.datasim",
+  "gsm.core",
   "gsm.mapping",
   "gsm.kri",
   "gsm.qtl",
@@ -601,6 +605,7 @@ read_testdata_manifest <- function(path) {
   sim$snapshot_dates <- format(sim$snapshot_dates)
 
   list(
+    schema_version = 1L,
     fingerprint = fingerprint,
     built_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC"),
     built_by = .build_origin(),

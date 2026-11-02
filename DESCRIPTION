@@ -36,6 +36,7 @@ Imports:
     workr (>= 1.0.0),
     yaml
 Suggests:
+    gsm.core,
     gsm.kri,
     gsm.mapping,
     gsm.qtl,
@@ -47,6 +48,7 @@ Suggests:
 VignetteBuilder: 
     knitr
 Remotes:
+    gsm.core=Gilead-Public/gsm.core@dev,
     gsm.kri=Gilead-Public/gsm.kri@dev,
     gsm.mapping=Gilead-Public/gsm.mapping@dev,
     gsm.qtl=Gilead-Public/gsm.qtl@dev,

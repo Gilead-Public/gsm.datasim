@@ -316,6 +316,7 @@ test_that("manifest records versions, checksums, size, and a data-only fingerpri
   expect_true(file.exists(file.path(out, "manifest.json")))
   m <- read_testdata_manifest(out)
   expect_equal(m, read_testdata_manifest(file.path(out, "manifest.json")))
+  expect_equal(m$schema_version, 1L)
   expect_match(m$fingerprint, "^[0-9a-f]{64}$")
   expect_match(m$built_at, "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$")
   expect_equal(m$simulation$seed, 1235)
@@ -326,6 +327,7 @@ test_that("manifest records versions, checksums, size, and a data-only fingerpri
     names(m$package_versions),
     c(
       "gsm.datasim",
+      "gsm.core",
       "gsm.mapping",
       "gsm.kri",
       "gsm.qtl",
@@ -437,7 +439,14 @@ test_that("build_testdata_bundle() requires the pipeline packages (#151)", {
   expect_error(build_testdata_bundle(tempfile()), "missing")
   expect_setequal(
     checked$pkg,
-    c("gsm.mapping", "gsm.kri", "gsm.qtl", "gsm.reporting", "workr")
+    c(
+      "gsm.core",
+      "gsm.mapping",
+      "gsm.kri",
+      "gsm.qtl",
+      "gsm.reporting",
+      "workr"
+    )
   )
   expect_equal(checked$reason, "to build the test data bundle.")
 })

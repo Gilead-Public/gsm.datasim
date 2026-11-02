@@ -8,6 +8,7 @@
 
 skip_if_no_bundle_pipeline <- function() {
   for (pkg in c(
+    "gsm.core",
     "workr",
     "gsm.mapping",
     "gsm.kri",

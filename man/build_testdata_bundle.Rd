@@ -64,6 +64,9 @@ byte-identical files.
 
 \section{Manifest}{
 
+\code{schema_version} is an integer that increases with each breaking change to the
+manifest format.
+
 \code{fingerprint} is a SHA-256 hash over the per-file checksums of the data files
 only, so two builds with identical data share a fingerprint regardless of
 \code{built_at}, \code{built_by}, or \code{workflow_run}. \code{package_versions} records the
