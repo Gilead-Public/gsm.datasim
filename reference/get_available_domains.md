@@ -39,7 +39,7 @@ get_available_domains()
 #> [10] "Raw_AE"              "Raw_LB"              "Raw_PD"             
 #> [13] "Raw_SDRGCOMP"        "Raw_Consents"        "Raw_Death"          
 #> [16] "Raw_AntiCancer"      "Raw_Randomization"   "Raw_OverallResponse"
-#> [19] "Raw_PK"              "Raw_Baseline"       
+#> [19] "Raw_PK"              "Raw_VS"              "Raw_Baseline"       
 
 if (FALSE) { # \dontrun{
 study <- create_longitudinal_study("STUDY-001", participants = 50, sites = 5, snapshots = 2)

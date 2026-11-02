@@ -5,7 +5,7 @@ packages!
 
 This repository follows the **centralized `gsm` Contributor Guidelines**
 maintained in
-[`gsm.core`](https://gilead-biostats.github.io/gsm.core/CONTRIBUTING.html).  
+[`gsm.core`](https://gilead-public.github.io/gsm.core/CONTRIBUTING.html).  
 Please review those guidelines before opening issues or submitting pull
 requests.
 
@@ -20,4 +20,4 @@ requests.
 
 For detailed workflows (branching, releases, QC, CI/CD), please see the
 full [Contributor Guidelines in
-gsm.core](https://gilead-biostats.github.io/gsm.core/CONTRIBUTING.html).
+gsm.core](https://gilead-public.github.io/gsm.core/CONTRIBUTING.html).

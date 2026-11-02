@@ -1,13 +1,13 @@
 # Generate Raw Data from Workflow Specifications
 
 Takes a list of workflows (as returned by
-[`workr::MakeWorkflowList()`](https://gilead-biostats.github.io/workr/reference/MakeWorkflowList.html))
+[`workr::MakeWorkflowList()`](https://gilead-public.github.io/workr/reference/MakeWorkflowList.html))
 and generates simulated raw data for every `Raw_*` domain found in the
 combined specification. Domains that already have a dedicated generator
 in the domain registry or a legacy `Raw_*()` function are produced with
 those generators; all other domains fall back to type-based column
 generation via
-[`generate_unknown_domain()`](https://gilead-biostats.github.io/gsm.datasim/reference/generate_unknown_domain.md).
+[`generate_unknown_domain()`](https://gilead-public.github.io/gsm.datasim/reference/generate_unknown_domain.md).
 
 ## Usage
 
@@ -23,7 +23,8 @@ generate_data_from_workflows(
   snapshot_width = "months",
   domain_counts = NULL,
   desired_domains = NULL,
-  column_overrides = NULL
+  column_overrides = NULL,
+  risk_profile = NULL
 )
 ```
 
@@ -33,7 +34,7 @@ generate_data_from_workflows(
 
   A named list of workflow objects, each containing a `$spec` element
   (e.g. from
-  [`workr::MakeWorkflowList()`](https://gilead-biostats.github.io/workr/reference/MakeWorkflowList.html)).
+  [`workr::MakeWorkflowList()`](https://gilead-public.github.io/workr/reference/MakeWorkflowList.html)).
 
 - n_participants:
 
@@ -77,7 +78,10 @@ generate_data_from_workflows(
   (e.g. `list(Raw_AE = 300, Raw_LB = 500)`). In multi-snapshot mode
   these are the targets for the *last* snapshot; earlier snapshots ramp
   up via `count_gen()`. Domains not listed here receive a default based
-  on heuristic multipliers of `n_participants`.
+  on heuristic multipliers of `n_participants`. Exception: `Raw_VS` is
+  generated per subject-visit, so its value is a *subject* count (capped
+  at the enrolled roster); each selected subject contributes one row per
+  scheduled visit.
 
 - desired_domains:
 
@@ -121,6 +125,28 @@ generate_data_from_workflows(
         )
       )
 
+- risk_profile:
+
+  Optional named list controlling site-targeted consecutive-run
+  injection. Only `Raw_VS` currently supports it. `NULL` uses the
+  generator defaults. Recognized fields are `dPctRed` and `dPctAmber`
+  (share of sites in each band), `nWindowLength` (rolling window length,
+  whole number `>= 2`), `dRateNormal` / `dRateAmber` / `dRateRed`
+  (target repeat rate per band), and `vVitals` (character vector of
+  vitals to target, or `NULL` for all eight). Fields can be given at
+  three levels, with more specific levels overriding less specific ones:
+
+  - Top level: applies to every domain that supports it.
+
+  - Domain level: `list(Raw_VS = list(dPctRed = 0.3))`.
+
+  - Vital level: `list(Raw_VS = list(sysbp = list(dRateRed = 0.6)))`.
+    Each vital's bands are allocated independently, so vitals can have
+    different profiles. The targeted vitals are the domain's `vVitals`
+    if given (named vitals must then be among them), else the vitals the
+    domain names, else the top-level `vVitals`, else all eight.
+    `vVitals` cannot be set inside a vital.
+
 ## Value
 
 When `snapshot_count == 1`, a named list of `data.frame`s (one per
@@ -145,7 +171,7 @@ The generation follows a three-tier fallback strategy for each domain:
     called.
 
 3.  **Type-based fallback** –
-    [`generate_unknown_domain()`](https://gilead-biostats.github.io/gsm.datasim/reference/generate_unknown_domain.md)
+    [`generate_unknown_domain()`](https://gilead-public.github.io/gsm.datasim/reference/generate_unknown_domain.md)
     generates each column using spec metadata (type, FK detection, name
     pattern heuristics).
 

@@ -126,7 +126,7 @@ names(kri_result) # e.g. Analysis_Summary, Analysis_Flagged, Analysis_Analyzed
 
 The reporting pipeline runs reporting workflows on top of the analytics
 results. Pass the analytics output directly to
-[`generate_reporting_layers()`](https://gilead-biostats.github.io/gsm.datasim/reference/generate_reporting_layers.md):
+[`generate_reporting_layers()`](https://gilead-public.github.io/gsm.datasim/reference/generate_reporting_layers.md):
 
 ``` r
 
@@ -150,7 +150,7 @@ study.
 ### Basic Longitudinal Study
 
 The
-[`create_longitudinal_study()`](https://gilead-biostats.github.io/gsm.datasim/reference/create_longitudinal_study.md)
+[`create_longitudinal_study()`](https://gilead-public.github.io/gsm.datasim/reference/create_longitudinal_study.md)
 function provides the easiest way to set up a longitudinal study. By
 default only raw data is generated; set `run_analytics = TRUE` to run
 the analytics pipeline and `run_reporting = TRUE` to also run the
@@ -280,7 +280,7 @@ quarterly_study <- create_longitudinal_study(
 ### Quick Study Creation
 
 For rapid prototyping, use the
-[`quick_longitudinal_study()`](https://gilead-biostats.github.io/gsm.datasim/reference/quick_longitudinal_study.md)
+[`quick_longitudinal_study()`](https://gilead-public.github.io/gsm.datasim/reference/quick_longitudinal_study.md)
 function. Pass `include_pipeline = TRUE` to run both the analytics and
 reporting pipelines:
 
@@ -380,6 +380,87 @@ if (!is.null(study$reporting)) {
 }
 ```
 
+### Targeted Repeat Runs in Vital Signs
+
+The `VS` domain (`Raw_VS`) generates one row per subject-visit with
+eight vitals: `weight`, `height`, `bsa`, `sysbp`, `diabp`, `pulse`,
+`temp`, and `resp`. To exercise the repeat-measure KRIs (`kri0020a-f`),
+which flag sites where the same value is recorded at consecutive visits,
+each site is assigned a risk band and receives runs of identical
+consecutive values at that band’s target rate:
+
+| Band | Default share of sites (`dPct*`) | Default target repeat rate (`dRate*`) |
+|----|----|----|
+| Red | `dPctRed = 0.1` | `dRateRed = 0.45` |
+| Amber | `dPctAmber = 0.2` | `dRateAmber = 0.25` |
+| Normal | the remainder | `dRateNormal = 0.05` |
+
+The repeat rate is the share of rolling windows of `nWindowLength`
+(default `3`) consecutive performed measurements within a subject in
+which every value is identical. The default target rates are chosen
+relative to the 20% amber and 30% red KRI thresholds, but realized rates
+are approximate: integer window counts can push small sites across a
+boundary. A persistent assigned band does not guarantee a matching
+observed KRI flag.
+
+Bands persist for the life of the study: a site’s band depends on its
+position in the site roster and on the eventual number of sites, not on
+which sites have enrolled by a given snapshot, so the same sites stay
+elevated from snapshot to snapshot. Each vital is its own KRI, so bands
+are drawn independently per vital; a site that is red on `sysbp` need
+not be red on `pulse`.
+
+Control the allocation with `risk_profile`, accepted by
+[`create_longitudinal_study()`](https://gilead-public.github.io/gsm.datasim/reference/create_longitudinal_study.md),
+[`create_multiple_longitudinal_studies()`](https://gilead-public.github.io/gsm.datasim/reference/create_multiple_longitudinal_studies.md),
+[`quick_longitudinal_study()`](https://gilead-public.github.io/gsm.datasim/reference/quick_longitudinal_study.md),
+[`create_study_config()`](https://gilead-public.github.io/gsm.datasim/reference/create_study_config.md),
+[`create_standard_study_config()`](https://gilead-public.github.io/gsm.datasim/reference/create_standard_study_config.md),
+and
+[`generate_data_from_workflows()`](https://gilead-public.github.io/gsm.datasim/reference/generate_data_from_workflows.md).
+Omitted fields keep their defaults, and the whole profile is validated
+up front.
+
+``` r
+
+# Put a quarter of sites in each of the red and amber bands
+vs_study <- create_longitudinal_study(
+  study_id = "VS-RISK-001",
+  participants = 200,
+  sites = 20,
+  snapshots = 6,
+  domains = c("VS"),
+  risk_profile = list(dPctRed = 0.25, dPctAmber = 0.25)
+)
+```
+
+Settings can also be given per domain and per vital, with more specific
+levels overriding less specific ones (defaults \< top level \< domain \<
+vital). Naming vitals under `Raw_VS` restricts targeting to those
+vitals; the others get plain random draws. Use `vVitals` to restrict
+targeting without overriding any settings.
+
+``` r
+
+risk_profile <- list(
+  nWindowLength = 3,
+  Raw_VS = list(
+    # Only these two vitals are targeted
+    sysbp = list(dPctRed = 0.2, dRateRed = 0.6),
+    pulse = list(dPctRed = 0, dPctAmber = 0.5)
+  )
+)
+
+# Equivalent restriction without per-vital overrides
+risk_profile_subset <- list(vVitals = c("sysbp", "pulse"))
+```
+
+Vital signs recorded as not performed (`vsperf_std == "N"`) are left
+blank and do not count toward a site’s repeat rate, so realized rates
+match what the KRIs compute.
+
+### Running Pipelines Separately
+
 You can also run the pipelines separately on an existing study object:
 
 ``` r
@@ -405,7 +486,7 @@ study <- run_longitudinal_reporting(study, verbose = TRUE)
 ## Multiple Studies Generation
 
 When you need to generate data for multiple studies simultaneously, the
-[`create_multiple_longitudinal_studies()`](https://gilead-biostats.github.io/gsm.datasim/reference/create_multiple_longitudinal_studies.md)
+[`create_multiple_longitudinal_studies()`](https://gilead-public.github.io/gsm.datasim/reference/create_multiple_longitudinal_studies.md)
 function provides an efficient approach. This is particularly useful
 for:
 
@@ -663,7 +744,7 @@ str(validation)
 
 Once you have a complete study object — with raw data, analytics, and
 (optionally) reporting — you can write everything to disk with
-[`export_study_data()`](https://gilead-biostats.github.io/gsm.datasim/reference/export_study_data.md).
+[`export_study_data()`](https://gilead-public.github.io/gsm.datasim/reference/export_study_data.md).
 The function creates a structured folder hierarchy under a root
 directory:
 
@@ -766,20 +847,20 @@ The `gsm.datasim` package provides flexible tools for creating both
 single snapshot and longitudinal clinical studies. Key takeaways:
 
 - Use
-  [`create_study_config()`](https://gilead-biostats.github.io/gsm.datasim/reference/create_study_config.md)
+  [`create_study_config()`](https://gilead-public.github.io/gsm.datasim/reference/create_study_config.md)
   and
-  [`generate_study_data()`](https://gilead-biostats.github.io/gsm.datasim/reference/generate_study_data.md)
+  [`generate_study_data()`](https://gilead-public.github.io/gsm.datasim/reference/generate_study_data.md)
   for single snapshots
 - Use
-  [`create_longitudinal_study()`](https://gilead-biostats.github.io/gsm.datasim/reference/create_longitudinal_study.md)
+  [`create_longitudinal_study()`](https://gilead-public.github.io/gsm.datasim/reference/create_longitudinal_study.md)
   for multi-snapshot studies
 - Configure domains based on your study type and monitoring needs
 - Leverage the analytics pipeline for automated quality monitoring
 - Use
-  [`quick_longitudinal_study()`](https://gilead-biostats.github.io/gsm.datasim/reference/quick_longitudinal_study.md)
+  [`quick_longitudinal_study()`](https://gilead-public.github.io/gsm.datasim/reference/quick_longitudinal_study.md)
   for rapid prototyping
 - Use
-  [`export_study_data()`](https://gilead-biostats.github.io/gsm.datasim/reference/export_study_data.md)
+  [`export_study_data()`](https://gilead-public.github.io/gsm.datasim/reference/export_study_data.md)
   to write completed studies to a structured folder hierarchy
 
 The modular design allows you to start simple and add complexity as
