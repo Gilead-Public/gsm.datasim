@@ -1,3 +1,11 @@
+# gsm.datasim (development version)
+
+- Simulated `Raw_AE` data now carries AE outcome (`aeout`), derived
+  relatedness (`aereldrv`) and serious-death flag (`aesdth`), with
+  deterministic fatal-AE cases linked to `Raw_Death`: participants with one,
+  several or no qualifying fatal AEs, related, not related and missing
+  relatedness, plus a fatal AE on a participant with no death record (#142).
+
 # gsm.datasim v2.1.0
 
 This minor release adds simulated data for the IP Compliance (IP non-starters and premature treatment discontinuation) and Repeat Measurements analytics, and keeps longitudinal snapshots consistent from one snapshot to the next.

@@ -277,6 +277,9 @@ generate_snapshots_from_combined_specs <- function(SnapshotCount,
         filter(rgmn_dt == min(rgmn_dt, na.rm = TRUE)) %>%
         ungroup()
     }
+    if (all(c("Raw_AE", "Raw_Death") %in% names(data))) {
+      data$Raw_AE <- apply_fatal_ae_scenarios(data$Raw_AE, data$Raw_Death)
+    }
     snapshots[[snapshot_idx]] <- data
     logger::log_info(glue::glue(" -- Snapshot {snapshot_idx} added successfully"))
   }

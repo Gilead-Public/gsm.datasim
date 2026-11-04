@@ -44,7 +44,7 @@ VignetteBuilder:
     knitr
 Remotes:
     gsm.kri=Gilead-Public/gsm.kri@main,
-    gsm.mapping=Gilead-Public/gsm.mapping@main,
+    gsm.mapping=Gilead-Public/gsm.mapping@fix-135,
     gsm.reporting=Gilead-Public/gsm.reporting@main,
     workr=Gilead-Public/workr@main
 Config/roxygen2/version: 8.1.1
