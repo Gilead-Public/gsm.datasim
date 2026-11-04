@@ -6,8 +6,8 @@ mock_workflow_engine <- function(env = parent.frame()) {
       nm <- strNames %||% c("ok_wf", "bad_wf")
       stats::setNames(rep(list(list()), length(nm)), nm)
     },
-    RunWorkflows = function(lWorkflow, lData) {
-      nm <- names(lWorkflow)
+    RunWorkflows = function(lWorkflows, lData) {
+      nm <- names(lWorkflows)
       if (length(nm) != 1) {
         return(list(reporting = "report"))
       }

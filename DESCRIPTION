@@ -1,6 +1,6 @@
 Package: gsm.datasim
 Title: Synthetic Test Data Generator
-Version: 2.0.0.9000
+Version: 2.1.0
 Authors@R: c(
     person("Laura", "Maxwell", , "laura.maxwell@atorusresearch.com", role = c("aut", "cre")),
     person("Zelos", "Zhu", , "zelos.zhu@atorusresearch.com", role = "aut"),
@@ -43,11 +43,11 @@ Suggests:
 VignetteBuilder: 
     knitr
 Remotes:
-    gsm.kri=Gilead-Public/gsm.kri@for-ipns-140,
+    gsm.kri=Gilead-Public/gsm.kri@main,
     gsm.mapping=Gilead-Public/gsm.mapping@fix-135,
-    gsm.reporting=Gilead-Public/gsm.reporting@dev,
+    gsm.reporting=Gilead-Public/gsm.reporting@main,
     workr=Gilead-Public/workr@main
-Config/roxygen2/version: 8.1.0
+Config/roxygen2/version: 8.1.1
 Config/testthat/edition: 3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

@@ -95,7 +95,7 @@ test_that("a later snapshot with no new subjects still advances an undosed subje
   )
 })
 
-test_that("the final Raw_ENROLL reconciliation leaves every non-enrolled subject with NA in every drv_ field (#140, #157, #138)", {
+test_that("the final Raw_ENROLL reconciliation leaves every non-enrolled subject with NA in every drv_ field, and blank drv_drg_completion (#140, #157, #138, #173)", {
   test_at_log_threshold()
   skip_if_not_installed("gsm.mapping")
   set.seed(42)
@@ -109,15 +109,16 @@ test_that("the final Raw_ENROLL reconciliation leaves every non-enrolled subject
   expect_gt(nrow(unenrolled), 0)
 
   drv_cols <- grep("^drv_", names(subj), value = TRUE)
-  expect_true(all(c("drv_kit_assigned", "drv_treatment_discontinuation_dt", "drv_premature_discontinuation_reason", "drv_days_lapsed_enrl_discontinuation") %in% drv_cols))
+  expect_true(all(c("drv_kit_assigned", "drv_treatment_discontinuation_dt", "drv_premature_discontinuation_reason", "drv_days_lapsed_enrl_discontinuation", "drv_drg_completion") %in% drv_cols))
+  expect_true(all(unenrolled$drv_drg_completion == ""))
   expect_true(all(vapply(
-    drv_cols,
+    setdiff(drv_cols, "drv_drg_completion"),
     function(col) all(is.na(unenrolled[[col]])),
     logical(1)
   )))
 })
 
-test_that("the legacy and config-native generation paths produce the same drv_ contract (#140, #157, #138)", {
+test_that("the legacy and config-native generation paths produce the same drv_ contract (#140, #157, #138, #173)", {
   test_at_log_threshold()
   skip_if_not_installed("gsm.mapping")
 
@@ -173,7 +174,8 @@ test_that("the legacy and config-native generation paths produce the same drv_ c
     drv_kit_assigned = "character",
     drv_treatment_discontinuation_dt = "double",
     drv_premature_discontinuation_reason = "character",
-    drv_days_lapsed_enrl_discontinuation = "integer"
+    drv_days_lapsed_enrl_discontinuation = "integer",
+    drv_drg_completion = "character"
   )
   expect_setequal(legacy_drv, names(expected_types))
   for (col in names(expected_types)) {
@@ -323,4 +325,23 @@ test_that("a core-shaped run carries every premature discontinuation scenario (#
   expect_true(any(d$drv_days_lapsed_enrl_discontinuation %in% 1L))
   expect_true(all(is.na(undosed$drv_treatment_discontinuation_dt)))
   expect_true(all(is.na(undosed$drv_premature_discontinuation_reason)))
+})
+
+test_that("a core-shaped run carries every drv_drg_completion scenario and enough N subjects to flag (#173)", {
+  test_at_log_threshold()
+  skip_if_not_installed("gsm.mapping")
+  subj <- core_shaped_run()[[3]]$Raw_SUBJ
+  d <- subj[subj$drv_ip_dosed %in% "Y", ]
+  value <- d$drv_drg_completion
+  dated <- !is.na(d$drv_treatment_discontinuation_dt)
+
+  expect_true(all(subj$drv_drg_completion %in% c("Y", "N", "Potential No", "")))
+  expect_true(all(subj$drv_drg_completion[!subj$drv_ip_dosed %in% "Y"] == ""))
+  for (v in c("Y", "N", "Potential No")) {
+    expect_true(any(value == v & dated), label = paste(v, "with a date"))
+    expect_true(any(value == v & !dated), label = paste(v, "without a date"))
+  }
+  expect_true(any(value == ""))
+  # kri0007-2 has AccrualThreshold 3, so sites need 3+ N subjects to flag.
+  expect_gte(sum(table(d$invid[value == "N"]) >= 3), 5)
 })
