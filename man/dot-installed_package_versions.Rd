@@ -10,7 +10,8 @@
 \item{packages}{Package names.}
 }
 \value{
-Named list of \code{version} and \code{remote_sha} per package, plus \code{R}.
+Named list of \code{version} and \code{remote_sha} (\code{NULL} when unknown) per
+package.
 }
 \description{
 Record installed package versions

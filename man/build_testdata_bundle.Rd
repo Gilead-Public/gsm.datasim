@@ -7,7 +7,10 @@
 build_testdata_bundle(
   output_dir,
   config = read_testdata_config(),
-  overwrite = FALSE
+  overwrite = FALSE,
+  channel = "dev",
+  key = NULL,
+  allow_local = FALSE
 )
 }
 \arguments{
@@ -18,12 +21,23 @@ build_testdata_bundle(
 
 \item{overwrite}{If \code{FALSE} (default), error when \code{output_dir} exists and is
 not empty. If \code{TRUE}, delete \code{output_dir} and its contents first.}
+
+\item{channel}{Release channel (lowercase letters and digits), e.g. \code{"dev"}
+or \code{"prod"}.}
+
+\item{key}{Release tag recorded as the snapshot \code{key}. Defaults to
+\verb{testdata-<channel>-<YYYYMMDD>T<HHMMSS>Z} (UTC) at build time; it must
+match the tag the bundle is published under.}
+
+\item{allow_local}{If \code{FALSE} (default), error when any pipeline package
+lacks a \code{RemoteSha} (a local or uncommitted install). Set \code{TRUE} only for
+local builds that won't be published.}
 }
 \value{
-The manifest (a list), invisibly.
+The snapshot description (a list), invisibly.
 }
 \description{
-Generate shared example data and write it to disk with a \code{manifest.json}
+Generate shared example data and write it to disk with a \code{snapshot.json}
 describing the build.
 }
 \details{
@@ -53,7 +67,7 @@ byte-identical files.
 
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{<output_dir>/
-  manifest.json
+  snapshot.json
   analytics\{Input,Summary\}\{,_country\}.csv
   reporting\{Results,Groups,Bounds,Metrics\}\{,_country,_study\}.csv
   lSource.rds
@@ -62,16 +76,19 @@ byte-identical files.
 }\if{html}{\out{</div>}}
 }
 
-\section{Manifest}{
+\section{Snapshot}{
 
-\code{schema_version} is an integer that increases with each breaking change to the
-manifest format.
+\code{snapshot.json} uses the generic "refresh" snapshot format (version 1),
+written by \code{write_snapshot_json()}: \code{refresh_snapshot}, \code{key} (the release
+tag), \code{created}, \code{objects} (the 15 \code{.rds} files with their sha256), and
+\code{packages} (installed \code{version} and \code{remote_sha} of each pipeline package,
+including gsm.core). gsm-specific details live under \code{metadata}: \code{channel},
+\code{fingerprint}, \code{simulation}, \code{built_by}, \code{workflow_run}, \code{r_version}, and
+\code{size}.
 
-\code{fingerprint} is a SHA-256 hash over the per-file checksums of the data files
-only, so two builds with identical data share a fingerprint regardless of
-\code{built_at}, \code{built_by}, or \code{workflow_run}. \code{package_versions} records the
-\emph{installed} version (and remote SHA, when available) of each pipeline
-package.
+\code{fingerprint} is a SHA-256 hash over the per-file checksums of the bundle
+files (excluding \code{snapshot.json}), so two builds with identical data share a
+fingerprint regardless of build time or origin.
 }
 
 \examples{

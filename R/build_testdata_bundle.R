@@ -1,6 +1,6 @@
 #' Build the shared gsm test data bundle
 #'
-#' Generate shared example data and write it to disk with a `manifest.json`
+#' Generate shared example data and write it to disk with a `snapshot.json`
 #' describing the build.
 #'
 #' The pipeline is:
@@ -27,7 +27,7 @@
 #' @section Layout:
 #' ```
 #' <output_dir>/
-#'   manifest.json
+#'   snapshot.json
 #'   analytics{Input,Summary}{,_country}.csv
 #'   reporting{Results,Groups,Bounds,Metrics}{,_country,_study}.csv
 #'   lSource.rds
@@ -35,23 +35,34 @@
 #'   reporting{Results,Groups,Bounds,Metrics}{,_country,_study}.rds
 #' ```
 #'
-#' @section Manifest:
-#' `schema_version` is an integer that increases with each breaking change to the
-#' manifest format.
+#' @section Snapshot:
+#' `snapshot.json` uses the generic "refresh" snapshot format (version 1),
+#' written by `write_snapshot_json()`: `refresh_snapshot`, `key` (the release
+#' tag), `created`, `objects` (the 15 `.rds` files with their sha256), and
+#' `packages` (installed `version` and `remote_sha` of each pipeline package,
+#' including gsm.core). gsm-specific details live under `metadata`: `channel`,
+#' `fingerprint`, `simulation`, `built_by`, `workflow_run`, `r_version`, and
+#' `size`.
 #'
-#' `fingerprint` is a SHA-256 hash over the per-file checksums of the data files
-#' only, so two builds with identical data share a fingerprint regardless of
-#' `built_at`, `built_by`, or `workflow_run`. `package_versions` records the
-#' *installed* version (and remote SHA, when available) of each pipeline
-#' package.
+#' `fingerprint` is a SHA-256 hash over the per-file checksums of the bundle
+#' files (excluding `snapshot.json`), so two builds with identical data share a
+#' fingerprint regardless of build time or origin.
 #'
 #' @param output_dir Directory to write the bundle into. Created if needed.
 #' @param config A config list or path to a YAML file; see
 #'   [read_testdata_config()]. Defaults to the checked-in config.
 #' @param overwrite If `FALSE` (default), error when `output_dir` exists and is
 #'   not empty. If `TRUE`, delete `output_dir` and its contents first.
+#' @param channel Release channel (lowercase letters and digits), e.g. `"dev"`
+#'   or `"prod"`.
+#' @param key Release tag recorded as the snapshot `key`. Defaults to
+#'   `testdata-<channel>-<YYYYMMDD>T<HHMMSS>Z` (UTC) at build time; it must
+#'   match the tag the bundle is published under.
+#' @param allow_local If `FALSE` (default), error when any pipeline package
+#'   lacks a `RemoteSha` (a local or uncommitted install). Set `TRUE` only for
+#'   local builds that won't be published.
 #'
-#' @returns The manifest (a list), invisibly.
+#' @returns The snapshot description (a list), invisibly.
 #'
 #' @examples
 #' \dontrun{
@@ -61,15 +72,29 @@
 build_testdata_bundle <- function(
   output_dir,
   config = read_testdata_config(),
-  overwrite = FALSE
+  overwrite = FALSE,
+  channel = "dev",
+  key = NULL,
+  allow_local = FALSE
 ) {
   if (
     missing(output_dir) || !is.character(output_dir) || length(output_dir) != 1
   ) {
-    stop("`output_dir` must be a single directory path.")
+    cli::cli_abort("{.arg output_dir} must be a single directory path.")
   }
   if (!isTRUE(overwrite) && !isFALSE(overwrite)) {
-    stop("`overwrite` must be `TRUE` or `FALSE`.")
+    cli::cli_abort("{.arg overwrite} must be {.code TRUE} or {.code FALSE}.")
+  }
+  if (!rlang::is_string(channel) || !grepl("^[a-z0-9]+$", channel)) {
+    cli::cli_abort(
+      "{.arg channel} must be a single string of lowercase letters and digits."
+    )
+  }
+  if (!is.null(key) && !rlang::is_string(key)) {
+    cli::cli_abort("{.arg key} must be {.code NULL} or a single string.")
+  }
+  if (!isTRUE(allow_local) && !isFALSE(allow_local)) {
+    cli::cli_abort("{.arg allow_local} must be {.code TRUE} or {.code FALSE}.")
   }
   rlang::check_installed(
     pkg = setdiff(.bundle_packages, "gsm.datasim"),
@@ -112,9 +137,8 @@ build_testdata_bundle <- function(
   )
   .write_rds(data_objects, output_dir)
 
-  manifest <- .build_manifest(output_dir, config)
-  .write_manifest(manifest, file.path(output_dir, "manifest.json"))
-  invisible(manifest)
+  args <- .build_snapshot_args(output_dir, config, channel, key, allow_local)
+  invisible(do.call(write_snapshot_json, args))
 }
 
 #' Prepare the bundle output directory
@@ -128,11 +152,10 @@ build_testdata_bundle <- function(
   contents <- list.files(output_dir, all.files = TRUE, no.. = TRUE)
   if (length(contents) > 0) {
     if (!overwrite) {
-      stop(
-        "`output_dir` is not empty: ",
-        output_dir,
-        ". Use `overwrite = TRUE` to replace its contents."
-      )
+      cli::cli_abort(c(
+        "{.arg output_dir} is not empty: {.path {output_dir}}.",
+        i = "Use {.code overwrite = TRUE} to replace its contents."
+      ))
     }
     unlink(output_dir, recursive = TRUE)
   }
@@ -140,21 +163,50 @@ build_testdata_bundle <- function(
   invisible(output_dir)
 }
 
-#' Read a test data bundle manifest
+#' Read a test data bundle snapshot description
 #'
-#' Reads the `manifest.json` written by [build_testdata_bundle()], which records
-#' the bundle fingerprint, simulation config, package versions, and per-file
-#' checksums.
+#' Reads the `snapshot.json` written by [build_testdata_bundle()].
 #'
 #' @param path A bundle directory (`output_dir`) or a path to
-#'   `manifest.json`.
-#' @returns The parsed manifest list.
+#'   `snapshot.json`.
+#' @returns The parsed snapshot list.
 #' @export
-read_testdata_manifest <- function(path) {
+read_testdata_snapshot <- function(path) {
   if (dir.exists(path)) {
-    path <- file.path(path, "manifest.json")
+    path <- file.path(path, "snapshot.json")
   }
   jsonlite::read_json(path, simplifyVector = TRUE)
+}
+
+#' Read one object from a test data bundle
+#'
+#' Looks `name` up in the bundle's `snapshot.json`, verifies its checksum, and
+#' reads it: `.rds` files with [readRDS()], `.csv` files with the bundle's
+#' standard column types (`GroupID` character, `SnapshotDate` Date).
+#'
+#' @param path A bundle directory.
+#' @param name An `objects` key: an object name such as `"reportingResults"`,
+#'   or a CSV file name such as `"reportingResults.csv"`.
+#' @returns The object.
+#' @export
+read_testdata_object <- function(path, name) {
+  snapshot <- read_testdata_snapshot(path)
+  entry <- snapshot$objects[[name]]
+  if (is.null(entry)) {
+    cli::cli_abort("{.val {name}} is not in the snapshot at {.path {path}}.")
+  }
+  file <- file.path(path, entry$file)
+  actual <- digest::digest(file = file, algo = "sha256")
+  if (!identical(tolower(actual), tolower(entry$sha256))) {
+    cli::cli_abort(c(
+      "Checksum mismatch for {.path {file}}.",
+      i = "Expected {.val {entry$sha256}}, got {.val {actual}}."
+    ))
+  }
+  if (grepl("[.]csv$", entry$file)) {
+    return(.read_bundle_csv(sub("[.]csv$", "", basename(entry$file)), path))
+  }
+  readRDS(file)
 }
 
 # ---- pipeline ---------------------------------------------------------------
@@ -575,21 +627,25 @@ read_testdata_manifest <- function(path) {
   x
 }
 
-# ---- manifest ---------------------------------------------------------------
+# ---- snapshot ---------------------------------------------------------------
 
-#' Build the bundle manifest
+#' Build the snapshot.json contents
 #'
-#' The fingerprint is a sha256 over per-file checksums of the data files only,
-#' so identical data yields an identical fingerprint regardless of build
-#' metadata.
+#' Collects the release key, objects, package versions, and gsm-specific
+#' metadata for `write_snapshot_json()`. The fingerprint is a sha256 over the
+#' per-file checksums of every bundle file except `snapshot.json`, so identical
+#' data yields an identical fingerprint regardless of build metadata.
 #'
 #' @param output_dir Bundle directory.
 #' @param config A validated config from [read_testdata_config()].
-#' @returns Manifest list.
+#' @param channel Release channel.
+#' @param key Release tag, or `NULL` to generate one.
+#' @param allow_local Allow packages without a `RemoteSha`.
+#' @returns List of arguments for `write_snapshot_json()`.
 #' @keywords internal
-.build_manifest <- function(output_dir, config) {
+.build_snapshot_args <- function(output_dir, config, channel, key, allow_local) {
   files <- sort(list.files(output_dir, recursive = TRUE))
-  files <- files[files != "manifest.json"]
+  files <- files[files != "snapshot.json"]
   sha <- vapply(
     file.path(output_dir, files),
     function(f) digest::digest(file = f, algo = "sha256"),
@@ -597,43 +653,58 @@ read_testdata_manifest <- function(path) {
     USE.NAMES = FALSE
   )
   fingerprint <- digest::digest(
-    paste(files, sha, sep = "  ", collapse = "\n"),
+    paste(files, sha, sep = "  ", collapse = "
+"),
     algo = "sha256",
     serialize = FALSE
   )
   sim <- config
   sim$snapshot_dates <- format(sim$snapshot_dates)
 
+  packages <- .installed_package_versions(.bundle_packages)
+  local <- names(packages)[vapply(
+    packages,
+    function(p) is.null(p$remote_sha),
+    logical(1)
+  )]
+  if (length(local) && !allow_local) {
+    cli::cli_abort(c(
+      "No {.field RemoteSha} for {.pkg {local}}.",
+      i = "Install from GitHub to publish, or use {.code allow_local = TRUE}."
+    ))
+  }
+
+  rds <- c("lSource", .bundle_data_names)
+  csv <- sort(files[grepl("[.]csv$", files)])
   list(
-    schema_version = 1L,
-    fingerprint = fingerprint,
-    built_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC"),
-    built_by = .build_origin(),
-    workflow_run = .workflow_run_url(),
-    simulation = sim,
-    package_versions = .installed_package_versions(.bundle_packages),
-    size = list(
-      files = length(files),
-      bytes = sum(file.size(file.path(output_dir, files)))
-    ),
-    checksums = list(sha256 = as.list(stats::setNames(sha, files)))
+    dir = output_dir,
+    # RDS objects are keyed by name; CSVs by file name so keys never collide.
+    objects = c(stats::setNames(paste0(rds, ".rds"), rds), stats::setNames(csv, csv)),
+    key = key %||% .testdata_key(channel),
+    packages = packages,
+    metadata = list(
+      channel = channel,
+      fingerprint = fingerprint,
+      simulation = sim,
+      built_by = .build_origin(),
+      workflow_run = .workflow_run_url(),
+      r_version = paste(R.version$major, R.version$minor, sep = "."),
+      size = list(
+        files = length(files),
+        bytes = sum(file.size(file.path(output_dir, files)))
+      )
+    )
   )
 }
 
-#' Write a manifest as JSON
+#' Generate a release tag
 #'
-#' @param manifest Manifest list from `.build_manifest()`.
-#' @param path Output file path.
+#' @param channel Release channel.
+#' @param time Build time.
+#' @returns `"testdata-<channel>-<YYYYMMDD>T<HHMMSS>Z"` (UTC).
 #' @keywords internal
-.write_manifest <- function(manifest, path) {
-  jsonlite::write_json(
-    manifest,
-    path,
-    auto_unbox = TRUE,
-    pretty = TRUE,
-    null = "null",
-    digits = NA
-  )
+.testdata_key <- function(channel, time = Sys.time()) {
+  paste0("testdata-", channel, "-", format(time, "%Y%m%dT%H%M%SZ", tz = "UTC"))
 }
 
 #' Identify the build origin
@@ -677,7 +748,8 @@ read_testdata_manifest <- function(path) {
 #' Record installed package versions
 #'
 #' @param packages Package names.
-#' @returns Named list of `version` and `remote_sha` per package, plus `R`.
+#' @returns Named list of `version` and `remote_sha` (`NULL` when unknown) per
+#'   package.
 #' @keywords internal
 .installed_package_versions <- function(packages) {
   out <- lapply(packages, function(pkg) {
@@ -685,6 +757,5 @@ read_testdata_manifest <- function(path) {
     list(version = desc$Version, remote_sha = desc$RemoteSha %||% NULL)
   })
   names(out) <- packages
-  out$R <- list(version = paste(R.version$major, R.version$minor, sep = "."))
   out
 }

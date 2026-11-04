@@ -310,53 +310,86 @@ test_that(".run_bundle_pipeline() chains mapping, metrics, and reporting and sta
   expect_null(out$reporting$Reporting_Groups$SnapshotDate)
 })
 
-test_that("manifest records versions, checksums, size, and a data-only fingerprint (#151)", {
+test_that("snapshot.json follows the refresh snapshot format (#151)", {
   skip_if_no_bundle_pipeline()
   out <- build_fake_bundle()
-  expect_true(file.exists(file.path(out, "manifest.json")))
-  m <- read_testdata_manifest(out)
-  expect_equal(m, read_testdata_manifest(file.path(out, "manifest.json")))
-  expect_equal(m$schema_version, 1L)
-  expect_match(m$fingerprint, "^[0-9a-f]{64}$")
-  expect_match(m$built_at, "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$")
-  expect_equal(m$simulation$seed, 1235)
-  expect_equal(m$simulation$participants, 4)
-  expect_equal(m$simulation$snapshot_dates, c("2025-02-01", "2025-03-01"))
+  expect_false(file.exists(file.path(out, "manifest.json")))
+  m <- read_testdata_snapshot(out)
+  expect_equal(m, read_testdata_snapshot(file.path(out, "snapshot.json")))
+  expect_equal(m$refresh_snapshot, 1L)
+  expect_match(m$key, "^testdata-dev-[0-9]{8}T[0-9]{6}Z$")
+  expect_match(m$created, "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$")
 
-  expect_setequal(
-    names(m$package_versions),
-    c(
-      "gsm.datasim",
-      "gsm.core",
-      "gsm.mapping",
-      "gsm.kri",
-      "gsm.qtl",
-      "gsm.reporting",
-      "workr",
-      "R"
-    )
-  )
-  for (pkg in setdiff(names(m$package_versions), "R")) {
+  rds <- list.files(out, "[.]rds$")
+  csv <- list.files(out, "[.]csv$")
+  expect_length(rds, 15)
+  expect_setequal(names(m$objects), c(sub("[.]rds$", "", rds), csv))
+  for (nm in names(m$objects)) {
     expect_equal(
-      m$package_versions[[pkg]]$version,
-      as.character(utils::packageVersion(pkg)),
-      info = pkg
+      m$objects[[nm]]$file,
+      if (grepl("[.]csv$", nm)) nm else paste0(nm, ".rds")
+    )
+    expect_equal(
+      m$objects[[nm]]$sha256,
+      digest::digest(file = file.path(out, m$objects[[nm]]$file), algo = "sha256"),
+      info = nm
     )
   }
-  expect_equal(
-    m$package_versions$R$version,
-    paste(R.version$major, R.version$minor, sep = ".")
-  )
 
-  files <- list.files(out, recursive = TRUE)
-  files <- files[files != "manifest.json"]
-  expect_setequal(names(m$checksums$sha256), files)
-  expect_equal(m$size$files, length(files))
-  expect_equal(m$size$bytes, sum(file.size(file.path(out, files))))
-  f1 <- files[1]
+  expect_setequal(
+    names(m$packages),
+    c("gsm.datasim", "gsm.core", "gsm.mapping", "gsm.kri", "gsm.qtl", "gsm.reporting", "workr")
+  )
+  expect_equal(m$packages$gsm.core, list(version = "9.9.9", remote_sha = "abc123"))
+
+  expect_equal(m$metadata$channel, "dev")
+  expect_match(m$metadata$fingerprint, "^[0-9a-f]{64}$")
+  expect_equal(m$metadata$simulation$seed, 1235)
+  expect_equal(m$metadata$simulation$snapshot_dates, c("2025-02-01", "2025-03-01"))
+  files <- setdiff(list.files(out, recursive = TRUE), "snapshot.json")
+  expect_equal(m$metadata$size$files, length(files))
+  expect_equal(m$metadata$size$bytes, sum(file.size(file.path(out, files))))
+})
+
+test_that("channel and key are recorded in snapshot.json (#151)", {
+  skip_if_no_bundle_pipeline()
+  out <- build_fake_bundle(channel = "prod", key = "testdata-prod-20261104T153000Z")
+  m <- read_testdata_snapshot(out)
+  expect_equal(m$key, "testdata-prod-20261104T153000Z")
+  expect_equal(m$metadata$channel, "prod")
+})
+
+test_that("read_testdata_object() reads RDS and CSV entries and verifies checksums (#151)", {
+  skip_if_no_bundle_pipeline()
+  out <- build_fake_bundle()
+  rds <- read_testdata_object(out, "reportingResults")
+  expect_identical(rds, readRDS(file.path(out, "reportingResults.rds")))
+  csv <- read_testdata_object(out, "reportingResults.csv")
+  expect_identical(csv, rds)
+  expect_type(read_testdata_object(out, "analyticsInput_country.csv"), "list")
+  expect_error(read_testdata_object(out, "nope"), "not in the snapshot")
+  write(" ", file.path(out, "lSource.rds"), append = TRUE)
+  expect_error(read_testdata_object(out, "lSource"), "Checksum mismatch")
+})
+
+test_that("local package installs are rejected unless allow_local = TRUE (#151)", {
+  skip_if_no_bundle_pipeline()
+  local_mocked_bindings(
+    .pkg_description = function(pkg) {
+      list(Version = "1.0.0", RemoteSha = if (pkg != "gsm.kri") "abc")
+    }
+  )
+  expect_error(build_fake_bundle(fake_versions = FALSE), "RemoteSha.*gsm.kri")
+  out <- build_fake_bundle(fake_versions = FALSE, allow_local = TRUE)
+  m <- jsonlite::read_json(file.path(out, "snapshot.json"))
+  expect_null(m$packages$gsm.kri$remote_sha)
+  expect_true("remote_sha" %in% names(m$packages$gsm.kri))
+})
+
+test_that(".testdata_key() formats release tags in UTC (#151)", {
   expect_equal(
-    m$checksums$sha256[[f1]],
-    digest::digest(file = file.path(out, f1), algo = "sha256")
+    .testdata_key("dev", as.POSIXct("2026-11-04 15:30:00", tz = "UTC")),
+    "testdata-dev-20261104T153000Z"
   )
 })
 
@@ -372,7 +405,7 @@ test_that("identical builds share a fingerprint regardless of build metadata (#1
   # Unset only while building `a`, so the test also passes on GitHub Actions.
   a <- withr::with_envvar(
     stats::setNames(rep(NA_character_, length(github_vars)), github_vars),
-    read_testdata_manifest(build_fake_bundle())
+    read_testdata_snapshot(build_fake_bundle())
   )
   withr::local_envvar(
     GITHUB_REPOSITORY = "o/r",
@@ -380,39 +413,29 @@ test_that("identical builds share a fingerprint regardless of build metadata (#1
     GITHUB_SERVER_URL = "https://github.com",
     GITHUB_RUN_ID = "7"
   )
-  b <- read_testdata_manifest(build_fake_bundle())
-  expect_equal(b$built_by, "o/r@abc")
-  expect_equal(b$workflow_run, "https://github.com/o/r/actions/runs/7")
-  expect_null(a$built_by)
-  expect_equal(a$fingerprint, b$fingerprint)
-  expect_equal(a$checksums, b$checksums)
+  b <- read_testdata_snapshot(build_fake_bundle())
+  expect_equal(b$metadata$built_by, "o/r@abc")
+  expect_equal(b$metadata$workflow_run, "https://github.com/o/r/actions/runs/7")
+  expect_null(a$metadata$built_by)
+  expect_equal(a$metadata$fingerprint, b$metadata$fingerprint)
+  expect_equal(a$objects, b$objects)
 })
 
 test_that("the fingerprint changes when the data changes (#151)", {
   skip_if_no_bundle_pipeline()
+  local_fake_package_versions()
   out <- build_fake_bundle()
   cfg <- small_bundle_config()
-  before <- .build_manifest(out, cfg)$fingerprint
-  utils::write.csv(
-    data.frame(x = 1),
-    file.path(out, "extra.csv")
-  )
-  expect_false(identical(.build_manifest(out, cfg)$fingerprint, before))
+  fp <- function() .build_snapshot_args(out, cfg, "dev", "k", FALSE)$metadata$fingerprint
+  before <- fp()
+  utils::write.csv(data.frame(x = 1), file.path(out, "extra.csv"))
+  expect_false(identical(fp(), before))
 })
 
-
 test_that("package version recording reflects installed packages, not Remotes (#151)", {
-  local_mocked_bindings(
-    .pkg_description = function(pkg) {
-      list(Version = "9.9.9", RemoteSha = "abc123")
-    }
-  )
+  local_fake_package_versions()
   v <- .installed_package_versions("gsm.kri")
-  expect_equal(v$gsm.kri, list(version = "9.9.9", remote_sha = "abc123"))
-  expect_false(identical(
-    v$gsm.kri$version,
-    as.character(utils::packageVersion("gsm.kri"))
-  ))
+  expect_equal(v, list(gsm.kri = list(version = "9.9.9", remote_sha = "abc123")))
 })
 
 test_that("build_testdata_bundle() validates its arguments (#151)", {
@@ -425,6 +448,9 @@ test_that("build_testdata_bundle() validates its arguments (#151)", {
     build_testdata_bundle(c("a", "b")),
     "`output_dir` must be a single directory path"
   )
+  expect_error(build_testdata_bundle(tempfile(), channel = "Dev"), "`channel`")
+  expect_error(build_testdata_bundle(tempfile(), key = 1), "`key`")
+  expect_error(build_testdata_bundle(tempfile(), allow_local = NA), "`allow_local`")
 })
 
 test_that("build_testdata_bundle() requires the pipeline packages (#151)", {
@@ -455,6 +481,7 @@ test_that("build_testdata_bundle() refuses a non-empty output_dir unless overwri
   skip_if_not_installed("withr")
   skip_if_no_bundle_pipeline()
   local_fake_bundle_stages()
+  local_fake_package_versions()
   out <- withr::local_tempdir()
   writeLines("stale", file.path(out, "stale.txt"))
   expect_error(
@@ -463,7 +490,7 @@ test_that("build_testdata_bundle() refuses a non-empty output_dir unless overwri
   )
   build_testdata_bundle(out, small_bundle_config(), overwrite = TRUE)
   expect_false(file.exists(file.path(out, "stale.txt")))
-  expect_true(file.exists(file.path(out, "manifest.json")))
+  expect_true(file.exists(file.path(out, "snapshot.json")))
 })
 
 test_that("build_testdata_bundle() validates overwrite (#151)", {

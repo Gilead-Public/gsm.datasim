@@ -2,7 +2,7 @@
 #
 # Simulation and workflow execution are slow, so build tests mock them with
 # tiny fixed outputs. That exercises orchestration, post-processing, sorting,
-# splitting, writing, and the manifest in well under a second. The real
+# splitting, writing, and snapshot.json in well under a second. The real
 # simulation and pipeline wiring are tested separately with mocks at the
 # workr / gsm.mapping boundary.
 
@@ -120,10 +120,21 @@ local_fake_bundle_stages <- function(env = parent.frame()) {
   )
 }
 
-build_fake_bundle <- function(env = parent.frame()) {
+# Installed packages may be local (no RemoteSha), which publishing rejects.
+local_fake_package_versions <- function(env = parent.frame()) {
+  testthat::local_mocked_bindings(
+    .pkg_description = function(pkg) list(Version = "9.9.9", RemoteSha = "abc123"),
+    .env = env
+  )
+}
+
+build_fake_bundle <- function(env = parent.frame(), fake_versions = TRUE, ...) {
   testthat::skip_if_not_installed("withr")
   local_fake_bundle_stages(env)
+  if (fake_versions) {
+    local_fake_package_versions(env)
+  }
   out <- withr::local_tempdir(.local_envir = env)
-  build_testdata_bundle(out, small_bundle_config())
+  build_testdata_bundle(out, small_bundle_config(), ...)
   out
 }
