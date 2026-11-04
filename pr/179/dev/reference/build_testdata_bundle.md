@@ -1,6 +1,6 @@
 # Build the shared gsm test data bundle
 
-Generate shared example data and write it to disk with a `manifest.json`
+Generate shared example data and write it to disk with a `snapshot.json`
 describing the build.
 
 ## Usage
@@ -9,7 +9,10 @@ describing the build.
 build_testdata_bundle(
   output_dir,
   config = read_testdata_config(),
-  overwrite = FALSE
+  overwrite = FALSE,
+  channel = "dev",
+  key = NULL,
+  allow_local = FALSE
 )
 ```
 
@@ -30,9 +33,26 @@ build_testdata_bundle(
   If `FALSE` (default), error when `output_dir` exists and is not empty.
   If `TRUE`, delete `output_dir` and its contents first.
 
+- channel:
+
+  Release channel (lowercase letters and digits), e.g. `"dev"` or
+  `"prod"`.
+
+- key:
+
+  Release tag recorded as the snapshot `key`. Defaults to
+  `testdata-<channel>-<YYYYMMDD>T<HHMMSS>Z` (UTC) at build time; it must
+  match the tag the bundle is published under.
+
+- allow_local:
+
+  If `FALSE` (default), error when any pipeline package lacks a
+  `RemoteSha` (a local or uncommitted install). Set `TRUE` only for
+  local builds that won't be published.
+
 ## Value
 
-The manifest (a list), invisibly.
+The snapshot description (a list), invisibly.
 
 ## Details
 
@@ -71,23 +91,27 @@ byte-identical files.
 ## Layout
 
     <output_dir>/
-      manifest.json
+      snapshot.json
       analytics{Input,Summary}{,_country}.csv
       reporting{Results,Groups,Bounds,Metrics}{,_country,_study}.csv
       lSource.rds
       analytics{Input,Summary}.rds
       reporting{Results,Groups,Bounds,Metrics}{,_country,_study}.rds
 
-## Manifest
+## Snapshot
 
-`schema_version` is an integer that increases with each breaking change
-to the manifest format.
+`snapshot.json` uses the generic "refresh" snapshot format (version 1),
+written by
+[`write_snapshot_json()`](https://gilead-public.github.io/gsm.datasim/dev/reference/write_snapshot_json.md):
+`refresh_snapshot`, `key` (the release tag), `created`, `objects` (the
+15 `.rds` files with their sha256), and `packages` (installed `version`
+and `remote_sha` of each pipeline package, including gsm.core).
+gsm-specific details live under `metadata`: `channel`, `fingerprint`,
+`simulation`, `built_by`, `workflow_run`, `r_version`, and `size`.
 
-`fingerprint` is a SHA-256 hash over the per-file checksums of the data
-files only, so two builds with identical data share a fingerprint
-regardless of `built_at`, `built_by`, or `workflow_run`.
-`package_versions` records the *installed* version (and remote SHA, when
-available) of each pipeline package.
+`fingerprint` is a SHA-256 hash over the per-file checksums of the
+bundle files (excluding `snapshot.json`), so two builds with identical
+data share a fingerprint regardless of build time or origin.
 
 ## Examples
 

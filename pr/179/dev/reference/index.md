@@ -66,8 +66,10 @@
   : Generate Raw Data for Study Snapshots
 - [`read_testdata_config()`](https://gilead-public.github.io/gsm.datasim/dev/reference/read_testdata_config.md)
   : Read and validate a test data bundle config
-- [`read_testdata_manifest()`](https://gilead-public.github.io/gsm.datasim/dev/reference/read_testdata_manifest.md)
-  : Read a test data bundle manifest
+- [`read_testdata_object()`](https://gilead-public.github.io/gsm.datasim/dev/reference/read_testdata_object.md)
+  : Read one object from a test data bundle
+- [`read_testdata_snapshot()`](https://gilead-public.github.io/gsm.datasim/dev/reference/read_testdata_snapshot.md)
+  : Read a test data bundle snapshot description
 - [`remove_dataset_config()`](https://gilead-public.github.io/gsm.datasim/dev/reference/remove_dataset_config.md)
   : Remove Dataset Configuration
 - [`run_longitudinal_analytics()`](https://gilead-public.github.io/gsm.datasim/dev/reference/run_longitudinal_analytics.md)

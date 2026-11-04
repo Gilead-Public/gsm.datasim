@@ -16,4 +16,5 @@ Record installed package versions
 
 ## Value
 
-Named list of `version` and `remote_sha` per package, plus `R`.
+Named list of `version` and `remote_sha` (`NULL` when unknown) per
+package.
