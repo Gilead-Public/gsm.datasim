@@ -101,6 +101,8 @@ build_testdata_bundle <- function(
     reason = "to build the test data bundle."
   )
   config <- read_testdata_config(config)
+  # Validate before .prepare_output_dir() so a rejected build keeps the old bundle.
+  packages <- .check_package_versions(allow_local)
   .prepare_output_dir(output_dir, overwrite)
 
   snapshots <- .simulate_bundle_snapshots(config)
@@ -137,7 +139,14 @@ build_testdata_bundle <- function(
   )
   .write_rds(data_objects, output_dir)
 
-  args <- .build_snapshot_args(output_dir, config, channel, key, allow_local)
+  args <- .build_snapshot_args(
+    output_dir,
+    config,
+    channel,
+    key,
+    allow_local,
+    packages
+  )
   invisible(do.call(write_snapshot_json, args))
 }
 
@@ -641,10 +650,20 @@ read_testdata_object <- function(path, name) {
 #' @param channel Release channel.
 #' @param key Release tag, or `NULL` to generate one.
 #' @param allow_local Allow packages without a `RemoteSha`.
+#' @param packages Package versions from [.check_package_versions()].
 #' @returns List of arguments for `write_snapshot_json()`.
 #' @keywords internal
-.build_snapshot_args <- function(output_dir, config, channel, key, allow_local) {
-  files <- sort(list.files(output_dir, recursive = TRUE))
+.build_snapshot_args <- function(
+  output_dir,
+  config,
+  channel,
+  key,
+  allow_local,
+  packages = .check_package_versions(allow_local)
+) {
+  files <- list.files(output_dir, recursive = TRUE)
+  # Radix ordering is locale-independent, keeping the fingerprint stable.
+  files <- files[order(files, method = "radix")]
   files <- files[files != "snapshot.json"]
   sha <- vapply(
     file.path(output_dir, files),
@@ -661,21 +680,8 @@ read_testdata_object <- function(path, name) {
   sim <- config
   sim$snapshot_dates <- format(sim$snapshot_dates)
 
-  packages <- .installed_package_versions(.bundle_packages)
-  local <- names(packages)[vapply(
-    packages,
-    function(p) is.null(p$remote_sha),
-    logical(1)
-  )]
-  if (length(local) && !allow_local) {
-    cli::cli_abort(c(
-      "No {.field RemoteSha} for {.pkg {local}}.",
-      i = "Install from GitHub to publish, or use {.code allow_local = TRUE}."
-    ))
-  }
-
   rds <- c("lSource", .bundle_data_names)
-  csv <- sort(files[grepl("[.]csv$", files)])
+  csv <- files[grepl("[.]csv$", files)]
   list(
     dir = output_dir,
     # RDS objects are keyed by name; CSVs by file name so keys never collide.
@@ -744,6 +750,27 @@ read_testdata_object <- function(path, name) {
 #' @returns A `packageDescription` object.
 #' @keywords internal
 .pkg_description <- function(pkg) utils::packageDescription(pkg)
+
+#' Record pipeline package versions, rejecting local installs
+#'
+#' @param allow_local Allow packages without a `RemoteSha`.
+#' @returns Named list from [.installed_package_versions()].
+#' @keywords internal
+.check_package_versions <- function(allow_local) {
+  packages <- .installed_package_versions(.bundle_packages)
+  local <- names(packages)[vapply(
+    packages,
+    function(p) is.null(p$remote_sha),
+    logical(1)
+  )]
+  if (length(local) && !allow_local) {
+    cli::cli_abort(c(
+      "No {.field RemoteSha} for {.pkg {local}}.",
+      i = "Install from GitHub to publish, or use {.code allow_local = TRUE}."
+    ))
+  }
+  packages
+}
 
 #' Record installed package versions
 #'

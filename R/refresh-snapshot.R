@@ -84,8 +84,8 @@ write_snapshot_json <- function(
   if (file.exists(to)) {
     unlink(to)
   }
-  if (!file.rename(from, to)) {
-    file.copy(from, to, overwrite = TRUE)
+  if (!file.rename(from, to) && !file.copy(from, to, overwrite = TRUE)) {
+    stop("Failed to write ", to, call. = FALSE)
   }
   invisible(to)
 }

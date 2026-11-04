@@ -499,3 +499,40 @@ test_that("build_testdata_bundle() validates overwrite (#151)", {
     "`overwrite` must be `TRUE` or `FALSE`"
   )
 })
+
+test_that("a rejected local build leaves an existing bundle intact (#151)", {
+  skip_if_no_bundle_pipeline()
+  out <- build_fake_bundle()
+  before <- sort(list.files(out))
+  local_mocked_bindings(
+    .pkg_description = function(pkg) list(Version = "1.0.0"),
+    .run_bundle_pipeline = function(...) stop("pipeline should not run")
+  )
+  expect_error(
+    build_testdata_bundle(out, small_bundle_config(), overwrite = TRUE),
+    "RemoteSha"
+  )
+  expect_equal(sort(list.files(out)), before)
+})
+
+test_that("the fingerprint orders files independently of locale (#151)", {
+  skip_if_no_bundle_pipeline()
+  local_fake_package_versions()
+  out <- build_fake_bundle()
+  args <- .build_snapshot_args(out, small_bundle_config(), "dev", "k", FALSE)
+  files <- list.files(out, recursive = TRUE)
+  files <- files[files != "snapshot.json"]
+  files <- files[order(files, method = "radix")]
+  sha <- vapply(
+    file.path(out, files),
+    function(f) digest::digest(file = f, algo = "sha256"),
+    character(1),
+    USE.NAMES = FALSE
+  )
+  expected <- digest::digest(
+    paste(files, sha, sep = "  ", collapse = "\n"),
+    algo = "sha256",
+    serialize = FALSE
+  )
+  expect_equal(args$metadata$fingerprint, expected)
+})

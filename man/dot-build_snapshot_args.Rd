@@ -4,7 +4,14 @@
 \alias{.build_snapshot_args}
 \title{Build the snapshot.json contents}
 \usage{
-.build_snapshot_args(output_dir, config, channel, key, allow_local)
+.build_snapshot_args(
+  output_dir,
+  config,
+  channel,
+  key,
+  allow_local,
+  packages = .check_package_versions(allow_local)
+)
 }
 \arguments{
 \item{output_dir}{Bundle directory.}
@@ -16,6 +23,8 @@
 \item{key}{Release tag, or \code{NULL} to generate one.}
 
 \item{allow_local}{Allow packages without a \code{RemoteSha}.}
+
+\item{packages}{Package versions from \code{\link[=.check_package_versions]{.check_package_versions()}}.}
 }
 \value{
 List of arguments for \code{write_snapshot_json()}.

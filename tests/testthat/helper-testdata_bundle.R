@@ -130,6 +130,7 @@ local_fake_package_versions <- function(env = parent.frame()) {
 
 build_fake_bundle <- function(env = parent.frame(), fake_versions = TRUE, ...) {
   testthat::skip_if_not_installed("withr")
+  skip_if_no_bundle_pipeline()
   local_fake_bundle_stages(env)
   if (fake_versions) {
     local_fake_package_versions(env)
