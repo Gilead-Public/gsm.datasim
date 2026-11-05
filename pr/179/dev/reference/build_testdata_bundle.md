@@ -10,8 +10,6 @@ build_testdata_bundle(
   output_dir,
   config = read_testdata_config(),
   overwrite = FALSE,
-  channel = "dev",
-  key = NULL,
   allow_local = FALSE
 )
 ```
@@ -39,17 +37,6 @@ build_testdata_bundle(
   is written to `file.path(tempdir(), "testdata-bundle")` instead;
   ancestors of [`tempdir()`](https://rdrr.io/r/base/tempfile.html) are
   rejected.
-
-- channel:
-
-  Release channel (lowercase letters and digits), e.g. `"dev"` or
-  `"prod"`.
-
-- key:
-
-  Release tag recorded as the snapshot `key`. Defaults to
-  `testdata-<channel>-<YYYYMMDD>T<HHMMSS>Z` (UTC) at build time; it must
-  match the tag the bundle is published under.
 
 - allow_local:
 
@@ -110,15 +97,27 @@ byte-identical files.
 `snapshot.json` uses the generic "refresh" snapshot format (version 1),
 written by
 [`write_snapshot_json()`](https://gilead-public.github.io/gsm.datasim/dev/reference/write_snapshot_json.md):
-`refresh_snapshot`, `key` (the release tag), `created`, `objects` (the
-15 `.rds` files with their sha256), and `packages` (installed `version`
-and `remote_sha` of each pipeline package, including gsm.core).
-gsm-specific details live under `metadata`: `channel`, `fingerprint`,
-`simulation`, `built_by`, `workflow_run`, `r_version`, and `size`.
+`refresh_snapshot`, `key` (`"sha256:<fingerprint>"`), `created`,
+`objects` (every `.rds` and `.csv` file with its sha256), and `packages`
+(installed `version` and `remote_sha` of each pipeline package,
+including gsm.core). gsm-specific details live under `metadata`:
+`fingerprint`, `inputs_hash`, `simulation`, `r_version`, and `size`.
 
-`fingerprint` is a SHA-256 hash over the per-file checksums of the
-bundle files (excluding `snapshot.json`), so two builds with identical
-data share a fingerprint regardless of build time or origin.
+The bundle records only what built it, not when, where, or for which
+release channel; release tags and run provenance belong to the release.
+
+- `fingerprint` is a SHA-256 hash over the per-file checksums of the
+  bundle files (excluding `snapshot.json`), so two builds with identical
+  data share a fingerprint (and `key`) regardless of build time or
+  origin.
+
+- `inputs_hash` identifies the packages that built the bundle: the
+  SHA-256 of the UTF-8 text formed by one
+  `"<package> <version> <remote_sha>"` line per entry in `packages` (a
+  missing `remote_sha` written as `NA`), sorted by package name in
+  C-locale order and joined with `"\n"` (no trailing newline). Consumers
+  can compute it from their installed packages to look up the matching
+  bundle.
 
 ## Examples
 

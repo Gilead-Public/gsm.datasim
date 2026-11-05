@@ -1,11 +1,10 @@
 # Build the snapshot.json contents
 
-Collects the release key, objects, package versions, and gsm-specific
-metadata for
+Collects the objects, package versions, and gsm-specific metadata for
 [`write_snapshot_json()`](https://gilead-public.github.io/gsm.datasim/dev/reference/write_snapshot_json.md).
 The fingerprint is a sha256 over the per-file checksums of every bundle
 file except `snapshot.json`, so identical data yields an identical
-fingerprint regardless of build metadata.
+fingerprint (and `key`) regardless of build metadata.
 
 ## Usage
 
@@ -13,8 +12,6 @@ fingerprint regardless of build metadata.
 .build_snapshot_args(
   output_dir,
   config,
-  channel,
-  key,
   allow_local,
   packages = .check_package_versions(allow_local)
 )
@@ -30,14 +27,6 @@ fingerprint regardless of build metadata.
 
   A validated config from
   [`read_testdata_config()`](https://gilead-public.github.io/gsm.datasim/dev/reference/read_testdata_config.md).
-
-- channel:
-
-  Release channel.
-
-- key:
-
-  Release tag, or `NULL` to generate one.
 
 - allow_local:
 
