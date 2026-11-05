@@ -554,3 +554,42 @@ test_that("invalid config inputs leave an existing bundle intact (#151)", {
   expect_error(build_testdata_bundle(out, cfg, overwrite = TRUE), "Participants")
   expect_equal(sort(list.files(out)), before)
 })
+
+test_that("a failing build leaves an existing bundle intact (#151)", {
+  skip_if_no_bundle_pipeline()
+  out <- build_fake_bundle()
+  before <- tools::md5sum(file.path(out, sort(list.files(out))))
+  local_mocked_bindings(.write_rds = function(...) stop("disk full"))
+  expect_error(
+    build_testdata_bundle(out, small_bundle_config(), overwrite = TRUE),
+    "disk full"
+  )
+  expect_equal(tools::md5sum(file.path(out, sort(list.files(out)))), before)
+  expect_equal(
+    list.files(dirname(out), pattern = "^[.]bundle-staging"),
+    character()
+  )
+})
+
+test_that("read_testdata_object() reads nested CSVs from their verified path (#151)", {
+  skip_if_not_installed("withr")
+  dir <- withr::local_tempdir()
+  dir.create(file.path(dir, "tables"))
+  utils::write.csv(data.frame(GroupID = "nested"), file.path(dir, "tables", "reportingResults.csv"), row.names = FALSE)
+  utils::write.csv(data.frame(GroupID = "top"), file.path(dir, "reportingResults.csv"), row.names = FALSE)
+  write_snapshot_json(dir, c(reportingResults.csv = "tables/reportingResults.csv"), key = "k")
+  expect_equal(read_testdata_object(dir, "reportingResults.csv")$GroupID, "nested")
+})
+
+test_that(".read_bundle_csv() keeps GroupID as character in every table (#151)", {
+  skip_if_not_installed("withr")
+  dir <- withr::local_tempdir()
+  for (nm in c("reportingGroups_study", "reportingResults_study", "reportingMetrics")) {
+    df <- data.frame(GroupID = "001", x = 1)
+    if (nm == "reportingMetrics") df$GroupID <- NULL
+    utils::write.csv(df, file.path(dir, paste0(nm, ".csv")), row.names = FALSE)
+  }
+  expect_identical(.read_bundle_csv("reportingGroups_study", dir)$GroupID, "001")
+  expect_identical(.read_bundle_csv("reportingResults_study", dir)$GroupID, "001")
+  expect_no_warning(.read_bundle_csv("reportingMetrics", dir))
+})

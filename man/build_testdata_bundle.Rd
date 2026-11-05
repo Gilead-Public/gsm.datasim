@@ -20,7 +20,9 @@ build_testdata_bundle(
 \code{\link[=read_testdata_config]{read_testdata_config()}}. Defaults to the checked-in config.}
 
 \item{overwrite}{If \code{FALSE} (default), error when \code{output_dir} exists and is
-not empty. If \code{TRUE}, delete \code{output_dir} and its contents first.}
+not empty. If \code{TRUE}, replace \code{output_dir} and its contents. The bundle is
+built in a staging directory next to \code{output_dir} and swapped in only
+once complete, so a failed build leaves the existing bundle untouched.}
 
 \item{channel}{Release channel (lowercase letters and digits), e.g. \code{"dev"}
 or \code{"prod"}.}

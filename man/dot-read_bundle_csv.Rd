@@ -15,9 +15,8 @@
 A data frame.
 }
 \description{
-\code{GroupID} is read as character for \verb{analytics*} and \code{reportingResults}, and
-converted to character for the other \verb{reportingResults*} tables;
-\code{SnapshotDate} is converted to \code{Date}. Other columns keep \code{\link[utils:read.csv]{utils::read.csv()}}
-types.
+\code{GroupID} is read as character wherever present, so IDs such as \code{"001"}
+keep leading zeros; \code{SnapshotDate} is converted to \code{Date}. Other columns
+keep \code{\link[utils:read.csv]{utils::read.csv()}} types.
 }
 \keyword{internal}

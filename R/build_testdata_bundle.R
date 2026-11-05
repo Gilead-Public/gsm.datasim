@@ -52,7 +52,9 @@
 #' @param config A config list or path to a YAML file; see
 #'   [read_testdata_config()]. Defaults to the checked-in config.
 #' @param overwrite If `FALSE` (default), error when `output_dir` exists and is
-#'   not empty. If `TRUE`, delete `output_dir` and its contents first.
+#'   not empty. If `TRUE`, replace `output_dir` and its contents. The bundle is
+#'   built in a staging directory next to `output_dir` and swapped in only
+#'   once complete, so a failed build leaves the existing bundle untouched.
 #' @param channel Release channel (lowercase letters and digits), e.g. `"dev"`
 #'   or `"prod"`.
 #' @param key Release tag recorded as the snapshot `key`. Defaults to
@@ -101,9 +103,13 @@ build_testdata_bundle <- function(
     reason = "to build the test data bundle."
   )
   config <- read_testdata_config(config)
-  # Validate before .prepare_output_dir() so a rejected build keeps the old bundle.
   packages <- .check_package_versions(allow_local)
-  .prepare_output_dir(output_dir, overwrite)
+  .check_output_dir(output_dir, overwrite)
+  # Build into a sibling staging directory and only replace output_dir once
+  # the bundle is complete, so any failure leaves the existing bundle intact.
+  target <- output_dir
+  output_dir <- .staging_dir(target)
+  on.exit(unlink(output_dir, recursive = TRUE), add = TRUE)
 
   snapshots <- .simulate_bundle_snapshots(config)
   workflows <- .bundle_workflows(config)
@@ -147,28 +153,70 @@ build_testdata_bundle <- function(
     allow_local,
     packages
   )
-  invisible(do.call(write_snapshot_json, args))
+  snapshot <- do.call(write_snapshot_json, args)
+  .publish_bundle(output_dir, target)
+  invisible(snapshot)
 }
 
-#' Prepare the bundle output directory
+#' Check the bundle output directory
 #'
 #' @param output_dir Directory to write the bundle into.
-#' @param overwrite If `TRUE`, delete a non-empty `output_dir` first;
-#'   otherwise error when it is not empty.
+#' @param overwrite If `FALSE`, error when `output_dir` is not empty.
 #' @returns `output_dir`, invisibly.
 #' @keywords internal
-.prepare_output_dir <- function(output_dir, overwrite) {
+.check_output_dir <- function(output_dir, overwrite) {
   contents <- list.files(output_dir, all.files = TRUE, no.. = TRUE)
-  if (length(contents) > 0) {
-    if (!overwrite) {
-      cli::cli_abort(c(
-        "{.arg output_dir} is not empty: {.path {output_dir}}.",
-        i = "Use {.code overwrite = TRUE} to replace its contents."
-      ))
-    }
-    unlink(output_dir, recursive = TRUE)
+  if (length(contents) > 0 && !overwrite) {
+    cli::cli_abort(c(
+      "{.arg output_dir} is not empty: {.path {output_dir}}.",
+      i = "Use {.code overwrite = TRUE} to replace its contents."
+    ))
   }
-  dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+  invisible(output_dir)
+}
+
+#' Create a staging directory next to the bundle output directory
+#'
+#' A sibling (rather than [tempdir()]) keeps the final swap a same-volume
+#' rename.
+#'
+#' @param output_dir Final bundle directory.
+#' @returns Path to a new, empty staging directory.
+#' @keywords internal
+.staging_dir <- function(output_dir) {
+  parent <- dirname(output_dir)
+  dir.create(parent, recursive = TRUE, showWarnings = FALSE)
+  staging <- tempfile(".bundle-staging-", tmpdir = parent)
+  dir.create(staging)
+  staging
+}
+
+#' Replace the bundle output directory with a completed staging directory
+#'
+#' Moves any existing `output_dir` aside, moves `staging` into place, then
+#' deletes the old bundle. Restores the old bundle if the move fails.
+#'
+#' @param staging Completed staging directory.
+#' @param output_dir Final bundle directory.
+#' @returns `output_dir`, invisibly.
+#' @keywords internal
+.publish_bundle <- function(staging, output_dir) {
+  backup <- NULL
+  if (dir.exists(output_dir)) {
+    backup <- tempfile(".bundle-old-", tmpdir = dirname(output_dir))
+    if (!file.rename(output_dir, backup)) {
+      cli::cli_abort("Could not move the existing bundle at {.path {output_dir}} aside.")
+    }
+  }
+  if (!file.rename(staging, output_dir)) {
+    if (!is.null(backup)) {
+      file.rename(backup, output_dir)
+    }
+    cli::cli_abort("Could not move the new bundle into {.path {output_dir}}.")
+  }
+  if (!is.null(backup)) {
+    unlink(backup, recursive = TRUE)
+  }
   invisible(output_dir)
 }
 
@@ -213,7 +261,10 @@ read_testdata_object <- function(path, name) {
     ))
   }
   if (grepl("[.]csv$", entry$file)) {
-    return(.read_bundle_csv(sub("[.]csv$", "", basename(entry$file)), path))
+    return(.read_bundle_csv(
+      sub("[.]csv$", "", basename(entry$file)),
+      dirname(file)
+    ))
   }
   readRDS(file)
 }
@@ -608,28 +659,19 @@ read_testdata_object <- function(path, name) {
 
 #' Read a bundle CSV back with standard column types
 #'
-#' `GroupID` is read as character for `analytics*` and `reportingResults`, and
-#' converted to character for the other `reportingResults*` tables;
-#' `SnapshotDate` is converted to `Date`. Other columns keep [utils::read.csv()]
-#' types.
+#' `GroupID` is read as character wherever present, so IDs such as `"001"`
+#' keep leading zeros; `SnapshotDate` is converted to `Date`. Other columns
+#' keep [utils::read.csv()] types.
 #'
 #' @param name Table name, e.g. `"reportingResults_country"`.
 #' @param dir Directory containing `<name>.csv`.
 #' @returns A data frame.
 #' @keywords internal
 .read_bundle_csv <- function(name, dir) {
-  col_classes <- if (name %in% c("analyticsInput", "analyticsSummary", "reportingResults")) {
-    c(GroupID = "character")
-  } else {
-    NA
-  }
-  x <- utils::read.csv(
-    file.path(dir, paste0(name, ".csv")),
-    colClasses = col_classes
-  )
-  if (startsWith(name, "reportingResults")) {
-    x$GroupID <- as.character(x$GroupID)
-  }
+  path <- file.path(dir, paste0(name, ".csv"))
+  header <- names(utils::read.csv(path, nrows = 0, check.names = FALSE))
+  col_classes <- if ("GroupID" %in% header) c(GroupID = "character") else NA
+  x <- utils::read.csv(path, colClasses = col_classes)
   if ("SnapshotDate" %in% names(x)) {
     x$SnapshotDate <- as.Date(x$SnapshotDate)
   }
