@@ -6,7 +6,7 @@
 # snapshot.json (format version 1):
 # {
 #   "refresh_snapshot": 1,
-#   "key": "testdata-dev-20261030T182506Z",
+#   "key": "sha256:<data fingerprint>",
 #   "created": "2026-10-30T18:25:06Z",
 #   "objects": {"<name>": {"file": "<path relative to dir>", "sha256": "<hex>"}},
 #   "packages": {"<pkg>": {"version": "1.2.3", "remote_sha": "<sha or null>"}},

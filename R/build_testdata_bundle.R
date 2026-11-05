@@ -37,16 +37,25 @@
 #'
 #' @section Snapshot:
 #' `snapshot.json` uses the generic "refresh" snapshot format (version 1),
-#' written by `write_snapshot_json()`: `refresh_snapshot`, `key` (the release
-#' tag), `created`, `objects` (the 15 `.rds` files with their sha256), and
-#' `packages` (installed `version` and `remote_sha` of each pipeline package,
-#' including gsm.core). gsm-specific details live under `metadata`: `channel`,
-#' `fingerprint`, `simulation`, `built_by`, `workflow_run`, `r_version`, and
-#' `size`.
+#' written by `write_snapshot_json()`: `refresh_snapshot`, `key`
+#' (`"sha256:<fingerprint>"`), `created`, `objects` (every `.rds` and `.csv`
+#' file with its sha256), and `packages` (installed `version` and `remote_sha`
+#' of each pipeline package, including gsm.core). gsm-specific details live
+#' under `metadata`: `fingerprint`, `inputs_hash`, `simulation`, `r_version`,
+#' and `size`.
 #'
-#' `fingerprint` is a SHA-256 hash over the per-file checksums of the bundle
-#' files (excluding `snapshot.json`), so two builds with identical data share a
-#' fingerprint regardless of build time or origin.
+#' The bundle records only what built it, not when, where, or for which release
+#' channel; release tags and run provenance belong to the release.
+#'
+#' * `fingerprint` is a SHA-256 hash over the per-file checksums of the bundle
+#'   files (excluding `snapshot.json`), so two builds with identical data share
+#'   a fingerprint (and `key`) regardless of build time or origin.
+#' * `inputs_hash` identifies the packages that built the bundle: the SHA-256
+#'   of the UTF-8 text formed by one `"<package> <version> <remote_sha>"` line
+#'   per entry in `packages` (a missing `remote_sha` written as `NA`), sorted
+#'   by package name in C-locale order and joined with `"\n"` (no trailing
+#'   newline). Consumers can compute it from their installed packages to look
+#'   up the matching bundle.
 #'
 #' @param output_dir Directory to write the bundle into. Created if needed.
 #' @param config A config list or path to a YAML file; see
@@ -58,11 +67,6 @@
 #'   `output_dir` is `tempdir()` itself, the bundle is written to
 #'   `file.path(tempdir(), "testdata-bundle")` instead; ancestors of
 #'   `tempdir()` are rejected.
-#' @param channel Release channel (lowercase letters and digits), e.g. `"dev"`
-#'   or `"prod"`.
-#' @param key Release tag recorded as the snapshot `key`. Defaults to
-#'   `testdata-<channel>-<YYYYMMDD>T<HHMMSS>Z` (UTC) at build time; it must
-#'   match the tag the bundle is published under.
 #' @param allow_local If `FALSE` (default), error when any pipeline package
 #'   lacks a `RemoteSha` (a local or uncommitted install). Set `TRUE` only for
 #'   local builds that won't be published.
@@ -78,8 +82,6 @@ build_testdata_bundle <- function(
   output_dir,
   config = read_testdata_config(),
   overwrite = FALSE,
-  channel = "dev",
-  key = NULL,
   allow_local = FALSE
 ) {
   if (
@@ -89,14 +91,6 @@ build_testdata_bundle <- function(
   }
   if (!isTRUE(overwrite) && !isFALSE(overwrite)) {
     cli::cli_abort("{.arg overwrite} must be {.code TRUE} or {.code FALSE}.")
-  }
-  if (!rlang::is_string(channel) || !grepl("^[a-z0-9]+$", channel)) {
-    cli::cli_abort(
-      "{.arg channel} must be a single string of lowercase letters and digits."
-    )
-  }
-  if (!is.null(key) && !rlang::is_string(key)) {
-    cli::cli_abort("{.arg key} must be {.code NULL} or a single string.")
   }
   if (!isTRUE(allow_local) && !isFALSE(allow_local)) {
     cli::cli_abort("{.arg allow_local} must be {.code TRUE} or {.code FALSE}.")
@@ -152,8 +146,6 @@ build_testdata_bundle <- function(
   args <- .build_snapshot_args(
     output_dir,
     config,
-    channel,
-    key,
     allow_local,
     packages
   )
@@ -785,15 +777,13 @@ read_testdata_object <- function(path, name) {
 
 #' Build the snapshot.json contents
 #'
-#' Collects the release key, objects, package versions, and gsm-specific
-#' metadata for `write_snapshot_json()`. The fingerprint is a sha256 over the
-#' per-file checksums of every bundle file except `snapshot.json`, so identical
-#' data yields an identical fingerprint regardless of build metadata.
+#' Collects the objects, package versions, and gsm-specific metadata for
+#' `write_snapshot_json()`. The fingerprint is a sha256 over the per-file
+#' checksums of every bundle file except `snapshot.json`, so identical data
+#' yields an identical fingerprint (and `key`) regardless of build metadata.
 #'
 #' @param output_dir Bundle directory.
 #' @param config A validated config from [read_testdata_config()].
-#' @param channel Release channel.
-#' @param key Release tag, or `NULL` to generate one.
 #' @param allow_local Allow packages without a `RemoteSha`.
 #' @param packages Package versions from [.check_package_versions()].
 #' @returns List of arguments for `write_snapshot_json()`.
@@ -801,8 +791,6 @@ read_testdata_object <- function(path, name) {
 .build_snapshot_args <- function(
   output_dir,
   config,
-  channel,
-  key,
   allow_local,
   packages = .check_package_versions(allow_local)
 ) {
@@ -831,14 +819,12 @@ read_testdata_object <- function(path, name) {
     dir = output_dir,
     # RDS objects are keyed by name; CSVs by file name so keys never collide.
     objects = c(stats::setNames(paste0(rds, ".rds"), rds), stats::setNames(csv, csv)),
-    key = key %||% .testdata_key(channel),
+    key = paste0("sha256:", fingerprint),
     packages = packages,
     metadata = list(
-      channel = channel,
       fingerprint = fingerprint,
+      inputs_hash = .inputs_hash(packages),
       simulation = sim,
-      built_by = .build_origin(),
-      workflow_run = .workflow_run_url(),
       r_version = paste(R.version$major, R.version$minor, sep = "."),
       size = list(
         files = length(files),
@@ -848,42 +834,33 @@ read_testdata_object <- function(path, name) {
   )
 }
 
-#' Generate a release tag
+#' Hash the packages that built a bundle
 #'
-#' @param channel Release channel.
-#' @param time Build time.
-#' @returns `"testdata-<channel>-<YYYYMMDD>T<HHMMSS>Z"` (UTC).
-#' @keywords internal
-.testdata_key <- function(channel, time = Sys.time()) {
-  paste0("testdata-", channel, "-", format(time, "%Y%m%dT%H%M%SZ", tz = "UTC"))
-}
-
-#' Identify the build origin
+#' See the Snapshot section of [build_testdata_bundle()] for the exact
+#' definition, which consumers reproduce from their installed packages.
 #'
-#' @returns `"<GITHUB_REPOSITORY>@<GITHUB_SHA>"` when run in GitHub Actions,
-#'   otherwise `NULL`.
+#' @param packages Named list; each element has `version` and `remote_sha`
+#'   (`NULL` or `NA` when unknown).
+#' @returns A 64-character hex SHA-256.
 #' @keywords internal
-.build_origin <- function() {
-  repo <- Sys.getenv("GITHUB_REPOSITORY")
-  sha <- Sys.getenv("GITHUB_SHA")
-  if (nzchar(repo) && nzchar(sha)) {
-    return(paste0(repo, "@", sha))
-  }
-  NULL
-}
-
-#' Get the GitHub Actions run URL
-#'
-#' @returns The workflow run URL when run in GitHub Actions, otherwise `NULL`.
-#' @keywords internal
-.workflow_run_url <- function() {
-  server <- Sys.getenv("GITHUB_SERVER_URL")
-  repo <- Sys.getenv("GITHUB_REPOSITORY")
-  run <- Sys.getenv("GITHUB_RUN_ID")
-  if (nzchar(server) && nzchar(repo) && nzchar(run)) {
-    return(paste0(server, "/", repo, "/actions/runs/", run))
-  }
-  NULL
+.inputs_hash <- function(packages) {
+  pkgs <- names(packages)[order(names(packages), method = "radix")]
+  lines <- vapply(
+    pkgs,
+    function(pkg) {
+      p <- packages[[pkg]]
+      sha <- p$remote_sha
+      if (is.null(sha) || is.na(sha)) sha <- "NA"
+      paste(pkg, p$version, sha)
+    },
+    character(1),
+    USE.NAMES = FALSE
+  )
+  digest::digest(
+    enc2utf8(paste(lines, collapse = "\n")),
+    algo = "sha256",
+    serialize = FALSE
+  )
 }
 
 #' Read an installed package's DESCRIPTION

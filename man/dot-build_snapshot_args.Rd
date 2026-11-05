@@ -7,8 +7,6 @@
 .build_snapshot_args(
   output_dir,
   config,
-  channel,
-  key,
   allow_local,
   packages = .check_package_versions(allow_local)
 )
@@ -18,10 +16,6 @@
 
 \item{config}{A validated config from \code{\link[=read_testdata_config]{read_testdata_config()}}.}
 
-\item{channel}{Release channel.}
-
-\item{key}{Release tag, or \code{NULL} to generate one.}
-
 \item{allow_local}{Allow packages without a \code{RemoteSha}.}
 
 \item{packages}{Package versions from \code{\link[=.check_package_versions]{.check_package_versions()}}.}
@@ -30,9 +24,9 @@
 List of arguments for \code{write_snapshot_json()}.
 }
 \description{
-Collects the release key, objects, package versions, and gsm-specific
-metadata for \code{write_snapshot_json()}. The fingerprint is a sha256 over the
-per-file checksums of every bundle file except \code{snapshot.json}, so identical
-data yields an identical fingerprint regardless of build metadata.
+Collects the objects, package versions, and gsm-specific metadata for
+\code{write_snapshot_json()}. The fingerprint is a sha256 over the per-file
+checksums of every bundle file except \code{snapshot.json}, so identical data
+yields an identical fingerprint (and \code{key}) regardless of build metadata.
 }
 \keyword{internal}

@@ -317,7 +317,7 @@ test_that("snapshot.json follows the refresh snapshot format (#151)", {
   m <- read_testdata_snapshot(out)
   expect_equal(m, read_testdata_snapshot(file.path(out, "snapshot.json")))
   expect_equal(m$refresh_snapshot, 1L)
-  expect_match(m$key, "^testdata-dev-[0-9]{8}T[0-9]{6}Z$")
+  expect_equal(m$key, paste0("sha256:", m$metadata$fingerprint))
   expect_match(m$created, "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$")
 
   rds <- list.files(out, "[.]rds$")
@@ -342,8 +342,12 @@ test_that("snapshot.json follows the refresh snapshot format (#151)", {
   )
   expect_equal(m$packages$gsm.core, list(version = "9.9.9", remote_sha = "abc123"))
 
-  expect_equal(m$metadata$channel, "dev")
   expect_match(m$metadata$fingerprint, "^[0-9a-f]{64}$")
+  expect_equal(m$metadata$inputs_hash, .inputs_hash(m$packages))
+  # The bundle describes what built it, not the run or release.
+  expect_null(m$metadata$channel)
+  expect_null(m$metadata$built_by)
+  expect_null(m$metadata$workflow_run)
   expect_equal(m$metadata$simulation$seed, 1235)
   expect_equal(m$metadata$simulation$snapshot_dates, c("2025-02-01", "2025-03-01"))
   files <- setdiff(list.files(out, recursive = TRUE), "snapshot.json")
@@ -351,12 +355,19 @@ test_that("snapshot.json follows the refresh snapshot format (#151)", {
   expect_equal(m$metadata$size$bytes, sum(file.size(file.path(out, files))))
 })
 
-test_that("channel and key are recorded in snapshot.json (#151)", {
-  skip_if_no_bundle_pipeline()
-  out <- build_fake_bundle(channel = "prod", key = "testdata-prod-20261104T153000Z")
-  m <- read_testdata_snapshot(out)
-  expect_equal(m$key, "testdata-prod-20261104T153000Z")
-  expect_equal(m$metadata$channel, "prod")
+test_that(".inputs_hash() follows the documented definition (#151)", {
+  packages <- list(
+    workr = list(version = "1.1.0", remote_sha = "bbb"),
+    gsm.core = list(version = "1.0.0", remote_sha = "aaa"),
+    gsm.kri = list(version = "2.0.0", remote_sha = NULL)
+  )
+  text <- "gsm.core 1.0.0 aaa\ngsm.kri 2.0.0 NA\nworkr 1.1.0 bbb"
+  expected <- digest::digest(enc2utf8(text), algo = "sha256", serialize = FALSE)
+  expect_equal(.inputs_hash(packages), expected)
+  # Order-independent; changes when any version or SHA changes.
+  expect_equal(.inputs_hash(rev(packages)), expected)
+  packages$workr$remote_sha <- "ccc"
+  expect_false(identical(.inputs_hash(packages), expected))
 })
 
 test_that("read_testdata_object() reads RDS and CSV entries and verifies checksums (#151)", {
@@ -386,38 +397,13 @@ test_that("local package installs are rejected unless allow_local = TRUE (#151)"
   expect_true("remote_sha" %in% names(m$packages$gsm.kri))
 })
 
-test_that(".testdata_key() formats release tags in UTC (#151)", {
-  expect_equal(
-    .testdata_key("dev", as.POSIXct("2026-11-04 15:30:00", tz = "UTC")),
-    "testdata-dev-20261104T153000Z"
-  )
-})
-
-test_that("identical builds share a fingerprint regardless of build metadata (#151)", {
-  skip_if_not_installed("withr")
+test_that("identical builds share a fingerprint, key, and inputs hash (#151)", {
   skip_if_no_bundle_pipeline()
-  github_vars <- c(
-    "GITHUB_REPOSITORY",
-    "GITHUB_SHA",
-    "GITHUB_SERVER_URL",
-    "GITHUB_RUN_ID"
-  )
-  # Unset only while building `a`, so the test also passes on GitHub Actions.
-  a <- withr::with_envvar(
-    stats::setNames(rep(NA_character_, length(github_vars)), github_vars),
-    read_testdata_snapshot(build_fake_bundle())
-  )
-  withr::local_envvar(
-    GITHUB_REPOSITORY = "o/r",
-    GITHUB_SHA = "abc",
-    GITHUB_SERVER_URL = "https://github.com",
-    GITHUB_RUN_ID = "7"
-  )
+  a <- read_testdata_snapshot(build_fake_bundle())
   b <- read_testdata_snapshot(build_fake_bundle())
-  expect_equal(b$metadata$built_by, "o/r@abc")
-  expect_equal(b$metadata$workflow_run, "https://github.com/o/r/actions/runs/7")
-  expect_null(a$metadata$built_by)
+  expect_equal(a$key, b$key)
   expect_equal(a$metadata$fingerprint, b$metadata$fingerprint)
+  expect_equal(a$metadata$inputs_hash, b$metadata$inputs_hash)
   expect_equal(a$objects, b$objects)
 })
 
@@ -426,7 +412,7 @@ test_that("the fingerprint changes when the data changes (#151)", {
   local_fake_package_versions()
   out <- build_fake_bundle()
   cfg <- small_bundle_config()
-  fp <- function() .build_snapshot_args(out, cfg, "dev", "k", FALSE)$metadata$fingerprint
+  fp <- function() .build_snapshot_args(out, cfg, FALSE)$metadata$fingerprint
   before <- fp()
   utils::write.csv(data.frame(x = 1), file.path(out, "extra.csv"))
   expect_false(identical(fp(), before))
@@ -448,8 +434,7 @@ test_that("build_testdata_bundle() validates its arguments (#151)", {
     build_testdata_bundle(c("a", "b")),
     "`output_dir` must be a single directory path"
   )
-  expect_error(build_testdata_bundle(tempfile(), channel = "Dev"), "`channel`")
-  expect_error(build_testdata_bundle(tempfile(), key = 1), "`key`")
+  expect_false(any(c("channel", "key") %in% names(formals(build_testdata_bundle))))
   expect_error(build_testdata_bundle(tempfile(), allow_local = NA), "`allow_local`")
 })
 
@@ -519,7 +504,7 @@ test_that("the fingerprint orders files independently of locale (#151)", {
   skip_if_no_bundle_pipeline()
   local_fake_package_versions()
   out <- build_fake_bundle()
-  args <- .build_snapshot_args(out, small_bundle_config(), "dev", "k", FALSE)
+  args <- .build_snapshot_args(out, small_bundle_config(), FALSE)
   files <- list.files(out, recursive = TRUE)
   files <- files[files != "snapshot.json"]
   files <- files[order(files, method = "radix")]

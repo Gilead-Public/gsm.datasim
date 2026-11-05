@@ -8,8 +8,6 @@ build_testdata_bundle(
   output_dir,
   config = read_testdata_config(),
   overwrite = FALSE,
-  channel = "dev",
-  key = NULL,
   allow_local = FALSE
 )
 }
@@ -26,13 +24,6 @@ complete, so a failed build leaves the existing bundle untouched. If
 \code{output_dir} is \code{tempdir()} itself, the bundle is written to
 \code{file.path(tempdir(), "testdata-bundle")} instead; ancestors of
 \code{tempdir()} are rejected.}
-
-\item{channel}{Release channel (lowercase letters and digits), e.g. \code{"dev"}
-or \code{"prod"}.}
-
-\item{key}{Release tag recorded as the snapshot \code{key}. Defaults to
-\verb{testdata-<channel>-<YYYYMMDD>T<HHMMSS>Z} (UTC) at build time; it must
-match the tag the bundle is published under.}
 
 \item{allow_local}{If \code{FALSE} (default), error when any pipeline package
 lacks a \code{RemoteSha} (a local or uncommitted install). Set \code{TRUE} only for
@@ -84,16 +75,26 @@ byte-identical files.
 \section{Snapshot}{
 
 \code{snapshot.json} uses the generic "refresh" snapshot format (version 1),
-written by \code{write_snapshot_json()}: \code{refresh_snapshot}, \code{key} (the release
-tag), \code{created}, \code{objects} (the 15 \code{.rds} files with their sha256), and
-\code{packages} (installed \code{version} and \code{remote_sha} of each pipeline package,
-including gsm.core). gsm-specific details live under \code{metadata}: \code{channel},
-\code{fingerprint}, \code{simulation}, \code{built_by}, \code{workflow_run}, \code{r_version}, and
-\code{size}.
+written by \code{write_snapshot_json()}: \code{refresh_snapshot}, \code{key}
+(\code{"sha256:<fingerprint>"}), \code{created}, \code{objects} (every \code{.rds} and \code{.csv}
+file with its sha256), and \code{packages} (installed \code{version} and \code{remote_sha}
+of each pipeline package, including gsm.core). gsm-specific details live
+under \code{metadata}: \code{fingerprint}, \code{inputs_hash}, \code{simulation}, \code{r_version},
+and \code{size}.
 
-\code{fingerprint} is a SHA-256 hash over the per-file checksums of the bundle
-files (excluding \code{snapshot.json}), so two builds with identical data share a
-fingerprint regardless of build time or origin.
+The bundle records only what built it, not when, where, or for which release
+channel; release tags and run provenance belong to the release.
+\itemize{
+\item \code{fingerprint} is a SHA-256 hash over the per-file checksums of the bundle
+files (excluding \code{snapshot.json}), so two builds with identical data share
+a fingerprint (and \code{key}) regardless of build time or origin.
+\item \code{inputs_hash} identifies the packages that built the bundle: the SHA-256
+of the UTF-8 text formed by one \code{"<package> <version> <remote_sha>"} line
+per entry in \code{packages} (a missing \code{remote_sha} written as \code{NA}), sorted
+by package name in C-locale order and joined with \code{"\\n"} (no trailing
+newline). Consumers can compute it from their installed packages to look
+up the matching bundle.
+}
 }
 
 \examples{
