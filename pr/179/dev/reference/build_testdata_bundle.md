@@ -32,8 +32,9 @@ build_testdata_bundle(
 
   If `FALSE` (default), error when `output_dir` exists and is not empty.
   If `TRUE`, replace `output_dir` and its contents. The bundle is built
-  in a staging directory next to `output_dir` and swapped in only once
-  complete, so a failed build leaves the existing bundle untouched.
+  in [`tempdir()`](https://rdrr.io/r/base/tempfile.html) and copied into
+  `output_dir` only once complete, so a failed build leaves the existing
+  bundle untouched.
 
 - channel:
 

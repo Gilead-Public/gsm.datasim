@@ -1,7 +1,10 @@
 # Replace the bundle output directory with a completed staging directory
 
-Moves any existing `output_dir` aside, moves `staging` into place, then
-deletes the old bundle. Restores the old bundle if the move fails.
+Copies (rather than renames, since
+[`tempdir()`](https://rdrr.io/r/base/tempfile.html) may be on another
+volume) the staged files into `output_dir`. Existing contents are backed
+up to [`tempdir()`](https://rdrr.io/r/base/tempfile.html) first and
+restored if the copy fails.
 
 ## Usage
 
