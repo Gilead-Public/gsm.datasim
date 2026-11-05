@@ -103,8 +103,9 @@ written by
 including gsm.core). gsm-specific details live under `metadata`:
 `fingerprint`, `inputs_hash`, `simulation`, `r_version`, and `size`.
 
-The bundle records only what built it, not when, where, or for which
-release channel; release tags and run provenance belong to the release.
+The bundle records only what built it, not when or where it was built or
+how it is published; release tags and run provenance belong to the
+release.
 
 - `fingerprint` is a SHA-256 hash over the per-file checksums of the
   bundle files (excluding `snapshot.json`), so two builds with identical

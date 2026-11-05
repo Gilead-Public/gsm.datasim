@@ -140,8 +140,8 @@ file with its sha256), and <code>packages</code> (installed <code>version</code>
 of each pipeline package, including gsm.core). gsm-specific details live
 under <code>metadata</code>: <code>fingerprint</code>, <code>inputs_hash</code>, <code>simulation</code>, <code>r_version</code>,
 and <code>size</code>.</p>
-<p>The bundle records only what built it, not when, where, or for which release
-channel; release tags and run provenance belong to the release.</p><ul><li><p><code>fingerprint</code> is a SHA-256 hash over the per-file checksums of the bundle
+<p>The bundle records only what built it, not when or where it was built or
+how it is published; release tags and run provenance belong to the release.</p><ul><li><p><code>fingerprint</code> is a SHA-256 hash over the per-file checksums of the bundle
 files (excluding <code>snapshot.json</code>), so two builds with identical data share
 a fingerprint (and <code>key</code>) regardless of build time or origin.</p></li>
 <li><p><code>inputs_hash</code> identifies the packages that built the bundle: the SHA-256
