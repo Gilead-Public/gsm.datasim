@@ -53,8 +53,8 @@
 #'   [read_testdata_config()]. Defaults to the checked-in config.
 #' @param overwrite If `FALSE` (default), error when `output_dir` exists and is
 #'   not empty. If `TRUE`, replace `output_dir` and its contents. The bundle is
-#'   built in a staging directory next to `output_dir` and swapped in only
-#'   once complete, so a failed build leaves the existing bundle untouched.
+#'   built in [tempdir()] and copied into `output_dir` only once complete, so a
+#'   failed build leaves the existing bundle untouched.
 #' @param channel Release channel (lowercase letters and digits), e.g. `"dev"`
 #'   or `"prod"`.
 #' @param key Release tag recorded as the snapshot `key`. Defaults to
@@ -105,10 +105,11 @@ build_testdata_bundle <- function(
   config <- read_testdata_config(config)
   packages <- .check_package_versions(allow_local)
   .check_output_dir(output_dir, overwrite)
-  # Build into a sibling staging directory and only replace output_dir once
-  # the bundle is complete, so any failure leaves the existing bundle intact.
+  # Build in tempdir() and only replace output_dir once the bundle is
+  # complete, so any failure leaves the existing bundle intact.
   target <- output_dir
-  output_dir <- .staging_dir(target)
+  output_dir <- tempfile("bundle-staging-")
+  dir.create(output_dir)
   on.exit(unlink(output_dir, recursive = TRUE), add = TRUE)
 
   snapshots <- .simulate_bundle_snapshots(config)
@@ -175,47 +176,36 @@ build_testdata_bundle <- function(
   invisible(output_dir)
 }
 
-#' Create a staging directory next to the bundle output directory
-#'
-#' A sibling (rather than [tempdir()]) keeps the final swap a same-volume
-#' rename.
-#'
-#' @param output_dir Final bundle directory.
-#' @returns Path to a new, empty staging directory.
-#' @keywords internal
-.staging_dir <- function(output_dir) {
-  parent <- dirname(output_dir)
-  dir.create(parent, recursive = TRUE, showWarnings = FALSE)
-  staging <- tempfile(".bundle-staging-", tmpdir = parent)
-  dir.create(staging)
-  staging
-}
-
 #' Replace the bundle output directory with a completed staging directory
 #'
-#' Moves any existing `output_dir` aside, moves `staging` into place, then
-#' deletes the old bundle. Restores the old bundle if the move fails.
+#' Copies (rather than renames, since `tempdir()` may be on another volume)
+#' the staged files into `output_dir`. Existing contents are backed up to
+#' `tempdir()` first and restored if the copy fails.
 #'
 #' @param staging Completed staging directory.
 #' @param output_dir Final bundle directory.
 #' @returns `output_dir`, invisibly.
 #' @keywords internal
 .publish_bundle <- function(staging, output_dir) {
-  backup <- NULL
-  if (dir.exists(output_dir)) {
-    backup <- tempfile(".bundle-old-", tmpdir = dirname(output_dir))
-    if (!file.rename(output_dir, backup)) {
-      cli::cli_abort("Could not move the existing bundle at {.path {output_dir}} aside.")
-    }
+  dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+  contents <- function(dir) {
+    list.files(dir, all.files = TRUE, no.. = TRUE, full.names = TRUE)
   }
-  if (!file.rename(staging, output_dir)) {
-    if (!is.null(backup)) {
-      file.rename(backup, output_dir)
-    }
-    cli::cli_abort("Could not move the new bundle into {.path {output_dir}}.")
+  copy_into <- function(from, to) {
+    all(file.copy(from, to, recursive = TRUE, copy.date = TRUE))
   }
-  if (!is.null(backup)) {
-    unlink(backup, recursive = TRUE)
+  old <- contents(output_dir)
+  backup <- tempfile("bundle-backup-")
+  dir.create(backup)
+  on.exit(unlink(backup, recursive = TRUE), add = TRUE)
+  if (length(old) && !copy_into(old, backup)) {
+    cli::cli_abort("Could not back up the existing bundle at {.path {output_dir}}.")
+  }
+  unlink(old, recursive = TRUE)
+  if (!copy_into(contents(staging), output_dir)) {
+    unlink(contents(output_dir), recursive = TRUE)
+    copy_into(contents(backup), output_dir)
+    cli::cli_abort("Could not write the new bundle to {.path {output_dir}}.")
   }
   invisible(output_dir)
 }

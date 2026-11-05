@@ -21,8 +21,8 @@ build_testdata_bundle(
 
 \item{overwrite}{If \code{FALSE} (default), error when \code{output_dir} exists and is
 not empty. If \code{TRUE}, replace \code{output_dir} and its contents. The bundle is
-built in a staging directory next to \code{output_dir} and swapped in only
-once complete, so a failed build leaves the existing bundle untouched.}
+built in \code{\link[=tempdir]{tempdir()}} and copied into \code{output_dir} only once complete, so a
+failed build leaves the existing bundle untouched.}
 
 \item{channel}{Release channel (lowercase letters and digits), e.g. \code{"dev"}
 or \code{"prod"}.}

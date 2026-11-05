@@ -15,7 +15,8 @@
 \code{output_dir}, invisibly.
 }
 \description{
-Moves any existing \code{output_dir} aside, moves \code{staging} into place, then
-deletes the old bundle. Restores the old bundle if the move fails.
+Copies (rather than renames, since \code{tempdir()} may be on another volume)
+the staged files into \code{output_dir}. Existing contents are backed up to
+\code{tempdir()} first and restored if the copy fails.
 }
 \keyword{internal}

@@ -565,10 +565,7 @@ test_that("a failing build leaves an existing bundle intact (#151)", {
     "disk full"
   )
   expect_equal(tools::md5sum(file.path(out, sort(list.files(out)))), before)
-  expect_equal(
-    list.files(dirname(out), pattern = "^[.]bundle-staging"),
-    character()
-  )
+  expect_equal(list.files(tempdir(), pattern = "^bundle-"), character())
 })
 
 test_that("read_testdata_object() reads nested CSVs from their verified path (#151)", {
@@ -592,4 +589,17 @@ test_that(".read_bundle_csv() keeps GroupID as character in every table (#151)",
   expect_identical(.read_bundle_csv("reportingGroups_study", dir)$GroupID, "001")
   expect_identical(.read_bundle_csv("reportingResults_study", dir)$GroupID, "001")
   expect_no_warning(.read_bundle_csv("reportingMetrics", dir))
+})
+
+test_that(".publish_bundle() replaces output_dir contents (#151)", {
+  skip_if_not_installed("withr")
+  out <- withr::local_tempdir()
+  writeLines("old", file.path(out, "stale.txt"))
+  staging <- withr::local_tempdir()
+  dir.create(file.path(staging, "sub"))
+  writeLines("new", file.path(staging, "sub", "a.csv"))
+  writeLines("{}", file.path(staging, "snapshot.json"))
+  .publish_bundle(staging, out)
+  expect_setequal(list.files(out, recursive = TRUE), c("snapshot.json", "sub/a.csv"))
+  expect_equal(list.files(tempdir(), pattern = "^bundle-backup-"), character())
 })
