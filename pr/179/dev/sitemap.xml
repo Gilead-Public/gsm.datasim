@@ -30,11 +30,16 @@
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-build_origin.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-build_snapshot_args.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-bundle_workflows.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-bundle_workspace.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-canonical_path.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-check_config_fields.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-check_output_dir.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-check_package_versions.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-check_snapshot_dates.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-cleanup_workspace.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-combine_reporting.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-copy_into.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-dir_contents.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-generate_single_snapshot.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-installed_package_versions.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-load_config.html</loc></url>
@@ -46,6 +51,7 @@
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-read_bundle_csv.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-registry_prerequisites_met.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-resolve_domain_counts.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-resolve_output_dir.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-run_bundle_pipeline.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-simulate_bundle_snapshots.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-sort_reporting.html</loc></url>

@@ -31,10 +31,14 @@ build_testdata_bundle(
 - overwrite:
 
   If `FALSE` (default), error when `output_dir` exists and is not empty.
-  If `TRUE`, replace `output_dir` and its contents. The bundle is built
-  in [`tempdir()`](https://rdrr.io/r/base/tempfile.html) and copied into
-  `output_dir` only once complete, so a failed build leaves the existing
-  bundle untouched.
+  If `TRUE`, replace the contents of `output_dir`. The bundle is built
+  in a [`tempdir()`](https://rdrr.io/r/base/tempfile.html) subdirectory
+  and copied into `output_dir` only once complete, so a failed build
+  leaves the existing bundle untouched. If `output_dir` is
+  [`tempdir()`](https://rdrr.io/r/base/tempfile.html) itself, the bundle
+  is written to `file.path(tempdir(), "testdata-bundle")` instead;
+  ancestors of [`tempdir()`](https://rdrr.io/r/base/tempfile.html) are
+  rejected.
 
 - channel:
 
