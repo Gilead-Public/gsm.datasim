@@ -2,21 +2,25 @@
 % Please edit documentation in R/build_testdata_bundle.R
 \name{.publish_bundle}
 \alias{.publish_bundle}
-\title{Replace the bundle output directory with a completed staging directory}
+\title{Replace the bundle output directory's contents}
 \usage{
-.publish_bundle(staging, output_dir)
+.publish_bundle(staging, output_dir, workspace)
 }
 \arguments{
 \item{staging}{Completed staging directory.}
 
 \item{output_dir}{Final bundle directory.}
+
+\item{workspace}{Workspace from \code{\link[=.bundle_workspace]{.bundle_workspace()}}.}
 }
 \value{
 \code{output_dir}, invisibly.
 }
 \description{
 Copies (rather than renames, since \code{tempdir()} may be on another volume)
-the staged files into \code{output_dir}. Existing contents are backed up to
-\code{tempdir()} first and restored if the copy fails.
+the staged files into \code{output_dir}, replacing its contents but not the
+directory itself. Existing contents are backed up to the workspace first
+and restored if the copy fails. If restoring also fails, the workspace is
+kept and the error reports where the backup is.
 }
 \keyword{internal}

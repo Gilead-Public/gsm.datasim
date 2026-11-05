@@ -23,6 +23,7 @@ Imports:
     cli,
     digest,
     dplyr,
+    fs,
     glue,
     jsonlite,
     lifecycle,
@@ -34,7 +35,7 @@ Imports:
     stringr,
     tictoc,
     utils,
-    workr (>= 1.0.0),
+    workr (>= 1.1.0),
     yaml
 Suggests:
     gsm.core,

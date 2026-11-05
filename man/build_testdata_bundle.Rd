@@ -20,9 +20,12 @@ build_testdata_bundle(
 \code{\link[=read_testdata_config]{read_testdata_config()}}. Defaults to the checked-in config.}
 
 \item{overwrite}{If \code{FALSE} (default), error when \code{output_dir} exists and is
-not empty. If \code{TRUE}, replace \code{output_dir} and its contents. The bundle is
-built in \code{\link[=tempdir]{tempdir()}} and copied into \code{output_dir} only once complete, so a
-failed build leaves the existing bundle untouched.}
+not empty. If \code{TRUE}, replace the contents of \code{output_dir}. The bundle is
+built in a \code{\link[=tempdir]{tempdir()}} subdirectory and copied into \code{output_dir} only once
+complete, so a failed build leaves the existing bundle untouched. If
+\code{output_dir} is \code{tempdir()} itself, the bundle is written to
+\code{file.path(tempdir(), "testdata-bundle")} instead; ancestors of
+\code{tempdir()} are rejected.}
 
 \item{channel}{Release channel (lowercase letters and digits), e.g. \code{"dev"}
 or \code{"prod"}.}

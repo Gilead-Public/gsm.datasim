@@ -52,9 +52,12 @@
 #' @param config A config list or path to a YAML file; see
 #'   [read_testdata_config()]. Defaults to the checked-in config.
 #' @param overwrite If `FALSE` (default), error when `output_dir` exists and is
-#'   not empty. If `TRUE`, replace `output_dir` and its contents. The bundle is
-#'   built in [tempdir()] and copied into `output_dir` only once complete, so a
-#'   failed build leaves the existing bundle untouched.
+#'   not empty. If `TRUE`, replace the contents of `output_dir`. The bundle is
+#'   built in a [tempdir()] subdirectory and copied into `output_dir` only once
+#'   complete, so a failed build leaves the existing bundle untouched. If
+#'   `output_dir` is `tempdir()` itself, the bundle is written to
+#'   `file.path(tempdir(), "testdata-bundle")` instead; ancestors of
+#'   `tempdir()` are rejected.
 #' @param channel Release channel (lowercase letters and digits), e.g. `"dev"`
 #'   or `"prod"`.
 #' @param key Release tag recorded as the snapshot `key`. Defaults to
@@ -104,13 +107,13 @@ build_testdata_bundle <- function(
   )
   config <- read_testdata_config(config)
   packages <- .check_package_versions(allow_local)
-  .check_output_dir(output_dir, overwrite)
-  # Build in tempdir() and only replace output_dir once the bundle is
-  # complete, so any failure leaves the existing bundle intact.
-  target <- output_dir
-  output_dir <- tempfile("bundle-staging-")
-  dir.create(output_dir)
-  on.exit(unlink(output_dir, recursive = TRUE), add = TRUE)
+  target <- .resolve_output_dir(output_dir)
+  .check_output_dir(target, overwrite)
+  # Build in a private tempdir() subdirectory and only replace target's
+  # contents once the bundle is complete, so failures keep the old bundle.
+  workspace <- .bundle_workspace()
+  on.exit(.cleanup_workspace(workspace), add = TRUE)
+  output_dir <- file.path(workspace, "staging")
 
   snapshots <- .simulate_bundle_snapshots(config)
   workflows <- .bundle_workflows(config)
@@ -155,7 +158,7 @@ build_testdata_bundle <- function(
     packages
   )
   snapshot <- do.call(write_snapshot_json, args)
-  .publish_bundle(output_dir, target)
+  .publish_bundle(output_dir, target, workspace)
   invisible(snapshot)
 }
 
@@ -176,36 +179,140 @@ build_testdata_bundle <- function(
   invisible(output_dir)
 }
 
-#' Replace the bundle output directory with a completed staging directory
+#' Resolve the bundle output directory
+#'
+#' Paths are compared after canonicalization so case, short names, symlinks,
+#' and separators don't hide a match. `tempdir()` itself is redirected to a
+#' `testdata-bundle` subdirectory, since it holds unrelated files that
+#' overwriting must not touch. Ancestors of `tempdir()` are rejected because
+#' replacing their contents would delete the session's temporary files
+#' (including the build workspace).
+#'
+#' @param output_dir Requested output directory.
+#' @returns The directory to publish into.
+#' @keywords internal
+.resolve_output_dir <- function(output_dir) {
+  out <- .canonical_path(output_dir)
+  tmp <- .canonical_path(tempdir())
+  if (identical(out, tmp)) {
+    output_dir <- file.path(tempdir(), "testdata-bundle")
+    cli::cli_inform(
+      "Writing the bundle to {.path {output_dir}} to keep {.fn tempdir} clean."
+    )
+    return(output_dir)
+  }
+  if (fs::path_has_parent(tmp, out)) {
+    cli::cli_abort(c(
+      "{.arg output_dir} must not contain {.fn tempdir}: {.path {output_dir}}.",
+      i = "Use {.code tempdir()} or a subdirectory of it instead."
+    ))
+  }
+  output_dir
+}
+
+#' Canonicalize a path for comparison
+#'
+#' Resolves the deepest existing ancestor with [fs::path_real()] and appends
+#' the remaining components; case-folded on Windows.
+#'
+#' @param path A path, which need not exist.
+#' @returns A single normalized path string.
+#' @keywords internal
+.canonical_path <- function(path) {
+  path <- fs::path_norm(fs::path_abs(path))
+  rest <- character()
+  while (!fs::dir_exists(path) && !identical(fs::path_dir(path), path)) {
+    rest <- c(fs::path_file(path), rest)
+    path <- fs::path_dir(path)
+  }
+  out <- as.character(fs::path_norm(
+    do.call(fs::path, as.list(c(fs::path_real(path), rest)))
+  ))
+  if (.Platform$OS.type == "windows") tolower(out) else out
+}
+
+#' Create the private build workspace
+#'
+#' A single `tempdir()` subdirectory holding `staging/` (the new bundle) and
+#' `backup/` (the previous bundle while publishing), so nothing is written
+#' loose in the `tempdir()` root.
+#'
+#' @returns Path to the workspace.
+#' @keywords internal
+.bundle_workspace <- function() {
+  workspace <- tempfile("gsm.datasim-bundle-")
+  dir.create(file.path(workspace, "staging"), recursive = TRUE)
+  dir.create(file.path(workspace, "backup"))
+  workspace
+}
+
+#' Remove the build workspace unless it holds an unrestored backup
+#'
+#' @param workspace Path from [.bundle_workspace()].
+#' @returns `NULL`, invisibly.
+#' @keywords internal
+.cleanup_workspace <- function(workspace) {
+  if (!file.exists(file.path(workspace, "KEEP"))) {
+    unlink(workspace, recursive = TRUE)
+  }
+  invisible(NULL)
+}
+
+#' List a directory's contents
+#'
+#' @param dir A directory.
+#' @returns Full paths of its files and subdirectories (including hidden).
+#' @keywords internal
+.dir_contents <- function(dir) {
+  list.files(dir, all.files = TRUE, no.. = TRUE, full.names = TRUE)
+}
+
+#' Copy files and directories into a directory
+#'
+#' @param from Paths to copy.
+#' @param to Destination directory.
+#' @returns `TRUE` if every copy succeeded.
+#' @keywords internal
+.copy_into <- function(from, to) {
+  all(file.copy(from, to, recursive = TRUE, copy.date = TRUE))
+}
+
+#' Replace the bundle output directory's contents
 #'
 #' Copies (rather than renames, since `tempdir()` may be on another volume)
-#' the staged files into `output_dir`. Existing contents are backed up to
-#' `tempdir()` first and restored if the copy fails.
+#' the staged files into `output_dir`, replacing its contents but not the
+#' directory itself. Existing contents are backed up to the workspace first
+#' and restored if the copy fails. If restoring also fails, the workspace is
+#' kept and the error reports where the backup is.
 #'
 #' @param staging Completed staging directory.
 #' @param output_dir Final bundle directory.
+#' @param workspace Workspace from [.bundle_workspace()].
 #' @returns `output_dir`, invisibly.
 #' @keywords internal
-.publish_bundle <- function(staging, output_dir) {
+.publish_bundle <- function(staging, output_dir, workspace) {
   dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
-  contents <- function(dir) {
-    list.files(dir, all.files = TRUE, no.. = TRUE, full.names = TRUE)
-  }
-  copy_into <- function(from, to) {
-    all(file.copy(from, to, recursive = TRUE, copy.date = TRUE))
-  }
-  old <- contents(output_dir)
-  backup <- tempfile("bundle-backup-")
-  dir.create(backup)
-  on.exit(unlink(backup, recursive = TRUE), add = TRUE)
-  if (length(old) && !copy_into(old, backup)) {
-    cli::cli_abort("Could not back up the existing bundle at {.path {output_dir}}.")
+  backup <- file.path(workspace, "backup")
+  old <- .dir_contents(output_dir)
+  if (length(old) && !.copy_into(old, backup)) {
+    cli::cli_abort(
+      "Could not back up the existing bundle at {.path {output_dir}}."
+    )
   }
   unlink(old, recursive = TRUE)
-  if (!copy_into(contents(staging), output_dir)) {
-    unlink(contents(output_dir), recursive = TRUE)
-    copy_into(contents(backup), output_dir)
-    cli::cli_abort("Could not write the new bundle to {.path {output_dir}}.")
+  if (!.copy_into(.dir_contents(staging), output_dir)) {
+    unlink(.dir_contents(output_dir), recursive = TRUE)
+    if (!.copy_into(.dir_contents(backup), output_dir)) {
+      file.create(file.path(workspace, "KEEP"))
+      cli::cli_abort(c(
+        "Could not write the new bundle or restore the old one to {.path {output_dir}}.",
+        i = "The previous bundle is backed up in {.path {backup}}."
+      ))
+    }
+    cli::cli_abort(c(
+      "Could not write the new bundle to {.path {output_dir}}.",
+      i = "The previous bundle was restored."
+    ))
   }
   invisible(output_dir)
 }
@@ -281,7 +388,13 @@ read_testdata_object <- function(path, name) {
 #' @keywords internal
 .simulate_bundle_snapshots <- function(config) {
   rlang::check_installed("withr", reason = "to simulate the test data bundle.")
-  withr::local_seed(config$seed)
+  # Pin RNG kinds so the bundle doesn't depend on the caller's RNGkind().
+  withr::local_seed(
+    config$seed,
+    .rng_kind = "Mersenne-Twister",
+    .rng_normal_kind = "Inversion",
+    .rng_sample_kind = "Rejection"
+  )
   study <- create_longitudinal_study(
     study_id = config$study_id,
     participants = config$participants,

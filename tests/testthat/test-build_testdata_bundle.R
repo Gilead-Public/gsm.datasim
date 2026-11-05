@@ -565,7 +565,7 @@ test_that("a failing build leaves an existing bundle intact (#151)", {
     "disk full"
   )
   expect_equal(tools::md5sum(file.path(out, sort(list.files(out)))), before)
-  expect_equal(list.files(tempdir(), pattern = "^bundle-"), character())
+  expect_equal(list.files(tempdir(), pattern = "^gsm.datasim-bundle-"), character())
 })
 
 test_that("read_testdata_object() reads nested CSVs from their verified path (#151)", {
@@ -591,15 +591,124 @@ test_that(".read_bundle_csv() keeps GroupID as character in every table (#151)",
   expect_no_warning(.read_bundle_csv("reportingMetrics", dir))
 })
 
-test_that(".publish_bundle() replaces output_dir contents (#151)", {
-  skip_if_not_installed("withr")
-  out <- withr::local_tempdir()
-  writeLines("old", file.path(out, "stale.txt"))
-  staging <- withr::local_tempdir()
+local_publish_fixture <- function(env = parent.frame()) {
+  out <- withr::local_tempdir(.local_envir = env)
+  writeLines("old", file.path(out, "old.csv"))
+  workspace <- .bundle_workspace()
+  withr::defer(unlink(workspace, recursive = TRUE), envir = env)
+  staging <- file.path(workspace, "staging")
   dir.create(file.path(staging, "sub"))
   writeLines("new", file.path(staging, "sub", "a.csv"))
   writeLines("{}", file.path(staging, "snapshot.json"))
-  .publish_bundle(staging, out)
-  expect_setequal(list.files(out, recursive = TRUE), c("snapshot.json", "sub/a.csv"))
-  expect_equal(list.files(tempdir(), pattern = "^bundle-backup-"), character())
+  list(out = out, workspace = workspace, staging = staging)
+}
+
+same_dir <- function(a, b) .canonical_path(a) == .canonical_path(b)
+
+test_that(".publish_bundle() replaces output_dir contents, not the dir (#151)", {
+  skip_if_not_installed("withr")
+  fx <- local_publish_fixture()
+  marker <- file.path(fx$out, "..", basename(fx$out))
+  .publish_bundle(fx$staging, fx$out, fx$workspace)
+  expect_setequal(
+    list.files(fx$out, recursive = TRUE),
+    c("snapshot.json", "sub/a.csv")
+  )
+  expect_true(dir.exists(marker))
+})
+
+test_that(".publish_bundle() restores the old bundle if publishing fails (#151)", {
+  skip_if_not_installed("withr")
+  fx <- local_publish_fixture()
+  before <- unname(tools::md5sum(file.path(fx$out, "old.csv")))
+  real_copy <- .copy_into
+  local_mocked_bindings(.copy_into = function(from, to) {
+    # Fail the new-bundle copy partway through; allow backup and restore.
+    if (same_dir(to, fx$out) && any(basename(from) == "snapshot.json")) {
+      file.copy(from[1], to, recursive = TRUE)
+      return(FALSE)
+    }
+    real_copy(from, to)
+  })
+  expect_error(
+    .publish_bundle(fx$staging, fx$out, fx$workspace),
+    "was restored"
+  )
+  expect_equal(list.files(fx$out), "old.csv")
+  expect_equal(unname(tools::md5sum(file.path(fx$out, "old.csv"))), before)
+  .cleanup_workspace(fx$workspace)
+  expect_false(dir.exists(fx$workspace))
+})
+
+test_that(".publish_bundle() keeps the backup if restoring fails (#151)", {
+  skip_if_not_installed("withr")
+  fx <- local_publish_fixture()
+  real_copy <- .copy_into
+  local_mocked_bindings(.copy_into = function(from, to) {
+    if (same_dir(to, fx$out)) {
+      return(FALSE)
+    }
+    real_copy(from, to)
+  })
+  expect_error(
+    .publish_bundle(fx$staging, fx$out, fx$workspace),
+    "backed up in"
+  )
+  .cleanup_workspace(fx$workspace)
+  expect_equal(readLines(file.path(fx$workspace, "backup", "old.csv")), "old")
+})
+
+test_that("output_dir = tempdir() is redirected to a subdirectory (#151)", {
+  sub <- file.path(tempdir(), "testdata-bundle")
+  expect_message(out <- .resolve_output_dir(tempdir()), "testdata-bundle")
+  expect_equal(out, sub)
+  expect_message(
+    .resolve_output_dir(paste0(tempdir(), "/")),
+    "testdata-bundle"
+  )
+  expect_message(
+    .resolve_output_dir(file.path(tempdir(), ".")),
+    "testdata-bundle"
+  )
+  skip_on_os(c("mac", "linux", "solaris"))
+  expect_message(
+    .resolve_output_dir(chartr("/", "\\", toupper(tempdir()))),
+    "testdata-bundle"
+  )
+})
+
+test_that("build_testdata_bundle(tempdir()) leaves other tempdir() files alone (#151)", {
+  skip_if_no_bundle_pipeline()
+  local_fake_bundle_stages()
+  local_fake_package_versions()
+  sub <- file.path(tempdir(), "testdata-bundle")
+  withr::defer(unlink(sub, recursive = TRUE))
+  sentinel <- withr::local_tempfile(lines = "keep")
+  suppressMessages(
+    build_testdata_bundle(tempdir(), small_bundle_config(), overwrite = TRUE)
+  )
+  expect_true(file.exists(file.path(sub, "snapshot.json")))
+  expect_equal(readLines(sentinel), "keep")
+  expect_equal(
+    list.files(tempdir(), pattern = "^gsm.datasim-bundle-"),
+    character()
+  )
+})
+
+test_that("ancestors of tempdir() are rejected as output_dir (#151)", {
+  expect_error(.resolve_output_dir(dirname(tempdir())), "must not contain")
+  inside <- file.path(tempdir(), "x")
+  expect_equal(.resolve_output_dir(inside), inside)
+})
+
+test_that("bundle simulation ignores the caller's RNG kind (#151)", {
+  skip_if_not_installed("withr")
+  seen <- NULL
+  local_mocked_bindings(create_longitudinal_study = function(...) {
+    seen <<- RNGkind()
+    list(raw_data = list())
+  })
+  withr::local_rng_version("3.5.0")
+  .simulate_bundle_snapshots(small_bundle_config())
+  expect_equal(seen, c("Mersenne-Twister", "Inversion", "Rejection"))
 })
