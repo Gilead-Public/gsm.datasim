@@ -1,9 +1,9 @@
 # Read a bundle CSV back with standard column types
 
-`GroupID` is read as character for `analytics*` and `reportingResults`,
-and converted to character for the other `reportingResults*` tables;
-`SnapshotDate` is converted to `Date`. Other columns keep
-[`utils::read.csv()`](https://rdrr.io/r/utils/read.table.html) types.
+`GroupID` is read as character wherever present, so IDs such as `"001"`
+keep leading zeros; `SnapshotDate` is converted to `Date`. Other columns
+keep [`utils::read.csv()`](https://rdrr.io/r/utils/read.table.html)
+types.
 
 ## Usage
 

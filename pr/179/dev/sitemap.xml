@@ -31,6 +31,7 @@
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-build_snapshot_args.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-bundle_workflows.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-check_config_fields.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-check_output_dir.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-check_package_versions.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-check_snapshot_dates.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-combine_reporting.html</loc></url>
@@ -40,7 +41,7 @@
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-metric_rank.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-normalize_config.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-pkg_description.html</loc></url>
-<url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-prepare_output_dir.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-publish_bundle.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-qualify_workflow_steps.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-read_bundle_csv.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-registry_prerequisites_met.html</loc></url>
@@ -49,6 +50,7 @@
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-simulate_bundle_snapshots.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-sort_reporting.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-split_reporting.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-staging_dir.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-testdata_key.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-workflow_run_url.html</loc></url>
 <url><loc>https://gilead-public.github.io/gsm.datasim/dev/reference/dot-write_csvs.html</loc></url>
