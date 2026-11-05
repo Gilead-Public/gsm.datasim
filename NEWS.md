@@ -1,3 +1,7 @@
+# gsm.datasim (development version)
+
+- New `build_testdata_bundle()` produces the shared gsm test data (`lSource`, `analytics*`, `reporting*`) for use in other gsm packages (#151).
+
 # gsm.datasim v2.1.0
 
 This minor release adds simulated data for the IP Compliance (IP non-starters and premature treatment discontinuation) and Repeat Measurements analytics, and keeps longitudinal snapshots consistent from one snapshot to the next.
