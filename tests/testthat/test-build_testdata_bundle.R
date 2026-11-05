@@ -536,3 +536,21 @@ test_that("the fingerprint orders files independently of locale (#151)", {
   )
   expect_equal(args$metadata$fingerprint, expected)
 })
+
+test_that("read_testdata_config() rejects invalid simulation inputs (#151)", {
+  cfg <- read_testdata_config()
+  expect_error(read_testdata_config(modifyList(cfg, list(participants = -1))), "Participants")
+  expect_error(read_testdata_config(modifyList(cfg, list(sites = 0))), "Sites")
+  bad <- cfg
+  bad$domains <- character()
+  expect_error(read_testdata_config(bad), "domain")
+})
+
+test_that("invalid config inputs leave an existing bundle intact (#151)", {
+  skip_if_no_bundle_pipeline()
+  out <- build_fake_bundle()
+  before <- sort(list.files(out))
+  cfg <- modifyList(small_bundle_config(), list(participants = -1))
+  expect_error(build_testdata_bundle(out, cfg, overwrite = TRUE), "Participants")
+  expect_equal(sort(list.files(out)), before)
+})

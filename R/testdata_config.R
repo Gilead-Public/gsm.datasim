@@ -25,6 +25,14 @@ read_testdata_config <- function(
   .check_config_fields(config)
   config <- .normalize_config(config)
   .check_snapshot_dates(config)
+  # Same checks create_longitudinal_study() runs, so invalid inputs fail before
+  # build_testdata_bundle() clears output_dir.
+  validate_study_inputs(
+    config$participants,
+    config$sites,
+    config$snapshots,
+    config$domains
+  )
   config[c(.config_required_fields, "extra_mappings")]
 }
 
