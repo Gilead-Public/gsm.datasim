@@ -20,6 +20,7 @@ Depends:
     R (>= 4.1.0)
 Imports:
     arrow,
+    cachem,
     cli,
     digest,
     dplyr,
@@ -31,6 +32,7 @@ Imports:
     lubridate,
     magrittr,
     purrr,
+    R6,
     rlang,
     stringr,
     tictoc,
