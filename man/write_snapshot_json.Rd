@@ -7,21 +7,21 @@
 write_snapshot_json(dir, objects, key, packages = NULL, metadata = NULL)
 }
 \arguments{
-\item{dir}{Snapshot folder containing the files.}
+\item{dir}{\code{character(1)} Snapshot folder containing the files.}
 
-\item{objects}{Named list or character vector: object name -> file name.}
+\item{objects}{\code{character} or \code{list} Named; object name -> file name
+(relative to \code{dir}). Checksums are computed from the files.}
 
-\item{key}{Version key (a string).}
+\item{key}{\code{character(1)} Version key.}
 
-\item{packages}{Optional named list; each element has \code{version} and
-\code{remote_sha}.}
+\item{packages}{\code{list} Optional output of \code{\link[=package_versions]{package_versions()}}.}
 
-\item{metadata}{Optional named list stored as-is.}
+\item{metadata}{\code{list} Optional named list, stored as-is.}
 }
 \value{
-The snapshot description, invisibly.
+\code{list} The snapshot description, invisibly.
 }
 \description{
-Checksums are computed from the files on disk.
+Write snapshot.json for files already in a folder
 }
 \keyword{internal}
