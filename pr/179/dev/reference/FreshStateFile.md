@@ -24,9 +24,9 @@ Create one with
 
 Inherited methods
 
-- [`FreshState$get()`](https://gilead-public.github.io/gsm.datasim/gsm.datasim/html/FreshState.html#method-FreshState-get)
-- [`FreshState$reset()`](https://gilead-public.github.io/gsm.datasim/gsm.datasim/html/FreshState.html#method-FreshState-reset)
-- [`FreshState$set()`](https://gilead-public.github.io/gsm.datasim/gsm.datasim/html/FreshState.html#method-FreshState-set)
+- [`FreshState$get()`](https://gilead-public.github.io/gsm.datasim/dev/reference/FreshState.html#method-get)
+- [`FreshState$reset()`](https://gilead-public.github.io/gsm.datasim/dev/reference/FreshState.html#method-reset)
+- [`FreshState$set()`](https://gilead-public.github.io/gsm.datasim/dev/reference/FreshState.html#method-set)
 
 ------------------------------------------------------------------------
 
