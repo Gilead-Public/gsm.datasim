@@ -1,6 +1,6 @@
 # Write snapshot.json for files already in a folder
 
-Checksums are computed from the files on disk.
+Write snapshot.json for files already in a folder
 
 ## Usage
 
@@ -12,24 +12,26 @@ write_snapshot_json(dir, objects, key, packages = NULL, metadata = NULL)
 
 - dir:
 
-  Snapshot folder containing the files.
+  `character(1)` Snapshot folder containing the files.
 
 - objects:
 
-  Named list or character vector: object name -\> file name.
+  `character` or `list` Named; object name -\> file name (relative to
+  `dir`). Checksums are computed from the files.
 
 - key:
 
-  Version key (a string).
+  `character(1)` Version key.
 
 - packages:
 
-  Optional named list; each element has `version` and `remote_sha`.
+  `list` Optional output of
+  [`package_versions()`](https://gilead-public.github.io/gsm.datasim/dev/reference/package_versions.md).
 
 - metadata:
 
-  Optional named list stored as-is.
+  `list` Optional named list, stored as-is.
 
 ## Value
 
-The snapshot description, invisibly.
+`list` The snapshot description, invisibly.
