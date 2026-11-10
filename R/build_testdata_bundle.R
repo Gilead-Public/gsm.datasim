@@ -291,22 +291,41 @@ build_testdata_bundle <- function(
       "Could not back up the existing bundle at {.path {output_dir}}."
     )
   }
+  # Retain the backup until publishing or restoring succeeds, so errors or
+  # interrupts after the originals are deleted never lose the only copy.
+  keep <- file.path(workspace, "KEEP")
+  file.create(keep)
   unlink(old, recursive = TRUE)
-  if (!.copy_into(.dir_contents(staging), output_dir)) {
-    unlink(.dir_contents(output_dir), recursive = TRUE)
-    if (!.copy_into(.dir_contents(backup), output_dir)) {
-      file.create(file.path(workspace, "KEEP"))
-      cli::cli_abort(c(
-        "Could not write the new bundle or restore the old one to {.path {output_dir}}.",
-        i = "The previous bundle is backed up in {.path {backup}}."
-      ))
-    }
+  copied <- .try_copy_into(.dir_contents(staging), output_dir)
+  if (copied) {
+    unlink(keep)
+    return(invisible(output_dir))
+  }
+  unlink(.dir_contents(output_dir), recursive = TRUE)
+  if (!.try_copy_into(.dir_contents(backup), output_dir)) {
     cli::cli_abort(c(
-      "Could not write the new bundle to {.path {output_dir}}.",
-      i = "The previous bundle was restored."
+      "Could not write the new bundle or restore the old one to {.path {output_dir}}.",
+      i = "The previous bundle is backed up in {.path {backup}}."
     ))
   }
-  invisible(output_dir)
+  unlink(keep)
+  cli::cli_abort(c(
+    "Could not write the new bundle to {.path {output_dir}}.",
+    i = "The previous bundle was restored."
+  ))
+}
+
+#' Copy into a directory, treating errors and interrupts as failure
+#'
+#' @inheritParams .copy_into
+#' @returns `TRUE` if every copy succeeded, otherwise `FALSE`.
+#' @keywords internal
+.try_copy_into <- function(from, to) {
+  tryCatch(
+    isTRUE(.copy_into(from, to)),
+    error = function(e) FALSE,
+    interrupt = function(e) FALSE
+  )
 }
 
 #' Read a test data bundle snapshot description
@@ -726,6 +745,9 @@ read_testdata_object <- function(path, name) {
 #' @returns `output_dir`, invisibly.
 #' @keywords internal
 .write_csvs <- function(tables, output_dir) {
+  # Pin number formatting so checksums don't depend on the caller's scipen.
+  old <- options(scipen = 0)
+  on.exit(options(old), add = TRUE)
   for (nm in names(tables)) {
     df <- as.data.frame(tables[[nm]])
     rownames(df) <- NULL
@@ -764,9 +786,21 @@ read_testdata_object <- function(path, name) {
 #' @keywords internal
 .read_bundle_csv <- function(name, dir) {
   path <- file.path(dir, paste0(name, ".csv"))
-  header <- names(utils::read.csv(path, nrows = 0, check.names = FALSE))
+  # .write_csvs() always writes UTF-8, whatever the session locale.
+  header <- names(utils::read.csv(
+    path,
+    nrows = 0,
+    check.names = FALSE,
+    encoding = "UTF-8",
+    fileEncoding = "UTF-8"
+  ))
   col_classes <- if ("GroupID" %in% header) c(GroupID = "character") else NA
-  x <- utils::read.csv(path, colClasses = col_classes)
+  x <- utils::read.csv(
+    path,
+    colClasses = col_classes,
+    encoding = "UTF-8",
+    fileEncoding = "UTF-8"
+  )
   if ("SnapshotDate" %in% names(x)) {
     x$SnapshotDate <- as.Date(x$SnapshotDate)
   }

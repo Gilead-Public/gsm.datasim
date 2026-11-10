@@ -643,6 +643,55 @@ test_that(".publish_bundle() keeps the backup if restoring fails (#151)", {
   expect_equal(readLines(file.path(fx$workspace, "backup", "old.csv")), "old")
 })
 
+test_that(".publish_bundle() restores the old bundle if copying throws (#151)", {
+  skip_if_not_installed("withr")
+  fx <- local_publish_fixture()
+  real_copy <- .copy_into
+  local_mocked_bindings(.copy_into = function(from, to) {
+    if (same_dir(to, fx$out) && any(basename(from) == "snapshot.json")) {
+      stop("copy blew up")
+    }
+    real_copy(from, to)
+  })
+  expect_error(.publish_bundle(fx$staging, fx$out, fx$workspace), "was restored")
+  expect_equal(readLines(file.path(fx$out, "old.csv")), "old")
+  expect_false(file.exists(file.path(fx$workspace, "KEEP")))
+})
+
+test_that(".publish_bundle() keeps the backup if restoring throws (#151)", {
+  skip_if_not_installed("withr")
+  fx <- local_publish_fixture()
+  real_copy <- .copy_into
+  local_mocked_bindings(.copy_into = function(from, to) {
+    if (same_dir(to, fx$out)) stop("copy blew up")
+    real_copy(from, to)
+  })
+  expect_error(.publish_bundle(fx$staging, fx$out, fx$workspace), "backed up in")
+  .cleanup_workspace(fx$workspace)
+  expect_equal(readLines(file.path(fx$workspace, "backup", "old.csv")), "old")
+})
+
+test_that(".write_csvs() output does not depend on options(scipen) (#151)", {
+  skip_if_not_installed("withr")
+  df <- list(t = data.frame(x = c(1e-8, 123456789012)))
+  a <- withr::local_tempdir()
+  b <- withr::local_tempdir()
+  withr::with_options(list(scipen = -9), .write_csvs(df, a))
+  withr::with_options(list(scipen = 20), .write_csvs(df, b))
+  expect_identical(readLines(file.path(a, "t.csv")), readLines(file.path(b, "t.csv")))
+  expect_identical(getOption("scipen"), 0L)
+})
+
+test_that(".read_bundle_csv() reads UTF-8 text (#151)", {
+  skip_if_not_installed("withr")
+  dir <- withr::local_tempdir()
+  txt <- "Z\u00fcrich \u00e9t\u00e9"
+  .write_csvs(list(t = data.frame(GroupID = "1", Name = txt)), dir)
+  x <- .read_bundle_csv("t", dir)
+  expect_identical(x$Name, txt)
+  expect_identical(x$GroupID, "1")
+})
+
 test_that("output_dir = tempdir() is redirected to a subdirectory (#151)", {
   sub <- file.path(tempdir(), "testdata-bundle")
   expect_message(out <- .resolve_output_dir(tempdir()), "testdata-bundle")
