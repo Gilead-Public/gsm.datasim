@@ -676,10 +676,11 @@ test_that(".write_csvs() output does not depend on options(scipen) (#151)", {
   df <- list(t = data.frame(x = c(1e-8, 123456789012)))
   a <- withr::local_tempdir()
   b <- withr::local_tempdir()
+  original_scipen <- getOption("scipen")
   withr::with_options(list(scipen = -9), .write_csvs(df, a))
   withr::with_options(list(scipen = 20), .write_csvs(df, b))
   expect_identical(readLines(file.path(a, "t.csv")), readLines(file.path(b, "t.csv")))
-  expect_identical(getOption("scipen"), 0L)
+  expect_identical(getOption("scipen"), original_scipen)
 })
 
 test_that(".read_bundle_csv() reads UTF-8 text (#151)", {
