@@ -2,7 +2,7 @@
 
 # Vendored from gsm.core's R/refresh-snapshot.R (the would-be "refresh"
 # package). Replace with refresh::write_snapshot_json() once refresh is on
-# CRAN. 
+# CRAN.
 
 # refresh: keep objects in an environment fresh ------------------------------
 #
@@ -576,7 +576,9 @@ FreshStateFile <- R6::R6Class(
   if (file.exists(to)) {
     unlink(to)
   }
-  if (!file.rename(from, to) && !isTRUE(file.copy(from, to, overwrite = TRUE))) {
+  if (
+    !file.rename(from, to) && !isTRUE(file.copy(from, to, overwrite = TRUE))
+  ) {
     stop("Failed to write ", to, call. = FALSE)
   }
   invisible(to)
