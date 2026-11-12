@@ -747,3 +747,56 @@ test_that("bundle simulation ignores the caller's RNG kind (#151)", {
   .simulate_bundle_snapshots(small_bundle_config())
   expect_equal(seen, c("Mersenne-Twister", "Inversion", "Rejection"))
 })
+
+test_that(".write_csvs() writes LF line endings on every platform (#187)", {
+  skip_if_not_installed("withr")
+  dir <- withr::local_tempdir()
+  .write_csvs(list(t = data.frame(x = 1:3, y = c("a", "b", "c"))), dir)
+  bytes <- readBin(file.path(dir, "t.csv"), "raw", file.size(file.path(dir, "t.csv")))
+  expect_false(any(bytes == as.raw(0x0d)))
+  expect_identical(sum(bytes == as.raw(0x0a)), 4L)
+})
+
+test_that("read_testdata_object() verifies CSVs converted to CRLF (#187)", {
+  skip_if_no_bundle_pipeline()
+  out <- build_fake_bundle()
+  path <- file.path(out, "reportingResults.csv")
+  lf <- readBin(path, "raw", file.size(path))
+  expect_false(any(lf == as.raw(0x0d)))
+  writeBin(charToRaw(gsub("\n", "\r\n", rawToChar(lf), fixed = TRUE)), path)
+  expect_identical(
+    read_testdata_object(out, "reportingResults.csv"),
+    readRDS(file.path(out, "reportingResults.rds"))
+  )
+})
+
+test_that("the fingerprint ignores CSV line endings (#187)", {
+  skip_if_no_bundle_pipeline()
+  out <- build_fake_bundle()
+  lf <- .build_snapshot_args(out, small_bundle_config(), allow_local = TRUE)
+  for (path in list.files(out, "[.]csv$", full.names = TRUE)) {
+    txt <- rawToChar(readBin(path, "raw", file.size(path)))
+    writeBin(charToRaw(gsub("\n", "\r\n", txt, fixed = TRUE)), path)
+  }
+  crlf <- .build_snapshot_args(out, small_bundle_config(), allow_local = TRUE)
+  expect_identical(crlf$metadata$fingerprint, lf$metadata$fingerprint)
+})
+
+test_that(".fresh_sha256() treats CRLF as LF in text files (#187)", {
+  skip_if_not_installed("withr")
+  dir <- withr::local_tempdir()
+  lf <- file.path(dir, "lf.txt")
+  crlf <- file.path(dir, "crlf")
+  writeBin(charToRaw("a,b\n1,2\n"), lf)
+  writeBin(charToRaw("a,b\r\n1,2\r\n"), crlf)
+  expect_identical(.fresh_sha256(lf), digest::digest(file = lf, algo = "sha256"))
+  expect_identical(.fresh_sha256(crlf), .fresh_sha256(lf))
+})
+
+test_that(".fresh_sha256() hashes files with NUL bytes as-is (#187)", {
+  skip_if_not_installed("withr")
+  dir <- withr::local_tempdir()
+  path <- file.path(dir, "bin")
+  writeBin(as.raw(c(0x00, 0x0d, 0x0a, 0x41)), path)
+  expect_identical(.fresh_sha256(path), digest::digest(file = path, algo = "sha256"))
+})

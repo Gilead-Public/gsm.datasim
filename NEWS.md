@@ -1,6 +1,6 @@
 # gsm.datasim (development version)
 
-- New `build_testdata_bundle()` produces the shared gsm test data (`lSource`, `analytics*`, `reporting*`) for use in other gsm packages (#151).
+- New `build_testdata_bundle()` produces the shared gsm test data (`lSource`, `analytics*`, `reporting*`) for use in other gsm packages (#151, #187).
 
 # gsm.datasim v2.1.0
 

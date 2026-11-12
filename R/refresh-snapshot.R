@@ -71,13 +71,27 @@ parse_snapshot <- function(info, source = "snapshot.json") {
   info
 }
 
-#' Compute a file's sha256
+#' Compute a file's sha256, treating CRLF as LF in text files
+#'
+#' Text files (no NUL bytes, the same heuristic Git uses) are hashed with CRLF
+#' normalized to LF, so a copy whose line endings were converted (e.g. by a
+#' Windows checkout or download tool) still verifies. Other files are hashed
+#' byte for byte. For LF text and binary files this equals the plain file
+#' sha256 (#187).
 #'
 #' @param path `character(1)` Path to the file.
 #' @returns `character(1)` The lowercase hex sha256.
 #' @keywords internal
 .fresh_sha256 <- function(path) {
-  digest::digest(file = path, algo = "sha256")
+  bytes <- readBin(path, "raw", file.size(path))
+  if (!any(bytes == as.raw(0))) {
+    cr <- which(bytes == as.raw(0x0d))
+    crlf <- cr[cr < length(bytes) & bytes[cr + 1L] == as.raw(0x0a)]
+    if (length(crlf)) {
+      bytes <- bytes[-crlf]
+    }
+  }
+  digest::digest(bytes, algo = "sha256", serialize = FALSE)
 }
 
 #' Write snapshot.json for files already in a folder

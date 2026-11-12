@@ -49,7 +49,10 @@
 #'
 #' * `fingerprint` is a SHA-256 hash over the per-file checksums of the bundle
 #'   files (excluding `snapshot.json`), so two builds with identical data share
-#'   a fingerprint (and `key`) regardless of build time or origin.
+#'   a fingerprint (and `key`) regardless of build time or origin. CSVs are
+#'   always written with LF line endings, and checksums treat CRLF as LF in
+#'   text files, so converted copies still verify. RDS files are compared byte
+#'   for byte, so they also depend on the R version that wrote them.
 #' * `inputs_hash` identifies the packages that built the bundle: the SHA-256
 #'   of the UTF-8 text formed by one `"<package> <version> <remote_sha>"` line
 #'   per entry in `packages` (a missing `remote_sha` written as `NA`), sorted
@@ -361,7 +364,7 @@ read_testdata_object <- function(path, name) {
     cli::cli_abort("{.val {name}} is not in the snapshot at {.path {path}}.")
   }
   file <- file.path(path, entry$file)
-  actual <- digest::digest(file = file, algo = "sha256")
+  actual <- .fresh_sha256(file)
   if (!identical(tolower(actual), tolower(entry$sha256))) {
     cli::cli_abort(c(
       "Checksum mismatch for {.path {file}}.",
@@ -751,11 +754,12 @@ read_testdata_object <- function(path, name) {
   for (nm in names(tables)) {
     df <- as.data.frame(tables[[nm]])
     rownames(df) <- NULL
-    utils::write.csv(
-      df,
-      file.path(output_dir, paste0(nm, ".csv")),
-      row.names = FALSE,
-      fileEncoding = "UTF-8"
+    lines <- utils::capture.output(utils::write.csv(df, row.names = FALSE))
+    # Write bytes directly: text-mode connections use CRLF on Windows, which
+    # would make checksums depend on the build platform (#187).
+    writeBin(
+      charToRaw(paste0(paste(enc2utf8(lines), collapse = "\n"), "\n")),
+      file.path(output_dir, paste0(nm, ".csv"))
     )
   }
   invisible(output_dir)
@@ -834,7 +838,7 @@ read_testdata_object <- function(path, name) {
   files <- files[files != "snapshot.json"]
   sha <- vapply(
     file.path(output_dir, files),
-    function(f) digest::digest(file = f, algo = "sha256"),
+    .fresh_sha256,
     character(1),
     USE.NAMES = FALSE
   )
