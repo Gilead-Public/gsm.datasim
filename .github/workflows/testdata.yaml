@@ -45,15 +45,28 @@ jobs:
         uses: gilead-public/gsm.utils/checkout@actions-v1
         with:
           token: ${{ steps.token.outputs.token }}
-      # Install gsm.datasim from GitHub at the pushed commit (not local::.) so
-      # every package, including gsm.datasim, records a RemoteSha. Its Remotes
-      # resolve from this branch's DESCRIPTION.
+      # Dependencies (including Remotes) resolve from this branch's
+      # DESCRIPTION.
       - name: Install R and dependencies
         uses: gilead-public/gsm.utils/install@actions-v1
         with:
           token: ${{ steps.token.outputs.token }}
           use-public-rspm: true
-          extra-packages: github::${{ github.repository }}@${{ github.sha }}
+          extra-packages: ''
+      # The install action installs the checkout as local::., which has no
+      # RemoteSha. Reinstall gsm.datasim from GitHub at the pushed commit so
+      # the build can record it.
+      - name: Install gsm.datasim from GitHub
+        shell: Rscript {0}
+        run: |
+          pak::pkg_install(
+            "github::${{ github.repository }}@${{ github.sha }}",
+            dependencies = FALSE
+          )
+          sha <- utils::packageDescription("gsm.datasim")$RemoteSha
+          if (!identical(sha, "${{ github.sha }}")) {
+            stop("gsm.datasim RemoteSha is ", sha %||% "missing", ", expected ${{ github.sha }}.")
+          }
       - name: Build bundle
         shell: Rscript {0}
         run: |
