@@ -5,11 +5,6 @@
   separate scoped quarantine audit. No verified decision dates are inferred
   from lifecycle timestamps. Tests cover exact day-90/day-91 proxy ages (#134).
 
-- `Raw_SUBJ` now carries six simulated `drv_*` IP non-starter fields
-  (`drv_enrollment_dt`, `drv_ip_dosed`, `drv_ip_first_dose_dt`,
-  `drv_enrl_first_dose_days`, `drv_days_lapsed_since_enrl`,
-  `drv_ip_nonstarter_status`), impersonating the upstream Stride contract
-  gsm now consumes rather than derives (#140).
 - Added deterministic ActionLog simulation utilities that produce
   `grail.ado::GetWorkItems()`-compatible records and project them into the
   source-neutral `AllRiskSignals` and `Actions` field contracts. State
@@ -22,20 +17,32 @@
   signal/action states, action lifecycle dates, and typed unknown criticality.
   Optional action counts and states generate unactioned and multi-action
   signals without treating multiple actions as duplicate signals (#134).
-- `Raw_VS` simulates consecutive repeated measurements at site-specific
+# gsm.datasim v2.1.0
+
+This minor release adds simulated data for the IP Compliance (IP non-starters and premature treatment discontinuation) and Repeat Measurements analytics, and keeps longitudinal snapshots consistent from one snapshot to the next.
+
+## New Features
+
+- `Raw_VS` is a new vital signs simulator (weight, systolic and diastolic blood pressure). It simulates consecutive repeated measurements at site-specific
   rates, and each site keeps its risk band across snapshots. A new
   `risk_profile` argument, accepted by the study-creation functions
   alongside `participants`/`sites`, controls how many sites land in each risk
-  band (#113, #143).
+  band (#113, #143, #170).
 
 - Simulated `Raw_SUBJ` data now covers IP non-starter, kit assignment and
   premature treatment discontinuation scenarios, with more realistic dosing
   timelines and study completion records consistent with each subject's status
-  (#140, #157, #138, #173).
+  (#122, #140, #157, #138, #173).
+
+- `Raw_SUBJ` carries six simulated `drv_*` IP non-starter fields
+  (`drv_enrollment_dt`, `drv_ip_dosed`, `drv_ip_first_dose_dt`,
+  `drv_enrl_first_dose_days`, `drv_days_lapsed_since_enrl`,
+  `drv_ip_nonstarter_status`), matching the upstream Stride contract (#140).
 
 ## Bug Fixes
 
 - `create_longitudinal_study()` / `generate_study_snapshots()` snapshots no longer generate independent single-snapshot studies. Instead, each snapshot builds off the previous one, preserving subject, site, and enrollment continuity and letting exposure accumulate across snapshots (#165).
+- `RunWorkflows()` is now called with its full `lWorkflows` argument name, removing a partial-match warning (#158).
 
 # gsm.datasim v2.0.0
 
