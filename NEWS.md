@@ -6,8 +6,8 @@
   supply their own organization explicitly.
 
 - Added `simulate_action_log_reviews()` for reproducible, source-aligned
-  snapshot-policy demonstrations, including reviewed-green findings and a
-  separate scoped quarantine audit. No verified decision dates are inferred
+  snapshot-policy demonstrations, including reviewed-green findings.
+  It returns the ActionLog data frame directly. No verified decision dates are inferred
   from lifecycle timestamps. Tests cover exact day-90/day-91 proxy ages (#134).
 
 - Added deterministic ActionLog simulation utilities that produce

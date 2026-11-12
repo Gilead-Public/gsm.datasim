@@ -7,7 +7,6 @@
 simulate_action_log_reviews(
   df_results,
   extraction_date = NULL,
-  include_quarantine = TRUE,
   work_item_id_start = 900001L
 )
 }
@@ -17,14 +16,10 @@ GroupLevel, GroupID, MetricID and numeric Flag columns.}
 
 \item{extraction_date}{Frozen extraction date; defaults to the latest result.}
 
-\item{include_quarantine}{Include one synthetic missing-KRI signal per study
-in a separate audit. Downstream scoring should conservatively block
-snapshot exclusions for its site, not unrelated sites.}
-
 \item{work_item_id_start}{First synthetic work item identifier.}
 }
 \value{
-A list with canonical \code{action_log} and \code{excluded_signals} audit frames.
+A canonical ActionLog data frame.
 }
 \description{
 Assigns reproducible Open, Closed, No Action and Awaiting Triage states to

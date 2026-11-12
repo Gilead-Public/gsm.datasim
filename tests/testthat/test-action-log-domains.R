@@ -27,9 +27,9 @@ test_that("review scenarios align with source flags without inventing decision d
   results$Flag <- 1
   results$Flag[results$GroupID == "0001" & results$SnapshotDate == max(results$SnapshotDate)] <- 0
   simulated <- simulate_action_log_reviews(results)
-  expect_named(simulated, c("action_log", "excluded_signals"))
+  expect_s3_class(simulated, "data.frame")
   expect_identical(simulated, simulate_action_log_reviews(results[nrow(results):1, ]))
-  actions <- simulated$action_log
+  actions <- simulated
   expect_false(any(c("ActionedDate", "ActionedDateSource", "ActionScope") %in% names(actions)))
   expect_true(all(actions$ExtractionDate == max(results$SnapshotDate)))
   expect_setequal(actions$State, .action_log_states)
@@ -39,16 +39,11 @@ test_that("review scenarios align with source flags without inventing decision d
   expect_true(all(matched$Flag != 0))
   expect_true(all(is.na(actions$ActionID[actions$State %in% c("No Action", "Awaiting Triage")])))
   expect_true(anyDuplicated(actions$RiskSignalID) > 0L)
-  expect_s3_class(simulated$excluded_signals$SnapshotDate, "Date")
-  expect_true(all(is.na(simulated$excluded_signals$MetricID)))
-  expect_equal(nrow(simulated$excluded_signals), 1L)
-  expect_true(simulated$excluded_signals$GroupID %in% actions$GroupID[actions$State == "No Action"])
-  expect_equal(nrow(simulate_action_log_reviews(results[FALSE, ])$action_log), 0L)
-  expect_equal(nrow(simulate_action_log_reviews(results, include_quarantine = FALSE)$excluded_signals), 0L)
-  expect_equal(nrow(simulate_action_log_reviews(results[results$GroupID == "0002", ])$excluded_signals), 0L)
-  expect_equal(nrow(simulate_action_log_reviews(results, extraction_date = min(results$SnapshotDate) - 1)$action_log), 0L)
+  expect_equal(nrow(simulate_action_log_reviews(results[FALSE, ])), 0L)
+  expect_gt(nrow(simulate_action_log_reviews(results[results$GroupID == "0002", ])), 0L)
+  expect_equal(nrow(simulate_action_log_reviews(results, extraction_date = min(results$SnapshotDate) - 1)), 0L)
   results$GroupLevel <- "Country"
-  expect_equal(nrow(simulate_action_log_reviews(results)$action_log), 0L)
+  expect_equal(nrow(simulate_action_log_reviews(results)), 0L)
 })
 
 test_that("review scenarios preserve day-90 and day-91 proxy boundaries (#134)", {
@@ -56,11 +51,10 @@ test_that("review scenarios preserve day-90 and day-91 proxy boundaries (#134)",
   results <- data.frame(StudyID = "SYNTHETIC-STUDY", GroupLevel = "Site",
     GroupID = sprintf("%04d", 1:6), MetricID = "Analysis_kri0001", Flag = 1,
     SnapshotDate = date - c(0, 0, 0, 90, 0, 91))
-  simulated <- simulate_action_log_reviews(results, include_quarantine = FALSE)
-  dismissed <- simulated$action_log[simulated$action_log$State == "No Action", ]
+  simulated <- simulate_action_log_reviews(results)
+  dismissed <- simulated[simulated$State == "No Action", ]
   expect_equal(as.integer(dismissed$ExtractionDate - dismissed$SnapshotDate), c(91L, 90L))
   expect_true(all(is.na(dismissed$ActionID)))
-  expect_equal(nrow(simulated$excluded_signals), 0L)
 })
 
 test_that("simulate_action_log_domains projects PR 121 source-neutral domains (#134)", {

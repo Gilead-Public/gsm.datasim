@@ -894,14 +894,11 @@ simulate_action_log <- function(
 #' @param df_results Reporting results with StudyID, Date SnapshotDate,
 #'   GroupLevel, GroupID, MetricID and numeric Flag columns.
 #' @param extraction_date Frozen extraction date; defaults to the latest result.
-#' @param include_quarantine Include one synthetic missing-KRI signal per study
-#'   in a separate audit. Downstream scoring should conservatively block
-#'   snapshot exclusions for its site, not unrelated sites.
 #' @param work_item_id_start First synthetic work item identifier.
-#' @return A list with canonical `action_log` and `excluded_signals` audit frames.
+#' @return A canonical ActionLog data frame.
 #' @export
 simulate_action_log_reviews <- function(
-    df_results, extraction_date = NULL, include_quarantine = TRUE,
+    df_results, extraction_date = NULL,
     work_item_id_start = 900001L) {
   keys <- c("StudyID", "SnapshotDate", "GroupLevel", "GroupID", "MetricID")
   if (!is.data.frame(df_results) || !all(c(keys, "Flag") %in% names(df_results)) ||
@@ -909,13 +906,7 @@ simulate_action_log_reviews <- function(
       anyNA(df_results[keys])) {
     stop("df_results requires complete reporting keys, Date SnapshotDate and numeric Flag.", call. = FALSE)
   }
-  if (!is.logical(include_quarantine) || length(include_quarantine) != 1L || is.na(include_quarantine)) {
-    stop("include_quarantine must be TRUE or FALSE.", call. = FALSE)
-  }
-  audit <- df_results[FALSE, keys, drop = FALSE]
-  audit$RiskSignalID <- character()
-  audit$ExclusionReason <- character()
-  empty <- list(action_log = .empty_action_log_data(.action_log_types), excluded_signals = audit)
+  empty <- .empty_action_log_data(.action_log_types)
   if (!nrow(df_results)) return(empty)
   if (is.null(extraction_date)) extraction_date <- max(df_results$SnapshotDate)
   extraction_date <- as.Date(extraction_date)
@@ -939,18 +930,8 @@ simulate_action_log_reviews <- function(
   flagged$State <- latest$State[match(pair_key(flagged), pair_key(latest))]
   flagged <- flagged[order(flagged$SnapshotDate, flagged$GroupLevel, flagged$GroupID, flagged$MetricID), , drop = FALSE]
   counts <- ifelse(flagged$State == "Closed Action", 2L, ifelse(flagged$State == "Open Action", 1L, 0L))
-  actions <- simulate_action_log(flagged, seed = 134, extraction_date = extraction_date,
+  simulate_action_log(flagged, seed = 134, extraction_date = extraction_date,
     work_item_id_start = work_item_id_start, actions_per_signal = counts)
-  if (include_quarantine) {
-    candidates <- actions[actions$State == "No Action", , drop = FALSE]
-    candidates <- candidates[!duplicated(candidates$StudyID), , drop = FALSE]
-    audit <- candidates[, c(keys, "RiskSignalID"), drop = FALSE]
-    if (nrow(audit)) audit$RiskSignalID <- paste0(audit$RiskSignalID, "-MISSING-KRI")
-    audit$MetricID <- rep(NA_character_, nrow(audit))
-    audit$ExclusionReason <- rep("Synthetic signal has missing MetricID", nrow(audit))
-  }
-  row.names(audit) <- NULL
-  list(action_log = actions, excluded_signals = audit)
 }
 
 #' Simulate deterministic Action Log lookback scenarios
