@@ -1,5 +1,10 @@
 # gsm.datasim (development version)
 
+- Added `simulate_action_log_reviews()` for reproducible, source-aligned
+  snapshot-policy demonstrations, including reviewed-green findings and a
+  separate scoped quarantine audit. No verified decision dates are inferred
+  from lifecycle timestamps. Tests cover exact day-90/day-91 proxy ages (#134).
+
 - `Raw_SUBJ` now carries six simulated `drv_*` IP non-starter fields
   (`drv_enrollment_dt`, `drv_ip_dosed`, `drv_ip_first_dose_dt`,
   `drv_enrl_first_dose_days`, `drv_days_lapsed_since_enrl`,
