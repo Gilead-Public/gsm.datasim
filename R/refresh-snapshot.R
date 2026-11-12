@@ -357,4 +357,4 @@ package_versions <- function(packages) {
   invisible(self)
 }
 
-# nocov start
+# nocov end
