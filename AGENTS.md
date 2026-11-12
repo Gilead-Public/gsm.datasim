@@ -38,7 +38,7 @@ always-on guardrails; **skills** are the tools the agent picks up as needed.
 
 The agent works across ~40 independently-cloned repositories that make up Gilead
 Biostatistics' Risk-Based Quality Management (RBQM) / **OpenRBQM** ecosystem. Most are R
-packages (hosted under the `Gilead-BioStats` and `OpenRBQM` GitHub orgs); a few are
+packages (hosted under the `Gilead-Public`, `Gilead-BioStats`, and `OpenRBQM` GitHub orgs); a few are
 JavaScript/Node projects, static sites, or content libraries. Each repo is separate, with
 its own remote, branches, and (sometimes) repo-local `AGENTS.md`.
 
