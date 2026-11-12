@@ -20,8 +20,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SCRIPTS: ${{ github.workspace }}/.github/scripts/testdata
-      BUNDLE_DIR: ${{ runner.temp }}/bundle
-      WORK_DIR: ${{ runner.temp }}/release
       INDEX_DIR: ${{ github.workspace }}/.data-index
       SOURCE: ${{ github.ref_name }}
       TARGET_SHA: ${{ github.sha }}
@@ -35,9 +33,12 @@ jobs:
           app-private-key: ${{ secrets.CM_BOT_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
           fallback-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Set GITHUB_PAT and GH_TOKEN
+      # The runner context isn't available in job-level env.
+      - name: Set environment
         shell: bash
         run: |
+          echo "BUNDLE_DIR=$RUNNER_TEMP/bundle" >> "$GITHUB_ENV"
+          echo "WORK_DIR=$RUNNER_TEMP/release" >> "$GITHUB_ENV"
           echo "GITHUB_PAT=${{ steps.token.outputs.token }}" >> "$GITHUB_ENV"
           echo "GH_TOKEN=${{ steps.token.outputs.token }}" >> "$GITHUB_ENV"
       - name: Check out repo
