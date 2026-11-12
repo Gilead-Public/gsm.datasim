@@ -41,3 +41,29 @@ fingerprint>`, one per fingerprint. Each release has:
 | `builds[].packages` | array of object | One record per entry in top-level `packages`, in the same order: `{package, version, remote_sha}`. `version` and `remote_sha` are `null` if the package was not installed for that build. |
 
 Timestamps are UTC (`YYYY-MM-DDTHH:MM:SSZ`), so they sort as strings.
+
+## When data is published
+
+The `testdata` workflow (`.github/workflows/testdata.yaml` on `dev`/`main`)
+runs on every push to `dev` or `main` in gsm.datasim. It installs gsm.datasim
+at the pushed commit together with its `Remotes`, runs
+`build_testdata_bundle()` (failing if any package lacks a `RemoteSha`), then:
+
+1. Creates the `data-<fp12>` pre-release if it doesn't exist yet. Releases are
+   never marked "Latest" and are never modified once created.
+2. Writes `builds/<inputs_hash>.json` and regenerates `index.json` here. A
+   build whose data is unchanged adds only a `builds/` entry pointing at the
+   existing release. Rebuilding identical package versions changes nothing. If
+   the same `inputs_hash` produces a different fingerprint, the run fails
+   because the build isn't reproducible.
+
+Builds run one at a time per branch.
+
+To build manually, run the workflow from the Actions tab ("Run workflow",
+choosing `dev` or `main`), or:
+
+```sh
+gh workflow run testdata.yaml -R Gilead-Public/gsm.datasim --ref dev
+```
+
+This branch is protected against deletion and force-push.

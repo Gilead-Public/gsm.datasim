@@ -10,104 +10,12 @@
     "workr"
   ],
   "fingerprints": {
-    "023685f21a1abc29a91a93cede0202ef3c41ff80d4e353363e7ca4a4379626c3": {
-      "tag": "data-023685f21a1a",
-      "first_built_at": "2026-11-12T19:44:24Z"
-    },
     "8cde53949d4d7e1dcf3741905dbf42303a35ca96e662ea129306016c3a55572d": {
       "tag": "data-8cde53949d4d",
       "first_built_at": "2026-11-05T21:28:02Z"
     }
   },
   "builds": [
-    {
-      "inputs_hash": "f689eb2efb8d9d56ef2639079e1cd19556f9fa85ba0291c0de068ffdbdc23780",
-      "fingerprint": "023685f21a1abc29a91a93cede0202ef3c41ff80d4e353363e7ca4a4379626c3",
-      "tag": "data-023685f21a1a",
-      "source": "feature-153-publish-testdata",
-      "built_at": "2026-11-12T21:36:39Z",
-      "packages": [
-        {
-          "package": "gsm.core",
-          "version": "1.3.2.9000",
-          "remote_sha": "54d8a95b4f22d2760c3f4c03b1885240bde2f373"
-        },
-        {
-          "package": "gsm.datasim",
-          "version": "2.1.0.9000",
-          "remote_sha": "86362f84826ae9cd3dbf21d4d108a5c9132d8810"
-        },
-        {
-          "package": "gsm.kri",
-          "version": "1.8.0.9000",
-          "remote_sha": "6e32207b504b38b0d9c21675f82f0c7e30054cc9"
-        },
-        {
-          "package": "gsm.mapping",
-          "version": "1.2.0.9000",
-          "remote_sha": "f0d698561d44c4c80bd4b786add145358478e2b8"
-        },
-        {
-          "package": "gsm.qtl",
-          "version": "1.4.0",
-          "remote_sha": "7417fc43d7b706fc875306e81990c235dd47b1d0"
-        },
-        {
-          "package": "gsm.reporting",
-          "version": "1.1.8.9000",
-          "remote_sha": "c33bceb984f986879b2715833254e138e4f858a0"
-        },
-        {
-          "package": "workr",
-          "version": "1.1.1",
-          "remote_sha": "f8346be02ed3e10971d96441ac82e13a49c0cd4f"
-        }
-      ]
-    },
-    {
-      "inputs_hash": "95da3b5a54cf38998aee54b923406297ea1b3aad6eb18c79c5d30b13e78ba7cd",
-      "fingerprint": "023685f21a1abc29a91a93cede0202ef3c41ff80d4e353363e7ca4a4379626c3",
-      "tag": "data-023685f21a1a",
-      "source": "feature-153-publish-testdata",
-      "built_at": "2026-11-12T19:44:24Z",
-      "packages": [
-        {
-          "package": "gsm.core",
-          "version": "1.3.2.9000",
-          "remote_sha": "54d8a95b4f22d2760c3f4c03b1885240bde2f373"
-        },
-        {
-          "package": "gsm.datasim",
-          "version": "2.1.0.9000",
-          "remote_sha": "d3dfef1eeee124b20b305e3c4932caab77ee3ff5"
-        },
-        {
-          "package": "gsm.kri",
-          "version": "1.8.0.9000",
-          "remote_sha": "6e32207b504b38b0d9c21675f82f0c7e30054cc9"
-        },
-        {
-          "package": "gsm.mapping",
-          "version": "1.2.0.9000",
-          "remote_sha": "f0d698561d44c4c80bd4b786add145358478e2b8"
-        },
-        {
-          "package": "gsm.qtl",
-          "version": "1.4.0",
-          "remote_sha": "7417fc43d7b706fc875306e81990c235dd47b1d0"
-        },
-        {
-          "package": "gsm.reporting",
-          "version": "1.1.8.9000",
-          "remote_sha": "c33bceb984f986879b2715833254e138e4f858a0"
-        },
-        {
-          "package": "workr",
-          "version": "1.1.1",
-          "remote_sha": "f8346be02ed3e10971d96441ac82e13a49c0cd4f"
-        }
-      ]
-    },
     {
       "inputs_hash": "71ba44000382e6e98b60e2a0ebd495927cbe26f83a75f6d741f91c164f79dc4b",
       "fingerprint": "8cde53949d4d7e1dcf3741905dbf42303a35ca96e662ea129306016c3a55572d",
