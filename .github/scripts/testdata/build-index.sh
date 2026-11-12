@@ -13,6 +13,9 @@ if [ "${#files[@]}" -eq 0 ]; then
   exit 1
 fi
 
+tmp="$dir/index.json.tmp"
+trap 'rm -f "$tmp"' EXIT
+
 jq -s '
   (map(.packages | keys) | add | unique) as $pkgs
   | {
@@ -42,4 +45,6 @@ jq -s '
           })
       )
     }
-' "${files[@]}" > "$dir/index.json"
+' "${files[@]}" > "$tmp"
+# Replace index.json only after jq succeeds, so a failure never truncates it.
+mv "$tmp" "$dir/index.json"

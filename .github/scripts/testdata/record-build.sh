@@ -30,33 +30,47 @@ jq -S \
     packages: .packages
   }' "$snapshot" > "$entry"
 
-# Returns 0 if there is something to push, 1 if the index is already current.
+# Sets `changed` to true if a commit was made, false if the index is already
+# current. Must not be called in a condition (if/!/||), which would disable
+# `set -e` inside it; failures exit explicitly instead.
 apply() {
   local path="$index_dir/$rel"
+  changed=false
   if [ -f "$path" ]; then
     local existing
-    existing="$(jq -r '.fingerprint' "$path")"
+    existing="$(jq -er '.fingerprint' "$path")" || {
+      echo "::error::Could not read the fingerprint from $rel." >&2
+      exit 1
+    }
     if [ "$existing" != "$fingerprint" ]; then
       echo "::error::$rel already records fingerprint $existing, but this build produced $fingerprint. The build is not reproducible." >&2
       exit 1
     fi
     echo "$rel already records this fingerprint; keeping the original entry."
   else
-    mkdir -p "$index_dir/builds"
-    cp "$entry" "$path"
+    mkdir -p "$index_dir/builds" || exit 1
+    cp "$entry" "$path" || exit 1
   fi
-  bash "$here/build-index.sh" "$index_dir"
-  git -C "$index_dir" add builds index.json
+  bash "$here/build-index.sh" "$index_dir" || {
+    echo "::error::Could not regenerate index.json." >&2
+    exit 1
+  }
+  git -C "$index_dir" add builds index.json || exit 1
   if git -C "$index_dir" diff --cached --quiet; then
-    return 1
+    return 0
   fi
-  git -C "$index_dir" commit -q -m "Record build $inputs_hash ($TAG)"
+  git -C "$index_dir" commit -q -m "Record build $inputs_hash ($TAG)" || {
+    echo "::error::Could not commit to $branch." >&2
+    exit 1
+  }
+  changed=true
 }
 
 for attempt in 1 2 3 4 5; do
   git -C "$index_dir" fetch -q origin "$branch"
   git -C "$index_dir" reset -q --hard "origin/$branch"
-  if ! apply; then
+  apply
+  if [ "$changed" = false ]; then
     echo "Nothing to commit; data-index is already up to date."
     exit 0
   fi
