@@ -14,7 +14,7 @@ simulate_action_log_domains(
   seed = NULL,
   extraction_date = NULL,
   work_item_id_start = 900000L,
-  organization = "Gilead-RND-CDS-RBQM",
+  organization = "example-org",
   actions_per_signal = 1L,
   action_states = NULL
 )

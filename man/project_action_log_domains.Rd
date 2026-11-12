@@ -4,7 +4,7 @@
 \alias{project_action_log_domains}
 \title{Project synthetic ADO work items into source-neutral Action Log domains}
 \usage{
-project_action_log_domains(work_items, organization = "Gilead-RND-CDS-RBQM")
+project_action_log_domains(work_items, organization = "example-org")
 }
 \arguments{
 \item{work_items}{A list of ADO-compatible Risk Signal work items, typically

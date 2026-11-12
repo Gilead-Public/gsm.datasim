@@ -248,7 +248,7 @@ simulate_risk_signal_work_items <- function(
     seed = NULL,
     extraction_date = NULL,
     work_item_id_start = 900000L,
-    organization = "Gilead-RND-CDS-RBQM") {
+    organization = "example-org") {
   required_columns <- c(
     "StudyID", "SnapshotDate", "GroupLevel", "GroupID", "MetricID", "Flag"
   )
@@ -572,7 +572,7 @@ simulate_risk_signal_work_items <- function(
 #' @export
 project_action_log_domains <- function(
     work_items,
-    organization = "Gilead-RND-CDS-RBQM") {
+    organization = "example-org") {
   if (!is.list(work_items)) {
     stop("work_items must be a list.", call. = FALSE)
   }
@@ -792,7 +792,7 @@ simulate_action_log_domains <- function(
     seed = NULL,
     extraction_date = NULL,
     work_item_id_start = 900000L,
-    organization = "Gilead-RND-CDS-RBQM",
+    organization = "example-org",
     actions_per_signal = 1L,
     action_states = NULL) {
   work_items <- simulate_risk_signal_work_items(
@@ -843,7 +843,7 @@ simulate_action_log <- function(
     seed = NULL,
     extraction_date = NULL,
     work_item_id_start = 900000L,
-    organization = "Gilead-RND-CDS-RBQM",
+    organization = "example-org",
     include_intermediates = FALSE,
     actions_per_signal = 1L,
     action_states = NULL) {
@@ -972,7 +972,7 @@ simulate_action_log_lookback_scenarios <- function(
     study_id = "SYNTHETIC-STUDY",
     snapshot_dates = as.Date(c("2026-01-31", "2026-02-28", "2026-03-31")),
     work_item_id_start = 910000L,
-    organization = "Gilead-RND-CDS-RBQM") {
+    organization = "example-org") {
   snapshot_dates <- as.Date(snapshot_dates)
   if (length(snapshot_dates) != 3L || anyNA(snapshot_dates) ||
       is.unsorted(snapshot_dates, strictly = TRUE)) {

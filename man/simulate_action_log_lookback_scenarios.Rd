@@ -8,7 +8,7 @@ simulate_action_log_lookback_scenarios(
   study_id = "SYNTHETIC-STUDY",
   snapshot_dates = as.Date(c("2026-01-31", "2026-02-28", "2026-03-31")),
   work_item_id_start = 910000L,
-  organization = "Gilead-RND-CDS-RBQM"
+  organization = "example-org"
 )
 }
 \arguments{

@@ -61,8 +61,23 @@ test_that("simulate_risk_signal_work_items returns GetWorkItems-compatible recor
   ) %in% names(work_items[[1]]$fields)))
   expect_equal(work_items[[1]]$fields$System.TeamProject, "AA-AA-000-0000")
   expect_equal(work_items[[1]]$fields$System.WorkItemType, "Risk Signal")
+  expect_match(work_items[[1]]$browser_url, "^https://dev[.]azure[.]com/example-org/")
   expect_match(work_items[[1]]$browser_url, "AA-AA-000-0000/_workitems/edit/")
   expect_true(is.list(work_items[[1]]$fields$System.CreatedBy))
+})
+
+test_that("ActionLog simulators use neutral organization defaults", {
+  simulators <- list(
+    simulate_risk_signal_work_items,
+    project_action_log_domains,
+    simulate_action_log_domains,
+    simulate_action_log,
+    simulate_action_log_lookback_scenarios
+  )
+
+  for (simulator in simulators) {
+    expect_identical(formals(simulator)$organization, "example-org")
+  }
 })
 
 test_that("simulate_risk_signal_work_items supports deterministic state transitions (#134)", {

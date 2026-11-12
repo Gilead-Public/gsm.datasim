@@ -14,7 +14,7 @@ simulate_action_log(
   seed = NULL,
   extraction_date = NULL,
   work_item_id_start = 900000L,
-  organization = "Gilead-RND-CDS-RBQM",
+  organization = "example-org",
   include_intermediates = FALSE,
   actions_per_signal = 1L,
   action_states = NULL

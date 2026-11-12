@@ -1,5 +1,8 @@
 # gsm.datasim (development version)
 
+- Synthetic ActionLog URLs now default to `example-org`; callers can still
+  supply their own organization explicitly.
+
 - Added `simulate_action_log_reviews()` for reproducible, source-aligned
   snapshot-policy demonstrations, including reviewed-green findings and a
   separate scoped quarantine audit. No verified decision dates are inferred
