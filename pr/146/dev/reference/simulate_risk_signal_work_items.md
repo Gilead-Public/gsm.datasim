@@ -17,7 +17,7 @@ simulate_risk_signal_work_items(
   seed = NULL,
   extraction_date = NULL,
   work_item_id_start = 900000L,
-  organization = "Gilead-RND-CDS-RBQM"
+  organization = "example-org"
 )
 ```
 

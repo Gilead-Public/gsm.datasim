@@ -2,6 +2,15 @@
 
 ## gsm.datasim (development version)
 
+- New
+  [`build_testdata_bundle()`](https://gilead-public.github.io/gsm.datasim/dev/reference/build_testdata_bundle.md)
+  produces the shared gsm test data (`lSource`, `analytics*`,
+  `reporting*`) for use in other gsm packages
+  ([\#151](https://github.com/Gilead-Public/gsm.datasim/issues/151)).
+
+- Synthetic ActionLog URLs now default to `example-org`; callers can
+  still supply their own organization explicitly.
+
 - Added
   [`simulate_action_log_reviews()`](https://gilead-public.github.io/gsm.datasim/dev/reference/simulate_action_log_reviews.md)
   for reproducible, source-aligned snapshot-policy demonstrations,
@@ -26,8 +35,9 @@
   unknown criticality. Optional action counts and states generate
   unactioned and multi-action signals without treating multiple actions
   as duplicate signals
-  ([\#134](https://github.com/Gilead-Public/gsm.datasim/issues/134)). \#
-  gsm.datasim v2.1.0
+  ([\#134](https://github.com/Gilead-Public/gsm.datasim/issues/134)).
+
+## gsm.datasim v2.1.0
 
 This minor release adds simulated data for the IP Compliance (IP
 non-starters and premature treatment discontinuation) and Repeat

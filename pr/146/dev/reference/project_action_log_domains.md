@@ -7,7 +7,7 @@ Action Log consumers.
 ## Usage
 
 ``` r
-project_action_log_domains(work_items, organization = "Gilead-RND-CDS-RBQM")
+project_action_log_domains(work_items, organization = "example-org")
 ```
 
 ## Arguments
