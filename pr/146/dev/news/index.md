@@ -14,8 +14,8 @@
 - Added
   [`simulate_action_log_reviews()`](https://gilead-public.github.io/gsm.datasim/dev/reference/simulate_action_log_reviews.md)
   for reproducible, source-aligned snapshot-policy demonstrations,
-  including reviewed-green findings and a separate scoped quarantine
-  audit. No verified decision dates are inferred from lifecycle
+  including reviewed-green findings. It returns the ActionLog data frame
+  directly. No verified decision dates are inferred from lifecycle
   timestamps. Tests cover exact day-90/day-91 proxy ages
   ([\#134](https://github.com/Gilead-Public/gsm.datasim/issues/134)).
 
