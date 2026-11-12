@@ -1,0 +1,35 @@
+# Simulation parameters for build_testdata_bundle().
+seed: 1235
+study_id: AA-AA-000-0000
+participants: 1000
+sites: 150
+snapshots: 3
+interval: 1 month
+snapshot_dates:
+  - 2025-02-01
+  - 2025-03-01
+  - 2025-04-01
+domains:
+  - AE
+  - COUNTRY
+  - DATACHG
+  - DATAENT
+  - ENROLL
+  - LB
+  - VISIT
+  - Death
+  - OverallResponse
+  - Randomization
+  - PD
+  - PK
+  - QUERY
+  - STUDY
+  - STUDCOMP
+  - SDRGCOMP
+  - SITE
+  - SUBJ
+  - IE
+  - EXCLUSION
+  - VS
+extra_mappings:
+  - IPNS

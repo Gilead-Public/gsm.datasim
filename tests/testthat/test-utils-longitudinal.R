@@ -625,6 +625,7 @@ test_that("allocate_site_risk leaves the caller's RNG stream untouched (#143)", 
 })
 
 test_that("allocate_site_risk works before the RNG is initialized (#143)", {
+  skip_if_not_installed("withr")
   # A fresh session has no `.Random.seed` until something draws. Allocation
   # must not leave one behind in that case, since creating one silently
   # changes how the session's first user-visible draw behaves.
