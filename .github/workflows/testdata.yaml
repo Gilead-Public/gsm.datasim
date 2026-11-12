@@ -6,7 +6,8 @@
 name: testdata
 on:
   push:
-    branches: [main, dev]
+    # TODO(#153): remove feature-153-publish-testdata before merging.
+    branches: [main, dev, feature-153-publish-testdata]
   workflow_dispatch:
 concurrency:
   group: testdata-${{ github.ref_name }}
