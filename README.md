@@ -107,6 +107,16 @@ ae_counts <- sapply(get_domain_timeline(study, "AE"), nrow)
 | `generate_analytics_layers()` | Run analytics on already-generated raw data |
 | `generate_reporting_layers()` | Run reporting on analytics results |
 
+### ActionLog simulation
+
+| Function | Description |
+|---|---|
+| `simulate_risk_signal_work_items()` | Create synthetic `grail.ado::GetWorkItems()`-compatible risk signals |
+| `project_action_log_domains()` | Project work items to source-neutral `AllRiskSignals` and `Actions` domains |
+| `simulate_action_log_domains()` | Generate work items plus both source-neutral inbound domains |
+| `simulate_action_log()` | Build a final synthetic ActionLog from the projected domains |
+| `simulate_action_log_lookback_scenarios()` | Generate deterministic three-snapshot histories for configurable lookback tests |
+
 ### Export
 
 | Function | Description |
@@ -194,6 +204,45 @@ studies <- create_multiple_longitudinal_studies(
   domains       = c("AE", "LB", "VISIT", "PD"),
   run_analytics = TRUE
 )
+```
+
+### ActionLog histories
+
+ActionLog simulation is self-contained: it does not connect to Azure DevOps,
+require credentials, or install private packages. It generates raw
+ADO-compatible work items, source-neutral `AllRiskSignals` and `Actions`
+domains, and a final synthetic ActionLog for downstream workflow tests. The AA
+integration repository separately checks these schemas against the owning
+`grail.ado` and `grail` implementations.
+
+```r
+kri_results <- data.frame(
+  StudyID = "DEMO-001",
+  SnapshotDate = as.Date(c("2026-01-01", "2026-02-01")),
+  GroupLevel = "Site",
+  GroupID = "1001",
+  MetricID = "Analysis_kri0001",
+  Flag = 1L
+)
+
+simulated <- simulate_action_log(
+  kri_results,
+  seed = 134,
+  duplicate_probability = 0.1,
+  include_intermediates = TRUE
+)
+
+names(simulated)
+#> [1] "work_items" "all_risk_signals" "actions" "action_log"
+
+lookback <- simulate_action_log_lookback_scenarios()
+lookback$expectations
+#>         Scenario GroupID Lookback1 Lookback2 Lookback3
+#> 1     older-open    1001     FALSE     FALSE      TRUE
+#> 2  recent-closed    1002     FALSE      TRUE      TRUE
+#> 3   current-open    1003      TRUE      TRUE      TRUE
+#> 4      no-action    1004     FALSE     FALSE     FALSE
+#> 5 awaiting-triage    1005     FALSE     FALSE     FALSE
 ```
 
 ### Export

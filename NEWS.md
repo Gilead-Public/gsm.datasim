@@ -2,6 +2,13 @@
 
 - New `build_testdata_bundle()` produces the shared gsm test data (`lSource`, `analytics*`, `reporting*`) for use in other gsm packages (#151, #187).
 
+- Added deterministic ActionLog simulators and source-neutral `AllRiskSignals`
+  and `Actions` domains for workflow and report testing (#134).
+- Added `simulate_action_log_reviews()` to generate reproducible review
+  scenarios for action-aware Site Risk Score examples (#134).
+- Aligned simulated ActionLog records with grail's source-neutral reporting
+  schema (#134).
+
 # gsm.datasim v2.1.0
 
 This minor release adds simulated data for the IP Compliance (IP non-starters and premature treatment discontinuation) and Repeat Measurements analytics, and keeps longitudinal snapshots consistent from one snapshot to the next.
@@ -18,6 +25,11 @@ This minor release adds simulated data for the IP Compliance (IP non-starters an
   premature treatment discontinuation scenarios, with more realistic dosing
   timelines and study completion records consistent with each subject's status
   (#122, #140, #157, #138, #173).
+
+- `Raw_SUBJ` carries six simulated `drv_*` IP non-starter fields
+  (`drv_enrollment_dt`, `drv_ip_dosed`, `drv_ip_first_dose_dt`,
+  `drv_enrl_first_dose_days`, `drv_days_lapsed_since_enrl`,
+  `drv_ip_nonstarter_status`), matching the upstream Stride contract (#140).
 
 ## Bug Fixes
 
