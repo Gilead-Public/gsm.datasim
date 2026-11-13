@@ -8,7 +8,8 @@
   output_dir,
   config,
   allow_local,
-  packages = .check_package_versions(allow_local)
+  packages = .check_package_versions(allow_local),
+  objects = NULL
 )
 }
 \arguments{
@@ -19,14 +20,18 @@
 \item{allow_local}{Allow packages without a \code{RemoteSha}.}
 
 \item{packages}{Package versions from \code{\link[=.check_package_versions]{.check_package_versions()}}.}
+
+\item{objects}{Named list of the bundle's R objects. Read from the RDS
+files in \code{output_dir} when \code{NULL}.}
 }
 \value{
-List of arguments for \code{write_snapshot_json()}.
+List of arguments for \code{\link[gsm.core:write_snapshot_json]{gsm.core::write_snapshot_json()}}.
 }
 \description{
 Collects the objects, package versions, and gsm-specific metadata for
-\code{write_snapshot_json()}. The fingerprint is a sha256 over the per-file
-checksums of every bundle file except \code{snapshot.json}, so identical data
-yields an identical fingerprint (and \code{key}) regardless of build metadata.
+\code{\link[gsm.core:write_snapshot_json]{gsm.core::write_snapshot_json()}}. The fingerprint is
+\code{\link[gsm.core:fresh_fingerprint]{gsm.core::fresh_fingerprint()}} of the RDS objects' digests, so identical
+data yields an identical fingerprint (and \code{key}) regardless of build
+metadata, R version, or CSV contents.
 }
 \keyword{internal}

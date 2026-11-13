@@ -20,19 +20,17 @@ Depends:
     R (>= 4.1.0)
 Imports:
     arrow,
-    cachem,
     cli,
-    digest,
     dplyr,
     fs,
     glue,
+    gsm.core (>= 1.3.2.9000),
     jsonlite,
     lifecycle,
     logger,
     lubridate,
     magrittr,
     purrr,
-    R6,
     rlang,
     stringr,
     tictoc,
@@ -40,7 +38,7 @@ Imports:
     workr (>= 1.1.0),
     yaml
 Suggests:
-    gsm.core,
+    digest,
     gsm.kri,
     gsm.mapping,
     gsm.qtl,
@@ -52,7 +50,7 @@ Suggests:
 VignetteBuilder: 
     knitr
 Remotes:
-    gsm.core=Gilead-Public/gsm.core@dev,
+    gsm.core=Gilead-Public/gsm.core@fix-216-export-refresh,
     gsm.kri=Gilead-Public/gsm.kri@dev,
     gsm.mapping=Gilead-Public/gsm.mapping@dev,
     gsm.qtl=Gilead-Public/gsm.qtl@dev,

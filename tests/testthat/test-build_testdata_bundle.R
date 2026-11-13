@@ -316,25 +316,28 @@ test_that("snapshot.json follows the refresh snapshot format (#151)", {
   expect_false(file.exists(file.path(out, "manifest.json")))
   m <- read_testdata_snapshot(out)
   expect_equal(m, read_testdata_snapshot(file.path(out, "snapshot.json")))
-  expect_equal(m$refresh_snapshot, 1L)
+  expect_equal(m$refresh_snapshot, 2L)
   expect_equal(m$key, paste0("sha256:", m$metadata$fingerprint))
   expect_match(m$created, "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$")
 
   rds <- list.files(out, "[.]rds$")
   csv <- list.files(out, "[.]csv$")
   expect_length(rds, 15)
-  expect_setequal(names(m$objects), c(sub("[.]rds$", "", rds), csv))
+  expect_length(csv, 16)
+  # CSVs stay in the bundle but not in objects (#188).
+  expect_setequal(names(m$objects), sub("[.]rds$", "", rds))
   for (nm in names(m$objects)) {
+    expect_equal(m$objects[[nm]]$file, paste0(nm, ".rds"))
     expect_equal(
-      m$objects[[nm]]$file,
-      if (grepl("[.]csv$", nm)) nm else paste0(nm, ".rds")
-    )
-    expect_equal(
-      m$objects[[nm]]$sha256,
-      digest::digest(file = file.path(out, m$objects[[nm]]$file), algo = "sha256"),
+      m$objects[[nm]]$digest,
+      gsm.core::fresh_digest(readRDS(file.path(out, m$objects[[nm]]$file))),
       info = nm
     )
   }
+  expect_equal(
+    m$metadata$fingerprint,
+    gsm.core::fresh_fingerprint(lapply(m$objects, `[[`, "digest"))
+  )
 
   expect_setequal(
     names(m$packages),
@@ -343,7 +346,7 @@ test_that("snapshot.json follows the refresh snapshot format (#151)", {
   expect_equal(m$packages$gsm.core, list(version = "9.9.9", remote_sha = "abc123"))
 
   expect_match(m$metadata$fingerprint, "^[0-9a-f]{64}$")
-  expect_equal(m$metadata$inputs_hash, .inputs_hash(m$packages))
+  expect_equal(m$metadata$inputs_hash, gsm.core::fresh_inputs_hash(m$packages))
   # The bundle describes what built it, not the run or release.
   expect_null(m$metadata$channel)
   expect_null(m$metadata$built_by)
@@ -355,22 +358,7 @@ test_that("snapshot.json follows the refresh snapshot format (#151)", {
   expect_equal(m$metadata$size$bytes, sum(file.size(file.path(out, files))))
 })
 
-test_that(".inputs_hash() follows the documented definition (#151)", {
-  packages <- list(
-    workr = list(version = "1.1.0", remote_sha = "bbb"),
-    gsm.core = list(version = "1.0.0", remote_sha = "aaa"),
-    gsm.kri = list(version = "2.0.0", remote_sha = NULL)
-  )
-  text <- "gsm.core 1.0.0 aaa\ngsm.kri 2.0.0 NA\nworkr 1.1.0 bbb"
-  expected <- digest::digest(enc2utf8(text), algo = "sha256", serialize = FALSE)
-  expect_equal(.inputs_hash(packages), expected)
-  # Order-independent; changes when any version or SHA changes.
-  expect_equal(.inputs_hash(rev(packages)), expected)
-  packages$workr$remote_sha <- "ccc"
-  expect_false(identical(.inputs_hash(packages), expected))
-})
-
-test_that("read_testdata_object() reads RDS and CSV entries and verifies checksums (#151)", {
+test_that("read_testdata_object() reads RDS and CSV entries and verifies digests (#151, #188)", {
   skip_if_no_bundle_pipeline()
   out <- build_fake_bundle()
   rds <- read_testdata_object(out, "reportingResults")
@@ -379,8 +367,14 @@ test_that("read_testdata_object() reads RDS and CSV entries and verifies checksu
   expect_identical(csv, rds)
   expect_type(read_testdata_object(out, "analyticsInput_country.csv"), "list")
   expect_error(read_testdata_object(out, "nope"), "not in the snapshot")
-  write(" ", file.path(out, "lSource.rds"), append = TRUE)
-  expect_error(read_testdata_object(out, "lSource"), "Checksum mismatch")
+  expect_error(read_testdata_object(out, "nope.csv"), "does not exist")
+  # Rewriting with another RDS version/compression still verifies.
+  saveRDS(rds, file.path(out, "reportingResults.rds"), version = 2, compress = "xz")
+  expect_identical(read_testdata_object(out, "reportingResults"), rds)
+  changed <- rds
+  changed$GroupID[1] <- "changed"
+  saveRDS(changed, file.path(out, "reportingResults.rds"))
+  expect_error(read_testdata_object(out, "reportingResults"), "Digest mismatch")
 })
 
 test_that("local package installs are rejected unless allow_local = TRUE (#151)", {
@@ -414,7 +408,10 @@ test_that("the fingerprint changes when the data changes (#151)", {
   cfg <- small_bundle_config()
   fp <- function() .build_snapshot_args(out, cfg, FALSE)$metadata$fingerprint
   before <- fp()
-  utils::write.csv(data.frame(x = 1), file.path(out, "extra.csv"))
+  path <- file.path(out, "reportingResults.rds")
+  res <- readRDS(path)
+  res$GroupID[1] <- "changed"
+  saveRDS(res, path)
   expect_false(identical(fp(), before))
 })
 
@@ -500,26 +497,23 @@ test_that("a rejected local build leaves an existing bundle intact (#151)", {
   expect_equal(sort(list.files(out)), before)
 })
 
-test_that("the fingerprint orders files independently of locale (#151)", {
+test_that("the fingerprint ignores RDS headers and CSV contents (#188)", {
   skip_if_no_bundle_pipeline()
   local_fake_package_versions()
   out <- build_fake_bundle()
-  args <- .build_snapshot_args(out, small_bundle_config(), FALSE)
-  files <- list.files(out, recursive = TRUE)
-  files <- files[files != "snapshot.json"]
-  files <- files[order(files, method = "radix")]
-  sha <- vapply(
-    file.path(out, files),
-    function(f) digest::digest(file = f, algo = "sha256"),
-    character(1),
-    USE.NAMES = FALSE
-  )
-  expected <- digest::digest(
-    paste(files, sha, sep = "  ", collapse = "\n"),
-    algo = "sha256",
-    serialize = FALSE
-  )
-  expect_equal(args$metadata$fingerprint, expected)
+  fp <- function() {
+    .build_snapshot_args(out, small_bundle_config(), FALSE)$metadata$fingerprint
+  }
+  before <- fp()
+  for (path in list.files(out, "[.]rds$", full.names = TRUE)) {
+    saveRDS(readRDS(path), path, version = 2, compress = "bzip2")
+  }
+  for (path in list.files(out, "[.]csv$", full.names = TRUE)) {
+    writeLines("x
+1", path)
+  }
+  utils::write.csv(data.frame(x = 1), file.path(out, "extra.csv"))
+  expect_identical(fp(), before)
 })
 
 test_that("read_testdata_config() rejects invalid simulation inputs (#151)", {
@@ -551,16 +545,6 @@ test_that("a failing build leaves an existing bundle intact (#151)", {
   )
   expect_equal(tools::md5sum(file.path(out, sort(list.files(out)))), before)
   expect_equal(list.files(tempdir(), pattern = "^gsm.datasim-bundle-"), character())
-})
-
-test_that("read_testdata_object() reads nested CSVs from their verified path (#151)", {
-  skip_if_not_installed("withr")
-  dir <- withr::local_tempdir()
-  dir.create(file.path(dir, "tables"))
-  utils::write.csv(data.frame(GroupID = "nested"), file.path(dir, "tables", "reportingResults.csv"), row.names = FALSE)
-  utils::write.csv(data.frame(GroupID = "top"), file.path(dir, "reportingResults.csv"), row.names = FALSE)
-  write_snapshot_json(dir, c(reportingResults.csv = "tables/reportingResults.csv"), key = "k")
-  expect_equal(read_testdata_object(dir, "reportingResults.csv")$GroupID, "nested")
 })
 
 test_that(".read_bundle_csv() keeps GroupID as character in every table (#151)", {
@@ -757,7 +741,7 @@ test_that(".write_csvs() writes LF line endings on every platform (#187)", {
   expect_identical(sum(bytes == as.raw(0x0a)), 4L)
 })
 
-test_that("read_testdata_object() verifies CSVs converted to CRLF (#187)", {
+test_that("read_testdata_object() reads CSVs converted to CRLF (#187)", {
   skip_if_no_bundle_pipeline()
   out <- build_fake_bundle()
   path <- file.path(out, "reportingResults.csv")
@@ -780,23 +764,4 @@ test_that("the fingerprint ignores CSV line endings (#187)", {
   }
   crlf <- .build_snapshot_args(out, small_bundle_config(), allow_local = TRUE)
   expect_identical(crlf$metadata$fingerprint, lf$metadata$fingerprint)
-})
-
-test_that(".fresh_sha256() treats CRLF as LF in text files (#187)", {
-  skip_if_not_installed("withr")
-  dir <- withr::local_tempdir()
-  lf <- file.path(dir, "lf.txt")
-  crlf <- file.path(dir, "crlf")
-  writeBin(charToRaw("a,b\n1,2\n"), lf)
-  writeBin(charToRaw("a,b\r\n1,2\r\n"), crlf)
-  expect_identical(.fresh_sha256(lf), digest::digest(file = lf, algo = "sha256"))
-  expect_identical(.fresh_sha256(crlf), .fresh_sha256(lf))
-})
-
-test_that(".fresh_sha256() hashes files with NUL bytes as-is (#187)", {
-  skip_if_not_installed("withr")
-  dir <- withr::local_tempdir()
-  path <- file.path(dir, "bin")
-  writeBin(as.raw(c(0x00, 0x0d, 0x0a, 0x41)), path)
-  expect_identical(.fresh_sha256(path), digest::digest(file = path, algo = "sha256"))
 })
