@@ -9,14 +9,16 @@ read_testdata_object(path, name)
 \arguments{
 \item{path}{A bundle directory.}
 
-\item{name}{An \code{objects} key: an object name such as \code{"reportingResults"},
-or a CSV file name such as \code{"reportingResults.csv"}.}
+\item{name}{An object name such as \code{"reportingResults"}, or a CSV file name
+such as \code{"reportingResults.csv"}.}
 }
 \value{
 The object.
 }
 \description{
-Looks \code{name} up in the bundle's \code{snapshot.json}, verifies its checksum, and
-reads it: \code{.rds} files with \code{\link[=readRDS]{readRDS()}}, \code{.csv} files with the bundle's
-standard column types (\code{GroupID} character, \code{SnapshotDate} Date).
+Looks \code{name} up in the bundle's \code{snapshot.json}, reads it with \code{\link[=readRDS]{readRDS()}},
+and verifies the object against its \code{\link[gsm.core:fresh_digest]{gsm.core::fresh_digest()}}. CSV copies
+(e.g. \code{"reportingResults.csv"}) are not in \code{objects}; they are read with the
+bundle's standard column types (\code{GroupID} character, \code{SnapshotDate} Date)
+without verification.
 }
