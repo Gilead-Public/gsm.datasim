@@ -1,0 +1,120 @@
+# name: testdata.yaml
+# version: 0.1.0
+# Description: Build the shared gsm test data bundle on merges to dev/main,
+#   create a data-<fp12> pre-release when the data is new, and record the build
+#   on the data-index branch. See the README on data-index.
+name: testdata
+on:
+  push:
+    branches: [main, dev]
+  workflow_dispatch:
+concurrency:
+  group: testdata-${{ github.ref_name }}
+  cancel-in-progress: false
+permissions:
+  # write: Required to create data-* releases and push to data-index.
+  contents: write
+jobs:
+  testdata:
+    runs-on: ubuntu-latest
+    env:
+      SCRIPTS: ${{ github.workspace }}/.github/scripts/testdata
+      INDEX_DIR: ${{ github.workspace }}/.data-index
+      SOURCE: ${{ github.ref_name }}
+      TARGET_SHA: ${{ github.sha }}
+      TRIGGERED_BY: ${{ github.repository }}@${{ github.sha }}
+    steps:
+      - name: Generate token
+        uses: gilead-public/gsm.utils/generate-token@actions-v1
+        id: token
+        with:
+          app-id: ${{ secrets.CM_BOT_APP_ID }}
+          app-private-key: ${{ secrets.CM_BOT_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          fallback-token: ${{ secrets.GITHUB_TOKEN }}
+      # The runner context isn't available in job-level env.
+      - name: Set environment
+        shell: bash
+        run: |
+          echo "BUNDLE_DIR=$RUNNER_TEMP/bundle" >> "$GITHUB_ENV"
+          echo "WORK_DIR=$RUNNER_TEMP/release" >> "$GITHUB_ENV"
+          echo "GITHUB_PAT=${{ steps.token.outputs.token }}" >> "$GITHUB_ENV"
+          echo "GH_TOKEN=${{ steps.token.outputs.token }}" >> "$GITHUB_ENV"
+      - name: Check out repo
+        uses: gilead-public/gsm.utils/checkout@actions-v1
+        with:
+          token: ${{ steps.token.outputs.token }}
+      # Dependencies (including Remotes) resolve from this branch's
+      # DESCRIPTION.
+      - name: Install R and dependencies
+        uses: gilead-public/gsm.utils/install@actions-v1
+        with:
+          token: ${{ steps.token.outputs.token }}
+          use-public-rspm: true
+          extra-packages: ''
+      # The install action installs the checkout as local::., which has no
+      # RemoteSha. Reinstall gsm.datasim from GitHub at the pushed commit so
+      # the build can record it.
+      - name: Install gsm.datasim from GitHub
+        shell: Rscript {0}
+        run: |
+          pak::pkg_install(
+            "github::${{ github.repository }}@${{ github.sha }}",
+            dependencies = FALSE
+          )
+          sha <- utils::packageDescription("gsm.datasim")$RemoteSha
+          if (!identical(sha, "${{ github.sha }}")) {
+            stop("gsm.datasim RemoteSha is ", sha %||% "missing", ", expected ${{ github.sha }}.")
+          }
+      - name: Build bundle
+        shell: Rscript {0}
+        run: |
+          gsm.datasim::build_testdata_bundle(
+            Sys.getenv("BUNDLE_DIR"),
+            allow_local = FALSE
+          )
+      - name: Summarize bundle
+        shell: bash
+        run: |
+          jq -r --arg triggered_by "$TRIGGERED_BY" '
+            "## Test data bundle",
+            "",
+            "| | |",
+            "|---|---|",
+            "| fingerprint | `\(.metadata.fingerprint)` |",
+            "| inputs_hash | `\(.metadata.inputs_hash)` |",
+            "| files | \(.metadata.size.files) |",
+            "| bytes | \(.metadata.size.bytes) |",
+            "| triggered_by | `\($triggered_by)` |"
+          ' "$BUNDLE_DIR/snapshot.json" >> "$GITHUB_STEP_SUMMARY"
+      - name: Create or reuse release
+        id: release
+        shell: bash
+        run: bash "$SCRIPTS/publish-release.sh" "$BUNDLE_DIR" "$WORK_DIR"
+      - name: Check out data-index
+        uses: gilead-public/gsm.utils/checkout@actions-v1
+        with:
+          token: ${{ steps.token.outputs.token }}
+          ref: data-index
+          path: .data-index
+          fetch-depth: 0
+      - name: Record build on data-index
+        shell: bash
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          git -C "$INDEX_DIR" config user.name "github-actions[bot]"
+          git -C "$INDEX_DIR" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          bash "$SCRIPTS/record-build.sh" "$BUNDLE_DIR/snapshot.json" "$INDEX_DIR"
+      - name: Summarize release
+        shell: bash
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+          CREATED: ${{ steps.release.outputs.created }}
+        run: |
+          url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/tag/$TAG"
+          if [ "$CREATED" = "true" ]; then
+            echo "Created release [$TAG]($url)." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Reused existing release [$TAG]($url)." >> "$GITHUB_STEP_SUMMARY"
+          fi

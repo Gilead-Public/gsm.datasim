@@ -87,7 +87,10 @@ how it is published; release tags and run provenance belong to the release.
 \itemize{
 \item \code{fingerprint} is a SHA-256 hash over the per-file checksums of the bundle
 files (excluding \code{snapshot.json}), so two builds with identical data share
-a fingerprint (and \code{key}) regardless of build time or origin.
+a fingerprint (and \code{key}) regardless of build time or origin. CSVs are
+always written with LF line endings, and checksums treat CRLF as LF in
+text files, so converted copies still verify. RDS files are compared byte
+for byte, so they also depend on the R version that wrote them.
 \item \code{inputs_hash} identifies the packages that built the bundle: the SHA-256
 of the UTF-8 text formed by one \code{"<package> <version> <remote_sha>"} line
 per entry in \code{packages} (a missing \code{remote_sha} written as \code{NA}), sorted
