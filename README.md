@@ -19,11 +19,15 @@ Bundles are attached to pre-releases tagged `data-<first 12 hex of
 fingerprint>`, one per fingerprint. Each release has:
 
 - `data-<fp12>.zip` and `data-<fp12>.zip.sha256`: the whole bundle.
-- `snapshot.json`: the bundle's refresh snapshot.
-- One asset per entry in `snapshot.json` `objects`, named exactly
-  `objects$<name>$file` and byte-identical to the copy in the zip, so
-  `objects$<name>$sha256` verifies either. Download URL:
+- `snapshot.json`: the bundle's refresh snapshot (format 2).
+- One asset per entry in `snapshot.json` `objects` (the RDS files), named
+  exactly `objects$<name>$file` and byte-identical to the copy in the zip.
+  After `readRDS()`, the object verifies against `objects$<name>$digest`
+  (`gsm.core::fresh_digest()`). Download URL:
   `https://github.com/Gilead-Public/gsm.datasim/releases/download/<tag>/<file>`.
+
+The zip also contains CSV copies of the tables. They are not in `objects` or
+the fingerprint, so they are not separate release assets.
 
 ## `index.json` schema (format 2)
 
