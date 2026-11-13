@@ -20,16 +20,16 @@
     },
     "af3057dea9d43993359d61307658400150102cb595df93a7b504e5d43c31d072": {
       "tag": "data-af3057dea9d4",
-      "first_built_at": "2026-11-13T20:26:29Z"
+      "first_built_at": "2026-11-13T21:06:41Z"
     }
   },
   "builds": [
     {
-      "inputs_hash": "a2d4592289df33614892a644844ad40ab77255afc105e11716aa1ec6ca013707",
+      "inputs_hash": "cad84114eec7fe0b98dafe89c686ebe33fcbc14ed3329805f51dde402186e5b4",
       "fingerprint": "af3057dea9d43993359d61307658400150102cb595df93a7b504e5d43c31d072",
       "tag": "data-af3057dea9d4",
       "source": "fix-188-object-digests",
-      "built_at": "2026-11-13T20:26:29Z",
+      "built_at": "2026-11-13T21:06:41Z",
       "packages": [
         {
           "package": "gsm.core",
@@ -39,7 +39,7 @@
         {
           "package": "gsm.datasim",
           "version": "2.1.0.9000",
-          "remote_sha": null
+          "remote_sha": "92235fa0af400854e5de217ca520ce724187efe9"
         },
         {
           "package": "gsm.kri",

@@ -1,15 +1,15 @@
 {
-  "built_at": "2026-11-13T20:26:29Z",
+  "built_at": "2026-11-13T21:06:41Z",
   "fingerprint": "af3057dea9d43993359d61307658400150102cb595df93a7b504e5d43c31d072",
   "format": 1,
-  "inputs_hash": "a2d4592289df33614892a644844ad40ab77255afc105e11716aa1ec6ca013707",
+  "inputs_hash": "cad84114eec7fe0b98dafe89c686ebe33fcbc14ed3329805f51dde402186e5b4",
   "packages": {
     "gsm.core": {
       "remote_sha": "af15f917d75a4aa1dab2593adb3a64c3ed8ef73d",
       "version": "1.3.2.9000"
     },
     "gsm.datasim": {
-      "remote_sha": null,
+      "remote_sha": "92235fa0af400854e5de217ca520ce724187efe9",
       "version": "2.1.0.9000"
     },
     "gsm.kri": {
@@ -35,5 +35,5 @@
   },
   "source": "fix-188-object-digests",
   "tag": "data-af3057dea9d4",
-  "triggered_by": "manual local build of fix-188-object-digests (gsm.datasim#188) for gsm.core#218"
+  "triggered_by": "Gilead-Public/gsm.datasim@92235fa0af400854e5de217ca520ce724187efe9 (manual local build)"
 }
