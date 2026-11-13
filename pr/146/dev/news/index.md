@@ -6,35 +6,21 @@
   [`build_testdata_bundle()`](https://gilead-public.github.io/gsm.datasim/dev/reference/build_testdata_bundle.md)
   produces the shared gsm test data (`lSource`, `analytics*`,
   `reporting*`) for use in other gsm packages
-  ([\#151](https://github.com/Gilead-Public/gsm.datasim/issues/151)).
+  ([\#151](https://github.com/Gilead-Public/gsm.datasim/issues/151),
+  [\#187](https://github.com/Gilead-Public/gsm.datasim/issues/187)).
 
-- Synthetic ActionLog URLs now default to `example-org`; callers can
-  still supply their own organization explicitly.
+- Added deterministic ActionLog simulators and source-neutral
+  `AllRiskSignals` and `Actions` domains for workflow and report testing
+  ([\#134](https://github.com/Gilead-Public/gsm.datasim/issues/134)).
 
 - Added
   [`simulate_action_log_reviews()`](https://gilead-public.github.io/gsm.datasim/dev/reference/simulate_action_log_reviews.md)
-  for reproducible, source-aligned snapshot-policy demonstrations,
-  including reviewed-green findings. It returns the ActionLog data frame
-  directly. No verified decision dates are inferred from lifecycle
-  timestamps. Tests cover exact day-90/day-91 proxy ages
+  to generate reproducible review scenarios for action-aware Site Risk
+  Score examples
   ([\#134](https://github.com/Gilead-Public/gsm.datasim/issues/134)).
 
-- Added deterministic ActionLog simulation utilities that produce
-  `grail.ado::GetWorkItems()`-compatible records and project them into
-  the source-neutral `AllRiskSignals` and `Actions` field contracts.
-  State transitions, missing work items, duplicate risk signals, and
-  multi-snapshot histories are configurable for action-weighted Site
-  Risk Score testing. All synthetic layers, including the final
-  ActionLog, are generated locally without ADO credentials or private
-  package dependencies
-  ([\#134](https://github.com/Gilead-Public/gsm.datasim/issues/134)).
-
-- Updated the source-neutral ActionLog domains and 33-column report to
-  the grail v1.7.0 contract: character identifiers, group labels,
-  independent signal/action states, action lifecycle dates, and typed
-  unknown criticality. Optional action counts and states generate
-  unactioned and multi-action signals without treating multiple actions
-  as duplicate signals
+- Aligned simulated ActionLog records with grail’s source-neutral
+  reporting schema
   ([\#134](https://github.com/Gilead-Public/gsm.datasim/issues/134)).
 
 ## gsm.datasim v2.1.0

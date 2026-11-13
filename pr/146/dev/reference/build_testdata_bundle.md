@@ -110,7 +110,10 @@ release.
 - `fingerprint` is a SHA-256 hash over the per-file checksums of the
   bundle files (excluding `snapshot.json`), so two builds with identical
   data share a fingerprint (and `key`) regardless of build time or
-  origin.
+  origin. CSVs are always written with LF line endings, and checksums
+  treat CRLF as LF in text files, so converted copies still verify. RDS
+  files are compared byte for byte, so they also depend on the R version
+  that wrote them.
 
 - `inputs_hash` identifies the packages that built the bundle: the
   SHA-256 of the UTF-8 text formed by one
