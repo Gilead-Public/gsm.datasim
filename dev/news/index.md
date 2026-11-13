@@ -6,7 +6,8 @@
   [`build_testdata_bundle()`](https://gilead-public.github.io/gsm.datasim/dev/reference/build_testdata_bundle.md)
   produces the shared gsm test data (`lSource`, `analytics*`,
   `reporting*`) for use in other gsm packages
-  ([\#151](https://github.com/Gilead-Public/gsm.datasim/issues/151)).
+  ([\#151](https://github.com/Gilead-Public/gsm.datasim/issues/151),
+  [\#187](https://github.com/Gilead-Public/gsm.datasim/issues/187)).
 
 ## gsm.datasim v2.1.0
 

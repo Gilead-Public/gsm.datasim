@@ -143,7 +143,10 @@ and <code>size</code>.</p>
 <p>The bundle records only what built it, not when or where it was built or
 how it is published; release tags and run provenance belong to the release.</p><ul><li><p><code>fingerprint</code> is a SHA-256 hash over the per-file checksums of the bundle
 files (excluding <code>snapshot.json</code>), so two builds with identical data share
-a fingerprint (and <code>key</code>) regardless of build time or origin.</p></li>
+a fingerprint (and <code>key</code>) regardless of build time or origin. CSVs are
+always written with LF line endings, and checksums treat CRLF as LF in
+text files, so converted copies still verify. RDS files are compared byte
+for byte, so they also depend on the R version that wrote them.</p></li>
 <li><p><code>inputs_hash</code> identifies the packages that built the bundle: the SHA-256
 of the UTF-8 text formed by one <code>"&lt;package&gt; &lt;version&gt; &lt;remote_sha&gt;"</code> line
 per entry in <code>packages</code> (a missing <code>remote_sha</code> written as <code>NA</code>), sorted
