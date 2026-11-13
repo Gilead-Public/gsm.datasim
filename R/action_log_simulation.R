@@ -102,7 +102,7 @@
 
 .sample_action_log_states <- function(data, state_probabilities, transition_matrix) {
   states <- rep(NA_character_, nrow(data))
-  supplied_states <- if ("State" %in% names(data)) data$State else states
+  supplied_states <- if ("State" %in% names(data)) as.character(data$State) else states
   history_key <- paste(data$GroupLevel, data$GroupID, data$MetricID, sep = "\r")
 
   for (key in unique(history_key)) {
@@ -311,6 +311,10 @@ simulate_risk_signal_work_items <- function(
   if (length(extraction_date) != 1L || is.na(extraction_date)) {
     stop("extraction_date must be a single date.", call. = FALSE)
   }
+  data <- data[data$SnapshotDate <= extraction_date, , drop = FALSE]
+  if (nrow(data) == 0L) {
+    return(list())
+  }
 
   .with_simulation_seed(seed, function() {
     data$State <- .sample_action_log_states(
@@ -327,8 +331,9 @@ simulate_risk_signal_work_items <- function(
     }
 
     data$GroupLabel <- .action_log_value(data, "GroupLabel", data$GroupID)
-    country <- .action_log_value(data, "Country", "UNKNOWN")
+    country <- as.character(.action_log_value(data, "Country", "UNKNOWN"))
     country[is.na(country) | country == ""] <- "UNKNOWN"
+    data$Country <- country
     data$GroupInfo <- .action_log_value(
       data,
       "GroupInfo",

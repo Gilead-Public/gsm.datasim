@@ -133,6 +133,35 @@ test_that("simulate_risk_signal_work_items supports deterministic state transiti
   )
 })
 
+test_that("simulate_risk_signal_work_items preserves factor-valued states", {
+  results <- make_action_log_results()[1:3, ]
+  results$State <- factor(
+    c("Awaiting Triage", NA, NA),
+    levels = c("Closed Action", "Open Action", "No Action", "Awaiting Triage")
+  )
+  transition_matrix <- matrix(
+    0,
+    nrow = 4,
+    ncol = 4,
+    dimnames = list(.action_log_states, .action_log_states)
+  )
+  transition_matrix["Awaiting Triage", "Open Action"] <- 1
+  transition_matrix["No Action", "No Action"] <- 1
+  transition_matrix["Open Action", "Closed Action"] <- 1
+  transition_matrix["Closed Action", "Closed Action"] <- 1
+
+  work_items <- simulate_risk_signal_work_items(
+    results,
+    seed = 134,
+    transition_matrix = transition_matrix
+  )
+
+  expect_equal(
+    vapply(work_items, function(item) item$fields$System.State, character(1)),
+    c("Awaiting Triage", "Open Action", "Closed Action")
+  )
+})
+
 test_that("project_action_log_domains conforms to source-neutral schemas (#134)", {
   work_items <- simulate_risk_signal_work_items(
     make_action_log_results(),
@@ -162,6 +191,35 @@ test_that("simulate_action_log builds the final synthetic report (#134)", {
   expect_type(action_log$RiskSignalDuplicateFlag, "logical")
   expect_true(all(action_log$ExtractionDate == as.Date("2026-03-08")))
   expect_setequal(action_log$Country, c("US", "CA"))
+})
+
+test_that("simulate_action_log excludes snapshots after extraction date", {
+  simulated <- simulate_action_log(
+    make_action_log_results(),
+    extraction_date = as.Date("2026-02-15"),
+    include_intermediates = TRUE
+  )
+
+  expect_length(simulated$work_items, 4)
+  expect_true(all(simulated$all_risk_signals$SnapshotDate <= "2026-02-15"))
+  expect_true(all(simulated$action_log$SnapshotDate <= as.Date("2026-02-15")))
+})
+
+test_that("work items and domains use the normalized country fallback", {
+  results <- make_action_log_results()[1:2, ]
+  results$Country <- c("", NA_character_)
+  simulated <- simulate_action_log_domains(results, seed = 134)
+
+  expect_true(all(vapply(
+    simulated$work_items,
+    function(item) item$fields$Custom.Country == "UNKNOWN",
+    logical(1)
+  )))
+  expect_true(all(simulated$all_risk_signals$Country == "UNKNOWN"))
+
+  results$Country <- NULL
+  omitted_country <- simulate_action_log_domains(results, seed = 134)
+  expect_true(all(omitted_country$all_risk_signals$Country == "UNKNOWN"))
 })
 
 test_that("simulate_action_log exposes missing and duplicate scenarios (#134)", {
