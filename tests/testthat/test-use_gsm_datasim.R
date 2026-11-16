@@ -93,6 +93,10 @@ test_that(".sets_testdata_builder() detects only calls that set the option (#190
   ))
   expect_false(.sets_testdata_builder('# options(gsm.testdata_builder = "x")'))
   expect_false(.sets_testdata_builder(character()))
+  expect_true(.sets_testdata_builder(
+    'options(list(gsm.testdata_builder = "x"))'
+  ))
+  expect_false(.sets_testdata_builder("x <- mtcars[, 1]"))
 })
 
 test_that(".sets_testdata_builder() falls back to text search on parse errors (#190)", {

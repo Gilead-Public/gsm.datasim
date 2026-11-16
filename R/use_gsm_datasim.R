@@ -64,8 +64,14 @@ use_gsm_datasim <- function(scope = c("user", "project")) {
     fn <- x[[1]]
     is_options <- identical(fn, quote(options)) ||
       identical(fn, quote(base::options))
-    if (is_options && "gsm.testdata_builder" %in% names(x)) {
-      return(TRUE)
+    if (is_options) {
+      args <- as.list(x)[-1]
+      # options(list(...)) sets options from a list
+      lists <- Filter(\(a) is.call(a) && identical(a[[1]], quote(list)), args)
+      arg_names <- c(names(args), unlist(lapply(lists, names)))
+      if ("gsm.testdata_builder" %in% arg_names) {
+        return(TRUE)
+      }
     }
     any(vapply(as.list(x)[-1], is_set, logical(1)))
   }
