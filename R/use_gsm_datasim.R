@@ -45,9 +45,6 @@ use_gsm_datasim <- function(scope = c("user", "project")) {
 
 #' Check whether R code sets the test data builder option
 #'
-#' A text search, not a parser: looks for `gsm.testdata_builder` (optionally
-#' quoted) followed by `=` (not `==`) on a non-comment line.
-#'
 #' @param lines Lines of R code.
 #' @returns `TRUE` or `FALSE`.
 #' @keywords internal

@@ -13,7 +13,6 @@
 \code{TRUE} or \code{FALSE}.
 }
 \description{
-A text search, not a parser: looks for \code{gsm.testdata_builder} (optionally
-quoted) followed by \code{=} (not \code{==}) on a non-comment line.
+Check whether R code sets the test data builder option
 }
 \keyword{internal}
