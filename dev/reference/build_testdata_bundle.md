@@ -94,33 +94,36 @@ byte-identical files.
 
 ## Snapshot
 
-`snapshot.json` uses the generic "refresh" snapshot format (version 1),
+`snapshot.json` uses gsm.core's refresh snapshot format (version 2),
 written by
-[`write_snapshot_json()`](https://gilead-public.github.io/gsm.datasim/dev/reference/write_snapshot_json.md):
+[`gsm.core::write_snapshot_json()`](https://gilead-public.github.io/gsm.core/reference/write_snapshot_json.html):
 `refresh_snapshot`, `key` (`"sha256:<fingerprint>"`), `created`,
-`objects` (every `.rds` and `.csv` file with its sha256), and `packages`
-(installed `version` and `remote_sha` of each pipeline package,
-including gsm.core). gsm-specific details live under `metadata`:
-`fingerprint`, `inputs_hash`, `simulation`, `r_version`, and `size`.
+`objects` (each `.rds` file with the
+[`gsm.core::fresh_digest()`](https://gilead-public.github.io/gsm.core/reference/fresh_digest.html)
+of its R object), and `packages` (installed `version` and `remote_sha`
+of each pipeline package, including gsm.core). gsm-specific details live
+under `metadata`: `fingerprint`, `inputs_hash`, `simulation`,
+`r_version`, and `size`. CSVs are a convenience copy: they stay in the
+bundle (always written with LF line endings) but are not in `objects` or
+the fingerprint.
 
 The bundle records only what built it, not when or where it was built or
 how it is published; release tags and run provenance belong to the
 release.
 
-- `fingerprint` is a SHA-256 hash over the per-file checksums of the
-  bundle files (excluding `snapshot.json`), so two builds with identical
-  data share a fingerprint (and `key`) regardless of build time or
-  origin. CSVs are always written with LF line endings, and checksums
-  treat CRLF as LF in text files, so converted copies still verify. RDS
-  files are compared byte for byte, so they also depend on the R version
-  that wrote them.
+- `fingerprint` is
+  [`gsm.core::fresh_fingerprint()`](https://gilead-public.github.io/gsm.core/reference/fresh_fingerprint.html)
+  of the object digests, so two builds with identical data share a
+  fingerprint (and `key`) regardless of build time, origin, R version,
+  or RDS compression.
 
-- `inputs_hash` identifies the packages that built the bundle: the
-  SHA-256 of the UTF-8 text formed by one
-  `"<package> <version> <remote_sha>"` line per entry in `packages` (a
-  missing `remote_sha` written as `NA`), sorted by package name in
-  C-locale order and joined with `"\n"` (no trailing newline). Consumers
-  can compute it from their installed packages to look up the matching
+- `inputs_hash` is
+  [`gsm.core::fresh_inputs_hash()`](https://gilead-public.github.io/gsm.core/reference/fresh_inputs_hash.html)
+  of `packages`: the SHA-256 of the UTF-8 text formed by one
+  `"<package> <version> <remote_sha>"` line per entry (a missing
+  `remote_sha` written as `NA`), sorted by package name in C-locale
+  order and joined with `"\n"` (no trailing newline). Consumers can
+  compute it from their installed packages to look up the matching
   bundle.
 
 ## Examples
