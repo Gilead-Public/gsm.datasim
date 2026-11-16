@@ -36,29 +36,28 @@
 #' ```
 #'
 #' @section Snapshot:
-#' `snapshot.json` uses the generic "refresh" snapshot format (version 1),
-#' written by `write_snapshot_json()`: `refresh_snapshot`, `key`
-#' (`"sha256:<fingerprint>"`), `created`, `objects` (every `.rds` and `.csv`
-#' file with its sha256), and `packages` (installed `version` and `remote_sha`
-#' of each pipeline package, including gsm.core). gsm-specific details live
-#' under `metadata`: `fingerprint`, `inputs_hash`, `simulation`, `r_version`,
-#' and `size`.
+#' `snapshot.json` uses gsm.core's refresh snapshot format (version 2), written
+#' by [gsm.core::write_snapshot_json()]: `refresh_snapshot`, `key`
+#' (`"sha256:<fingerprint>"`), `created`, `objects` (each `.rds` file with the
+#' [gsm.core::fresh_digest()] of its R object), and `packages` (installed
+#' `version` and `remote_sha` of each pipeline package, including gsm.core).
+#' gsm-specific details live under `metadata`: `fingerprint`, `inputs_hash`,
+#' `simulation`, `r_version`, and `size`. CSVs are a convenience copy: they
+#' stay in the bundle (always written with LF line endings) but are not in
+#' `objects` or the fingerprint.
 #'
 #' The bundle records only what built it, not when or where it was built or
 #' how it is published; release tags and run provenance belong to the release.
 #'
-#' * `fingerprint` is a SHA-256 hash over the per-file checksums of the bundle
-#'   files (excluding `snapshot.json`), so two builds with identical data share
-#'   a fingerprint (and `key`) regardless of build time or origin. CSVs are
-#'   always written with LF line endings, and checksums treat CRLF as LF in
-#'   text files, so converted copies still verify. RDS files are compared byte
-#'   for byte, so they also depend on the R version that wrote them.
-#' * `inputs_hash` identifies the packages that built the bundle: the SHA-256
-#'   of the UTF-8 text formed by one `"<package> <version> <remote_sha>"` line
-#'   per entry in `packages` (a missing `remote_sha` written as `NA`), sorted
-#'   by package name in C-locale order and joined with `"\n"` (no trailing
-#'   newline). Consumers can compute it from their installed packages to look
-#'   up the matching bundle.
+#' * `fingerprint` is [gsm.core::fresh_fingerprint()] of the object digests, so
+#'   two builds with identical data share a fingerprint (and `key`) regardless
+#'   of build time, origin, R version, or RDS compression.
+#' * `inputs_hash` is [gsm.core::fresh_inputs_hash()] of `packages`: the
+#'   SHA-256 of the UTF-8 text formed by one `"<package> <version>
+#'   <remote_sha>"` line per entry (a missing `remote_sha` written as `NA`),
+#'   sorted by package name in C-locale order and joined with `"\n"` (no
+#'   trailing newline). Consumers can compute it from their installed packages
+#'   to look up the matching bundle.
 #'
 #' @param output_dir Directory to write the bundle into. Created if needed.
 #' @param config A config list or path to a YAML file; see
@@ -150,9 +149,10 @@ build_testdata_bundle <- function(
     output_dir,
     config,
     allow_local,
-    packages
+    packages,
+    objects = data_objects
   )
-  snapshot <- do.call(write_snapshot_json, args)
+  snapshot <- do.call(gsm.core::write_snapshot_json, args)
   .publish_bundle(output_dir, target, workspace)
   invisible(snapshot)
 }
@@ -348,36 +348,40 @@ read_testdata_snapshot <- function(path) {
 
 #' Read one object from a test data bundle
 #'
-#' Looks `name` up in the bundle's `snapshot.json`, verifies its checksum, and
-#' reads it: `.rds` files with [readRDS()], `.csv` files with the bundle's
-#' standard column types (`GroupID` character, `SnapshotDate` Date).
+#' Looks `name` up in the bundle's `snapshot.json`, reads it with [readRDS()],
+#' and verifies the object against its [gsm.core::fresh_digest()]. CSV copies
+#' (e.g. `"reportingResults.csv"`) are not in `objects`; they are read with the
+#' bundle's standard column types (`GroupID` character, `SnapshotDate` Date)
+#' without verification.
 #'
 #' @param path A bundle directory.
-#' @param name An `objects` key: an object name such as `"reportingResults"`,
-#'   or a CSV file name such as `"reportingResults.csv"`.
+#' @param name An object name such as `"reportingResults"`, or a CSV file name
+#'   such as `"reportingResults.csv"`.
 #' @returns The object.
 #' @export
 read_testdata_object <- function(path, name) {
+  if (grepl("[.]csv$", name)) {
+    file <- file.path(path, name)
+    if (!file.exists(file)) {
+      cli::cli_abort("{.path {file}} does not exist.")
+    }
+    return(.read_bundle_csv(sub("[.]csv$", "", basename(name)), dirname(file)))
+  }
   snapshot <- read_testdata_snapshot(path)
   entry <- snapshot$objects[[name]]
   if (is.null(entry)) {
     cli::cli_abort("{.val {name}} is not in the snapshot at {.path {path}}.")
   }
   file <- file.path(path, entry$file)
-  actual <- .fresh_sha256(file)
-  if (!identical(tolower(actual), tolower(entry$sha256))) {
+  value <- readRDS(file)
+  actual <- gsm.core::fresh_digest(value)
+  if (!identical(tolower(actual), tolower(entry$digest %||% ""))) {
     cli::cli_abort(c(
-      "Checksum mismatch for {.path {file}}.",
-      i = "Expected {.val {entry$sha256}}, got {.val {actual}}."
+      "Digest mismatch for {.path {file}}.",
+      i = "Expected {.val {entry$digest}}, got {.val {actual}}."
     ))
   }
-  if (grepl("[.]csv$", entry$file)) {
-    return(.read_bundle_csv(
-      sub("[.]csv$", "", basename(entry$file)),
-      dirname(file)
-    ))
-  }
-  readRDS(file)
+  value
 }
 
 # ---- pipeline ---------------------------------------------------------------
@@ -816,52 +820,46 @@ read_testdata_object <- function(path, name) {
 #' Build the snapshot.json contents
 #'
 #' Collects the objects, package versions, and gsm-specific metadata for
-#' `write_snapshot_json()`. The fingerprint is a sha256 over the per-file
-#' checksums of every bundle file except `snapshot.json`, so identical data
-#' yields an identical fingerprint (and `key`) regardless of build metadata.
+#' [gsm.core::write_snapshot_json()]. The fingerprint is
+#' [gsm.core::fresh_fingerprint()] of the RDS objects' digests, so identical
+#' data yields an identical fingerprint (and `key`) regardless of build
+#' metadata, R version, or CSV contents.
 #'
 #' @param output_dir Bundle directory.
 #' @param config A validated config from [read_testdata_config()].
 #' @param allow_local Allow packages without a `RemoteSha`.
 #' @param packages Package versions from [.check_package_versions()].
-#' @returns List of arguments for `write_snapshot_json()`.
+#' @param objects Named list of the bundle's R objects. Read from the RDS
+#'   files in `output_dir` when `NULL`.
+#' @returns List of arguments for [gsm.core::write_snapshot_json()].
 #' @keywords internal
 .build_snapshot_args <- function(
   output_dir,
   config,
   allow_local,
-  packages = .check_package_versions(allow_local)
+  packages = .check_package_versions(allow_local),
+  objects = NULL
 ) {
-  files <- list.files(output_dir, recursive = TRUE)
-  # Radix ordering is locale-independent, keeping the fingerprint stable.
-  files <- files[order(files, method = "radix")]
-  files <- files[files != "snapshot.json"]
-  sha <- vapply(
-    file.path(output_dir, files),
-    .fresh_sha256,
-    character(1),
-    USE.NAMES = FALSE
-  )
-  fingerprint <- digest::digest(
-    paste(files, sha, sep = "  ", collapse = "
-"),
-    algo = "sha256",
-    serialize = FALSE
+  rds <- c("lSource", .bundle_data_names)
+  objects <- objects %||%
+    lapply(stats::setNames(nm = rds), function(nm) {
+      readRDS(file.path(output_dir, paste0(nm, ".rds")))
+    })
+  fingerprint <- gsm.core::fresh_fingerprint(
+    lapply(objects[rds], gsm.core::fresh_digest)
   )
   sim <- config
   sim$snapshot_dates <- format(sim$snapshot_dates)
+  files <- setdiff(list.files(output_dir, recursive = TRUE), "snapshot.json")
 
-  rds <- c("lSource", .bundle_data_names)
-  csv <- files[grepl("[.]csv$", files)]
   list(
     dir = output_dir,
-    # RDS objects are keyed by name; CSVs by file name so keys never collide.
-    objects = c(stats::setNames(paste0(rds, ".rds"), rds), stats::setNames(csv, csv)),
+    objects = stats::setNames(paste0(rds, ".rds"), rds),
     key = paste0("sha256:", fingerprint),
     packages = packages,
     metadata = list(
       fingerprint = fingerprint,
-      inputs_hash = .inputs_hash(packages),
+      inputs_hash = gsm.core::fresh_inputs_hash(packages),
       simulation = sim,
       r_version = paste(R.version$major, R.version$minor, sep = "."),
       size = list(
@@ -869,35 +867,6 @@ read_testdata_object <- function(path, name) {
         bytes = sum(file.size(file.path(output_dir, files)))
       )
     )
-  )
-}
-
-#' Hash the packages that built a bundle
-#'
-#' See the Snapshot section of [build_testdata_bundle()] for the exact
-#' definition, which consumers reproduce from their installed packages.
-#'
-#' @param packages Named list; each element has `version` and `remote_sha`
-#'   (`NULL` or `NA` when unknown).
-#' @returns A 64-character hex SHA-256.
-#' @keywords internal
-.inputs_hash <- function(packages) {
-  pkgs <- names(packages)[order(names(packages), method = "radix")]
-  lines <- vapply(
-    pkgs,
-    function(pkg) {
-      p <- packages[[pkg]]
-      sha <- p$remote_sha
-      if (is.null(sha) || is.na(sha)) sha <- "NA"
-      paste(pkg, p$version, sha)
-    },
-    character(1),
-    USE.NAMES = FALSE
-  )
-  digest::digest(
-    enc2utf8(paste(lines, collapse = "\n")),
-    algo = "sha256",
-    serialize = FALSE
   )
 }
 

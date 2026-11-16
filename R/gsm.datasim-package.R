@@ -13,8 +13,4 @@
 #' @importFrom stringr str_detect str_replace_all
 #' @importFrom tictoc tic toc
 #' @importFrom utils read.csv
-#' @importFrom R6 R6Class
 NULL
-
-# R6 is for refresh.R / refresh-snapshot.R. Remove that when refresh is a 
-# separate package.
