@@ -71,36 +71,39 @@
 #'
 #' @export
 raw_data_generator <- function(
-    ParticipantCount = NULL,
-    SiteCount = NULL,
-    StudyID = NULL,
-    SnapshotCount = NULL,
-    SnapshotWidth = NULL,
-    template_path = system.file("template.csv", package = "gsm.datasim"),
-    workflow_path = "workflow/1_mappings",
-    generate_reports = FALSE,
-    mappings = NULL,
-    package = "gsm.mapping",
-    strStartDate = "2012-01-01",
-    save = FALSE,
-    generation_mode = c("core", "legacy"),
-    lWorkflows = NULL) {
+  ParticipantCount = NULL,
+  SiteCount = NULL,
+  StudyID = NULL,
+  SnapshotCount = NULL,
+  SnapshotWidth = NULL,
+  template_path = system.file("template.csv", package = "gsm.datasim"),
+  workflow_path = "workflow/1_mappings",
+  generate_reports = FALSE,
+  mappings = NULL,
+  package = "gsm.mapping",
+  strStartDate = "2012-01-01",
+  save = FALSE,
+  generation_mode = c("core", "legacy"),
+  lWorkflows = NULL
+) {
   generation_mode <- match.arg(generation_mode)
 
   # ── Workflow-driven generation path ──────────────────────────────────────
   if (!is.null(lWorkflows)) {
-    logger::log_info("Using workflow-driven generation via generate_data_from_workflows()")
+    logger::log_info(
+      "Using workflow-driven generation via generate_data_from_workflows()"
+    )
 
     snap_count <- SnapshotCount %||% 1L
     snap_width <- SnapshotWidth %||% "months"
 
     snapshot_data <- generate_data_from_workflows(
-      lWorkflows     = lWorkflows,
+      lWorkflows = lWorkflows,
       n_participants = ParticipantCount %||% 100L,
-      n_sites        = SiteCount %||% 10L,
-      study_id       = StudyID %||% "STUDY-001",
-      start_date     = strStartDate,
-      end_date       = as.character(as.Date(strStartDate) + 365),
+      n_sites = SiteCount %||% 10L,
+      study_id = StudyID %||% "STUDY-001",
+      start_date = strStartDate,
+      end_date = as.character(as.Date(strStartDate) + 365),
       snapshot_count = snap_count,
       snapshot_width = snap_width
     )
@@ -125,7 +128,10 @@ raw_data_generator <- function(
     return(raw_data_list)
   }
 
-  if (identical(generation_mode, "legacy") && !isTRUE(.gsm_datasim_runtime_state$legacy_mode_warned)) {
+  if (
+    identical(generation_mode, "legacy") &&
+      !isTRUE(.gsm_datasim_runtime_state$legacy_mode_warned)
+  ) {
     warning(
       "generation_mode = 'legacy' is maintained for compatibility. ",
       "Prefer generation_mode = 'core' for the refactored study-builder path.",
@@ -134,7 +140,13 @@ raw_data_generator <- function(
     .gsm_datasim_runtime_state$legacy_mode_warned <- TRUE
   }
 
-  build_config_and_generate <- function(participant_count, site_count, study_id, snapshot_count, snapshot_width) {
+  build_config_and_generate <- function(
+    participant_count,
+    site_count,
+    study_id,
+    snapshot_count,
+    snapshot_width
+  ) {
     config <- create_study_config(
       study_id = study_id,
       participant_count = participant_count,
@@ -159,7 +171,11 @@ raw_data_generator <- function(
 
     if (!is.null(mapping_names) && length(mapping_names) > 0) {
       for (mapping_name in mapping_names) {
-        config <- add_dataset_config(config, paste0("Raw_", mapping_name), enabled = TRUE)
+        config <- add_dataset_config(
+          config,
+          paste0("Raw_", mapping_name),
+          enabled = TRUE
+        )
       }
     }
 
@@ -172,7 +188,13 @@ raw_data_generator <- function(
     )
   }
 
-  build_legacy_and_generate <- function(participant_count, site_count, study_id, snapshot_count, snapshot_width) {
+  build_legacy_and_generate <- function(
+    participant_count,
+    site_count,
+    study_id,
+    snapshot_count,
+    snapshot_width
+  ) {
     generate_rawdata_for_single_study(
       SnapshotCount = snapshot_count,
       SnapshotWidth = snapshot_width,
@@ -196,7 +218,15 @@ raw_data_generator <- function(
   raw_data_list <- list()
 
   # Check if any of the key parameters are NULL
-  if (any(is.null(c(ParticipantCount, SiteCount, StudyID, SnapshotCount, SnapshotWidth)))) {
+  if (
+    any(is.null(c(
+      ParticipantCount,
+      SiteCount,
+      StudyID,
+      SnapshotCount,
+      SnapshotWidth
+    )))
+  ) {
     # Read the template CSV file
     template <- read.csv(template_path, stringsAsFactors = FALSE)
 

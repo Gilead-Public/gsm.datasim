@@ -45,12 +45,17 @@ Raw_DATAENT <- function(data, previous_data, spec, startDate, ...) {
     curr_spec$visnam <- NULL
   }
 
-
-  subject_nsvs <- subject_nsv(n, data$Raw_SUBJ$subjid,
-    subject_nsv = data$Raw_SUBJ$subject_nsv, replace = FALSE
+  subject_nsvs <- subject_nsv(
+    n,
+    data$Raw_SUBJ$subjid,
+    subject_nsv = data$Raw_SUBJ$subject_nsv,
+    replace = FALSE
   )
   subject_nsv_visits <- data$Raw_VISIT %>%
-    dplyr::left_join((data$Raw_SUBJ %>% dplyr::select(subjid, subject_nsv)), by = dplyr::join_by(subjid)) %>%
+    dplyr::left_join(
+      (data$Raw_SUBJ %>% dplyr::select(subjid, subject_nsv)),
+      by = dplyr::join_by(subjid)
+    ) %>%
     dplyr::filter(subject_nsv %in% subject_nsvs) %>%
     dplyr::select(subject_nsv, instancename)
 
@@ -64,13 +69,17 @@ Raw_DATAENT <- function(data, previous_data, spec, startDate, ...) {
     default = list(all_n, subject_nsv_visits, forms, startDate)
   )
 
-
   res <- add_new_var_data(dataset, curr_spec, args, spec$Raw_DATAENT, ...)
 
   return(res)
 }
 
-data_entry_lag <- function(n, subject_nsv_visits = NULL, Raw_SUBJ_data = NULL, ...) {
+data_entry_lag <- function(
+  n,
+  subject_nsv_visits = NULL,
+  Raw_SUBJ_data = NULL,
+  ...
+) {
   # z-score style long-tail lags so flagging can key off distance from the mean.
   vals <- generate_zscore_outlier_values(
     n = n,
@@ -82,7 +91,9 @@ data_entry_lag <- function(n, subject_nsv_visits = NULL, Raw_SUBJ_data = NULL, .
     integer = TRUE
   )
 
-  if (!is.null(subject_nsv_visits) && "subject_nsv" %in% names(subject_nsv_visits)) {
+  if (
+    !is.null(subject_nsv_visits) && "subject_nsv" %in% names(subject_nsv_visits)
+  ) {
     vals <- inject_site_hotspot_outliers(
       values = vals,
       row_keys = subject_nsv_visits$subject_nsv,

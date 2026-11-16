@@ -3,15 +3,23 @@
 
 fake_raw_data <- function(n = 2) {
   out <- lapply(seq_len(n), function(i) {
-    list(Raw_SUBJ = data.frame(subjid = 1:3), Raw_SITE = data.frame(invid = 1:2))
+    list(
+      Raw_SUBJ = data.frame(subjid = 1:3),
+      Raw_SITE = data.frame(invid = 1:2)
+    )
   })
   names(out) <- paste0("2023-0", seq_len(n), "-28")
   out
 }
 
-fake_study <- function(analytics = NULL, reporting = NULL, domains = c("AE", "LB")) {
+fake_study <- function(
+  analytics = NULL,
+  reporting = NULL,
+  domains = c("AE", "LB")
+) {
   study <- create_longitudinal_study_data(
-    "FAKE", fake_raw_data(2),
+    "FAKE",
+    fake_raw_data(2),
     list(participants = 10, sites = 2, domains = domains)
   )
   study$analytics <- analytics
@@ -20,11 +28,20 @@ fake_study <- function(analytics = NULL, reporting = NULL, domains = c("AE", "LB
 }
 
 make_test_study <- function(n = 4) {
-  raw <- lapply(seq_len(n), function(i) list(Raw_AE = data.frame(i = i), Raw_LB = data.frame(i = i)))
+  raw <- lapply(seq_len(n), function(i) {
+    list(Raw_AE = data.frame(i = i), Raw_LB = data.frame(i = i))
+  })
   names(raw) <- paste0("2023-0", seq_len(n), "-01")
   create_longitudinal_study_data(
-    "ST", raw,
-    list(participants = 10, sites = 2, snapshots = n, interval = "1 month", domains = c("AE", "LB"))
+    "ST",
+    raw,
+    list(
+      participants = 10,
+      sites = 2,
+      snapshots = n,
+      interval = "1 month",
+      domains = c("AE", "LB")
+    )
   )
 }
 
@@ -119,8 +136,12 @@ make_schedule_fixture <- function() {
     subjid = rep(c("S1", "S2"), each = 3),
     instancename = rep(c("Screening", "VISIT 1", "VISIT 2"), 2),
     visit_dt = as.Date(c(
-      "2012-03-01", "2012-01-01", "2012-02-01",
-      "2012-03-01", "2012-01-01", "2012-02-01"
+      "2012-03-01",
+      "2012-01-01",
+      "2012-02-01",
+      "2012-03-01",
+      "2012-01-01",
+      "2012-02-01"
     )),
     stringsAsFactors = FALSE
   )
@@ -129,7 +150,14 @@ make_schedule_fixture <- function() {
   # implementation must actually sort.
   df <- data.frame(
     subjid = c("S2", "S1", "S1", "S2", "S1", "S2"),
-    instancename = c("VISIT 2", "Screening", "VISIT 1", "Screening", "VISIT 2", "VISIT 1"),
+    instancename = c(
+      "VISIT 2",
+      "Screening",
+      "VISIT 1",
+      "Screening",
+      "VISIT 2",
+      "VISIT 1"
+    ),
     stringsAsFactors = FALSE
   )
 
@@ -154,18 +182,33 @@ subj_seed_config <- function(participant_count = 1, snapshot_count = 2) {
   )
 }
 
-native_subj_config <- function(study_id, participant_count, snapshot_count,
-                               study_completion = FALSE) {
+native_subj_config <- function(
+  study_id,
+  participant_count,
+  snapshot_count,
+  study_completion = FALSE
+) {
   config <- create_standard_study_config(
     study_id,
     participant_count = participant_count,
     site_count = 2,
-    adverse_events = FALSE, protocol_deviations = FALSE, lab_data = FALSE,
-    subject_visits = FALSE, visit_schedule = FALSE, enrollment = TRUE,
-    data_changes = FALSE, data_entry = FALSE, queries = FALSE,
-    pharmacokinetics = FALSE, study_drug_completion = FALSE,
-    study_completion = study_completion, inclusion_exclusion = FALSE, country = FALSE,
-    death = FALSE, randomization = FALSE, overall_response = FALSE
+    adverse_events = FALSE,
+    protocol_deviations = FALSE,
+    lab_data = FALSE,
+    subject_visits = FALSE,
+    visit_schedule = FALSE,
+    enrollment = TRUE,
+    data_changes = FALSE,
+    data_entry = FALSE,
+    queries = FALSE,
+    pharmacokinetics = FALSE,
+    study_drug_completion = FALSE,
+    study_completion = study_completion,
+    inclusion_exclusion = FALSE,
+    country = FALSE,
+    death = FALSE,
+    randomization = FALSE,
+    overall_response = FALSE
   )
   set_temporal_config(
     config,

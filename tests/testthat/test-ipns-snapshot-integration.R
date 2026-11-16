@@ -109,7 +109,16 @@ test_that("the final Raw_ENROLL reconciliation leaves every non-enrolled subject
   expect_gt(nrow(unenrolled), 0)
 
   drv_cols <- grep("^drv_", names(subj), value = TRUE)
-  expect_true(all(c("drv_kit_assigned", "drv_treatment_discontinuation_dt", "drv_premature_discontinuation_reason", "drv_days_lapsed_enrl_discontinuation", "drv_drg_completion") %in% drv_cols))
+  expect_true(all(
+    c(
+      "drv_kit_assigned",
+      "drv_treatment_discontinuation_dt",
+      "drv_premature_discontinuation_reason",
+      "drv_days_lapsed_enrl_discontinuation",
+      "drv_drg_completion"
+    ) %in%
+      drv_cols
+  ))
   expect_true(all(unenrolled$drv_drg_completion == ""))
   expect_true(all(vapply(
     setdiff(drv_cols, "drv_drg_completion"),
@@ -190,23 +199,36 @@ test_that("a core-shaped run carries every IP non-starter scenario the IP Compli
   snaps <- core_shaped_run()
   subj <- snaps[[3]]$Raw_SUBJ
   enr <- subj[subj$enrollyn %in% "Y", ]
-  as_of <- max(enr$drv_enrollment_dt + enr$drv_days_lapsed_since_enrl - 1L, na.rm = TRUE)
+  as_of <- max(
+    enr$drv_enrollment_dt + enr$drv_days_lapsed_since_enrl - 1L,
+    na.rm = TRUE
+  )
   sc <- snaps[[3]]$Raw_STUDCOMP
   sc <- sc[sc$subjid %in% enr$subjid, ]
   i <- match(sc$subjid, enr$subjid)
   status <- enr$drv_ip_nonstarter_status[i]
   undosed_kit <- enr$drv_kit_assigned[enr$drv_ip_dosed == "N"]
 
-  expect_setequal(unique(enr$drv_ip_nonstarter_status), c(
-    "Dosed", "Confirmed Non-Starter",
-    "Potential Non-Starter outside window", "Potential Non-Starter within window"
-  ))
-  expect_gte(sum(status == "Confirmed Non-Starter" & sc$compreas == "Withdrew Consent"), 3)
+  expect_setequal(
+    unique(enr$drv_ip_nonstarter_status),
+    c(
+      "Dosed",
+      "Confirmed Non-Starter",
+      "Potential Non-Starter outside window",
+      "Potential Non-Starter within window"
+    )
+  )
+  expect_gte(
+    sum(status == "Confirmed Non-Starter" & sc$compreas == "Withdrew Consent"),
+    3
+  )
   expect_gte(sum(status == "Dosed" & sc$compyn %in% "Y"), 3)
   expect_gte(sum(undosed_kit == "Y"), 3)
   expect_gte(sum(undosed_kit == "N"), 3)
 
-  confirmed <- enr$subjid[enr$drv_ip_nonstarter_status == "Confirmed Non-Starter"]
+  confirmed <- enr$subjid[
+    enr$drv_ip_nonstarter_status == "Confirmed Non-Starter"
+  ]
   expect_true(all(confirmed %in% sc$subjid[sc$compyn %in% "N"]))
   expect_false(any(grepl("^Potential", status) & !is_blank(sc$compyn)))
   expect_true(all(status[sc$compyn %in% "Y"] == "Dosed"))
@@ -222,11 +244,18 @@ test_that("a core-shaped run carries every IP non-starter scenario the IP Compli
   for (earlier in snaps[1:2]) {
     prev <- earlier$Raw_STUDCOMP
     now <- snaps[[3]]$Raw_STUDCOMP
-    expect_equal(now[match(prev$subjid, now$subjid), names(prev)], prev, ignore_attr = TRUE)
+    expect_equal(
+      now[match(prev$subjid, now$subjid), names(prev)],
+      prev,
+      ignore_attr = TRUE
+    )
     later <- subj[match(earlier$Raw_SUBJ$subjid, subj$subjid), ]
     expect_identical(later$drv_kit_assigned, earlier$Raw_SUBJ$drv_kit_assigned)
-    was_confirmed <- earlier$Raw_SUBJ$drv_ip_nonstarter_status %in% "Confirmed Non-Starter"
-    expect_true(all(later$drv_ip_nonstarter_status[was_confirmed] == "Confirmed Non-Starter"))
+    was_confirmed <- earlier$Raw_SUBJ$drv_ip_nonstarter_status %in%
+      "Confirmed Non-Starter"
+    expect_true(all(
+      later$drv_ip_nonstarter_status[was_confirmed] == "Confirmed Non-Starter"
+    ))
   }
 })
 
@@ -244,7 +273,9 @@ test_that("the config-native path aligns Raw_STUDCOMP with IP non-starter status
     as_of <- as.Date(names(snaps)[[k]])
     i <- match(sc$subjid, subj$subjid)
     status <- subj$drv_ip_nonstarter_status[i]
-    confirmed <- subj$subjid[subj$drv_ip_nonstarter_status %in% "Confirmed Non-Starter"]
+    confirmed <- subj$subjid[
+      subj$drv_ip_nonstarter_status %in% "Confirmed Non-Starter"
+    ]
 
     expect_gt(length(confirmed), 0)
     expect_true(all(confirmed %in% sc$subjid[sc$compyn %in% "N"]))
@@ -252,17 +283,26 @@ test_that("the config-native path aligns Raw_STUDCOMP with IP non-starter status
     expect_true(all(status[sc$compyn %in% "Y"] == "Dosed"))
     expect_identical(!is_blank(sc$compreas), sc$compyn %in% "N")
 
-    anchor <- dplyr::coalesce(subj$drv_ip_first_dose_dt, subj$drv_enrollment_dt)[i]
+    anchor <- dplyr::coalesce(
+      subj$drv_ip_first_dose_dt,
+      subj$drv_enrollment_dt
+    )[i]
     created <- as.Date(sc$mincreated_dts)
     # Non-enrolled subjects have no status or anchor, so they are left as drawn.
     has_status <- !is.na(status)
-    expect_true(all(created[has_status] >= anchor[has_status] & created[has_status] <= as_of))
+    expect_true(all(
+      created[has_status] >= anchor[has_status] & created[has_status] <= as_of
+    ))
   }
 
   now <- snaps[[3]]$Raw_STUDCOMP
   for (earlier in snaps[1:2]) {
     prev <- earlier$Raw_STUDCOMP
-    expect_equal(now[match(prev$subjid, now$subjid), names(prev)], prev, ignore_attr = TRUE)
+    expect_equal(
+      now[match(prev$subjid, now$subjid), names(prev)],
+      prev,
+      ignore_attr = TRUE
+    )
   }
 })
 
@@ -271,7 +311,9 @@ test_that("time on treatment runs to the latest snapshot date for carried-forwar
   skip_if_not_installed("gsm.mapping")
   snaps <- core_shaped_run()
   subj <- snaps[[3]]$Raw_SUBJ
-  carried <- subj$subjid %in% snaps[[1]]$Raw_SUBJ$subjid & !is.na(subj$firstdosedate)
+  carried <- subj$subjid %in%
+    snaps[[1]]$Raw_SUBJ$subjid &
+    !is.na(subj$firstdosedate)
 
   expect_true(any(carried))
   expect_equal(
@@ -289,7 +331,11 @@ test_that("a discontinuation date stays the same on a later snapshot in both gen
     subj_seed_config(participant_count = 300, snapshot_count = 2)
   ))
   set.seed(7)
-  native <- suppressWarnings(generate_study_data(native_subj_config("PTD-SNAP", 300, 2)))
+  native <- suppressWarnings(generate_study_data(native_subj_config(
+    "PTD-SNAP",
+    300,
+    2
+  )))
 
   for (snaps in list(legacy, native)) {
     s1 <- snaps[[1]]$Raw_SUBJ

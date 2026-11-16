@@ -11,11 +11,16 @@
 #' @keywords internal
 #' @noRd
 
-
 # The eight wide-format vital columns produced by this domain.
 VS_VITALS <- c(
-  "weight", "height", "bsa", "sysbp",
-  "diabp", "pulse", "temp", "resp"
+  "weight",
+  "height",
+  "bsa",
+  "sysbp",
+  "diabp",
+  "pulse",
+  "temp",
+  "resp"
 )
 
 # Distribution parameters per vital. Held in one place so the generators below
@@ -23,12 +28,12 @@ VS_VITALS <- c(
 VS_VITAL_PARAMS <- list(
   weight = list(mean = 75, sd = 10, digits = 1),
   height = list(mean = 170, sd = 10, digits = 1),
-  bsa    = list(mean = 1.9, sd = 0.2, digits = 2),
-  sysbp  = list(mean = 125, sd = 15, digits = 0),
-  diabp  = list(mean = 80, sd = 10, digits = 0),
-  pulse  = list(mean = 72, sd = 12, digits = 0),
-  temp   = list(mean = 36.8, sd = 0.4, digits = 1),
-  resp   = list(mean = 16, sd = 3, digits = 0)
+  bsa = list(mean = 1.9, sd = 0.2, digits = 2),
+  sysbp = list(mean = 125, sd = 15, digits = 0),
+  diabp = list(mean = 80, sd = 10, digits = 0),
+  pulse = list(mean = 72, sd = 12, digits = 0),
+  temp = list(mean = 36.8, sd = 0.4, digits = 1),
+  resp = list(mean = 16, sd = 3, digits = 0)
 )
 
 # Default site-risk profile. Target rates sit mid-band relative to the
@@ -82,7 +87,6 @@ vs_subj_visit_repeated <- function(n, data, visit_cols = "visit", ...) {
 # `vs_invid_repeated()` generator would emit a column real extracts lack.
 # Site identifiers are still resolved internally for run targeting.
 
-
 # `vs_dt` is taken from the visit schedule rather than generated. The registry
 # entry joins `Raw_VISIT$visit_dt` on and sorts by subject then date (see
 # `assign_schedule_dates()`), so chronological order is well defined and
@@ -133,80 +137,208 @@ vsperf_std <- function(n, performed = NULL, ...) {
 #' @returns A numeric vector of length `n`.
 #' @keywords internal
 #' @noRd
-weight <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NULL,
-                   vAllSites = NULL, nTotalSites = NULL, strStudyId = NULL, ...) {
-  .generate_vital(n, subjects, sites, performed, lRiskProfile,
-    vAllSites = vAllSites, nTotalSites = nTotalSites, strStudyId = strStudyId,
+weight <- function(
+  n,
+  subjects,
+  sites = NULL,
+  performed = NULL,
+  lRiskProfile = NULL,
+  vAllSites = NULL,
+  nTotalSites = NULL,
+  strStudyId = NULL,
+  ...
+) {
+  .generate_vital(
+    n,
+    subjects,
+    sites,
+    performed,
+    lRiskProfile,
+    vAllSites = vAllSites,
+    nTotalSites = nTotalSites,
+    strStudyId = strStudyId,
     strVital = "weight"
   )
 }
 
 #' @rdname weight
 #' @noRd
-height <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NULL,
-                   vAllSites = NULL, nTotalSites = NULL, strStudyId = NULL, ...) {
-  .generate_vital(n, subjects, sites, performed, lRiskProfile,
-    vAllSites = vAllSites, nTotalSites = nTotalSites, strStudyId = strStudyId,
+height <- function(
+  n,
+  subjects,
+  sites = NULL,
+  performed = NULL,
+  lRiskProfile = NULL,
+  vAllSites = NULL,
+  nTotalSites = NULL,
+  strStudyId = NULL,
+  ...
+) {
+  .generate_vital(
+    n,
+    subjects,
+    sites,
+    performed,
+    lRiskProfile,
+    vAllSites = vAllSites,
+    nTotalSites = nTotalSites,
+    strStudyId = strStudyId,
     strVital = "height"
   )
 }
 
 #' @rdname weight
 #' @noRd
-bsa <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NULL,
-                   vAllSites = NULL, nTotalSites = NULL, strStudyId = NULL, ...) {
-  .generate_vital(n, subjects, sites, performed, lRiskProfile,
-    vAllSites = vAllSites, nTotalSites = nTotalSites, strStudyId = strStudyId,
+bsa <- function(
+  n,
+  subjects,
+  sites = NULL,
+  performed = NULL,
+  lRiskProfile = NULL,
+  vAllSites = NULL,
+  nTotalSites = NULL,
+  strStudyId = NULL,
+  ...
+) {
+  .generate_vital(
+    n,
+    subjects,
+    sites,
+    performed,
+    lRiskProfile,
+    vAllSites = vAllSites,
+    nTotalSites = nTotalSites,
+    strStudyId = strStudyId,
     strVital = "bsa"
   )
 }
 
 #' @rdname weight
 #' @noRd
-sysbp <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NULL,
-                   vAllSites = NULL, nTotalSites = NULL, strStudyId = NULL, ...) {
-  .generate_vital(n, subjects, sites, performed, lRiskProfile,
-    vAllSites = vAllSites, nTotalSites = nTotalSites, strStudyId = strStudyId,
+sysbp <- function(
+  n,
+  subjects,
+  sites = NULL,
+  performed = NULL,
+  lRiskProfile = NULL,
+  vAllSites = NULL,
+  nTotalSites = NULL,
+  strStudyId = NULL,
+  ...
+) {
+  .generate_vital(
+    n,
+    subjects,
+    sites,
+    performed,
+    lRiskProfile,
+    vAllSites = vAllSites,
+    nTotalSites = nTotalSites,
+    strStudyId = strStudyId,
     strVital = "sysbp"
   )
 }
 
 #' @rdname weight
 #' @noRd
-diabp <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NULL,
-                   vAllSites = NULL, nTotalSites = NULL, strStudyId = NULL, ...) {
-  .generate_vital(n, subjects, sites, performed, lRiskProfile,
-    vAllSites = vAllSites, nTotalSites = nTotalSites, strStudyId = strStudyId,
+diabp <- function(
+  n,
+  subjects,
+  sites = NULL,
+  performed = NULL,
+  lRiskProfile = NULL,
+  vAllSites = NULL,
+  nTotalSites = NULL,
+  strStudyId = NULL,
+  ...
+) {
+  .generate_vital(
+    n,
+    subjects,
+    sites,
+    performed,
+    lRiskProfile,
+    vAllSites = vAllSites,
+    nTotalSites = nTotalSites,
+    strStudyId = strStudyId,
     strVital = "diabp"
   )
 }
 
 #' @rdname weight
 #' @noRd
-pulse <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NULL,
-                   vAllSites = NULL, nTotalSites = NULL, strStudyId = NULL, ...) {
-  .generate_vital(n, subjects, sites, performed, lRiskProfile,
-    vAllSites = vAllSites, nTotalSites = nTotalSites, strStudyId = strStudyId,
+pulse <- function(
+  n,
+  subjects,
+  sites = NULL,
+  performed = NULL,
+  lRiskProfile = NULL,
+  vAllSites = NULL,
+  nTotalSites = NULL,
+  strStudyId = NULL,
+  ...
+) {
+  .generate_vital(
+    n,
+    subjects,
+    sites,
+    performed,
+    lRiskProfile,
+    vAllSites = vAllSites,
+    nTotalSites = nTotalSites,
+    strStudyId = strStudyId,
     strVital = "pulse"
   )
 }
 
 #' @rdname weight
 #' @noRd
-temp <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NULL,
-                   vAllSites = NULL, nTotalSites = NULL, strStudyId = NULL, ...) {
-  .generate_vital(n, subjects, sites, performed, lRiskProfile,
-    vAllSites = vAllSites, nTotalSites = nTotalSites, strStudyId = strStudyId,
+temp <- function(
+  n,
+  subjects,
+  sites = NULL,
+  performed = NULL,
+  lRiskProfile = NULL,
+  vAllSites = NULL,
+  nTotalSites = NULL,
+  strStudyId = NULL,
+  ...
+) {
+  .generate_vital(
+    n,
+    subjects,
+    sites,
+    performed,
+    lRiskProfile,
+    vAllSites = vAllSites,
+    nTotalSites = nTotalSites,
+    strStudyId = strStudyId,
     strVital = "temp"
   )
 }
 
 #' @rdname weight
 #' @noRd
-resp <- function(n, subjects, sites = NULL, performed = NULL, lRiskProfile = NULL,
-                   vAllSites = NULL, nTotalSites = NULL, strStudyId = NULL, ...) {
-  .generate_vital(n, subjects, sites, performed, lRiskProfile,
-    vAllSites = vAllSites, nTotalSites = nTotalSites, strStudyId = strStudyId,
+resp <- function(
+  n,
+  subjects,
+  sites = NULL,
+  performed = NULL,
+  lRiskProfile = NULL,
+  vAllSites = NULL,
+  nTotalSites = NULL,
+  strStudyId = NULL,
+  ...
+) {
+  .generate_vital(
+    n,
+    subjects,
+    sites,
+    performed,
+    lRiskProfile,
+    vAllSites = vAllSites,
+    nTotalSites = nTotalSites,
+    strStudyId = strStudyId,
     strVital = "resp"
   )
 }
@@ -239,9 +371,11 @@ RISK_PROFILE_DOMAINS <- "Raw_VS"
 #'   that vital is not targeted.
 #' @keywords internal
 #' @noRd
-.resolve_risk_profile <- function(lRiskProfile = NULL,
-                                  strDomain = "Raw_VS",
-                                  strVital = NULL) {
+.resolve_risk_profile <- function(
+  lRiskProfile = NULL,
+  strDomain = "Raw_VS",
+  strVital = NULL
+) {
   .validate_risk_profile(lRiskProfile)
 
   if (is.null(lRiskProfile)) {
@@ -295,8 +429,11 @@ RISK_PROFILE_DOMAINS <- "Raw_VS"
   }
 
   # Catch misspellings against the profile as written.
-  .check_names(lRiskProfile, c(names(VS_DEFAULT_RISK_PROFILE), RISK_PROFILE_DOMAINS),
-    "risk_profile", "field(s)"
+  .check_names(
+    lRiskProfile,
+    c(names(VS_DEFAULT_RISK_PROFILE), RISK_PROFILE_DOMAINS),
+    "risk_profile",
+    "field(s)"
   )
 
   # Top-level fields alone must form a valid profile.
@@ -310,20 +447,29 @@ RISK_PROFILE_DOMAINS <- "Raw_VS"
     if (!is.list(dom)) {
       stop(label, " must be a named list")
     }
-    .check_names(dom, c(names(VS_DEFAULT_RISK_PROFILE), VS_VITALS), label, "field(s) or vital(s)")
+    .check_names(
+      dom,
+      c(names(VS_DEFAULT_RISK_PROFILE), VS_VITALS),
+      label,
+      "field(s) or vital(s)"
+    )
 
     vital_names <- intersect(names(dom), VS_VITALS)
     # Vitals given overrides must be among the vitals being targeted.
     if (!is.null(dom$vVitals) && !all(vital_names %in% dom$vVitals)) {
       stop(
-        label, " has settings for vital(s) not in `vVitals`: ",
+        label,
+        " has settings for vital(s) not in `vVitals`: ",
         paste(setdiff(vital_names, dom$vVitals), collapse = ", ")
       )
     }
 
-    .with_label(label, .validate_resolved_risk_profile(
-      .resolve_risk_profile_layers(lRiskProfile, domain, NULL)
-    ))
+    .with_label(
+      label,
+      .validate_resolved_risk_profile(
+        .resolve_risk_profile_layers(lRiskProfile, domain, NULL)
+      )
+    )
 
     for (vital in vital_names) {
       entry <- dom[[vital]]
@@ -332,9 +478,12 @@ RISK_PROFILE_DOMAINS <- "Raw_VS"
         stop(vlabel, " must be a named list")
       }
       .check_names(entry, RISK_PROFILE_FIELDS, vlabel, "field(s)")
-      .with_label(vlabel, .validate_resolved_risk_profile(
-        .resolve_risk_profile_layers(lRiskProfile, domain, vital)
-      ))
+      .with_label(
+        vlabel,
+        .validate_resolved_risk_profile(
+          .resolve_risk_profile_layers(lRiskProfile, domain, vital)
+        )
+      )
     }
   }
 
@@ -355,7 +504,10 @@ RISK_PROFILE_DOMAINS <- "Raw_VS"
   unknown <- setdiff(nms, strAllowed)
   if (length(unknown) > 0) {
     stop(
-      strLabel, " contains unknown ", strWhat, ": ",
+      strLabel,
+      " contains unknown ",
+      strWhat,
+      ": ",
       paste(unknown, collapse = ", ")
     )
   }
@@ -385,7 +537,13 @@ RISK_PROFILE_DOMAINS <- "Raw_VS"
     is.numeric(x) && length(x) == 1 && !is.na(x) && x >= 0 && x <= 1
   }
 
-  for (field in c("dPctRed", "dPctAmber", "dRateNormal", "dRateAmber", "dRateRed")) {
+  for (field in c(
+    "dPctRed",
+    "dPctAmber",
+    "dRateNormal",
+    "dRateAmber",
+    "dRateRed"
+  )) {
     if (!is_proportion(profile[[field]])) {
       stop("risk_profile$", field, " must be a single number between 0 and 1")
     }
@@ -395,12 +553,19 @@ RISK_PROFILE_DOMAINS <- "Raw_VS"
   # normal. The KRI thresholds themselves are configured downstream (gsm.kri),
   # so they are not hard-coded here; choosing rates on the correct side of
   # them is the caller's responsibility.
-  if (!(profile$dRateNormal <= profile$dRateAmber &&
-    profile$dRateAmber <= profile$dRateRed)) {
+  if (
+    !(profile$dRateNormal <= profile$dRateAmber &&
+      profile$dRateAmber <= profile$dRateRed)
+  ) {
     stop(
       "risk_profile rates must satisfy dRateNormal <= dRateAmber <= dRateRed",
       " (effective values, after defaults are applied: ",
-      profile$dRateNormal, ", ", profile$dRateAmber, ", ", profile$dRateRed, ")"
+      profile$dRateNormal,
+      ", ",
+      profile$dRateAmber,
+      ", ",
+      profile$dRateRed,
+      ")"
     )
   }
 
@@ -408,13 +573,21 @@ RISK_PROFILE_DOMAINS <- "Raw_VS"
     stop(
       "risk_profile$dPctRed + risk_profile$dPctAmber must not exceed 1",
       " (effective values, after defaults are applied: ",
-      profile$dPctRed, " + ", profile$dPctAmber, ")"
+      profile$dPctRed,
+      " + ",
+      profile$dPctAmber,
+      ")"
     )
   }
 
   window <- profile$nWindowLength
-  if (!is.numeric(window) || length(window) != 1 || is.na(window) ||
-    window < 2 || window != round(window)) {
+  if (
+    !is.numeric(window) ||
+      length(window) != 1 ||
+      is.na(window) ||
+      window < 2 ||
+      window != round(window)
+  ) {
     stop("risk_profile$nWindowLength must be a single whole number >= 2")
   }
 
@@ -428,7 +601,8 @@ RISK_PROFILE_DOMAINS <- "Raw_VS"
       stop(
         "risk_profile$vVitals contains unknown vital(s): ",
         paste(unknown_vitals, collapse = ", "),
-        ". Valid vitals: ", paste(VS_VITALS, collapse = ", ")
+        ". Valid vitals: ",
+        paste(VS_VITALS, collapse = ", ")
       )
     }
   }
@@ -466,9 +640,17 @@ RISK_PROFILE_DOMAINS <- "Raw_VS"
 #' @returns A numeric vector of length `n`.
 #' @keywords internal
 #' @noRd
-.generate_vital <- function(n, subjects, sites = NULL, performed = NULL,
-                            lRiskProfile = NULL, vAllSites = NULL,
-                            nTotalSites = NULL, strStudyId = NULL, strVital) {
+.generate_vital <- function(
+  n,
+  subjects,
+  sites = NULL,
+  performed = NULL,
+  lRiskProfile = NULL,
+  vAllSites = NULL,
+  nTotalSites = NULL,
+  strStudyId = NULL,
+  strVital
+) {
   params <- VS_VITAL_PARAMS[[strVital]]
   if (is.null(params)) {
     stop("Unknown vital: ", strVital)
@@ -528,7 +710,9 @@ RISK_PROFILE_DOMAINS <- "Raw_VS"
   # there is simply nothing to inject into now.
   for (site in names(bands)) {
     site_idx <- which(sites %in% site)
-    if (length(site_idx) == 0) next
+    if (length(site_idx) == 0) {
+      next
+    }
 
     values[site_idx] <- as.numeric(inject_targeted_runs(
       values[site_idx],

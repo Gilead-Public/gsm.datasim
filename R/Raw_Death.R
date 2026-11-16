@@ -34,14 +34,22 @@ Raw_Death <- function(data, previous_data, spec, startDate, ...) {
 }
 
 death_dt <- function(n, start_date, ...) {
-  as.Date(sample(seq(from = start_date, to = start_date + 27, by = 1), n, replace = TRUE))
+  as.Date(sample(
+    seq(from = start_date, to = start_date + 27, by = 1),
+    n,
+    replace = TRUE
+  ))
 }
 
 deathcls <- function(n, ...) {
   sample(
-    c("Progressive Disease", "Adverse Event", "Disease Recurrence",
+    c(
+      "Progressive Disease",
+      "Adverse Event",
+      "Disease Recurrence",
       "Not related to disease",
-      "Related to long-term follow-up and not related to study drug"),
+      "Related to long-term follow-up and not related to study drug"
+    ),
     size = n,
     prob = c(0.40, 0.25, 0.15, 0.10, 0.10),
     replace = TRUE
