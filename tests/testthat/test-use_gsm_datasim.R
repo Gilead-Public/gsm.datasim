@@ -75,3 +75,42 @@ test_that(".rprofile_path() points at the scope's .Rprofile (#190)", {
     fs::path_expand_r("~/.Rprofile")
   )
 })
+
+test_that(".sets_testdata_builder() detects settings of the option (#190)", {
+  expect_true(.sets_testdata_builder('options(gsm.testdata_builder = "x")'))
+  expect_true(.sets_testdata_builder(
+    'options(prompt = "# ", gsm.testdata_builder = "x")'
+  ))
+  expect_true(.sets_testdata_builder(
+    'options(list("gsm.testdata_builder" = "x"))'
+  ))
+  expect_true(.sets_testdata_builder(c(
+    "options(gsm.testdata_builder =",
+    '"x")'
+  )))
+})
+
+test_that(".sets_testdata_builder() ignores reads, comments, and other options (#190)", {
+  expect_false(.sets_testdata_builder('getOption("gsm.testdata_builder")'))
+  expect_false(.sets_testdata_builder(
+    'if (getOption("gsm.testdata_builder") == "x") 1'
+  ))
+  expect_false(.sets_testdata_builder(
+    "options(gsm.testdata_builder.verbose = TRUE)"
+  ))
+  expect_false(.sets_testdata_builder("options(my.gsm.testdata_builder = 1)"))
+  expect_false(.sets_testdata_builder(
+    '  # options(gsm.testdata_builder = "x")'
+  ))
+  expect_false(.sets_testdata_builder(character()))
+})
+
+test_that("use_gsm_datasim() adds the option when the profile only reads it (#190)", {
+  path <- local_rprofile()
+  writeLines('getOption("gsm.testdata_builder")', path)
+  expect_message(use_gsm_datasim(), "Restart R")
+  expect_identical(
+    readLines(path),
+    c('getOption("gsm.testdata_builder")', .testdata_builder_line())
+  )
+})

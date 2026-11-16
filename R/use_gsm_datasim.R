@@ -28,8 +28,7 @@ use_gsm_datasim <- function(scope = c("user", "project")) {
   } else {
     character()
   }
-  code <- sub("#.*$", "", lines)
-  if (any(grepl("gsm.testdata_builder", code, fixed = TRUE))) {
+  if (.sets_testdata_builder(lines)) {
     cli::cli_inform(
       "{.path {path}} already sets {.code gsm.testdata_builder}; leaving it unchanged."
     )
@@ -42,6 +41,22 @@ use_gsm_datasim <- function(scope = c("user", "project")) {
     "i" = "Restart R for this to take effect."
   ))
   invisible(path)
+}
+
+#' Check whether R code sets the test data builder option
+#'
+#' A text search, not a parser: looks for `gsm.testdata_builder` (optionally
+#' quoted) followed by `=` (not `==`) on a non-comment line.
+#'
+#' @param lines Lines of R code.
+#' @returns `TRUE` or `FALSE`.
+#' @keywords internal
+.sets_testdata_builder <- function(lines) {
+  code <- lines[!grepl("^\\s*#", lines)]
+  any(grepl(
+    "(^|[^[:alnum:]._])[\"'`]?gsm\\.testdata_builder[\"'`]?\\s*=($|[^=])",
+    code
+  ))
 }
 
 #' Build the `.Rprofile` line that sets the test data builder
