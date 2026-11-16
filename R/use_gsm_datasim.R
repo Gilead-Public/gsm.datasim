@@ -28,7 +28,8 @@ use_gsm_datasim <- function(scope = c("user", "project")) {
   } else {
     character()
   }
-  if (.sets_testdata_builder(lines)) {
+  code <- sub("#.*$", "", lines)
+  if (any(grepl("gsm.testdata_builder", code, fixed = TRUE))) {
     cli::cli_inform(
       "{.path {path}} already sets {.code gsm.testdata_builder}; leaving it unchanged."
     )
@@ -41,41 +42,6 @@ use_gsm_datasim <- function(scope = c("user", "project")) {
     "i" = "Restart R for this to take effect."
   ))
   invisible(path)
-}
-
-#' Check whether R code sets the test data builder option
-#'
-#' Parses (without evaluating) the code and looks for an `options()` call with
-#' an argument named exactly `gsm.testdata_builder`. Code that doesn't parse
-#' falls back to a plain text search, so the file is left alone.
-#'
-#' @param lines Lines of R code.
-#' @returns `TRUE` or `FALSE`.
-#' @keywords internal
-.sets_testdata_builder <- function(lines) {
-  exprs <- tryCatch(parse(text = lines, keep.source = FALSE), error = \(e) NULL)
-  if (is.null(exprs)) {
-    return(any(grepl("gsm.testdata_builder", lines, fixed = TRUE)))
-  }
-  is_set <- function(x) {
-    if (!is.call(x)) {
-      return(FALSE)
-    }
-    fn <- x[[1]]
-    is_options <- identical(fn, quote(options)) ||
-      identical(fn, quote(base::options))
-    if (is_options) {
-      args <- as.list(x)[-1]
-      # options(list(...)) sets options from a list
-      lists <- Filter(\(a) is.call(a) && identical(a[[1]], quote(list)), args)
-      arg_names <- c(names(args), unlist(lapply(lists, names)))
-      if ("gsm.testdata_builder" %in% arg_names) {
-        return(TRUE)
-      }
-    }
-    any(vapply(as.list(x)[-1], is_set, logical(1)))
-  }
-  any(vapply(exprs, is_set, logical(1)))
 }
 
 #' Build the `.Rprofile` line that sets the test data builder
