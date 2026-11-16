@@ -24,6 +24,13 @@
 #' Rows are sorted on explicit keys so identical inputs always produce
 #' byte-identical files.
 #'
+#' @section Local test data builder:
+#' This function is also gsm.core's local test data builder. When installed gsm
+#' packages don't match a published build and at least one is local, gsm.core
+#' calls `build_testdata_bundle(output_dir, overwrite = TRUE, allow_local =
+#' TRUE)` via the `gsm.testdata_builder` option and caches the result. Run
+#' [use_gsm_datasim()] to set that option in your `.Rprofile`.
+#'
 #' @section Layout:
 #' ```
 #' <output_dir>/
@@ -738,7 +745,12 @@ read_testdata_object <- function(path, name) {
   "analyticsSummary",
   paste0(
     rep(
-      c("reportingResults", "reportingGroups", "reportingBounds", "reportingMetrics"),
+      c(
+        "reportingResults",
+        "reportingGroups",
+        "reportingBounds",
+        "reportingMetrics"
+      ),
       3
     ),
     rep(c("", "_country", "_study"), each = 4)
@@ -777,7 +789,11 @@ read_testdata_object <- function(path, name) {
 #' @keywords internal
 .write_rds <- function(objects, output_dir) {
   for (nm in names(objects)) {
-    saveRDS(objects[[nm]], file.path(output_dir, paste0(nm, ".rds")), version = 3)
+    saveRDS(
+      objects[[nm]],
+      file.path(output_dir, paste0(nm, ".rds")),
+      version = 3
+    )
   }
   invisible(output_dir)
 }
