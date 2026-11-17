@@ -58,9 +58,9 @@ runs:
       run: |
         deadline=$((SECONDS + TIMEOUT))
         while :; do
-          # Bound each request by the remaining budget (at least 5s) so a
-          # stalled connection can't outlive the timeout.
-          left=$((deadline - SECONDS)); [ "$left" -lt 5 ] && left=5
+          # Bound each request by the remaining budget so a stalled connection
+          # can't outlive the timeout; one last check runs at the deadline.
+          left=$((deadline - SECONDS)); [ "$left" -lt 1 ] && left=1
           # Cache-bust: raw.githubusercontent.com caches for up to ~5 minutes.
           build=$(curl -fsSL --connect-timeout 10 --max-time "$left" "$URL?t=$(date +%s)" 2>/dev/null | jq -c '
             [.builds[] | select(any(.packages[];
@@ -72,7 +72,9 @@ runs:
             exit 1
           fi
           echo "No build of $PACKAGE@$SHA yet; retrying in ${INTERVAL}s."
-          sleep "$INTERVAL"
+          # Never sleep past the deadline.
+          nap=$((deadline - SECONDS)); [ "$nap" -gt "$INTERVAL" ] && nap=$INTERVAL
+          sleep "$nap"
         done
         tag=$(jq -r .tag <<< "$build")
         echo "tag=$tag" >> "$GITHUB_OUTPUT"
