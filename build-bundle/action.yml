@@ -53,6 +53,7 @@ runs:
       id: build
       shell: bash
       env:
+        GITHUB_PAT: ${{ inputs.token }}
         BUNDLE_DIR: ${{ inputs.bundle-dir || format('{0}/bundle', runner.temp) }}
         ALLOW_LOCAL: ${{ inputs.allow-local == 'true' && 'TRUE' || 'FALSE' }}
       run: |
