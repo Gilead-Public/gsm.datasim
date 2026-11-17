@@ -1,0 +1,20 @@
+# name: testdata-pr-cleanup.yaml
+# version: 1.0.0
+# Description: When a PR closes (merged or not), delete the test data bundles
+#   that build-pr-bundle.yaml made for it. Copy to .github/workflows/ in every
+#   gsm repo. Repos that never built a bundle delete nothing.
+on:
+  pull_request:
+    types: [closed]
+
+name: testdata-pr-cleanup
+
+permissions:
+  # write: Required to delete artifacts.
+  actions: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: gilead-public/gsm.datasim/delete-pr-bundles@actions

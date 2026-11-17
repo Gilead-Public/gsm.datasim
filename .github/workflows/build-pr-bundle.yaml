@@ -28,14 +28,10 @@ on:
         description: gsm.datasim branch or SHA to install.
         type: string
         default: dev
-      artifact-name:
-        description: Artifact name. Defaults to testdata-<sha>.
+      pr:
+        description: Pull request number. Defaults to the triggering PR.
         type: string
         default: ""
-      retention-days:
-        description: Days to keep the artifact.
-        type: number
-        default: 3
     outputs:
       artifact-name:
         description: Name of the uploaded artifact.
@@ -50,7 +46,8 @@ on:
         required: false
 permissions:
   contents: read
-  actions: read
+  # write: Required to delete this PR's superseded bundles.
+  actions: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -65,13 +62,18 @@ jobs:
       fingerprint: ${{ steps.build.outputs.fingerprint }}
     env:
       SHA: ${{ inputs.sha || github.event.pull_request.head.sha || github.sha }}
+      PR: ${{ inputs.pr || github.event.pull_request.number }}
     steps:
+      # The name is how delete-pr-bundles and wait-for-bundle find it.
       - name: Name artifact
         id: name
         shell: bash
-        env:
-          NAME: ${{ inputs.artifact-name }}
-        run: echo "name=${NAME:-testdata-$SHA}" >> "$GITHUB_OUTPUT"
+        run: |
+          if ! [[ "$PR" =~ ^[0-9]+$ ]]; then
+            echo "::error::No pull request number; call from a pull_request workflow or pass pr."
+            exit 1
+          fi
+          echo "name=testdata-pr$PR-$SHA" >> "$GITHUB_OUTPUT"
       - name: Generate token
         uses: gilead-public/gsm.utils/generate-token@actions-v1
         id: token
@@ -104,5 +106,14 @@ jobs:
         with:
           name: ${{ steps.name.outputs.name }}
           path: ${{ steps.build.outputs.bundle-dir }}
-          retention-days: ${{ inputs.retention-days }}
+          # Bundles live until the PR closes (testdata-pr-cleanup.yaml) or a
+          # newer bundle replaces them (below). This is only a backstop for
+          # leftovers; the repo's own maximum applies if it is lower.
+          retention-days: 90
           if-no-files-found: error
+      # Only after the new upload succeeds, so the PR always has one bundle.
+      - name: Delete superseded bundles
+        uses: gilead-public/gsm.datasim/delete-pr-bundles@actions
+        with:
+          pr: ${{ env.PR }}
+          keep: ${{ steps.name.outputs.name }}

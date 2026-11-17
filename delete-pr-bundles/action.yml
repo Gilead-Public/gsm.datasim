@@ -1,0 +1,45 @@
+name: "Delete PR bundles"
+description: "Deletes a PR's test data bundle artifacts (named testdata-pr<number>-<sha>, from build-pr-bundle.yaml), optionally keeping one. Used by build-pr-bundle.yaml after a new bundle supersedes older ones, and by the testdata-pr-cleanup.yaml caller when a PR closes. Needs actions: write."
+inputs:
+  token:
+    description: "Token with actions: write on the repository."
+    default: ${{ github.token }}
+  repo:
+    description: "Repository that owns the artifacts."
+    default: ${{ github.repository }}
+  pr:
+    description: "Pull request number."
+    default: ${{ github.event.pull_request.number }}
+  keep:
+    description: "Artifact name to keep (blank to delete all of the PR's bundles)."
+    default: ""
+outputs:
+  deleted:
+    description: "Number of artifacts deleted."
+    value: ${{ steps.delete.outputs.deleted }}
+runs:
+  using: "composite"
+  steps:
+    - name: Delete artifacts
+      id: delete
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        REPO: ${{ inputs.repo }}
+        PR: ${{ inputs.pr }}
+        KEEP: ${{ inputs.keep }}
+      run: |
+        if ! [[ "$PR" =~ ^[0-9]+$ ]]; then
+          echo "::error::pr must be a pull request number (got '$PR')."
+          exit 1
+        fi
+        prefix="testdata-pr$PR-"
+        ids=$(gh api --paginate "repos/$REPO/actions/artifacts?per_page=100" \
+          --jq ".artifacts[] | select((.name | startswith(\"$prefix\")) and .name != \$ENV.KEEP and (.expired | not)) | \"\(.id) \(.name)\"")
+        n=0
+        while read -r id name; do
+          [ -n "$id" ] || continue
+          gh api -X DELETE "repos/$REPO/actions/artifacts/$id" && n=$((n + 1)) && echo "Deleted $name ($id)."
+        done <<< "$ids"
+        echo "deleted=$n" >> "$GITHUB_OUTPUT"
+        echo "Deleted $n test data bundle artifact(s) for PR #$PR." >> "$GITHUB_STEP_SUMMARY"

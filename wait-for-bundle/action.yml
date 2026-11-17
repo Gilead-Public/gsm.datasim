@@ -16,9 +16,9 @@ inputs:
   title:
     description: "Exact run-name of the build run. Defaults to 'build-pr-bundle <sha>'."
     default: ""
-  artifact-name:
-    description: "Artifact name. Defaults to testdata-<sha>."
-    default: ""
+  pr:
+    description: "Pull request number, used in the artifact name testdata-pr<pr>-<sha>."
+    default: ${{ github.event.pull_request.number }}
   path:
     description: "Directory to download the bundle into. Defaults to $RUNNER_TEMP/testdata."
     default: ""
@@ -44,12 +44,16 @@ runs:
       env:
         SHA: ${{ inputs.sha }}
         TITLE: ${{ inputs.title }}
-        NAME: ${{ inputs.artifact-name }}
+        PR: ${{ inputs.pr }}
         DEST: ${{ inputs.path || format('{0}/testdata', runner.temp) }}
       run: |
+        if ! [[ "$PR" =~ ^[0-9]+$ ]]; then
+          echo "::error::No pull request number; run on a pull_request event or pass pr."
+          exit 1
+        fi
         {
           echo "title=${TITLE:-build-pr-bundle $SHA}"
-          echo "artifact=${NAME:-testdata-$SHA}"
+          echo "artifact=testdata-pr$PR-$SHA"
           echo "dest=$DEST"
         } >> "$GITHUB_OUTPUT"
     - name: Find build run
