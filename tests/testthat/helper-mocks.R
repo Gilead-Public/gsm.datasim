@@ -2,7 +2,12 @@
 
 mock_workflow_engine <- function(env = parent.frame()) {
   testthat::local_mocked_bindings(
-    MakeWorkflowList = function(strNames = NULL, strPath = NULL, strPackage = NULL, ...) {
+    MakeWorkflowList = function(
+      strNames = NULL,
+      strPath = NULL,
+      strPackage = NULL,
+      ...
+    ) {
       nm <- strNames %||% c("ok_wf", "bad_wf")
       stats::setNames(rep(list(list()), length(nm)), nm)
     },
@@ -11,8 +16,12 @@ mock_workflow_engine <- function(env = parent.frame()) {
       if (length(nm) != 1) {
         return(list(reporting = "report"))
       }
-      if (nm == "bad_wf") stop("boom")
-      if (nm == "COUNTRY") stop("no country")
+      if (nm == "bad_wf") {
+        stop("boom")
+      }
+      if (nm == "COUNTRY") {
+        stop("no country")
+      }
       if (nm == "ok_wf") {
         return(list(Analysis_ok = list(x = 1)))
       }
@@ -29,7 +38,10 @@ mock_workflow_engine <- function(env = parent.frame()) {
     .package = "gsm.mapping",
     .env = env
   )
-  testthat::local_mocked_bindings(CombineSpecs = function(...) list(), .env = env)
+  testthat::local_mocked_bindings(
+    CombineSpecs = function(...) list(),
+    .env = env
+  )
 }
 
 analytics_snapshot <- function(extra = character()) {
@@ -42,7 +54,11 @@ analytics_snapshot <- function(extra = character()) {
 
 reporting_input <- function() {
   list(
-    ok = list(mapped = list(m = 1), results = list(r = 1), lWorkflow = list(w = 1)),
+    ok = list(
+      mapped = list(m = 1),
+      results = list(r = 1),
+      lWorkflow = list(w = 1)
+    ),
     skipped = NULL,
     incomplete = list(mapped = list(m = 1))
   )
@@ -62,6 +78,7 @@ test_at_log_threshold <- function(
   level = "FATAL",
   envir = rlang::caller_env()
 ) {
+  testthat::skip_if_not_installed("withr")
   old <- logger::log_threshold()
   withr::defer(logger::log_threshold(old), envir = envir)
   logger::log_threshold(level)

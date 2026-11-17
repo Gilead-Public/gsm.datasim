@@ -1,5 +1,6 @@
 # gsm.datasim (development version)
 
+- New `build_testdata_bundle()` produces the shared gsm test data (`lSource`, `analytics*`, `reporting*`) for use in other gsm packages (#151, #187).
 - Simulated `Raw_AE` data now carries AE outcome (`aeout`), derived
   relatedness (`aereldrv`) and serious-death flag (`aesdth`), with
   deterministic fatal-AE cases linked to `Raw_Death`: participants with one,
