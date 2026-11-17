@@ -38,6 +38,7 @@ Raw_AE <- function(data, previous_data, spec, startDate, endDate, ...) {
     curr_spec$mdrsoc_nsv <- list(required = TRUE)
     curr_spec$aetoxgr <- list(required = TRUE)
   }
+  curr_spec <- with_fatal_ae_cols(curr_spec)
 
   args <- list(
     subjid = list(n, external_subjid = data$Raw_SUBJ$subjid),
@@ -143,6 +144,16 @@ aereldrv <- function(n, ...) {
 
 aesdth <- function(n, ...) {
   rep("No", n)
+}
+
+# apply_fatal_ae_scenarios() needs these before AE.yaml declares them (gsm.mapping#135).
+with_fatal_ae_cols <- function(curr_spec) {
+  for (col in c("aeout", "aereldrv", "aesdth")) {
+    if (is.null(curr_spec[[col]])) {
+      curr_spec[[col]] <- list(type = "character")
+    }
+  }
+  curr_spec
 }
 
 # MedDRA terms reserved for seeded fatal AEs. Baseline terms never use them, so

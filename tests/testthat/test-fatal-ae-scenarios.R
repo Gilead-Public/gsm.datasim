@@ -73,6 +73,23 @@ test_that("Raw_AE generates the fatal-AE columns when the spec declares them (#1
   expect_true(all(res$aesdth == "No"))
 })
 
+test_that("Raw_AE generates the fatal-AE columns before AE.yaml declares them (#142)", {
+  set.seed(2286)
+  res <- Raw_AE(
+    make_ae_data(),
+    previous_data = list(),
+    spec = make_ae_spec(),
+    startDate = as.Date("2012-01-01"),
+    endDate = as.Date("2012-12-31"),
+    n = 20,
+    split_vars = ae_split
+  )
+
+  expect_contains(names(res), c("aeout", "aereldrv", "aesdth"))
+  expect_type(res$aeout, "character")
+  expect_false(any(res$aeout %in% "Fatal"))
+})
+
 test_that("Raw_AE returns previous data when it already exceeds the target count (#142)", {
   set.seed(2286)
   data <- make_ae_data()
