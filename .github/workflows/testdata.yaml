@@ -39,5 +39,3 @@ jobs:
           # Configuration variables for controlling workflow behavior
           enabled: ${{ inputs.enabled || 'auto' }}
           wait: ${{ inputs.wait || false }}
-          # TEMPORARY (#182): test against this PR's testdata-build.yaml. Remove before merge.
-          ref: fix-182-testdata-caller
