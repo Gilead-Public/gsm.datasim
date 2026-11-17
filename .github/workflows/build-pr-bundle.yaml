@@ -88,7 +88,7 @@ jobs:
           extra-packages: ''
       - name: Build bundle
         id: build
-        uses: gilead-public/gsm.datasim/build-bundle@actions
+        uses: gilead-public/gsm.datasim/build-bundle@feat-183-readiness-checks
         with:
           token: ${{ steps.token.outputs.token }}
           ref: ${{ inputs.datasim-ref }}
@@ -108,7 +108,7 @@ jobs:
       # On fork PRs the token is read-only; this only warns, and
       # testdata-pr-cleanup.yaml deletes the leftovers when the PR closes.
       - name: Delete superseded bundles
-        uses: gilead-public/gsm.datasim/delete-pr-bundles@actions
+        uses: gilead-public/gsm.datasim/delete-pr-bundles@feat-183-readiness-checks
         with:
           pr: ${{ env.PR }}
           keep: ${{ steps.name.outputs.name }}
