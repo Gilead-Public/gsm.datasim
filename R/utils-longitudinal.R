@@ -47,7 +47,7 @@ count_repeat_windows <- function(nMeasurements, nWindowLength = 3) {
 #' Partitions sites into `"red"`, `"amber"`, and `"normal"` bands by sampling
 #' without replacement. Used to decide which sites should be given an elevated
 #' consecutive-repeat rate before `inject_targeted_runs()` constructs it. Supply
-#' either percentages (`dPctRed` / `dPctAmber`) or explicit counts 
+#' either percentages (`dPctRed` / `dPctAmber`) or explicit counts
 #' (`nRed` / `nAmber`); counts take precedence when both are given.
 #' Percentages are converted with [round()], so small site counts degrade
 #' gracefully rather than erroring -- 10% of 3 sites is 0 red sites, not a
@@ -86,9 +86,15 @@ count_repeat_windows <- function(nMeasurements, nWindowLength = 3) {
 #'   `"red"`, `"amber"`, or `"normal"`.
 #'
 #' @keywords internal
-allocate_site_risk <- function(vSites, dPctRed = 0.1, dPctAmber = 0.2,
-                               nRed = NULL, nAmber = NULL,
-                               nTotalSites = NULL, strSeedKey = NULL) {
+allocate_site_risk <- function(
+  vSites,
+  dPctRed = 0.1,
+  dPctAmber = 0.2,
+  nRed = NULL,
+  nAmber = NULL,
+  nTotalSites = NULL,
+  strSeedKey = NULL
+) {
   sites <- unique(as.character(vSites))
   n_sites <- length(sites)
   if (n_sites == 0) {
@@ -119,16 +125,24 @@ allocate_site_risk <- function(vSites, dPctRed = 0.1, dPctAmber = 0.2,
   # Only absorb the rounding overshoot, not a genuinely oversized profile: cap
   # when the percentages are themselves valid (sum <= 1) and both came from
   # percentages. Anything else still errors below.
-  if (red_from_pct && amber_from_pct &&
-    n_red <= n_slots &&
-    dPctRed + dPctAmber <= 1) {
+  if (
+    red_from_pct &&
+      amber_from_pct &&
+      n_red <= n_slots &&
+      dPctRed + dPctAmber <= 1
+  ) {
     n_amber <- min(n_amber, n_slots - n_red)
   }
 
   if (n_red + n_amber > n_slots) {
     stop(
-      "Cannot allocate ", n_red, " red and ", n_amber, " amber bands across ",
-      n_slots, " site(s): red + amber must not exceed the number of sites"
+      "Cannot allocate ",
+      n_red,
+      " red and ",
+      n_amber,
+      " amber bands across ",
+      n_slots,
+      " site(s): red + amber must not exceed the number of sites"
     )
   }
 
@@ -136,8 +150,12 @@ allocate_site_risk <- function(vSites, dPctRed = 0.1, dPctAmber = 0.2,
   # the permutation is a pure function of that key, so every snapshot computes
   # the same slot layout without carrying state across the snapshot boundary.
   slot_bands <- rep("normal", n_slots)
-  if (n_red > 0) slot_bands[seq_len(n_red)] <- "red"
-  if (n_amber > 0) slot_bands[n_red + seq_len(n_amber)] <- "amber"
+  if (n_red > 0) {
+    slot_bands[seq_len(n_red)] <- "red"
+  }
+  if (n_amber > 0) {
+    slot_bands[n_red + seq_len(n_amber)] <- "amber"
+  }
 
   shuffled_slots <- if (n_slots == 1) {
     slot_bands
@@ -156,8 +174,11 @@ allocate_site_risk <- function(vSites, dPctRed = 0.1, dPctAmber = 0.2,
 # stream -- two vitals in the same generation pass must not shift each other's
 # bands, and the surrounding value draws must stay reproducible.
 .keyed_permutation <- function(x, strSeedKey) {
-  seed <- sum(strtoi(charToRaw(strSeedKey), 16L) *
-    seq_along(charToRaw(strSeedKey))) %% .Machine$integer.max
+  seed <- sum(
+    strtoi(charToRaw(strSeedKey), 16L) *
+      seq_along(charToRaw(strSeedKey))
+  ) %%
+    .Machine$integer.max
 
   if (exists(".Random.seed", envir = globalenv(), inherits = FALSE)) {
     old_seed <- get(".Random.seed", envir = globalenv(), inherits = FALSE)
@@ -199,13 +220,18 @@ allocate_site_risk <- function(vSites, dPctRed = 0.1, dPctAmber = 0.2,
 #'   so it always matches what a window-counting metric will compute.
 #'
 #' @keywords internal
-inject_targeted_runs <- function(values, groups, dTargetRate, nWindowLength = 3) {
+inject_targeted_runs <- function(
+  values,
+  groups,
+  dTargetRate,
+  nWindowLength = 3
+) {
   # Ordering is the caller's responsibility (see `assign_schedule_dates()`):
   # runs are written over contiguous positions, so sorting afterwards would
   # scatter them and silently break the rate guarantee.
   stopifnot(
-    "`values` and `groups` must be the same length" =
-      length(values) == length(groups)
+    "`values` and `groups` must be the same length" = length(values) ==
+      length(groups)
   )
   .validate_window_length(nWindowLength)
   .validate_proportion(dTargetRate, "dTargetRate")
@@ -247,7 +273,9 @@ inject_targeted_runs <- function(values, groups, dTargetRate, nWindowLength = 3)
   # Shuffle group order so injected runs aren't concentrated in the
   # lowest-numbered subjects.
   eligible <- names(window_counts)[window_counts >= 1]
-  if (length(eligible) > 1) eligible <- sample(eligible)
+  if (length(eligible) > 1) {
+    eligible <- sample(eligible)
+  }
 
   # Identical windows already present (rounded measurements collide) count
   # toward the target, so only the shortfall is injected. Otherwise they stack
@@ -259,7 +287,9 @@ inject_targeted_runs <- function(values, groups, dTargetRate, nWindowLength = 3)
     .count_identical_windows(values, idx_by_group, nWindowLength)
 
   for (grp in eligible) {
-    if (remaining <= 0) break
+    if (remaining <= 0) {
+      break
+    }
 
     idx <- idx_by_group[[grp]]
     baseline <- group_count(values, idx)
@@ -274,12 +304,16 @@ inject_targeted_runs <- function(values, groups, dTargetRate, nWindowLength = 3)
       candidate[idx[seq_len(run_length)]] <-
         .choose_run_value(values, idx, run_length)
       gain <- group_count(candidate, idx) - baseline
-      if (gain > 0 && gain <= remaining && (is.null(best) || gain > best$gain)) {
+      if (
+        gain > 0 && gain <= remaining && (is.null(best) || gain > best$gain)
+      ) {
         best <- list(values = candidate, gain = gain)
       }
       if (!is.null(best) && best$gain == remaining) break
     }
-    if (is.null(best)) next
+    if (is.null(best)) {
+      next
+    }
 
     values <- best$values
     remaining <- remaining - best$gain
@@ -382,18 +416,25 @@ inject_targeted_runs <- function(values, groups, dTargetRate, nWindowLength = 3)
 #'   deterministic order.
 #'
 #' @keywords internal
-assign_schedule_dates <- function(df, visits, strDateCol,
-                                  strGroupCol = "subjid",
-                                  strVisitCol = "instancename") {
+assign_schedule_dates <- function(
+  df,
+  visits,
+  strDateCol,
+  strGroupCol = "subjid",
+  strVisitCol = "instancename"
+) {
   stopifnot(
-    "`strDateCol` must be a single column name" =
-      is.character(strDateCol) && length(strDateCol) == 1,
+    "`strDateCol` must be a single column name" = is.character(strDateCol) &&
+      length(strDateCol) == 1,
     "`visits` must contain a `visit_dt` column" = "visit_dt" %in% names(visits)
   )
 
   missing_cols <- setdiff(c(strGroupCol, strVisitCol), names(df))
   if (length(missing_cols) > 0) {
-    stop("`df` is missing required column(s): ", paste(missing_cols, collapse = ", "))
+    stop(
+      "`df` is missing required column(s): ",
+      paste(missing_cols, collapse = ", ")
+    )
   }
 
   key_df <- paste(df[[strGroupCol]], df[[strVisitCol]], sep = "\r")
@@ -409,13 +450,20 @@ assign_schedule_dates <- function(df, visits, strDateCol,
   if (anyNA(dates)) {
     unmatched <- unique(df[[strVisitCol]][is.na(dates)])
     stop(
-      "No scheduled date found for ", sum(is.na(dates)), " record(s); ",
-      "unmatched visit(s): ", paste(utils::head(unmatched, 5), collapse = ", ")
+      "No scheduled date found for ",
+      sum(is.na(dates)),
+      " record(s); ",
+      "unmatched visit(s): ",
+      paste(utils::head(unmatched, 5), collapse = ", ")
     )
   }
 
   df[[strDateCol]] <- dates
-  df[order(df[[strGroupCol]], df[[strDateCol]], method = "radix"), , drop = FALSE]
+  df[
+    order(df[[strGroupCol]], df[[strDateCol]], method = "radix"),
+    ,
+    drop = FALSE
+  ]
 }
 
 
@@ -442,8 +490,11 @@ assign_schedule_dates <- function(df, visits, strDateCol,
   bad <- is.na(parsed) & !is.na(x)
   if (any(bad)) {
     stop(
-      "`visits$visit_dt` has ", sum(bad), " value(s) that are not ",
-      "\"%Y-%m-%d\" dates: ", paste(utils::head(unique(x[bad]), 5), collapse = ", ")
+      "`visits$visit_dt` has ",
+      sum(bad),
+      " value(s) that are not ",
+      "\"%Y-%m-%d\" dates: ",
+      paste(utils::head(unique(x[bad]), 5), collapse = ", ")
     )
   }
 
@@ -452,10 +503,13 @@ assign_schedule_dates <- function(df, visits, strDateCol,
 
 .validate_window_length <- function(nWindowLength) {
   stopifnot(
-    "`nWindowLength` must be a single whole number >= 2" =
-      is.numeric(nWindowLength) && length(nWindowLength) == 1 &&
-        !is.na(nWindowLength) && nWindowLength >= 2 &&
-        nWindowLength == round(nWindowLength)
+    "`nWindowLength` must be a single whole number >= 2" = is.numeric(
+      nWindowLength
+    ) &&
+      length(nWindowLength) == 1 &&
+      !is.na(nWindowLength) &&
+      nWindowLength >= 2 &&
+      nWindowLength == round(nWindowLength)
   )
   invisible(TRUE)
 }
@@ -468,8 +522,7 @@ assign_schedule_dates <- function(df, visits, strDateCol,
 }
 
 .validate_count <- function(x, name) {
-  if (!is.numeric(x) || length(x) != 1 || is.na(x) || x < 0 ||
-    x != round(x)) {
+  if (!is.numeric(x) || length(x) != 1 || is.na(x) || x < 0 || x != round(x)) {
     stop("`", name, "` must be a single non-negative whole number")
   }
   x

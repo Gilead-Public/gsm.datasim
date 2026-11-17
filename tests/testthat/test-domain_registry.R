@@ -142,4 +142,3 @@ test_that("Raw_LB migrated domain adapter generates data frame", {
   expect_s3_class(lb_df, "data.frame")
   expect_true(nrow(lb_df) >= 0)
 })
-

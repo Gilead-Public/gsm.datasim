@@ -62,7 +62,10 @@ test_that("Raw_VISIT generates a complete dataset from scratch", {
   )
 
   expect_s3_class(res, "data.frame")
-  expect_contains(names(res), c("subjid", "invid", "studyid", "foldername", "instancename", "visit_dt"))
+  expect_contains(
+    names(res),
+    c("subjid", "invid", "studyid", "foldername", "instancename", "visit_dt")
+  )
   expect_in(res$subjid, data$Raw_SUBJ$subjid)
   expect_true(all(res$studyid == "PROT-001"))
   # Eight visits are generated per subject.
@@ -87,7 +90,10 @@ test_that("Raw_VISIT injects subjid, studyid, invid and the visit columns when a
     split_vars = visit_split
   )
 
-  expect_contains(names(res), c("subjid", "invid", "studyid", "foldername", "instancename", "visit_dt"))
+  expect_contains(
+    names(res),
+    c("subjid", "invid", "studyid", "foldername", "instancename", "visit_dt")
+  )
 })
 
 # A spec column carrying source_col = "foldername" is renamed to foldername on
@@ -219,6 +225,12 @@ test_that("supplying possible_visits still tiles the grid (#109)", {
   )
   subjs <- c("S1", "S2", "S3")
 
-  expect_equal(foldername(1, subjs, possible_visits), rep(possible_visits$foldername, 3))
-  expect_equal(instancename(1, subjs, possible_visits), rep(possible_visits$instancename, 3))
+  expect_equal(
+    foldername(1, subjs, possible_visits),
+    rep(possible_visits$foldername, 3)
+  )
+  expect_equal(
+    instancename(1, subjs, possible_visits),
+    rep(possible_visits$instancename, 3)
+  )
 })

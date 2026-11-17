@@ -59,6 +59,14 @@ read back from those CSVs.
 Rows are sorted on explicit keys so identical inputs always produce
 byte-identical files.
 }
+\section{Local test data builder}{
+
+This function is also gsm.core's local test data builder. When installed gsm
+packages don't match a published build and at least one is local, gsm.core
+calls \code{build_testdata_bundle(output_dir, overwrite = TRUE, allow_local = TRUE)} via the \code{gsm.testdata_builder} option and caches the result. Run
+\code{\link[=use_gsm_datasim]{use_gsm_datasim()}} to set that option in your \code{.Rprofile}.
+}
+
 \section{Layout}{
 
 

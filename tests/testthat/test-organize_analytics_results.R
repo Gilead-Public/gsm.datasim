@@ -37,7 +37,10 @@ test_that("organize_analytics_results respects verbose flag and organizes Analys
     metric_output$data_frames$Analysis_Summary$GroupLevel[[1]],
     "Country"
   )
-  expect_contains(names(metric_output$data_frames$Analysis_Summary), "Metric_ID")
+  expect_contains(
+    names(metric_output$data_frames$Analysis_Summary),
+    "Metric_ID"
+  )
   expect_equal(
     metric_output$data_frames$Analysis_Summary$Metric_ID[[1]],
     "cou0001"

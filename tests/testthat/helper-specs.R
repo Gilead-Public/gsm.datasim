@@ -342,7 +342,11 @@ make_vs_test_spec <- function() {
   list(
     studyid = list(required = TRUE, type = "character", source_col = "project"),
     subjid = list(required = TRUE, type = "character"),
-    visit = list(required = TRUE, type = "character", source_col = "foldername"),
+    visit = list(
+      required = TRUE,
+      type = "character",
+      source_col = "foldername"
+    ),
     vs_dt = list(required = TRUE, type = "Date"),
     vsperf_std = list(required = TRUE, type = "character"),
     weight = list(required = TRUE, type = "numeric"),

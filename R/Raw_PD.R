@@ -44,14 +44,22 @@ deemedimportant <- function(n, ...) {
 }
 
 dvdecod <- function(n, Raw_SUBJ_data = NULL, ...) {
-  row_keys <- if (is.data.frame(Raw_SUBJ_data) && "subjid" %in% names(Raw_SUBJ_data)) {
+  row_keys <- if (
+    is.data.frame(Raw_SUBJ_data) && "subjid" %in% names(Raw_SUBJ_data)
+  ) {
     sample(Raw_SUBJ_data$subjid, n, replace = TRUE)
   } else {
     NULL
   }
 
   sample_categorical_with_hotspots(
-    values = c("Informed Consent", "Missing Data", "Study Procedures", "Inclusion Criteria", "Exclusion Criteria"),
+    values = c(
+      "Informed Consent",
+      "Missing Data",
+      "Study Procedures",
+      "Inclusion Criteria",
+      "Exclusion Criteria"
+    ),
     n = n,
     base_prob = c(0.3, 0.3, 0.3, 0.05, 0.05),
     outlier_idx = 4:5,

@@ -21,7 +21,8 @@ test_that("raw_gilda_study_data generates a single-row study record", {
     raw_gilda_study_data,
     c(
       list(
-        data = list(), previous_data = list(),
+        data = list(),
+        previous_data = list(),
         spec = make_gilda_study_spec()
       ),
       inps

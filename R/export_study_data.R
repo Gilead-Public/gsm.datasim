@@ -54,13 +54,15 @@
 #' export_study_data(study, output_dir = tempdir(), format = "parquet", overwrite = TRUE)
 #' }
 #' @export
-export_study_data <- function(study,
-                              output_dir = ".",
-                              study_folder = NULL,
-                              format = "csv",
-                              overwrite = FALSE,
-                              save_rds = FALSE,
-                              verbose = FALSE) {
+export_study_data <- function(
+  study,
+  output_dir = ".",
+  study_folder = NULL,
+  format = "csv",
+  overwrite = FALSE,
+  save_rds = FALSE,
+  verbose = FALSE
+) {
   # ── Input validation ────────────────────────────────────────────────────────
 
   # Handle multiple_longitudinal_studies by exporting each study individually
@@ -69,20 +71,22 @@ export_study_data <- function(study,
     names(export_paths) <- names(study)
     for (study_name in names(study)) {
       export_paths[[study_name]] <- export_study_data(
-        study        = study[[study_name]],
-        output_dir   = output_dir,
+        study = study[[study_name]],
+        output_dir = output_dir,
         study_folder = study_name,
-        format       = format,
-        overwrite    = overwrite,
-        save_rds     = save_rds,
-        verbose      = verbose
+        format = format,
+        overwrite = overwrite,
+        save_rds = save_rds,
+        verbose = verbose
       )
     }
     return(invisible(export_paths))
   }
 
   if (!inherits(study, "longitudinal_study")) {
-    stop("`study` must be a longitudinal_study or multiple_longitudinal_studies object.")
+    stop(
+      "`study` must be a longitudinal_study or multiple_longitudinal_studies object."
+    )
   }
   if (!is.character(output_dir) || length(output_dir) != 1) {
     stop("`output_dir` must be a single character string.")
@@ -90,8 +94,14 @@ export_study_data <- function(study,
   if (!format %in% c("csv", "parquet", "both")) {
     stop("`format` must be one of: 'csv', 'parquet', 'both'")
   }
-  if (format %in% c("parquet", "both") && !requireNamespace("arrow", quietly = TRUE)) {
-    stop("The arrow package is required for parquet export. Install with: install.packages('arrow')")
+  if (
+    format %in%
+      c("parquet", "both") &&
+      !requireNamespace("arrow", quietly = TRUE)
+  ) {
+    stop(
+      "The arrow package is required for parquet export. Install with: install.packages('arrow')"
+    )
   }
 
   vcat <- function(...) if (isTRUE(verbose)) message(...)
@@ -105,7 +115,8 @@ export_study_data <- function(study,
 
   if (dir.exists(study_root) && !isTRUE(overwrite)) {
     stop(
-      "Study folder already exists: ", study_root,
+      "Study folder already exists: ",
+      study_root,
       "\nUse `overwrite = TRUE` to allow writing into an existing folder."
     )
   }
@@ -127,12 +138,22 @@ export_study_data <- function(study,
     if (!is.null(raw_snap) && length(raw_snap) > 0) {
       raw_dir <- file.path(snap_dir, "raw")
       dir.create(raw_dir, showWarnings = FALSE)
-      .write_df_list(raw_snap, raw_dir, format = format, overwrite = overwrite, verbose = verbose)
+      .write_df_list(
+        raw_snap,
+        raw_dir,
+        format = format,
+        overwrite = overwrite,
+        verbose = verbose
+      )
       vcat("    raw/  (", length(raw_snap), " datasets)", sep = "")
     }
 
     # -- mapped/ and analytics/ (from study$analytics) ----------------------
-    analytics_snap <- if (!is.null(study$analytics)) study$analytics[[snap_name]] else NULL
+    analytics_snap <- if (!is.null(study$analytics)) {
+      study$analytics[[snap_name]]
+    } else {
+      NULL
+    }
 
     if (!is.null(analytics_snap)) {
       # mapped/
@@ -142,7 +163,13 @@ export_study_data <- function(study,
         if (length(mapped_dfs) > 0) {
           mapped_dir <- file.path(snap_dir, "mapped")
           dir.create(mapped_dir, showWarnings = FALSE)
-          .write_df_list(mapped_dfs, mapped_dir, format = format, overwrite = overwrite, verbose = verbose)
+          .write_df_list(
+            mapped_dfs,
+            mapped_dir,
+            format = format,
+            overwrite = overwrite,
+            verbose = verbose
+          )
           vcat("    mapped/  (", length(mapped_dfs), " datasets)", sep = "")
         }
       }
@@ -152,8 +179,12 @@ export_study_data <- function(study,
       if (!is.null(results) && length(results) > 0) {
         analytics_dir <- file.path(snap_dir, "analytics")
         dir.create(analytics_dir, showWarnings = FALSE)
-        n_written <- .write_analytics_results(results, analytics_dir,
-          format = format, overwrite = overwrite, verbose = verbose
+        n_written <- .write_analytics_results(
+          results,
+          analytics_dir,
+          format = format,
+          overwrite = overwrite,
+          verbose = verbose
         )
         vcat("    analytics/  (", n_written, " tables)", sep = "")
       }
@@ -167,14 +198,24 @@ export_study_data <- function(study,
     }
 
     # -- reporting/ ----------------------------------------------------------
-    reporting_snap <- if (!is.null(study$reporting)) study$reporting[[snap_name]] else NULL
+    reporting_snap <- if (!is.null(study$reporting)) {
+      study$reporting[[snap_name]]
+    } else {
+      NULL
+    }
 
     if (!is.null(reporting_snap) && length(reporting_snap) > 0) {
       reporting_dfs <- Filter(is.data.frame, reporting_snap)
       if (length(reporting_dfs) > 0) {
         reporting_dir <- file.path(snap_dir, "reporting")
         dir.create(reporting_dir, showWarnings = FALSE)
-        .write_df_list(reporting_dfs, reporting_dir, format = format, overwrite = overwrite, verbose = verbose)
+        .write_df_list(
+          reporting_dfs,
+          reporting_dir,
+          format = format,
+          overwrite = overwrite,
+          verbose = verbose
+        )
         vcat("    reporting/  (", length(reporting_dfs), " datasets)", sep = "")
       }
     }
@@ -191,7 +232,9 @@ export_study_data <- function(study,
   vcat <- function(...) if (isTRUE(verbose)) message(...)
   for (nm in names(df_list)) {
     obj <- df_list[[nm]]
-    if (!is.data.frame(obj)) next
+    if (!is.data.frame(obj)) {
+      next
+    }
 
     if (format %in% c("csv", "both")) {
       csv_path <- file.path(dir, paste0(nm, ".csv"))
@@ -219,7 +262,13 @@ export_study_data <- function(study,
 #   - a list of data.frames (written as <metric>_<table>.csv/.parquet)
 #   - a deeper nested list (recursed one level; anything else is skipped)
 # Returns the total count of files written.
-.write_analytics_results <- function(results, dir, format = "csv", overwrite, verbose) {
+.write_analytics_results <- function(
+  results,
+  dir,
+  format = "csv",
+  overwrite,
+  verbose
+) {
   n_written <- 0L
 
   for (metric_name in names(results)) {
@@ -243,18 +292,26 @@ export_study_data <- function(study,
           arrow::write_parquet(metric, parquet_path)
           n_written <- n_written + 1L
         } else {
-          warning("Skipping existing file (use overwrite = TRUE): ", parquet_path)
+          warning(
+            "Skipping existing file (use overwrite = TRUE): ",
+            parquet_path
+          )
         }
       }
     } else if (is.list(metric)) {
       # Named list of tables inside one metric — e.g. kri0001$Analysis_Input
       for (table_name in names(metric)) {
         tbl <- metric[[table_name]]
-        if (!is.data.frame(tbl)) next
+        if (!is.data.frame(tbl)) {
+          next
+        }
         safe_table <- gsub("[^A-Za-z0-9._-]", "_", table_name)
 
         if (format %in% c("csv", "both")) {
-          csv_path <- file.path(dir, paste0(metric_name, "_", safe_table, ".csv"))
+          csv_path <- file.path(
+            dir,
+            paste0(metric_name, "_", safe_table, ".csv")
+          )
           if (!file.exists(csv_path) || isTRUE(overwrite)) {
             utils::write.csv(tbl, csv_path, row.names = FALSE)
             n_written <- n_written + 1L
@@ -264,12 +321,18 @@ export_study_data <- function(study,
         }
 
         if (format %in% c("parquet", "both")) {
-          parquet_path <- file.path(dir, paste0(metric_name, "_", safe_table, ".parquet"))
+          parquet_path <- file.path(
+            dir,
+            paste0(metric_name, "_", safe_table, ".parquet")
+          )
           if (!file.exists(parquet_path) || isTRUE(overwrite)) {
             arrow::write_parquet(tbl, parquet_path)
             n_written <- n_written + 1L
           } else {
-            warning("Skipping existing file (use overwrite = TRUE): ", parquet_path)
+            warning(
+              "Skipping existing file (use overwrite = TRUE): ",
+              parquet_path
+            )
           }
         }
       }

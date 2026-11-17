@@ -113,6 +113,17 @@ ae_counts <- sapply(get_domain_timeline(study, "AE"), nrow)
 |---|---|
 | `export_study_data()` | Write study to structured folder hierarchy (CSV or Parquet) |
 
+### Local gsm test data
+
+When you develop gsm packages locally (e.g. with `devtools::load_all()`), gsm.core can build its test data (`gsm.core::lSource`, etc.) from your local code instead of a published build. Register gsm.datasim as the builder once:
+
+```r
+gsm.datasim::use_gsm_datasim()            # ~/.Rprofile
+gsm.datasim::use_gsm_datasim("project")   # ./.Rprofile
+```
+
+This adds `options(gsm.testdata_builder = "gsm.datasim::build_testdata_bundle")`. Restart R; gsm.core then builds the data once, caches it, and reuses it in later sessions.
+
 ## Common Patterns
 
 ### Data generation only (no pipeline)

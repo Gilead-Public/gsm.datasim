@@ -123,7 +123,9 @@ local_fake_bundle_stages <- function(env = parent.frame()) {
 # Installed packages may be local (no RemoteSha), which publishing rejects.
 local_fake_package_versions <- function(env = parent.frame()) {
   testthat::local_mocked_bindings(
-    .pkg_description = function(pkg) list(Version = "9.9.9", RemoteSha = "abc123"),
+    .pkg_description = function(pkg) {
+      list(Version = "9.9.9", RemoteSha = "abc123")
+    },
     .env = env
   )
 }
