@@ -1,0 +1,62 @@
+# name: testdata-build.yaml
+# version: 0.4.0
+# Description: Build the shared gsm test data bundle, create a data-<fp12>
+#   pre-release when the data is new, and record the build on the data-index
+#   branch. Dispatched at dev or main by the testdata.yaml caller (see the
+#   actions branch) in any gsm repo. See the README on data-index.
+name: testdata-build
+# trigger-build on the actions branch finds the run by this title; keep in sync.
+run-name: testdata-build ${{ inputs.triggered_by }} (${{ inputs.caller_run }})
+on:
+  workflow_dispatch:
+    inputs:
+      triggered_by:
+        description: Commit that triggered the build, as <owner>/<repo>@<sha>.
+        required: true
+      caller_run:
+        description: URL of the caller's run, used to make run-name unique.
+        default: manual
+# No concurrency group: GitHub keeps only one pending run per group, so a third
+# dispatch would cancel the second. Builds run in parallel instead;
+# publish-bundle tolerates concurrent release creation and data-index pushes.
+permissions:
+  # write: Required to create data-* releases and push to data-index.
+  contents: write
+jobs:
+  testdata:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate token
+        uses: gilead-public/gsm.utils/generate-token@actions-v1
+        id: token
+        with:
+          app-id: ${{ secrets.CM_BOT_APP_ID }}
+          app-private-key: ${{ secrets.CM_BOT_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          fallback-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Check out repo
+        uses: gilead-public/gsm.utils/checkout@actions-v1
+        with:
+          token: ${{ steps.token.outputs.token }}
+      # Dependencies (including Remotes) resolve from this branch's
+      # DESCRIPTION.
+      - name: Install R and dependencies
+        uses: gilead-public/gsm.utils/install@actions-v1
+        with:
+          token: ${{ steps.token.outputs.token }}
+          use-public-rspm: true
+          extra-packages: ''
+      - name: Build bundle
+        id: build
+        uses: gilead-public/gsm.datasim/build-bundle@actions
+        with:
+          token: ${{ steps.token.outputs.token }}
+          repo: ${{ github.repository }}
+          ref: ${{ github.sha }}
+      - name: Publish bundle
+        uses: gilead-public/gsm.datasim/publish-bundle@actions
+        with:
+          token: ${{ steps.token.outputs.token }}
+          bundle-dir: ${{ steps.build.outputs.bundle-dir }}
+          repo: ${{ github.repository }}
+          triggered-by: ${{ inputs.triggered_by }}
