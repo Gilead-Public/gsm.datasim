@@ -1,0 +1,78 @@
+# name: testdata-packages.yaml
+# version: 0.1.0
+# Description: Publish the test data input-package list (.bundle_packages in
+#   R/) as packages.json on the data-index branch, where the needs-testdata
+#   action (actions branch) reads it without installing R packages. This is the
+#   only writer of packages.json.
+name: testdata-packages
+on:
+  push:
+    branches: [dev]
+    paths: ['R/**']
+  workflow_dispatch:
+# A shared group is fine here: a pending run only needs the latest dev, so a
+# replaced pending run loses nothing.
+concurrency:
+  group: testdata-packages
+  cancel-in-progress: false
+permissions:
+  # write: Required to push packages.json to data-index.
+  contents: write
+jobs:
+  packages:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: gilead-public/gsm.utils/checkout@actions-v1
+      - name: Check out data-index
+        uses: gilead-public/gsm.utils/checkout@actions-v1
+        with:
+          ref: data-index
+          path: .data-index
+      # Evaluates only the `.bundle_packages <-` assignment, with base R, so no
+      # package installs are needed.
+      - name: Read .bundle_packages
+        shell: Rscript {0}
+        run: |
+          is_def <- function(e) {
+            is.call(e) && identical(e[[1]], as.name("<-")) &&
+              identical(e[[2]], as.name(".bundle_packages"))
+          }
+          files <- list.files("R", "[.][Rr]$", full.names = TRUE)
+          defs <- unlist(lapply(files, function(f) {
+            Filter(is_def, as.list(parse(f, keep.source = FALSE)))
+          }))
+          if (length(defs) != 1) {
+            stop("Expected one .bundle_packages definition in R/, found ", length(defs), ".")
+          }
+          pkgs <- eval(defs[[1]][[3]], baseenv())
+          stopifnot(is.character(pkgs), length(pkgs) > 0, !anyNA(pkgs))
+          writeLines(sort(unique(pkgs)), file.path(Sys.getenv("RUNNER_TEMP"), "packages.txt"))
+      - name: Update packages.json
+        shell: bash
+        working-directory: .data-index
+        run: |
+          jq -R . "$RUNNER_TEMP/packages.txt" | jq -s '{format: 1, packages: .}' > packages.json
+          git add packages.json
+          if git diff --cached --quiet; then
+            echo "packages.json is already current." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -q -m "Update packages.json from $GITHUB_REPOSITORY@$GITHUB_SHA"
+          # publish-bundle also pushes here; rebase and retry on a race.
+          for attempt in 1 2 3 4 5; do
+            git push -q origin HEAD:data-index && break
+            if [ "$attempt" = 5 ]; then
+              echo "::error::Could not push to data-index after 5 attempts."
+              exit 1
+            fi
+            sleep $((attempt * 5))
+            git pull -q --rebase origin data-index
+          done
+          {
+            echo "Updated packages.json:"
+            echo ""
+            sed 's/^/- /' "$RUNNER_TEMP/packages.txt"
+          } >> "$GITHUB_STEP_SUMMARY"
