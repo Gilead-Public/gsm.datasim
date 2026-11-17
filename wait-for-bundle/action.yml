@@ -61,6 +61,7 @@ runs:
         workflow: ${{ inputs.workflow }}
         title: ${{ steps.names.outputs.title }}
         attempts: ${{ inputs.attempts }}
+        commit: ${{ inputs.sha }}
         interval: ${{ inputs.interval }}
     - name: Check build run isn't this run
       shell: bash
