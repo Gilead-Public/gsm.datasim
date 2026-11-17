@@ -221,6 +221,7 @@ get_domain_registry <- function() {
           curr_spec$mdrsoc_nsv <- list(required = TRUE)
           curr_spec$aetoxgr <- list(required = TRUE)
         }
+        curr_spec <- with_fatal_ae_cols(curr_spec)
 
         args <- list(
           subjid          = list(n, external_subjid = data$Raw_SUBJ$subjid),
