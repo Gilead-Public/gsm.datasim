@@ -10,7 +10,7 @@ develop other features on this branch.
 `main`, it runs [`trigger-build`](trigger-build/action.yml), which:
 
 1. Skips unless the repo is a test data input: by default, it must be listed
-   in `packages` of `index.json` on gsm.datasim's `data-index` branch. Set
+   in `packages.json` on gsm.datasim's `data-index` branch. Set
    `enabled` to `'true'` or `'false'` to override.
 2. Generates a token (`gsm.utils/generate-token@actions-v1`) and runs
    `gh workflow run testdata-build.yaml -R Gilead-Public/gsm.datasim --ref
@@ -32,9 +32,12 @@ can dispatch (using `GITHUB_TOKEN`).
 | [`trigger-build`](trigger-build/action.yml) | Used by `testdata.yaml`. Dispatches `testdata-build.yaml`, links the run, and optionally waits. |
 | [`build-bundle`](build-bundle/action.yml) | Installs gsm.datasim at a commit (plus optional `extra-packages`, e.g. `local::.`) and runs `build_testdata_bundle()`. Publishes nothing; outputs `bundle-dir`, `fingerprint`, `inputs-hash`. Needs R already set up. |
 | [`publish-bundle`](publish-bundle/action.yml) | Creates or reuses the `data-<fp12>` release for a built bundle and records it on `data-index`. Needs `contents: write`. |
-| [`needs-testdata`](needs-testdata/action.yml) | Outputs `needed` = `true` if a package is listed in `packages` of `data-index` `index.json`. |
+| [`needs-testdata`](needs-testdata/action.yml) | Outputs `needed` = `true` if a package is listed in `packages.json` on `data-index` (published from `.bundle_packages` by gsm.datasim's `testdata-packages` workflow on `dev`). |
 | [`find-run`](find-run/action.yml) | Polls for a workflow run by exact `run-name`, e.g. one just dispatched. |
 | [`wait-run`](wait-run/action.yml) | Waits for a run and fails if it didn't succeed. |
+| [`wait-for-index`](wait-for-index/action.yml) | After a merge: polls `data-index` `index.json` until a build records `package` at `sha`. Outputs `tag` and `fingerprint`; with `download: true`, downloads the release zip and exports `GSM_TESTDATA_SNAPSHOT`. On `timeout`, fails with a link to the build runs. |
+| [`build-pr-bundle.yaml`](.github/workflows/build-pr-bundle.yaml) | Reusable workflow for PRs: builds the bundle with the caller's package (`local::.`) and uploads the artifact `testdata-<sha>`. Callers must set `run-name: build-pr-bundle <sha>`. |
+| [`wait-for-bundle`](wait-for-bundle/action.yml) | Finds the `build-pr-bundle` run for a SHA, waits for it, downloads its artifact, and exports `GSM_TESTDATA_SNAPSHOT`. Needs `actions: read`. |
 
 Actions on this branch reference each other with `uses: $/<action>`.
 
