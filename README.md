@@ -48,9 +48,14 @@ Timestamps are UTC (`YYYY-MM-DDTHH:MM:SSZ`), so they sort as strings.
 
 ## When data is published
 
-The `testdata` workflow (`.github/workflows/testdata.yaml` on `dev`/`main`)
-runs on every push to `dev` or `main` in gsm.datasim. It installs gsm.datasim
-at the pushed commit together with its `Remotes`, runs
+The `testdata-build` workflow (`.github/workflows/testdata-build.yaml` on
+`dev`/`main`) builds the data. It runs only when dispatched, normally by the
+`testdata.yaml` caller installed in each gsm repo (see the `actions` branch).
+When a repo that feeds the data (listed in `packages` in `index.json`) merges
+to `dev` or `main`, its caller dispatches `testdata-build` in gsm.datasim at
+the same branch, passing `triggered_by` (`<owner>/<repo>@<sha>`). gsm.datasim's
+own merges go through the same caller. The build runs in gsm.datasim and
+installs gsm.datasim at the dispatched branch together with its `Remotes`, runs
 `build_testdata_bundle()` (failing if any package lacks a `RemoteSha`), then:
 
 1. Creates the `data-<fp12>` pre-release if it doesn't exist yet. Releases are
@@ -61,13 +66,15 @@ at the pushed commit together with its `Remotes`, runs
    the same `inputs_hash` produces a different fingerprint, the run fails
    because the build isn't reproducible.
 
-Builds run one at a time per branch.
+Builds run one at a time per branch, whichever repo dispatched them.
+`triggered_by` in `builds/` records which commit started each build.
 
-To build manually, run the workflow from the Actions tab ("Run workflow",
+To build manually, run `testdata-build` from the Actions tab ("Run workflow",
 choosing `dev` or `main`), or:
 
 ```sh
-gh workflow run testdata.yaml -R Gilead-Public/gsm.datasim --ref dev
+gh workflow run testdata-build.yaml -R Gilead-Public/gsm.datasim --ref dev \r
+  -f triggered_by="manual build by @<you>"
 ```
 
 This branch is protected against deletion and force-push.
