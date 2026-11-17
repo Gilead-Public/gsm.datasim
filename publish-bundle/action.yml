@@ -1,0 +1,80 @@
+name: "Publish test data bundle"
+description: "Creates (or reuses) the data-<fp12> pre-release for a built bundle and records the build on the data-index branch. Builds run elsewhere; see build-bundle."
+inputs:
+  token:
+    description: "Token with contents: write on the repository."
+    required: true
+  bundle-dir:
+    description: "Directory containing the built bundle (build-bundle's bundle-dir output)."
+    required: true
+  repo:
+    description: "Repository that holds the releases and the index branch."
+    default: "Gilead-Public/gsm.datasim"
+  target-sha:
+    description: "Commit the release tag points at."
+    default: ${{ github.sha }}
+  source:
+    description: "Build source recorded on data-index (e.g. dev, main)."
+    default: ${{ github.ref_name }}
+  triggered-by:
+    description: "What triggered the build, recorded in the release notes and on data-index."
+    default: ${{ github.repository }}@${{ github.sha }}
+  index-branch:
+    description: "Branch holding index.json and builds/."
+    default: "data-index"
+outputs:
+  tag:
+    description: "Release tag holding the bundle."
+    value: ${{ steps.release.outputs.tag }}
+  created:
+    description: "'true' if the release was created by this run, 'false' if it already existed."
+    value: ${{ steps.release.outputs.created }}
+runs:
+  using: "composite"
+  steps:
+    - name: Create or reuse release
+      id: release
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        REPO: ${{ inputs.repo }}
+        TARGET_SHA: ${{ inputs.target-sha }}
+        TRIGGERED_BY: ${{ inputs.triggered-by }}
+        BUNDLE_DIR: ${{ inputs.bundle-dir }}
+      run: bash "$GITHUB_ACTION_PATH/publish-release.sh" "$BUNDLE_DIR" "$RUNNER_TEMP/release"
+    - name: Check out index branch
+      uses: gilead-public/gsm.utils/checkout@actions-v1
+      with:
+        repository: ${{ inputs.repo }}
+        token: ${{ inputs.token }}
+        ref: ${{ inputs.index-branch }}
+        path: .data-index
+        fetch-depth: 0
+    - name: Record build
+      shell: bash
+      env:
+        TAG: ${{ steps.release.outputs.tag }}
+        SOURCE: ${{ inputs.source }}
+        TRIGGERED_BY: ${{ inputs.triggered-by }}
+        INDEX_BRANCH: ${{ inputs.index-branch }}
+        BUNDLE_DIR: ${{ inputs.bundle-dir }}
+      run: |
+        index_dir="$GITHUB_WORKSPACE/.data-index"
+        git -C "$index_dir" config user.name "github-actions[bot]"
+        git -C "$index_dir" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        bash "$GITHUB_ACTION_PATH/record-build.sh" "$BUNDLE_DIR/snapshot.json" "$index_dir"
+    - name: Summarize release
+      shell: bash
+      env:
+        REPO: ${{ inputs.repo }}
+        TAG: ${{ steps.release.outputs.tag }}
+        CREATED: ${{ steps.release.outputs.created }}
+        TRIGGERED_BY: ${{ inputs.triggered-by }}
+      run: |
+        url="$GITHUB_SERVER_URL/$REPO/releases/tag/$TAG"
+        verb=$([ "$CREATED" = "true" ] && echo Created || echo "Reused existing")
+        {
+          echo "$verb release [$TAG]($url)."
+          echo ""
+          echo "triggered_by: \`$TRIGGERED_BY\`"
+        } >> "$GITHUB_STEP_SUMMARY"

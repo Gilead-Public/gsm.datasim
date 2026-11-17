@@ -30,6 +30,8 @@ can dispatch (using `GITHUB_TOKEN`).
 | Action | Purpose |
 |---|---|
 | [`trigger-build`](trigger-build/action.yml) | Used by `testdata.yaml`. Dispatches `testdata-build.yaml`, links the run, and optionally waits. |
+| [`build-bundle`](build-bundle/action.yml) | Installs gsm.datasim at a commit (plus optional `extra-packages`, e.g. `local::.`) and runs `build_testdata_bundle()`. Publishes nothing; outputs `bundle-dir`, `fingerprint`, `inputs-hash`. Needs R already set up. |
+| [`publish-bundle`](publish-bundle/action.yml) | Creates or reuses the `data-<fp12>` release for a built bundle and records it on `data-index`. Needs `contents: write`. |
 | [`needs-testdata`](needs-testdata/action.yml) | Outputs `needed` = `true` if a package is listed in `packages` of `data-index` `index.json`. |
 | [`find-run`](find-run/action.yml) | Polls for a workflow run by exact `run-name`, e.g. one just dispatched. |
 | [`wait-run`](wait-run/action.yml) | Waits for a run and fails if it didn't succeed. |

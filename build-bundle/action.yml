@@ -1,0 +1,79 @@
+name: "Build test data bundle"
+description: "Installs gsm.datasim (with its Remotes) at a given commit, plus any extra packages, and builds the shared gsm test data bundle with build_testdata_bundle(). Doesn't publish anything; see publish-bundle. Requires R (e.g. gsm.utils/install)."
+inputs:
+  token:
+    description: "Token used to install packages from GitHub."
+    default: ${{ github.token }}
+  repo:
+    description: "gsm.datasim repository."
+    default: "Gilead-Public/gsm.datasim"
+  ref:
+    description: "gsm.datasim commit (SHA) or branch to install. A SHA is recorded as RemoteSha."
+    required: true
+  extra-packages:
+    description: "Space-separated pak refs installed after gsm.datasim, e.g. 'local::.' to build with a PR's version of an input package."
+    default: ""
+  allow-local:
+    description: "Passed to build_testdata_bundle(allow_local=). Must be 'true' when extra-packages installs local (non-GitHub) packages."
+    default: "false"
+  bundle-dir:
+    description: "Directory to write the bundle to. Defaults to $RUNNER_TEMP/bundle."
+    default: ""
+outputs:
+  bundle-dir:
+    description: "Directory containing the bundle (snapshot.json, RDS and CSV files)."
+    value: ${{ steps.build.outputs.bundle-dir }}
+  fingerprint:
+    description: "Bundle fingerprint."
+    value: ${{ steps.build.outputs.fingerprint }}
+  inputs-hash:
+    description: "Hash of the package versions that built the bundle."
+    value: ${{ steps.build.outputs.inputs-hash }}
+runs:
+  using: "composite"
+  steps:
+    - name: Install gsm.datasim and extra packages
+      shell: Rscript {0}
+      env:
+        GITHUB_PAT: ${{ inputs.token }}
+        PKG: github::${{ inputs.repo }}@${{ inputs.ref }}
+        EXTRA: ${{ inputs.extra-packages }}
+      run: |
+        if (!requireNamespace("pak", quietly = TRUE)) install.packages("pak")
+        pak::pkg_install(Sys.getenv("PKG"), upgrade = FALSE)
+        ref <- sub(".*@", "", Sys.getenv("PKG"))
+        sha <- utils::packageDescription("gsm.datasim")$RemoteSha
+        if (grepl("^[0-9a-f]{40}$", ref) && !identical(sha, ref)) {
+          stop("gsm.datasim RemoteSha is ", if (is.null(sha)) "missing" else sha, ", expected ", ref, ".")
+        }
+        extra <- strsplit(trimws(Sys.getenv("EXTRA")), "\\s+")[[1]]
+        extra <- extra[nzchar(extra)]
+        if (length(extra)) pak::pkg_install(extra, upgrade = FALSE)
+    - name: Build bundle
+      id: build
+      shell: bash
+      env:
+        BUNDLE_DIR: ${{ inputs.bundle-dir || format('{0}/bundle', runner.temp) }}
+        ALLOW_LOCAL: ${{ inputs.allow-local == 'true' && 'TRUE' || 'FALSE' }}
+      run: |
+        Rscript -e 'gsm.datasim::build_testdata_bundle(Sys.getenv("BUNDLE_DIR"), allow_local = as.logical(Sys.getenv("ALLOW_LOCAL")))'
+        {
+          echo "bundle-dir=$BUNDLE_DIR"
+          echo "fingerprint=$(jq -er '.metadata.fingerprint' "$BUNDLE_DIR/snapshot.json")"
+          echo "inputs-hash=$(jq -er '.metadata.inputs_hash' "$BUNDLE_DIR/snapshot.json")"
+        } >> "$GITHUB_OUTPUT"
+    - name: Summarize bundle
+      shell: bash
+      env:
+        BUNDLE_DIR: ${{ steps.build.outputs.bundle-dir }}
+      run: |
+        jq -r '
+          "## Test data bundle",
+          "",
+          "| | |",
+          "|---|---|",
+          "| fingerprint | `\(.metadata.fingerprint)` |",
+          "| inputs_hash | `\(.metadata.inputs_hash)` |",
+          "| files | \(.metadata.size.files) |",
+          "| bytes | \(.metadata.size.bytes) |"
+        ' "$BUNDLE_DIR/snapshot.json" >> "$GITHUB_STEP_SUMMARY"
