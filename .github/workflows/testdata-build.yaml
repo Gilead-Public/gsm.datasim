@@ -8,6 +8,9 @@ name: testdata-build
 # trigger-build on the actions branch finds the run by this title; keep in sync.
 run-name: testdata-build ${{ inputs.triggered_by }} (${{ inputs.caller_run }})
 on:
+  # TEMPORARY (#182): registers this workflow before it exists on dev. Remove before merge.
+  push:
+    branches: [fix-182-testdata-caller]
   workflow_dispatch:
     inputs:
       triggered_by:
@@ -24,6 +27,8 @@ permissions:
   contents: write
 jobs:
   testdata:
+    # TEMPORARY (#182): see push trigger above.
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Generate token
