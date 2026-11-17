@@ -14,7 +14,7 @@ inputs:
     description: "Commit the bundle was built from."
     default: ${{ github.event.pull_request.head.sha || github.sha }}
   title:
-    description: "Exact run-name of the build run. Defaults to 'build-pr-bundle <sha>'."
+    description: "Exact run-name of the build run. Defaults to 'build-pr-bundle pr<pr> <sha>'."
     default: ""
   pr:
     description: "Pull request number, used in the artifact name testdata-pr<pr>-<sha>."
@@ -52,7 +52,7 @@ runs:
           exit 1
         fi
         {
-          echo "title=${TITLE:-build-pr-bundle $SHA}"
+          echo "title=${TITLE:-build-pr-bundle pr$PR $SHA}"
           echo "artifact=testdata-pr$PR-$SHA"
           echo "dest=$DEST"
         } >> "$GITHUB_OUTPUT"

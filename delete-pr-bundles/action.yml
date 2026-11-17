@@ -13,6 +13,9 @@ inputs:
   keep:
     description: "Artifact name to keep (blank to delete all of the PR's bundles)."
     default: ""
+  before-run:
+    description: "Only delete artifacts from workflow runs with a lower ID than this (blank for all). Run IDs increase over time, so passing the current run's ID means a slow, older build can never delete a newer build's bundle."
+    default: ""
 outputs:
   deleted:
     description: "Number of artifacts deleted."
@@ -31,6 +34,7 @@ runs:
         REPO: ${{ inputs.repo }}
         PR: ${{ inputs.pr }}
         KEEP: ${{ inputs.keep }}
+        BEFORE_RUN: ${{ inputs.before-run }}
       run: |
         if ! [[ "$PR" =~ ^[0-9]+$ ]]; then
           echo "::error::pr must be a pull request number (got '$PR')."
@@ -38,7 +42,7 @@ runs:
         fi
         prefix="testdata-pr$PR-"
         ids=$(gh api --paginate "repos/$REPO/actions/artifacts?per_page=100" \
-          --jq ".artifacts[] | select((.name | startswith(\"$prefix\")) and .name != \$ENV.KEEP and (.expired | not)) | \"\(.id) \(.name)\"")
+          --jq ".artifacts[] | select((.name | startswith(\"$prefix\")) and .name != \$ENV.KEEP and (.expired | not) and (\$ENV.BEFORE_RUN == \"\" or .workflow_run.id < (\$ENV.BEFORE_RUN | tonumber))) | \"\(.id) \(.name)\"")
         n=0
         failed=0
         while read -r id name; do

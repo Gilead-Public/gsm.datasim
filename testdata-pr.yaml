@@ -11,7 +11,7 @@ on:
 
 name: testdata-pr
 # wait-for-bundle finds this run by its title; keep in sync.
-run-name: build-pr-bundle ${{ github.event.pull_request.head.sha || github.sha }}
+run-name: build-pr-bundle pr${{ github.event.pull_request.number }} ${{ github.event.pull_request.head.sha || github.sha }}
 
 permissions:
   contents: read

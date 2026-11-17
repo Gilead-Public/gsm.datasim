@@ -29,7 +29,7 @@ gsm.utils' standard workflows). Both do nothing in repos where
 
 - [`testdata-pr.yaml`](testdata-pr.yaml): on PRs to `dev`/`main`, builds one
   bundle from the PR's head commit (via `build-pr-bundle.yaml`). Its run is
-  titled `build-pr-bundle <sha>`, and every other test workflow waits for it
+  titled `build-pr-bundle pr<number> <sha>`, and every other test workflow waits for it
   with [`wait-for-bundle`](wait-for-bundle/action.yml), so the data is built
   once per commit.
 - [`testdata-pr-cleanup.yaml`](testdata-pr-cleanup.yaml): when a PR closes,

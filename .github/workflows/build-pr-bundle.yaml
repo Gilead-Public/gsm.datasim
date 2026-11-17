@@ -112,3 +112,5 @@ jobs:
         with:
           pr: ${{ env.PR }}
           keep: ${{ steps.name.outputs.name }}
+          # Builds of different SHAs can overlap; only prune older runs.
+          before-run: ${{ github.run_id }}
