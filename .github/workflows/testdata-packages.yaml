@@ -22,8 +22,13 @@ jobs:
   packages:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repo
+      # Always read the latest dev, not the triggering commit: a rerun of an
+      # older push or a dispatch from another branch must not roll back
+      # packages.json.
+      - name: Check out dev
         uses: gilead-public/gsm.utils/checkout@actions-v1
+        with:
+          ref: dev
       - name: Check out data-index
         uses: gilead-public/gsm.utils/checkout@actions-v1
         with:
@@ -60,7 +65,7 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -q -m "Update packages.json from $GITHUB_REPOSITORY@$GITHUB_SHA"
+          git commit -q -m "Update packages.json from $GITHUB_REPOSITORY@$(git -C .. rev-parse HEAD)"
           # publish-bundle also pushes here; rebase and retry on a race.
           for attempt in 1 2 3 4 5; do
             git push -q origin HEAD:data-index && break
