@@ -1,0 +1,101 @@
+# name: build-pr-bundle.yaml
+# version: 0.1.0
+# Description: Reusable workflow (workflow_call) that builds the gsm test data
+#   bundle with the caller's checked-out package (local::.) and uploads it as an
+#   artifact. Pair with the wait-for-bundle action in the caller's test jobs.
+#   Publishes nothing. Callers must set the run-name below so wait-for-bundle
+#   can find the run:
+#
+#     run-name: build-pr-bundle ${{ github.event.pull_request.head.sha || github.sha }}
+#     jobs:
+#       testdata:
+#         uses: gilead-public/gsm.datasim/.github/workflows/build-pr-bundle.yaml@actions
+name: build-pr-bundle
+on:
+  workflow_call:
+    inputs:
+      sha:
+        description: Commit to build. Defaults to the PR head SHA (or github.sha).
+        type: string
+        default: ""
+      datasim-ref:
+        description: gsm.datasim branch or SHA to install.
+        type: string
+        default: dev
+      artifact-name:
+        description: Artifact name. Defaults to testdata-<sha>.
+        type: string
+        default: ""
+      retention-days:
+        description: Days to keep the artifact.
+        type: number
+        default: 3
+    outputs:
+      artifact-name:
+        description: Name of the uploaded artifact.
+        value: ${{ jobs.build.outputs.artifact-name }}
+      fingerprint:
+        description: Bundle fingerprint.
+        value: ${{ jobs.build.outputs.fingerprint }}
+    secrets:
+      CM_BOT_APP_ID:
+        required: false
+      CM_BOT_PRIVATE_KEY:
+        required: false
+permissions:
+  contents: read
+  actions: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # Keyed on the SHA: duplicate runs for one commit are safe to cancel. Don't
+    # use a shared group (GitHub keeps only one pending run per group).
+    concurrency:
+      group: build-pr-bundle-${{ github.repository }}-${{ inputs.sha || github.event.pull_request.head.sha || github.sha }}
+      cancel-in-progress: true
+    outputs:
+      artifact-name: ${{ steps.name.outputs.name }}
+      fingerprint: ${{ steps.build.outputs.fingerprint }}
+    env:
+      SHA: ${{ inputs.sha || github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - name: Name artifact
+        id: name
+        shell: bash
+        env:
+          NAME: ${{ inputs.artifact-name }}
+        run: echo "name=${NAME:-testdata-$SHA}" >> "$GITHUB_OUTPUT"
+      - name: Generate token
+        uses: gilead-public/gsm.utils/generate-token@actions-v1
+        id: token
+        with:
+          app-id: ${{ secrets.CM_BOT_APP_ID }}
+          app-private-key: ${{ secrets.CM_BOT_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          fallback-token: ${{ github.token }}
+      - name: Check out repo
+        uses: gilead-public/gsm.utils/checkout@actions-v1
+        with:
+          token: ${{ steps.token.outputs.token }}
+          ref: ${{ env.SHA }}
+      - name: Install R and dependencies
+        uses: gilead-public/gsm.utils/install@actions-v1
+        with:
+          token: ${{ steps.token.outputs.token }}
+          use-public-rspm: true
+          extra-packages: ''
+      - name: Build bundle
+        id: build
+        uses: gilead-public/gsm.datasim/build-bundle@actions
+        with:
+          token: ${{ steps.token.outputs.token }}
+          ref: ${{ inputs.datasim-ref }}
+          extra-packages: local::.
+          allow-local: 'true'
+      - name: Upload bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.name.outputs.name }}
+          path: ${{ steps.build.outputs.bundle-dir }}
+          retention-days: ${{ inputs.retention-days }}
+          if-no-files-found: error

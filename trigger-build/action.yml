@@ -78,7 +78,7 @@ runs:
         INDEX_BRANCH: ${{ inputs.index-branch }}
       run: |
         if [ "$GO" = "true" ] && [ "$ENABLED" = "auto" ] && [ "$NEEDED" != "true" ]; then
-          echo "Test data build not dispatched: \`$CALLER\` is not a test data input (not in $INDEX_BRANCH index.json)." |
+          echo "Test data build not dispatched: \`$CALLER\` is not a test data input (not in $INDEX_BRANCH packages.json)." |
             tee -a "$GITHUB_STEP_SUMMARY"
           GO=false
         fi

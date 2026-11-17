@@ -1,0 +1,90 @@
+name: "Wait for PR bundle"
+description: "Finds the build-pr-bundle run for a commit, waits for it (failing if it failed), downloads its artifact, and exports GSM_TESTDATA_SNAPSHOT. Needs actions: read."
+inputs:
+  token:
+    description: "Token with actions: read on the repository."
+    default: ${{ github.token }}
+  repo:
+    description: "Repository whose workflow ran build-pr-bundle."
+    default: ${{ github.repository }}
+  workflow:
+    description: "Caller workflow file that calls build-pr-bundle.yaml."
+    required: true
+  sha:
+    description: "Commit the bundle was built from."
+    default: ${{ github.event.pull_request.head.sha || github.sha }}
+  title:
+    description: "Exact run-name of the build run. Defaults to 'build-pr-bundle <sha>'."
+    default: ""
+  artifact-name:
+    description: "Artifact name. Defaults to testdata-<sha>."
+    default: ""
+  path:
+    description: "Directory to download the bundle into. Defaults to $RUNNER_TEMP/testdata."
+    default: ""
+  attempts:
+    description: "Polls for the run to appear (see find-run)."
+    default: "60"
+  interval:
+    description: "Seconds between polls while finding and waiting for the run."
+    default: "10"
+outputs:
+  run-id:
+    description: "ID of the build run."
+    value: ${{ steps.find.outputs.id }}
+  snapshot-dir:
+    description: "Directory containing the bundle."
+    value: ${{ steps.export.outputs.snapshot-dir }}
+runs:
+  using: "composite"
+  steps:
+    - name: Resolve names
+      id: names
+      shell: bash
+      env:
+        SHA: ${{ inputs.sha }}
+        TITLE: ${{ inputs.title }}
+        NAME: ${{ inputs.artifact-name }}
+        DEST: ${{ inputs.path || format('{0}/testdata', runner.temp) }}
+      run: |
+        {
+          echo "title=${TITLE:-build-pr-bundle $SHA}"
+          echo "artifact=${NAME:-testdata-$SHA}"
+          echo "dest=$DEST"
+        } >> "$GITHUB_OUTPUT"
+    - name: Find build run
+      id: find
+      uses: $/find-run
+      with:
+        token: ${{ inputs.token }}
+        repo: ${{ inputs.repo }}
+        workflow: ${{ inputs.workflow }}
+        title: ${{ steps.names.outputs.title }}
+        attempts: ${{ inputs.attempts }}
+        interval: ${{ inputs.interval }}
+    - name: Wait for build run
+      uses: $/wait-run
+      with:
+        token: ${{ inputs.token }}
+        repo: ${{ inputs.repo }}
+        run-id: ${{ steps.find.outputs.id }}
+        interval: ${{ inputs.interval }}
+    - name: Download bundle
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ steps.names.outputs.artifact }}
+        path: ${{ steps.names.outputs.dest }}
+        run-id: ${{ steps.find.outputs.id }}
+        repository: ${{ inputs.repo }}
+        github-token: ${{ inputs.token }}
+    - name: Export GSM_TESTDATA_SNAPSHOT
+      id: export
+      shell: bash
+      env:
+        DEST: ${{ steps.names.outputs.dest }}
+        URL: ${{ steps.find.outputs.url }}
+      run: |
+        [ -f "$DEST/snapshot.json" ] || { echo "::error::No snapshot.json in the artifact from $URL."; exit 1; }
+        echo "snapshot-dir=$DEST" >> "$GITHUB_OUTPUT"
+        echo "GSM_TESTDATA_SNAPSHOT=$DEST" >> "$GITHUB_ENV"
+        echo "Test data from $URL" >> "$GITHUB_STEP_SUMMARY"
