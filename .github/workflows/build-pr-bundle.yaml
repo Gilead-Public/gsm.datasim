@@ -105,6 +105,8 @@ jobs:
           retention-days: 90
           if-no-files-found: error
       # Only after the new upload succeeds, so the PR always has one bundle.
+      # On fork PRs the token is read-only; this only warns, and
+      # testdata-pr-cleanup.yaml deletes the leftovers when the PR closes.
       - name: Delete superseded bundles
         uses: gilead-public/gsm.datasim/delete-pr-bundles@actions
         with:
