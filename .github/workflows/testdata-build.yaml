@@ -1,5 +1,5 @@
 # name: testdata-build.yaml
-# version: 0.3.0
+# version: 0.4.0
 # Description: Build the shared gsm test data bundle, create a data-<fp12>
 #   pre-release when the data is new, and record the build on the data-index
 #   branch. Dispatched at dev or main by the testdata.yaml caller (see the
@@ -16,9 +16,9 @@ on:
       caller_run:
         description: URL of the caller's run, used to make run-name unique.
         default: manual
-concurrency:
-  group: testdata-${{ github.ref_name }}
-  cancel-in-progress: false
+# No concurrency group: GitHub keeps only one pending run per group, so a third
+# dispatch would cancel the second. Builds run in parallel instead;
+# publish-bundle tolerates concurrent release creation and data-index pushes.
 permissions:
   # write: Required to create data-* releases and push to data-index.
   contents: write
