@@ -16,6 +16,9 @@ inputs:
   wait:
     description: "Wait for the build to finish and fail if it fails."
     default: "false"
+  ref:
+    description: "Branch of the build repo to dispatch at. Defaults to the caller's branch, which must be dev or main."
+    default: ""
   repo:
     description: "Repository that owns testdata-build.yaml."
     default: "Gilead-Public/gsm.datasim"
@@ -40,9 +43,10 @@ runs:
       shell: bash
       env:
         ENABLED: ${{ inputs.enabled }}
+        REF_OVERRIDE: ${{ inputs.ref }}
         REPO: ${{ inputs.repo }}
         INDEX_BRANCH: ${{ inputs.index-branch }}
-        REF: ${{ github.ref_name }}
+        REF: ${{ inputs.ref || github.ref_name }}
         CALLER: ${{ github.event.repository.name }}
       run: |
         skip() {
@@ -50,7 +54,9 @@ runs:
           echo "Test data build not dispatched: $1" | tee -a "$GITHUB_STEP_SUMMARY"
           exit 0
         }
-        case "$REF" in dev|main) ;; *) skip "branch \`$REF\` is not dev or main." ;; esac
+        if [ -z "$REF_OVERRIDE" ]; then
+          case "$REF" in dev|main) ;; *) skip "branch \`$REF\` is not dev or main." ;; esac
+        fi
         case "$ENABLED" in
           false) skip "disabled by the enabled input." ;;
           true) ;;
@@ -81,7 +87,7 @@ runs:
         GH_TOKEN: ${{ steps.token.outputs.token }}
         REPO: ${{ inputs.repo }}
         WORKFLOW: ${{ inputs.workflow }}
-        REF: ${{ github.ref_name }}
+        REF: ${{ inputs.ref || github.ref_name }}
         TRIGGERED_BY: ${{ github.repository }}@${{ github.sha }}
         CALLER_RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}
       run: |
@@ -98,7 +104,7 @@ runs:
         GH_TOKEN: ${{ steps.token.outputs.token }}
         REPO: ${{ inputs.repo }}
         WORKFLOW: ${{ inputs.workflow }}
-        REF: ${{ github.ref_name }}
+        REF: ${{ inputs.ref || github.ref_name }}
         TITLE: ${{ steps.dispatch.outputs.title }}
         TRIGGERED_BY: ${{ github.repository }}@${{ github.sha }}
       run: |
