@@ -18,7 +18,7 @@ develop other features on this branch.
 3. Finds the dispatched run by its `run-name` and links it in the job summary.
 4. With `wait: true`, waits for the build and fails if it fails.
 
-Builds, logs, releases, and the build queue all live in gsm.datasim. See the
+Builds, logs, and releases all live in gsm.datasim. See the
 README on `data-index` for what a build publishes.
 
 Callers need the `CM_BOT_APP_ID` and `CM_BOT_PRIVATE_KEY` secrets for an app
