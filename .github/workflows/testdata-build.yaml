@@ -37,8 +37,6 @@ jobs:
       TARGET_SHA: ${{ github.sha }}
       TRIGGERED_BY: ${{ inputs.triggered_by }}
     steps:
-      # TEMPORARY (#182): force failure to test wait: true. Remove.
-      - run: exit 1
       - name: Generate token
         uses: gilead-public/gsm.utils/generate-token@actions-v1
         id: token
