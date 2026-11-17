@@ -66,7 +66,8 @@ installs gsm.datasim at the dispatched branch together with its `Remotes`, runs
    the same `inputs_hash` produces a different fingerprint, the run fails
    because the build isn't reproducible.
 
-Builds run one at a time per branch, whichever repo dispatched them.
+Builds can run concurrently. Concurrent pushes here are retried, and a build
+that finds its release being created by another build waits and reuses it.
 `triggered_by` in `builds/` records which commit started each build.
 
 To build manually, run `testdata-build` from the Actions tab ("Run workflow",
