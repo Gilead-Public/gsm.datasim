@@ -1,0 +1,12 @@
+{
+  "format": 1,
+  "packages": [
+    "gsm.core",
+    "gsm.datasim",
+    "gsm.kri",
+    "gsm.mapping",
+    "gsm.qtl",
+    "gsm.reporting",
+    "workr"
+  ]
+}

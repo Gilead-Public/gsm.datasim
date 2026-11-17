@@ -9,6 +9,12 @@ code or workflows) and is updated by automation; don't edit it by hand.
   written. Includes `source == "override"` builds.
 - `index.json`: a summary of `builds/`, regenerated on each update, for
   falling back when no exact `inputs_hash` match exists.
+- `packages.json`: `{"format": 1, "packages": [...]}`, the sorted list of
+  packages that feed the data (`.bundle_packages` in gsm.datasim's `R/`).
+  Written only by the `testdata-packages` workflow on gsm.datasim's `dev`,
+  which updates it when `.bundle_packages` changes. The `needs-testdata`
+  action reads it, so a package listed here gets PR bundles and post-merge
+  builds before any build includes it.
 
 `inputs_hash` and `fingerprint` are defined in
 `?gsm.datasim::build_testdata_bundle`. See Gilead-Public/gsm.datasim#153.
@@ -51,7 +57,7 @@ Timestamps are UTC (`YYYY-MM-DDTHH:MM:SSZ`), so they sort as strings.
 The `testdata-build` workflow (`.github/workflows/testdata-build.yaml` on
 `dev`/`main`) builds the data. It runs only when dispatched, normally by the
 `testdata.yaml` caller installed in each gsm repo (see the `actions` branch).
-When a repo that feeds the data (listed in `packages` in `index.json`) merges
+When a repo that feeds the data (listed in `packages.json`) merges
 to `dev` or `main`, its caller dispatches `testdata-build` in gsm.datasim at
 the same branch, passing `triggered_by` (`<owner>/<repo>@<sha>`). gsm.datasim's
 own merges go through the same caller. The build runs in gsm.datasim and
