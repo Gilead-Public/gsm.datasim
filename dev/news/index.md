@@ -8,6 +8,13 @@
   `reporting*`) for use in other gsm packages
   ([\#151](https://github.com/Gilead-Public/gsm.datasim/issues/151),
   [\#187](https://github.com/Gilead-Public/gsm.datasim/issues/187)).
+- New
+  [`use_gsm_datasim()`](https://gilead-public.github.io/gsm.datasim/dev/reference/use_gsm_datasim.md)
+  adds
+  `options(gsm.testdata_builder = "gsm.datasim::build_testdata_bundle")`
+  to your `.Rprofile`, so gsm.core builds test data from local gsm code
+  when needed
+  ([\#190](https://github.com/Gilead-Public/gsm.datasim/issues/190)).
 
 ## gsm.datasim v2.1.0
 
