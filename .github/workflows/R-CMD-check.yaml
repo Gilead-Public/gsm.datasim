@@ -54,6 +54,27 @@ jobs:
       - name: Set GITHUB_PAT
         shell: bash
         run: echo "GITHUB_PAT=${{ steps.token.outputs.token }}" >> $GITHUB_ENV
+      # TEMP (#183 e2e test): wait for testdata-pr.yaml's bundle for this PR
+      # head and point gsm.core at it via GSM_TESTDATA_SNAPSHOT.
+      - name: Check whether this repo needs test data
+        if: github.event_name == 'pull_request'
+        id: needs
+        uses: gilead-public/gsm.datasim/needs-testdata@feat-183-readiness-checks
+      - name: Wait for PR test data bundle
+        if: steps.needs.outputs.needed == 'true'
+        uses: gilead-public/gsm.datasim/wait-for-bundle@feat-183-readiness-checks
+        with:
+          token: ${{ github.token }}
+      - name: Confirm gsm.core uses the bundle
+        if: steps.needs.outputs.needed == 'true'
+        shell: Rscript {0}
+        run: |
+          dir <- Sys.getenv("GSM_TESTDATA_SNAPSHOT")
+          stopifnot(nzchar(dir), file.exists(file.path(dir, "snapshot.json")))
+          snap <- jsonlite::read_json(file.path(dir, "snapshot.json"))
+          cat("GSM_TESTDATA_SNAPSHOT:", dir, "\nfingerprint:", snap$metadata$fingerprint, "\n")
+          stopifnot(gsm.core::testdata_is_available())
+          str(gsm.core::lSource, max.level = 1)
       - name: Check package
         uses: gilead-public/gsm.utils/check-r-package@actions-v1
         with:
