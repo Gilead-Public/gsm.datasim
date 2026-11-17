@@ -103,15 +103,17 @@ if ! gh release create "$tag" "${assets[@]}" \
   --notes-file "$notes" \
   --prerelease \
   --latest=false; then
-  # Another branch's build may have created the same release meanwhile; reuse
-  # it only if it is complete.
-  sleep 10
-  state="$(check_existing)"
-  if [ "$state" = "exists" ]; then
-    echo "Release $tag was created concurrently; reusing it."
-    emit false
-    exit 0
-  fi
+  # Builds aren't serialized, so another build may be creating the same release
+  # (as a draft while it uploads). Wait for it to publish, then reuse it.
+  for _ in $(seq 1 30); do
+    sleep 10
+    if state="$(check_existing 2> /dev/null)" && [ "$state" = "exists" ]; then
+      echo "Release $tag was created concurrently; reusing it."
+      emit false
+      exit 0
+    fi
+  done
+  check_existing > /dev/null || true
   echo "::error::Could not create release $tag." >&2
   exit 1
 fi
