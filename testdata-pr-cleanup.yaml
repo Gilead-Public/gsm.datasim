@@ -1,8 +1,8 @@
 # name: testdata-pr-cleanup.yaml
 # version: 1.0.0
 # Description: When a PR closes (merged or not), delete the test data bundles
-#   that build-pr-bundle.yaml made for it. Copy to .github/workflows/ in every
-#   gsm repo. Repos that never built a bundle delete nothing.
+#   that testdata-pr.yaml built for it. Repos that don't feed the shared gsm
+#   test data skip this. Copy to .github/workflows/ in every gsm repo.
 on:
   pull_request:
     types: [closed]
@@ -17,4 +17,7 @@ jobs:
   cleanup:
     runs-on: ubuntu-latest
     steps:
-      - uses: gilead-public/gsm.datasim/delete-pr-bundles@actions
+      - id: needs
+        uses: gilead-public/gsm.datasim/needs-testdata@actions
+      - if: steps.needs.outputs.needed == 'true'
+        uses: gilead-public/gsm.datasim/delete-pr-bundles@actions

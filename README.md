@@ -21,6 +21,20 @@ develop other features on this branch.
 Builds, logs, and releases all live in gsm.datasim. See the
 README on `data-index` for what a build publishes.
 
+## PR test data templates
+
+Two more templates, for `.github/workflows/` in every gsm repo (listed in
+gsm.utils' standard workflows). Both do nothing in repos where
+[`needs-testdata`](needs-testdata/action.yml) is `false`.
+
+- [`testdata-pr.yaml`](testdata-pr.yaml): on PRs to `dev`/`main`, builds one
+  bundle from the PR's head commit (via `build-pr-bundle.yaml`). Its run is
+  titled `build-pr-bundle <sha>`, and every other test workflow waits for it
+  with [`wait-for-bundle`](wait-for-bundle/action.yml), so the data is built
+  once per commit.
+- [`testdata-pr-cleanup.yaml`](testdata-pr-cleanup.yaml): when a PR closes,
+  deletes its bundles.
+
 Callers need the `CM_BOT_APP_ID` and `CM_BOT_PRIVATE_KEY` secrets for an app
 with `actions: write` on gsm.datasim. Without them, only gsm.datasim itself
 can dispatch (using `GITHUB_TOKEN`).
@@ -36,7 +50,7 @@ can dispatch (using `GITHUB_TOKEN`).
 | [`find-run`](find-run/action.yml) | Polls for a workflow run by exact `run-name`, e.g. one just dispatched. |
 | [`wait-run`](wait-run/action.yml) | Waits for a run and fails if it didn't succeed. |
 | [`wait-for-index`](wait-for-index/action.yml) | After a merge: polls `data-index` `index.json` until a build records `package` at `sha`. Outputs `tag` and `fingerprint`; with `download: true`, downloads the release zip and exports `GSM_TESTDATA_SNAPSHOT`. On `timeout`, fails with a link to the build runs. |
-| [`build-pr-bundle.yaml`](.github/workflows/build-pr-bundle.yaml) | Reusable workflow for PRs: builds the bundle with the caller's package (`local::.`) and uploads the artifact `testdata-pr<number>-<sha>`, deleting the PR's older bundles once it succeeds. Call it from a separate build-only workflow that sets `run-name: build-pr-bundle <sha>` (see the workflow header). |
+| [`build-pr-bundle.yaml`](.github/workflows/build-pr-bundle.yaml) | Reusable workflow for PRs: builds the bundle with the caller's package (`local::.`) and uploads the artifact `testdata-pr<number>-<sha>`, deleting the PR's older bundles once it succeeds. Called by the [`testdata-pr.yaml`](testdata-pr.yaml) template, not directly. |
 | [`wait-for-bundle`](wait-for-bundle/action.yml) | Finds the `build-pr-bundle` run for a SHA, waits for it, downloads its artifact, and exports `GSM_TESTDATA_SNAPSHOT`. Needs `actions: read`. |
 | [`delete-pr-bundles`](delete-pr-bundles/action.yml) | Deletes a PR's `testdata-pr<number>-*` artifacts, optionally keeping one. `build-pr-bundle` uses it to drop superseded bundles; the [`testdata-pr-cleanup.yaml`](testdata-pr-cleanup.yaml) template (copy it into every gsm repo) uses it when a PR closes. Needs `actions: write`. |
 

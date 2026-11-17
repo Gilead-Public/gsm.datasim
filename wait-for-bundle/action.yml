@@ -8,8 +8,8 @@ inputs:
     description: "Repository whose workflow ran build-pr-bundle."
     default: ${{ github.repository }}
   workflow:
-    description: "Build-only workflow file that calls build-pr-bundle.yaml. Must not be the workflow running this action."
-    required: true
+    description: "Build-only workflow file (the testdata-pr.yaml template). Must not be the workflow running this action."
+    default: "testdata-pr.yaml"
   sha:
     description: "Commit the bundle was built from."
     default: ${{ github.event.pull_request.head.sha || github.sha }}

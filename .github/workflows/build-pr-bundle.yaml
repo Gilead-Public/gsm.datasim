@@ -3,19 +3,12 @@
 # Description: Reusable workflow (workflow_call) that builds the gsm test data
 #   bundle with the caller's checked-out package (local::.) and uploads it as an
 #   artifact. Pair with the wait-for-bundle action in the caller's test jobs.
-#   Publishes nothing. Call it from its own build-only workflow (not the
-#   workflow with the test jobs; wait-for-bundle waits for the whole run, so
-#   it can't wait on its own run). That workflow must set this run-name so
-#   wait-for-bundle can find the run:
-#
-#     # .github/workflows/testdata-pr.yaml
-#     on: pull_request
-#     run-name: build-pr-bundle ${{ github.event.pull_request.head.sha || github.sha }}
-#     jobs:
-#       testdata:
-#         uses: gilead-public/gsm.datasim/.github/workflows/build-pr-bundle.yaml@actions
-#
-#   and the test workflow uses wait-for-bundle with workflow: testdata-pr.yaml.
+#   Publishes nothing. Called by the testdata-pr.yaml template (actions
+#   branch root), which every gsm repo installs as its single build-only
+#   workflow; it checks needs-testdata and sets the run-name that
+#   wait-for-bundle looks for. Test workflows use wait-for-bundle with its
+#   default workflow: testdata-pr.yaml. Don't call this from a workflow with
+#   test jobs: wait-for-bundle waits for the whole run, so it would deadlock.
 name: build-pr-bundle
 on:
   workflow_call:
