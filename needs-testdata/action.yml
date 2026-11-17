@@ -1,0 +1,33 @@
+name: "Needs test data"
+description: "Reports whether a package is a test data input, i.e. listed in packages of index.json on gsm.datasim's data-index branch."
+inputs:
+  package:
+    description: "Package (repo) name to look up."
+    default: ${{ github.event.repository.name }}
+  repo:
+    description: "Repository that holds the index branch."
+    default: "Gilead-Public/gsm.datasim"
+  index-branch:
+    description: "Branch holding index.json."
+    default: "data-index"
+outputs:
+  needed:
+    description: "'true' if the package is a test data input, otherwise 'false'."
+    value: ${{ steps.check.outputs.needed }}
+runs:
+  using: "composite"
+  steps:
+    - name: Check input packages
+      id: check
+      shell: bash
+      env:
+        PACKAGE: ${{ inputs.package }}
+        URL: https://raw.githubusercontent.com/${{ inputs.repo }}/${{ inputs.index-branch }}/index.json
+      run: |
+        packages=$(curl -fsSL "$URL" | jq -r '.packages[]') ||
+          { echo "::error::Could not read $URL"; exit 1; }
+        if grep -qxF "$PACKAGE" <<< "$packages"; then
+          echo "needed=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "needed=false" >> "$GITHUB_OUTPUT"
+        fi

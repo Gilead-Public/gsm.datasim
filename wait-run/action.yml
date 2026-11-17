@@ -1,0 +1,36 @@
+name: "Wait for workflow run"
+description: "Waits for a workflow run to finish and fails if the run didn't succeed."
+inputs:
+  token:
+    description: "Token with actions: read on the repository."
+    default: ${{ github.token }}
+  repo:
+    description: "Repository that owns the run."
+    default: ${{ github.repository }}
+  run-id:
+    description: "Run ID to wait for. Fails if blank."
+    required: true
+  interval:
+    description: "Seconds between status checks."
+    default: "30"
+runs:
+  using: "composite"
+  steps:
+    - name: Wait for run
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        REPO: ${{ inputs.repo }}
+        RUN_ID: ${{ inputs.run-id }}
+        INTERVAL: ${{ inputs.interval }}
+      run: |
+        if [ -z "$RUN_ID" ]; then
+          echo "::error::No run to wait for (run-id is blank)."
+          exit 1
+        fi
+        url="$GITHUB_SERVER_URL/$REPO/actions/runs/$RUN_ID"
+        if ! gh run watch "$RUN_ID" -R "$REPO" --exit-status --interval "$INTERVAL" > /dev/null; then
+          echo "::error::Run $url didn't succeed."
+          exit 1
+        fi
+        echo "Run $url succeeded."

@@ -1,0 +1,68 @@
+name: "Find workflow run"
+description: "Polls for a workflow run with an exact display title (run-name), e.g. one just dispatched. Outputs are empty if no run is found in time."
+inputs:
+  token:
+    description: "Token with actions: read on the repository."
+    default: ${{ github.token }}
+  repo:
+    description: "Repository that owns the workflow."
+    default: ${{ github.repository }}
+  workflow:
+    description: "Workflow file name."
+    required: true
+  title:
+    description: "Exact display title of the run."
+    required: true
+  branch:
+    description: "Only consider runs on this branch (blank for any)."
+    default: ""
+  event:
+    description: "Only consider runs triggered by this event (blank for any)."
+    default: ""
+  attempts:
+    description: "Number of polls before giving up."
+    default: "30"
+  interval:
+    description: "Seconds between polls."
+    default: "5"
+outputs:
+  id:
+    description: "Run ID, or empty if not found."
+    value: ${{ steps.find.outputs.id }}
+  url:
+    description: "Run URL, or empty if not found."
+    value: ${{ steps.find.outputs.url }}
+runs:
+  using: "composite"
+  steps:
+    - name: Find run
+      id: find
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        REPO: ${{ inputs.repo }}
+        WORKFLOW: ${{ inputs.workflow }}
+        TITLE: ${{ inputs.title }}
+        BRANCH: ${{ inputs.branch }}
+        EVENT: ${{ inputs.event }}
+        ATTEMPTS: ${{ inputs.attempts }}
+        INTERVAL: ${{ inputs.interval }}
+      run: |
+        filters=()
+        [ -n "$BRANCH" ] && filters+=(-b "$BRANCH")
+        [ -n "$EVENT" ] && filters+=(-e "$EVENT")
+        run=""
+        for _ in $(seq 1 "$ATTEMPTS"); do
+          run=$(gh run list -R "$REPO" -w "$WORKFLOW" "${filters[@]}" -L 50 \
+            --json databaseId,displayTitle,url \
+            --jq 'map(select(.displayTitle == $ENV.TITLE)) | first | select(.) | "\(.databaseId) \(.url)"' \
+            2>/dev/null || true)
+          [ -n "$run" ] && break
+          sleep "$INTERVAL"
+        done
+        if [ -z "$run" ]; then
+          echo "::warning::No $WORKFLOW run titled '$TITLE' found in $REPO."
+          exit 0
+        fi
+        echo "id=${run%% *}" >> "$GITHUB_OUTPUT"
+        echo "url=${run#* }" >> "$GITHUB_OUTPUT"

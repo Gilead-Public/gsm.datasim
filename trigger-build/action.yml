@@ -11,7 +11,7 @@ inputs:
     description: "Token used when no app credentials are given. Only works when the caller is gsm.datasim itself."
     default: ${{ github.token }}
   enabled:
-    description: "'auto' (dispatch only if the caller is listed in data-index index.json packages), 'true', or 'false'."
+    description: "'auto' (dispatch only if the caller is a test data input; see needs-testdata), 'true', or 'false'."
     default: "auto"
   wait:
     description: "Wait for the build to finish and fail if it fails."
@@ -38,16 +38,13 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Check whether to dispatch
-      id: check
+    - name: Check branch and switch
+      id: pre
       shell: bash
       env:
         ENABLED: ${{ inputs.enabled }}
         REF_OVERRIDE: ${{ inputs.ref }}
-        REPO: ${{ inputs.repo }}
-        INDEX_BRANCH: ${{ inputs.index-branch }}
-        REF: ${{ inputs.ref || github.ref_name }}
-        CALLER: ${{ github.event.repository.name }}
+        REF: ${{ github.ref_name }}
       run: |
         skip() {
           echo "go=false" >> "$GITHUB_OUTPUT"
@@ -59,17 +56,33 @@ runs:
         fi
         case "$ENABLED" in
           false) skip "disabled by the enabled input." ;;
-          true) ;;
-          auto)
-            url="https://raw.githubusercontent.com/$REPO/$INDEX_BRANCH/index.json"
-            packages=$(curl -fsSL "$url" | jq -r '.packages[]') ||
-              { echo "::error::Could not read $url"; exit 1; }
-            grep -qxF "$CALLER" <<< "$packages" ||
-              skip "\`$CALLER\` is not a test data input (not in $INDEX_BRANCH index.json)."
-            ;;
+          true|auto) ;;
           *) echo "::error::enabled must be auto, true, or false (got '$ENABLED')."; exit 1 ;;
         esac
         echo "go=true" >> "$GITHUB_OUTPUT"
+    - name: Check whether this repo is a test data input
+      if: steps.pre.outputs.go == 'true' && inputs.enabled == 'auto'
+      id: needs
+      uses: $/needs-testdata
+      with:
+        repo: ${{ inputs.repo }}
+        index-branch: ${{ inputs.index-branch }}
+    - name: Decide
+      id: check
+      shell: bash
+      env:
+        GO: ${{ steps.pre.outputs.go }}
+        ENABLED: ${{ inputs.enabled }}
+        NEEDED: ${{ steps.needs.outputs.needed }}
+        CALLER: ${{ github.event.repository.name }}
+        INDEX_BRANCH: ${{ inputs.index-branch }}
+      run: |
+        if [ "$GO" = "true" ] && [ "$ENABLED" = "auto" ] && [ "$NEEDED" != "true" ]; then
+          echo "Test data build not dispatched: \`$CALLER\` is not a test data input (not in $INDEX_BRANCH index.json)." |
+            tee -a "$GITHUB_STEP_SUMMARY"
+          GO=false
+        fi
+        echo "go=$GO" >> "$GITHUB_OUTPUT"
     - name: Generate token
       if: steps.check.outputs.go == 'true'
       id: token
@@ -99,47 +112,38 @@ runs:
     - name: Find dispatched run
       if: steps.check.outputs.go == 'true'
       id: find
+      uses: $/find-run
+      with:
+        token: ${{ steps.token.outputs.token }}
+        repo: ${{ inputs.repo }}
+        workflow: ${{ inputs.workflow }}
+        title: ${{ steps.dispatch.outputs.title }}
+        branch: ${{ inputs.ref || github.ref_name }}
+        event: workflow_dispatch
+    - name: Summarize
+      if: steps.check.outputs.go == 'true'
       shell: bash
       env:
-        GH_TOKEN: ${{ steps.token.outputs.token }}
         REPO: ${{ inputs.repo }}
         WORKFLOW: ${{ inputs.workflow }}
         REF: ${{ inputs.ref || github.ref_name }}
-        TITLE: ${{ steps.dispatch.outputs.title }}
         TRIGGERED_BY: ${{ github.repository }}@${{ github.sha }}
+        URL: ${{ steps.find.outputs.url }}
       run: |
-        run=""
-        for _ in $(seq 1 30); do
-          run=$(gh run list -R "$REPO" -w "$WORKFLOW" -b "$REF" -e workflow_dispatch -L 50 \
-            --json databaseId,displayTitle,url \
-            --jq 'map(select(.displayTitle == $ENV.TITLE)) | first | select(.) | "\(.databaseId) \(.url)"' \
-            2>/dev/null || true)
-          [ -n "$run" ] && break
-          sleep 5
-        done
         {
           echo "## Test data build"
           echo ""
           echo "Dispatched \`$WORKFLOW\` in $REPO at \`$REF\` (triggered_by \`$TRIGGERED_BY\`)."
+          if [ -n "$URL" ]; then
+            echo "Run: $URL"
+          else
+            echo "Run not found; see $GITHUB_SERVER_URL/$REPO/actions/workflows/$WORKFLOW"
+          fi
         } >> "$GITHUB_STEP_SUMMARY"
-        if [ -z "$run" ]; then
-          echo "::warning::Dispatched, but couldn't find the run titled '$TITLE'."
-          echo "Run not found; see $GITHUB_SERVER_URL/$REPO/actions/workflows/$WORKFLOW" >> "$GITHUB_STEP_SUMMARY"
-          exit 0
-        fi
-        echo "id=${run%% *}" >> "$GITHUB_OUTPUT"
-        echo "url=${run#* }" >> "$GITHUB_OUTPUT"
-        echo "Run: ${run#* }" >> "$GITHUB_STEP_SUMMARY"
     - name: Wait for build
       if: steps.check.outputs.go == 'true' && inputs.wait == 'true'
-      shell: bash
-      env:
-        GH_TOKEN: ${{ steps.token.outputs.token }}
-        REPO: ${{ inputs.repo }}
-        RUN_ID: ${{ steps.find.outputs.id }}
-      run: |
-        if [ -z "$RUN_ID" ]; then
-          echo "::error::Can't wait: the dispatched run wasn't found."
-          exit 1
-        fi
-        gh run watch "$RUN_ID" -R "$REPO" --exit-status --interval 30 > /dev/null
+      uses: $/wait-run
+      with:
+        token: ${{ steps.token.outputs.token }}
+        repo: ${{ inputs.repo }}
+        run-id: ${{ steps.find.outputs.id }}

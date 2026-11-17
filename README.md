@@ -25,6 +25,17 @@ Callers need the `CM_BOT_APP_ID` and `CM_BOT_PRIVATE_KEY` secrets for an app
 with `actions: write` on gsm.datasim. Without them, only gsm.datasim itself
 can dispatch (using `GITHUB_TOKEN`).
 
+## Actions
+
+| Action | Purpose |
+|---|---|
+| [`trigger-build`](trigger-build/action.yml) | Used by `testdata.yaml`. Dispatches `testdata-build.yaml`, links the run, and optionally waits. |
+| [`needs-testdata`](needs-testdata/action.yml) | Outputs `needed` = `true` if a package is listed in `packages` of `data-index` `index.json`. |
+| [`find-run`](find-run/action.yml) | Polls for a workflow run by exact `run-name`, e.g. one just dispatched. |
+| [`wait-run`](wait-run/action.yml) | Waits for a run and fails if it didn't succeed. |
+
+Actions on this branch reference each other with `uses: $/<action>`.
+
 ## Code of Conduct
 
 Please note that the `{gsm.datasim}` project is released with a [Contributor
