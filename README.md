@@ -36,7 +36,7 @@ can dispatch (using `GITHUB_TOKEN`).
 | [`find-run`](find-run/action.yml) | Polls for a workflow run by exact `run-name`, e.g. one just dispatched. |
 | [`wait-run`](wait-run/action.yml) | Waits for a run and fails if it didn't succeed. |
 | [`wait-for-index`](wait-for-index/action.yml) | After a merge: polls `data-index` `index.json` until a build records `package` at `sha`. Outputs `tag` and `fingerprint`; with `download: true`, downloads the release zip and exports `GSM_TESTDATA_SNAPSHOT`. On `timeout`, fails with a link to the build runs. |
-| [`build-pr-bundle.yaml`](.github/workflows/build-pr-bundle.yaml) | Reusable workflow for PRs: builds the bundle with the caller's package (`local::.`) and uploads the artifact `testdata-<sha>`. Callers must set `run-name: build-pr-bundle <sha>`. |
+| [`build-pr-bundle.yaml`](.github/workflows/build-pr-bundle.yaml) | Reusable workflow for PRs: builds the bundle with the caller's package (`local::.`) and uploads the artifact `testdata-<sha>`. Call it from a separate build-only workflow that sets `run-name: build-pr-bundle <sha>` (see the workflow header). |
 | [`wait-for-bundle`](wait-for-bundle/action.yml) | Finds the `build-pr-bundle` run for a SHA, waits for it, downloads its artifact, and exports `GSM_TESTDATA_SNAPSHOT`. Needs `actions: read`. |
 
 Actions on this branch reference each other with `uses: $/<action>`.

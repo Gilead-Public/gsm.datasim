@@ -3,13 +3,19 @@
 # Description: Reusable workflow (workflow_call) that builds the gsm test data
 #   bundle with the caller's checked-out package (local::.) and uploads it as an
 #   artifact. Pair with the wait-for-bundle action in the caller's test jobs.
-#   Publishes nothing. Callers must set the run-name below so wait-for-bundle
-#   can find the run:
+#   Publishes nothing. Call it from its own build-only workflow (not the
+#   workflow with the test jobs; wait-for-bundle waits for the whole run, so
+#   it can't wait on its own run). That workflow must set this run-name so
+#   wait-for-bundle can find the run:
 #
+#     # .github/workflows/testdata-pr.yaml
+#     on: pull_request
 #     run-name: build-pr-bundle ${{ github.event.pull_request.head.sha || github.sha }}
 #     jobs:
 #       testdata:
 #         uses: gilead-public/gsm.datasim/.github/workflows/build-pr-bundle.yaml@actions
+#
+#   and the test workflow uses wait-for-bundle with workflow: testdata-pr.yaml.
 name: build-pr-bundle
 on:
   workflow_call:
@@ -48,11 +54,12 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # Keyed on the SHA: duplicate runs for one commit are safe to cancel. Don't
-    # use a shared group (GitHub keeps only one pending run per group).
+    # Keyed on the SHA, and never cancels an in-progress build: wait-for-bundle
+    # may already be watching it. Don't use a shared group (GitHub keeps only
+    # one pending run per group).
     concurrency:
       group: build-pr-bundle-${{ github.repository }}-${{ inputs.sha || github.event.pull_request.head.sha || github.sha }}
-      cancel-in-progress: true
+      cancel-in-progress: false
     outputs:
       artifact-name: ${{ steps.name.outputs.name }}
       fingerprint: ${{ steps.build.outputs.fingerprint }}

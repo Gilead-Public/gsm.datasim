@@ -8,7 +8,7 @@ inputs:
     description: "Repository whose workflow ran build-pr-bundle."
     default: ${{ github.repository }}
   workflow:
-    description: "Caller workflow file that calls build-pr-bundle.yaml."
+    description: "Build-only workflow file that calls build-pr-bundle.yaml. Must not be the workflow running this action."
     required: true
   sha:
     description: "Commit the bundle was built from."
@@ -62,6 +62,16 @@ runs:
         title: ${{ steps.names.outputs.title }}
         attempts: ${{ inputs.attempts }}
         interval: ${{ inputs.interval }}
+    - name: Check build run isn't this run
+      shell: bash
+      env:
+        RUN_ID: ${{ steps.find.outputs.id }}
+        WORKFLOW: ${{ inputs.workflow }}
+      run: |
+        if [ "$RUN_ID" = "$GITHUB_RUN_ID" ]; then
+          echo "::error::Found this run as the build run; waiting on it would deadlock. Call build-pr-bundle.yaml from a separate workflow (not $WORKFLOW's test jobs) and pass that workflow's file name."
+          exit 1
+        fi
     - name: Wait for build run
       uses: $/wait-run
       with:

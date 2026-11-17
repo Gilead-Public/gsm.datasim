@@ -58,8 +58,11 @@ runs:
       run: |
         deadline=$((SECONDS + TIMEOUT))
         while :; do
+          # Bound each request by the remaining budget (at least 5s) so a
+          # stalled connection can't outlive the timeout.
+          left=$((deadline - SECONDS)); [ "$left" -lt 5 ] && left=5
           # Cache-bust: raw.githubusercontent.com caches for up to ~5 minutes.
-          build=$(curl -fsSL "$URL?t=$(date +%s)" 2>/dev/null | jq -c '
+          build=$(curl -fsSL --connect-timeout 10 --max-time "$left" "$URL?t=$(date +%s)" 2>/dev/null | jq -c '
             [.builds[] | select(any(.packages[];
               .package == $ENV.PACKAGE and .remote_sha == $ENV.SHA))]
             | first | select(.) | {tag, fingerprint}' 2>/dev/null || true)
