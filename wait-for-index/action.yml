@@ -31,7 +31,13 @@ inputs:
   path:
     description: "Directory to unzip the bundle into. Defaults to $RUNNER_TEMP/testdata."
     default: ""
+  caller-workflow:
+    description: "Workflow in the calling repo that dispatches the build (the testdata.yaml template). Unless blank, skip with a warning if the caller repo lacks it at github.sha, so a shared workflow never waits for a build that is never dispatched."
+    default: "testdata.yaml"
 outputs:
+  waited:
+    description: "'true' if a build was waited for; 'false' if skipped because the caller lacks caller-workflow."
+    value: ${{ steps.gate.outputs.go }}
   tag:
     description: "Release tag holding the bundle."
     value: ${{ steps.poll.outputs.tag }}
@@ -44,7 +50,28 @@ outputs:
 runs:
   using: "composite"
   steps:
+    - name: Check for caller workflow
+      id: has
+      if: inputs.caller-workflow != ''
+      uses: $/has-workflow
+      with:
+        workflow: ${{ inputs.caller-workflow }}
+        ref: ${{ github.sha }}
+    - name: Decide
+      id: gate
+      shell: bash
+      env:
+        CALLER_WORKFLOW: ${{ inputs.caller-workflow }}
+        FOUND: ${{ steps.has.outputs.found }}
+      run: |
+        if [ -n "$CALLER_WORKFLOW" ] && [ "$FOUND" != "true" ]; then
+          echo "::warning::.github/workflows/$CALLER_WORKFLOW isn't in this repo, so this merge doesn't dispatch a test data build; not waiting. Install $CALLER_WORKFLOW (a gsm.utils standard workflow)."
+          echo "go=false" >> "$GITHUB_OUTPUT"
+        else
+          echo "go=true" >> "$GITHUB_OUTPUT"
+        fi
     - name: Poll index.json
+      if: steps.gate.outputs.go == 'true'
       id: poll
       shell: bash
       env:
@@ -81,7 +108,7 @@ runs:
         echo "fingerprint=$(jq -r .fingerprint <<< "$build")" >> "$GITHUB_OUTPUT"
         echo "Test data for \`$PACKAGE@$SHA\`: [$tag]($GITHUB_SERVER_URL/$REPO/releases/tag/$tag)" >> "$GITHUB_STEP_SUMMARY"
     - name: Download bundle
-      if: inputs.download == 'true'
+      if: steps.gate.outputs.go == 'true' && inputs.download == 'true'
       id: download
       shell: bash
       env:

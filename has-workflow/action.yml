@@ -1,0 +1,40 @@
+name: "Has workflow"
+description: "Reports whether a repository has a given workflow file at a given commit. Used by wait-for-bundle and wait-for-index so a repo only waits for test data once it has the workflow that produces it. Needs contents: read."
+inputs:
+  token:
+    description: "Token with contents: read on the repository."
+    default: ${{ github.token }}
+  repo:
+    description: "Repository to check."
+    default: ${{ github.repository }}
+  workflow:
+    description: "Workflow file name in .github/workflows/."
+    required: true
+  ref:
+    description: "Commit or branch to check."
+    default: ${{ github.event.pull_request.head.sha || github.sha }}
+outputs:
+  found:
+    description: "'true' if the workflow file exists at ref, otherwise 'false'."
+    value: ${{ steps.check.outputs.found }}
+runs:
+  using: "composite"
+  steps:
+    - name: Check for workflow file
+      id: check
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        REPO: ${{ inputs.repo }}
+        WORKFLOW: ${{ inputs.workflow }}
+        REF: ${{ inputs.ref }}
+      run: |
+        path=".github/workflows/$WORKFLOW"
+        if err=$(gh api "repos/$REPO/contents/$path?ref=$REF" --silent 2>&1); then
+          echo "found=true" >> "$GITHUB_OUTPUT"
+        elif grep -q "HTTP 404" <<< "$err"; then
+          echo "found=false" >> "$GITHUB_OUTPUT"
+        else
+          echo "::error::Could not check for $path in $REPO@$REF: $err"
+          exit 1
+        fi

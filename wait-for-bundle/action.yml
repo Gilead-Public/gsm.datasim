@@ -28,7 +28,13 @@ inputs:
   interval:
     description: "Seconds between polls while finding and waiting for the run."
     default: "10"
+  require-workflow:
+    description: "If 'true', skip with a warning (using published data) unless the repo has workflow at sha. A shared test workflow can then never wait for a build that the repo can't produce yet."
+    default: "true"
 outputs:
+  waited:
+    description: "'true' if a bundle was waited for and exported; 'false' if skipped because the repo lacks workflow."
+    value: ${{ steps.gate.outputs.go }}
   run-id:
     description: "ID of the build run."
     value: ${{ steps.find.outputs.id }}
@@ -38,7 +44,31 @@ outputs:
 runs:
   using: "composite"
   steps:
+    - name: Check for build workflow
+      id: has
+      if: inputs.require-workflow == 'true'
+      uses: $/has-workflow
+      with:
+        token: ${{ inputs.token }}
+        repo: ${{ inputs.repo }}
+        workflow: ${{ inputs.workflow }}
+        ref: ${{ inputs.sha }}
+    - name: Decide
+      id: gate
+      shell: bash
+      env:
+        REQUIRE: ${{ inputs.require-workflow }}
+        FOUND: ${{ steps.has.outputs.found }}
+        WORKFLOW: ${{ inputs.workflow }}
+      run: |
+        if [ "$REQUIRE" = "true" ] && [ "$FOUND" != "true" ]; then
+          echo "::warning::.github/workflows/$WORKFLOW isn't in this repo, so no PR test data bundle is built; using published test data. Install $WORKFLOW (a gsm.utils standard workflow) to test against data built from this PR."
+          echo "go=false" >> "$GITHUB_OUTPUT"
+        else
+          echo "go=true" >> "$GITHUB_OUTPUT"
+        fi
     - name: Resolve names
+      if: steps.gate.outputs.go == 'true'
       id: names
       shell: bash
       env:
@@ -57,6 +87,7 @@ runs:
           echo "dest=$DEST"
         } >> "$GITHUB_OUTPUT"
     - name: Find build run
+      if: steps.gate.outputs.go == 'true'
       id: find
       uses: $/find-run
       with:
@@ -68,6 +99,7 @@ runs:
         commit: ${{ inputs.sha }}
         interval: ${{ inputs.interval }}
     - name: Check build run isn't this run
+      if: steps.gate.outputs.go == 'true'
       shell: bash
       env:
         RUN_ID: ${{ steps.find.outputs.id }}
@@ -78,6 +110,7 @@ runs:
           exit 1
         fi
     - name: Wait for build run
+      if: steps.gate.outputs.go == 'true'
       uses: $/wait-run
       with:
         token: ${{ inputs.token }}
@@ -85,6 +118,7 @@ runs:
         run-id: ${{ steps.find.outputs.id }}
         interval: ${{ inputs.interval }}
     - name: Download bundle
+      if: steps.gate.outputs.go == 'true'
       uses: actions/download-artifact@v4
       with:
         name: ${{ steps.names.outputs.artifact }}
@@ -93,6 +127,7 @@ runs:
         repository: ${{ inputs.repo }}
         github-token: ${{ inputs.token }}
     - name: Export GSM_TESTDATA_SNAPSHOT
+      if: steps.gate.outputs.go == 'true'
       id: export
       shell: bash
       env:
