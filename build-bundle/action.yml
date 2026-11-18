@@ -1,5 +1,5 @@
 name: "Build test data bundle"
-description: "Installs gsm.datasim (with its Remotes) at a given commit, plus any extra packages, and builds the shared gsm test data bundle with build_testdata_bundle(). Doesn't publish anything; see publish-bundle. Requires R (e.g. gsm.utils/install)."
+description: "Installs gsm.datasim (with its Suggests and Remotes) at a given commit, plus any extra packages, and builds the shared gsm test data bundle with build_testdata_bundle(). Doesn't publish anything; see publish-bundle. Requires R (e.g. gsm.utils/install)."
 inputs:
   token:
     description: "Token used to install packages from GitHub."
@@ -40,7 +40,9 @@ runs:
         EXTRA: ${{ inputs.extra-packages }}
       run: |
         if (!requireNamespace("pak", quietly = TRUE)) install.packages("pak")
-        pak::pkg_install(Sys.getenv("PKG"), upgrade = FALSE)
+        # Suggests holds the input packages build_testdata_bundle() needs
+        # (gsm.mapping, gsm.kri, ...); the calling package may not depend on them.
+        pak::pkg_install(Sys.getenv("PKG"), dependencies = TRUE, upgrade = FALSE)
         ref <- sub(".*@", "", Sys.getenv("PKG"))
         sha <- utils::packageDescription("gsm.datasim")$RemoteSha
         if (grepl("^[0-9a-f]{40}$", ref) && !identical(sha, ref)) {
