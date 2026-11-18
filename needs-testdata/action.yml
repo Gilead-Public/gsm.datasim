@@ -1,5 +1,5 @@
 name: "Needs test data"
-description: "Reports whether a package is a test data input, i.e. listed in packages of index.json on gsm.datasim's data-index branch."
+description: "Reports whether a package is a test data input, i.e. listed in packages.json on gsm.datasim's data-index branch."
 inputs:
   package:
     description: "Package (repo) name to look up."
@@ -8,7 +8,7 @@ inputs:
     description: "Repository that holds the index branch."
     default: "Gilead-Public/gsm.datasim"
   index-branch:
-    description: "Branch holding index.json."
+    description: "Branch holding packages.json."
     default: "data-index"
 outputs:
   needed:
@@ -22,7 +22,7 @@ runs:
       shell: bash
       env:
         PACKAGE: ${{ inputs.package }}
-        URL: https://raw.githubusercontent.com/${{ inputs.repo }}/${{ inputs.index-branch }}/index.json
+        URL: https://raw.githubusercontent.com/${{ inputs.repo }}/${{ inputs.index-branch }}/packages.json
       run: |
         packages=$(curl -fsSL "$URL" | jq -r '.packages[]') ||
           { echo "::error::Could not read $URL"; exit 1; }

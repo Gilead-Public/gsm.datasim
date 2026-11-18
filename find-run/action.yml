@@ -19,6 +19,9 @@ inputs:
   event:
     description: "Only consider runs triggered by this event (blank for any)."
     default: ""
+  commit:
+    description: "Only consider runs for this head commit SHA (blank for any). Filters server-side, so older runs are found beyond the 50 most recent."
+    default: ""
   attempts:
     description: "Number of polls before giving up."
     default: "30"
@@ -45,12 +48,14 @@ runs:
         TITLE: ${{ inputs.title }}
         BRANCH: ${{ inputs.branch }}
         EVENT: ${{ inputs.event }}
+        COMMIT: ${{ inputs.commit }}
         ATTEMPTS: ${{ inputs.attempts }}
         INTERVAL: ${{ inputs.interval }}
       run: |
         filters=()
         [ -n "$BRANCH" ] && filters+=(-b "$BRANCH")
         [ -n "$EVENT" ] && filters+=(-e "$EVENT")
+        [ -n "$COMMIT" ] && filters+=(-c "$COMMIT")
         run=""
         for _ in $(seq 1 "$ATTEMPTS"); do
           run=$(gh run list -R "$REPO" -w "$WORKFLOW" "${filters[@]}" -L 50 \

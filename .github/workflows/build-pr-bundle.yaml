@@ -1,0 +1,135 @@
+# name: build-pr-bundle.yaml
+# version: 0.1.0
+# Description: Reusable workflow (workflow_call) that builds the gsm test data
+#   bundle with the caller's checked-out package (local::.) and uploads it as an
+#   artifact. Pair with the wait-for-bundle action in the caller's test jobs.
+#   Publishes nothing. Called by the testdata-pr.yaml template (actions
+#   branch root), which every gsm repo installs as its single build-only
+#   workflow; it checks needs-testdata and sets the run-name that
+#   wait-for-bundle looks for. Test workflows use wait-for-bundle with its
+#   default workflow: testdata-pr.yaml. Don't call this from a workflow with
+#   test jobs: wait-for-bundle waits for the whole run, so it would deadlock.
+name: build-pr-bundle
+on:
+  workflow_call:
+    inputs:
+      sha:
+        description: Commit to build. Defaults to the PR head SHA (or github.sha).
+        type: string
+        default: ""
+      datasim-ref:
+        description: gsm.datasim branch or SHA to install.
+        type: string
+        default: dev
+      pr:
+        description: Pull request number. Defaults to the triggering PR.
+        type: string
+        default: ""
+    outputs:
+      artifact-name:
+        description: Name of the uploaded artifact.
+        value: ${{ jobs.build.outputs.artifact-name }}
+      fingerprint:
+        description: Bundle fingerprint.
+        value: ${{ jobs.build.outputs.fingerprint }}
+    secrets:
+      CM_BOT_APP_ID:
+        required: false
+      CM_BOT_PRIVATE_KEY:
+        required: false
+permissions:
+  contents: read
+  # write: Required to delete this PR's superseded bundles.
+  actions: write
+  # read: Required to check whether the PR closed during the build.
+  pull-requests: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # Keyed on the SHA, and never cancels an in-progress build: wait-for-bundle
+    # may already be watching it. Don't use a shared group (GitHub keeps only
+    # one pending run per group).
+    concurrency:
+      group: build-pr-bundle-${{ github.repository }}-${{ inputs.sha || github.event.pull_request.head.sha || github.sha }}
+      cancel-in-progress: false
+    outputs:
+      artifact-name: ${{ steps.name.outputs.name }}
+      fingerprint: ${{ steps.build.outputs.fingerprint }}
+    env:
+      SHA: ${{ inputs.sha || github.event.pull_request.head.sha || github.sha }}
+      PR: ${{ inputs.pr || github.event.pull_request.number }}
+    steps:
+      # The name is how delete-pr-bundles and wait-for-bundle find it.
+      - name: Name artifact
+        id: name
+        shell: bash
+        run: |
+          if ! [[ "$PR" =~ ^[0-9]+$ ]]; then
+            echo "::error::No pull request number; call from a pull_request workflow or pass pr."
+            exit 1
+          fi
+          echo "name=testdata-pr$PR-$SHA" >> "$GITHUB_OUTPUT"
+      - name: Generate token
+        uses: gilead-public/gsm.utils/generate-token@actions-v1
+        id: token
+        with:
+          app-id: ${{ secrets.CM_BOT_APP_ID }}
+          app-private-key: ${{ secrets.CM_BOT_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          fallback-token: ${{ github.token }}
+      - name: Check out repo
+        uses: gilead-public/gsm.utils/checkout@actions-v1
+        with:
+          token: ${{ steps.token.outputs.token }}
+          ref: ${{ env.SHA }}
+      - name: Install R and dependencies
+        uses: gilead-public/gsm.utils/install@actions-v1
+        with:
+          token: ${{ steps.token.outputs.token }}
+          use-public-rspm: true
+          extra-packages: ''
+      - name: Build bundle
+        id: build
+        uses: $/build-bundle
+        with:
+          token: ${{ steps.token.outputs.token }}
+          ref: ${{ inputs.datasim-ref }}
+          extra-packages: local::.
+          allow-local: 'true'
+      - name: Upload bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.name.outputs.name }}
+          path: ${{ steps.build.outputs.bundle-dir }}
+          # Bundles live until the PR closes (testdata-pr-cleanup.yaml) or a
+          # newer bundle replaces them (below). This is only a backstop for
+          # leftovers; the repo's own maximum applies if it is lower.
+          retention-days: 90
+          if-no-files-found: error
+          # A re-run attempt of this run reuses the name.
+          overwrite: true
+      # Only after the new upload succeeds, so the PR always has one bundle.
+      # On fork PRs the token is read-only; this only warns, and
+      # testdata-pr-cleanup.yaml deletes the leftovers when the PR closes.
+      - name: Delete superseded bundles
+        uses: $/delete-pr-bundles
+        with:
+          pr: ${{ env.PR }}
+          keep: ${{ steps.name.outputs.name }}
+          # Builds of different SHAs can overlap; only prune older runs.
+          before-run: ${{ github.run_id }}
+      # If the PR closed while this build ran, testdata-pr-cleanup.yaml has
+      # already run and missed this upload, so remove the PR's bundles here.
+      - name: Check whether the PR closed during the build
+        id: pr
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          state=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR" --jq .state 2>/dev/null || echo unknown)
+          echo "state=$state" >> "$GITHUB_OUTPUT"
+      - name: Delete bundles of a closed PR
+        if: steps.pr.outputs.state == 'closed'
+        uses: $/delete-pr-bundles
+        with:
+          pr: ${{ env.PR }}

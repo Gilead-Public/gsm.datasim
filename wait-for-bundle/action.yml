@@ -1,0 +1,140 @@
+name: "Wait for PR bundle"
+description: "Finds the build-pr-bundle run for a commit, waits for it (failing if it failed), downloads its artifact, and exports GSM_TESTDATA_SNAPSHOT. Needs actions: read."
+inputs:
+  token:
+    description: "Token with actions: read on the repository."
+    default: ${{ github.token }}
+  repo:
+    description: "Repository whose workflow ran build-pr-bundle."
+    default: ${{ github.repository }}
+  workflow:
+    description: "Build-only workflow file (the testdata-pr.yaml template). Must not be the workflow running this action."
+    default: "testdata-pr.yaml"
+  sha:
+    description: "Commit the bundle was built from."
+    default: ${{ github.event.pull_request.head.sha || github.sha }}
+  title:
+    description: "Exact run-name of the build run. Defaults to 'build-pr-bundle pr<pr> <sha>'."
+    default: ""
+  pr:
+    description: "Pull request number, used in the artifact name testdata-pr<pr>-<sha>."
+    default: ${{ github.event.pull_request.number }}
+  path:
+    description: "Directory to download the bundle into. Defaults to $RUNNER_TEMP/testdata."
+    default: ""
+  attempts:
+    description: "Polls for the run to appear (see find-run)."
+    default: "60"
+  interval:
+    description: "Seconds between polls while finding and waiting for the run."
+    default: "10"
+  require-workflow:
+    description: "If 'true', skip with a warning (using published data) unless the repo has workflow at sha. A shared test workflow can then never wait for a build that the repo can't produce yet."
+    default: "true"
+outputs:
+  waited:
+    description: "'true' if a bundle was waited for and exported; 'false' if skipped because the repo lacks workflow."
+    value: ${{ steps.gate.outputs.go }}
+  run-id:
+    description: "ID of the build run."
+    value: ${{ steps.find.outputs.id }}
+  snapshot-dir:
+    description: "Directory containing the bundle."
+    value: ${{ steps.export.outputs.snapshot-dir }}
+runs:
+  using: "composite"
+  steps:
+    - name: Check for build workflow
+      id: has
+      if: inputs.require-workflow == 'true'
+      uses: $/has-workflow
+      with:
+        token: ${{ inputs.token }}
+        repo: ${{ inputs.repo }}
+        workflow: ${{ inputs.workflow }}
+        ref: ${{ inputs.sha }}
+    - name: Decide
+      id: gate
+      shell: bash
+      env:
+        REQUIRE: ${{ inputs.require-workflow }}
+        FOUND: ${{ steps.has.outputs.found }}
+        WORKFLOW: ${{ inputs.workflow }}
+      run: |
+        if [ "$REQUIRE" = "true" ] && [ "$FOUND" != "true" ]; then
+          echo "::warning::.github/workflows/$WORKFLOW isn't in this repo, so no PR test data bundle is built; using published test data. Install $WORKFLOW (a gsm.utils standard workflow) to test against data built from this PR."
+          echo "go=false" >> "$GITHUB_OUTPUT"
+        else
+          echo "go=true" >> "$GITHUB_OUTPUT"
+        fi
+    - name: Resolve names
+      if: steps.gate.outputs.go == 'true'
+      id: names
+      shell: bash
+      env:
+        SHA: ${{ inputs.sha }}
+        TITLE: ${{ inputs.title }}
+        PR: ${{ inputs.pr }}
+        DEST: ${{ inputs.path || format('{0}/testdata', runner.temp) }}
+      run: |
+        if ! [[ "$PR" =~ ^[0-9]+$ ]]; then
+          echo "::error::No pull request number; run on a pull_request event or pass pr."
+          exit 1
+        fi
+        {
+          echo "title=${TITLE:-build-pr-bundle pr$PR $SHA}"
+          echo "artifact=testdata-pr$PR-$SHA"
+          echo "dest=$DEST"
+        } >> "$GITHUB_OUTPUT"
+    - name: Find build run
+      if: steps.gate.outputs.go == 'true'
+      id: find
+      uses: $/find-run
+      with:
+        token: ${{ inputs.token }}
+        repo: ${{ inputs.repo }}
+        workflow: ${{ inputs.workflow }}
+        title: ${{ steps.names.outputs.title }}
+        attempts: ${{ inputs.attempts }}
+        commit: ${{ inputs.sha }}
+        interval: ${{ inputs.interval }}
+    - name: Check build run isn't this run
+      if: steps.gate.outputs.go == 'true'
+      shell: bash
+      env:
+        RUN_ID: ${{ steps.find.outputs.id }}
+        WORKFLOW: ${{ inputs.workflow }}
+      run: |
+        if [ "$RUN_ID" = "$GITHUB_RUN_ID" ]; then
+          echo "::error::Found this run as the build run; waiting on it would deadlock. Call build-pr-bundle.yaml from a separate workflow (not $WORKFLOW's test jobs) and pass that workflow's file name."
+          exit 1
+        fi
+    - name: Wait for build run
+      if: steps.gate.outputs.go == 'true'
+      uses: $/wait-run
+      with:
+        token: ${{ inputs.token }}
+        repo: ${{ inputs.repo }}
+        run-id: ${{ steps.find.outputs.id }}
+        interval: ${{ inputs.interval }}
+    - name: Download bundle
+      if: steps.gate.outputs.go == 'true'
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ steps.names.outputs.artifact }}
+        path: ${{ steps.names.outputs.dest }}
+        run-id: ${{ steps.find.outputs.id }}
+        repository: ${{ inputs.repo }}
+        github-token: ${{ inputs.token }}
+    - name: Export GSM_TESTDATA_SNAPSHOT
+      if: steps.gate.outputs.go == 'true'
+      id: export
+      shell: bash
+      env:
+        DEST: ${{ steps.names.outputs.dest }}
+        URL: ${{ steps.find.outputs.url }}
+      run: |
+        [ -f "$DEST/snapshot.json" ] || { echo "::error::No snapshot.json in the artifact from $URL."; exit 1; }
+        echo "snapshot-dir=$DEST" >> "$GITHUB_OUTPUT"
+        echo "GSM_TESTDATA_SNAPSHOT=$DEST" >> "$GITHUB_ENV"
+        echo "Test data from $URL" >> "$GITHUB_STEP_SUMMARY"

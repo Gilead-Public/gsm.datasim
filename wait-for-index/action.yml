@@ -1,0 +1,126 @@
+name: "Wait for index"
+description: "Polls index.json on gsm.datasim's data-index branch until a build lists a package at a given remote_sha, e.g. after a merge to dev/main. Outputs the build's tag and fingerprint, and can download the bundle and export GSM_TESTDATA_SNAPSHOT."
+inputs:
+  token:
+    description: "Token used to download release assets."
+    default: ${{ github.token }}
+  package:
+    description: "Package (repo) name to look for."
+    default: ${{ github.event.repository.name }}
+  sha:
+    description: "remote_sha the build must record for the package."
+    default: ${{ github.sha }}
+  repo:
+    description: "Repository that holds the index branch and releases."
+    default: "Gilead-Public/gsm.datasim"
+  index-branch:
+    description: "Branch holding index.json."
+    default: "data-index"
+  workflow:
+    description: "Build workflow file name, linked on timeout."
+    default: "testdata-build.yaml"
+  interval:
+    description: "Seconds between polls."
+    default: "30"
+  timeout:
+    description: "Seconds to wait before failing."
+    default: "3600"
+  download:
+    description: "'true' to download and unzip the bundle and export GSM_TESTDATA_SNAPSHOT."
+    default: "false"
+  path:
+    description: "Directory to unzip the bundle into. Defaults to $RUNNER_TEMP/testdata."
+    default: ""
+  caller-workflow:
+    description: "Workflow in the calling repo that dispatches the build (the testdata.yaml template). Unless blank, skip with a warning if the caller repo lacks it at github.sha, so a shared workflow never waits for a build that is never dispatched."
+    default: "testdata.yaml"
+outputs:
+  waited:
+    description: "'true' if a build was waited for; 'false' if skipped because the caller lacks caller-workflow."
+    value: ${{ steps.gate.outputs.go }}
+  tag:
+    description: "Release tag holding the bundle."
+    value: ${{ steps.poll.outputs.tag }}
+  fingerprint:
+    description: "Bundle fingerprint."
+    value: ${{ steps.poll.outputs.fingerprint }}
+  snapshot-dir:
+    description: "Unzipped bundle directory (only with download: true)."
+    value: ${{ steps.download.outputs.snapshot-dir }}
+runs:
+  using: "composite"
+  steps:
+    - name: Check for caller workflow
+      id: has
+      if: inputs.caller-workflow != ''
+      uses: $/has-workflow
+      with:
+        workflow: ${{ inputs.caller-workflow }}
+        ref: ${{ github.sha }}
+    - name: Decide
+      id: gate
+      shell: bash
+      env:
+        CALLER_WORKFLOW: ${{ inputs.caller-workflow }}
+        FOUND: ${{ steps.has.outputs.found }}
+      run: |
+        if [ -n "$CALLER_WORKFLOW" ] && [ "$FOUND" != "true" ]; then
+          echo "::warning::.github/workflows/$CALLER_WORKFLOW isn't in this repo, so this merge doesn't dispatch a test data build; not waiting. Install $CALLER_WORKFLOW (a gsm.utils standard workflow)."
+          echo "go=false" >> "$GITHUB_OUTPUT"
+        else
+          echo "go=true" >> "$GITHUB_OUTPUT"
+        fi
+    - name: Poll index.json
+      if: steps.gate.outputs.go == 'true'
+      id: poll
+      shell: bash
+      env:
+        PACKAGE: ${{ inputs.package }}
+        SHA: ${{ inputs.sha }}
+        REPO: ${{ inputs.repo }}
+        URL: https://raw.githubusercontent.com/${{ inputs.repo }}/${{ inputs.index-branch }}/index.json
+        RUNS: ${{ github.server_url }}/${{ inputs.repo }}/actions/workflows/${{ inputs.workflow }}
+        INTERVAL: ${{ inputs.interval }}
+        TIMEOUT: ${{ inputs.timeout }}
+      run: |
+        deadline=$((SECONDS + TIMEOUT))
+        while :; do
+          # Bound each request by the remaining budget so a stalled connection
+          # can't outlive the timeout; one last check runs at the deadline.
+          left=$((deadline - SECONDS)); [ "$left" -lt 1 ] && left=1
+          # Cache-bust: raw.githubusercontent.com caches for up to ~5 minutes.
+          build=$(curl -fsSL --connect-timeout 10 --max-time "$left" "$URL?t=$(date +%s)" 2>/dev/null | jq -c '
+            [.builds[] | select(any(.packages[];
+              .package == $ENV.PACKAGE and .remote_sha == $ENV.SHA))]
+            | first | select(.) | {tag, fingerprint}' 2>/dev/null || true)
+          [ -n "$build" ] && break
+          if [ "$SECONDS" -ge "$deadline" ]; then
+            echo "::error::No build of $PACKAGE@$SHA appeared in $URL within ${TIMEOUT}s. See $RUNS"
+            exit 1
+          fi
+          echo "No build of $PACKAGE@$SHA yet; retrying in ${INTERVAL}s."
+          # Never sleep past the deadline.
+          nap=$((deadline - SECONDS)); [ "$nap" -gt "$INTERVAL" ] && nap=$INTERVAL
+          sleep "$nap"
+        done
+        tag=$(jq -r .tag <<< "$build")
+        echo "tag=$tag" >> "$GITHUB_OUTPUT"
+        echo "fingerprint=$(jq -r .fingerprint <<< "$build")" >> "$GITHUB_OUTPUT"
+        echo "Test data for \`$PACKAGE@$SHA\`: [$tag]($GITHUB_SERVER_URL/$REPO/releases/tag/$tag)" >> "$GITHUB_STEP_SUMMARY"
+    - name: Download bundle
+      if: steps.gate.outputs.go == 'true' && inputs.download == 'true'
+      id: download
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        REPO: ${{ inputs.repo }}
+        TAG: ${{ steps.poll.outputs.tag }}
+        DEST: ${{ inputs.path || format('{0}/testdata', runner.temp) }}
+      run: |
+        tmp=$(mktemp -d)
+        gh release download "$TAG" -R "$REPO" -D "$tmp" -p "$TAG.zip" -p "$TAG.zip.sha256"
+        (cd "$tmp" && echo "$(cat "$TAG.zip.sha256" | awk '{print $1}')  $TAG.zip" | sha256sum -c -)
+        mkdir -p "$DEST"
+        unzip -q -o "$tmp/$TAG.zip" -d "$DEST"
+        echo "snapshot-dir=$DEST" >> "$GITHUB_OUTPUT"
+        echo "GSM_TESTDATA_SNAPSHOT=$DEST" >> "$GITHUB_ENV"
