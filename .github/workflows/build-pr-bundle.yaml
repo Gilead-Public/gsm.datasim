@@ -41,6 +41,8 @@ permissions:
   contents: read
   # write: Required to delete this PR's superseded bundles.
   actions: write
+  # read: Required to check whether the PR closed during the build.
+  pull-requests: read
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -104,6 +106,8 @@ jobs:
           # leftovers; the repo's own maximum applies if it is lower.
           retention-days: 90
           if-no-files-found: error
+          # A re-run attempt of this run reuses the name.
+          overwrite: true
       # Only after the new upload succeeds, so the PR always has one bundle.
       # On fork PRs the token is read-only; this only warns, and
       # testdata-pr-cleanup.yaml deletes the leftovers when the PR closes.
@@ -114,3 +118,18 @@ jobs:
           keep: ${{ steps.name.outputs.name }}
           # Builds of different SHAs can overlap; only prune older runs.
           before-run: ${{ github.run_id }}
+      # If the PR closed while this build ran, testdata-pr-cleanup.yaml has
+      # already run and missed this upload, so remove the PR's bundles here.
+      - name: Check whether the PR closed during the build
+        id: pr
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          state=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR" --jq .state 2>/dev/null || echo unknown)
+          echo "state=$state" >> "$GITHUB_OUTPUT"
+      - name: Delete bundles of a closed PR
+        if: steps.pr.outputs.state == 'closed'
+        uses: gilead-public/gsm.datasim/delete-pr-bundles@actions
+        with:
+          pr: ${{ env.PR }}

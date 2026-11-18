@@ -17,6 +17,8 @@ permissions:
   contents: read
   # write: Required to delete this PR's superseded bundles.
   actions: write
+  # read: Required to check whether the PR closed during the build.
+  pull-requests: read
 
 jobs:
   check:
