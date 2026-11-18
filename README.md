@@ -55,7 +55,7 @@ can dispatch (using `GITHUB_TOKEN`).
 | [`wait-for-bundle`](wait-for-bundle/action.yml) | Finds the `build-pr-bundle` run for a SHA, waits for it, downloads its artifact, and exports `GSM_TESTDATA_SNAPSHOT`. Skips with a warning (output `waited: false`) if the repo doesn't have `testdata-pr.yaml` at that SHA, so shared workflows can add the wait before every repo installs the template. Needs `actions: read`. |
 | [`delete-pr-bundles`](delete-pr-bundles/action.yml) | Deletes a PR's `testdata-pr<number>-*` artifacts, optionally keeping one. `build-pr-bundle` uses it to drop superseded bundles; the [`testdata-pr-cleanup.yaml`](testdata-pr-cleanup.yaml) template (copy it into every gsm repo) uses it when a PR closes. Needs `actions: write`. |
 
-Actions on this branch reference each other with `uses: $/<action>`.
+Actions and reusable workflows on this branch reference its actions with `uses: $/<action>`, so they resolve at the ref they were called at.
 
 ## Code of Conduct
 

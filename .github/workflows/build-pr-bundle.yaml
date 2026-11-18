@@ -90,7 +90,7 @@ jobs:
           extra-packages: ''
       - name: Build bundle
         id: build
-        uses: gilead-public/gsm.datasim/build-bundle@actions
+        uses: $/build-bundle
         with:
           token: ${{ steps.token.outputs.token }}
           ref: ${{ inputs.datasim-ref }}
@@ -112,7 +112,7 @@ jobs:
       # On fork PRs the token is read-only; this only warns, and
       # testdata-pr-cleanup.yaml deletes the leftovers when the PR closes.
       - name: Delete superseded bundles
-        uses: gilead-public/gsm.datasim/delete-pr-bundles@actions
+        uses: $/delete-pr-bundles
         with:
           pr: ${{ env.PR }}
           keep: ${{ steps.name.outputs.name }}
@@ -130,6 +130,6 @@ jobs:
           echo "state=$state" >> "$GITHUB_OUTPUT"
       - name: Delete bundles of a closed PR
         if: steps.pr.outputs.state == 'closed'
-        uses: gilead-public/gsm.datasim/delete-pr-bundles@actions
+        uses: $/delete-pr-bundles
         with:
           pr: ${{ env.PR }}
