@@ -133,7 +133,7 @@ test_that("the final Raw_ENROLL reconciliation leaves non-enrolled subjects with
   )))
 })
 
-test_that("the legacy and config-native generation paths produce the same drv_ contract (#140, #157, #138, #173)", {
+test_that("the legacy and config-native generation paths produce the same drv_ contract (#140, #157, #138, #173, #169)", {
   test_at_log_threshold()
   skip_if_not_installed("gsm.mapping")
 
@@ -190,7 +190,12 @@ test_that("the legacy and config-native generation paths produce the same drv_ c
     drv_treatment_discontinuation_dt = "double",
     drv_premature_discontinuation_reason = "character",
     drv_days_lapsed_enrl_discontinuation = "integer",
-    drv_drg_completion = "character"
+    drv_drg_completion = "character",
+    drv_last_contact_dt = "double",
+    drv_withdrawn_dt = "double",
+    drv_death_dt = "double",
+    drv_ae_death_dt = "double",
+    drv_study_disposition = "character"
   )
   expect_setequal(legacy_drv, names(expected_types))
   for (col in names(expected_types)) {
