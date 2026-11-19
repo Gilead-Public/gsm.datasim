@@ -1,5 +1,10 @@
 # gsm.datasim (development version)
 
+- Both raw-data generation paths now add upstream study disposition fields on
+  every snapshot, including unenrolled participants. The simulation follows the
+  draft gsm.roadmap#61 date-precedence examples without defining metric
+  denominators; `drv_withdrawn_dt` remains the provisional withdrawal date name
+  pending DWG confirmation (#169).
 - New `build_testdata_bundle()` produces the shared gsm test data (`lSource`, `analytics*`, `reporting*`) for use in other gsm packages (#151, #187).
 - New `use_gsm_datasim()` adds `options(gsm.testdata_builder = "gsm.datasim::build_testdata_bundle")` to your `.Rprofile`, so gsm.core builds test data from local gsm code when needed (#190).
 

@@ -79,6 +79,25 @@ ae_counts <- sapply(get_domain_timeline(study, "AE"), nrow)
 
 ## Key Functions
 
+### Study disposition test data
+
+Raw snapshots include `drv_study_disposition`, `drv_last_contact_dt`,
+`drv_withdrawn_dt`, `drv_death_dt`, `drv_ae_death_dt`, and `rbqm_flags` on
+`Raw_SUBJ`, including participants who are not enrolled. These fields are
+recomputed after source-domain generation on every snapshot.
+
+The simulation follows the **draft** status and date-precedence rules in
+[gsm.roadmap#61](https://github.com/Gilead-BioStats/gsm.roadmap/issues/61).
+It does not settle the open metric-denominator or definition questions.
+`drv_withdrawn_dt` is the provisional spelling used by the related mapping;
+the upstream withdrawal-date contract still needs DWG confirmation.
+Withdrawal and death dates come from the simulated consent, death, and fatal
+AE records, not from Study Completion reasons alone.
+
+```r
+table(snap$Raw_SUBJ$drv_study_disposition, useNA = "ifany")
+```
+
 ### Study generation
 
 | Function | Description |
@@ -240,4 +259,3 @@ cat("Registry-backed domains:", paste(names(registry), collapse = ", "), "\n")
 
 Domains not yet in the registry are handled by a legacy dispatcher and
 can be migrated incrementally.
-
