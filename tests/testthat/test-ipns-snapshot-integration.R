@@ -95,7 +95,7 @@ test_that("a later snapshot with no new subjects still advances an undosed subje
   )
 })
 
-test_that("the final Raw_ENROLL reconciliation leaves every non-enrolled subject with NA in every drv_ field, and blank drv_drg_completion (#140, #157, #138, #173)", {
+test_that("the final Raw_ENROLL reconciliation leaves non-enrolled subjects with NA IP and treatment fields, and blank drv_drg_completion (#140, #157, #138, #173)", {
   test_at_log_threshold()
   skip_if_not_installed("gsm.mapping")
   set.seed(42)
@@ -108,7 +108,13 @@ test_that("the final Raw_ENROLL reconciliation leaves every non-enrolled subject
   # Non-vacuous: this seed/count draws at least one non-enrolled subject.
   expect_gt(nrow(unenrolled), 0)
 
-  drv_cols <- grep("^drv_", names(subj), value = TRUE)
+  drv_cols <- setdiff(
+    grep("^drv_", names(subj), value = TRUE),
+    c(
+      "drv_last_contact_dt", "drv_withdrawn_dt", "drv_death_dt",
+      "drv_ae_death_dt", "drv_study_disposition"
+    )
+  )
   expect_true(all(
     c(
       "drv_kit_assigned",

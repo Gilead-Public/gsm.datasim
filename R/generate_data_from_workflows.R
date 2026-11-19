@@ -499,6 +499,9 @@ generate_data_from_workflows <- function(
     )
   }
 
+  if (all(c("subjid", "enrollyn") %in% names(data$Raw_SUBJ))) {
+    data$Raw_SUBJ <- apply_disposition_derivations(data, endDate = end_date)
+  }
   data
 }
 

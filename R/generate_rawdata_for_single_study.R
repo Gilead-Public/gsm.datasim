@@ -430,6 +430,10 @@ generate_snapshots_from_combined_specs <- function(
         filter(rgmn_dt == min(rgmn_dt, na.rm = TRUE)) %>%
         ungroup()
     }
+    data$Raw_SUBJ <- apply_disposition_derivations(
+      data,
+      endDate = end_dates[[snapshot_idx]]
+    )
     snapshots[[snapshot_idx]] <- data
     logger::log_info(glue::glue(
       " -- Snapshot {snapshot_idx} added successfully"
