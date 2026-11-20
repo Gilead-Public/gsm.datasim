@@ -2,6 +2,16 @@
 
 - New `build_testdata_bundle()` produces the shared gsm test data (`lSource`, `analytics*`, `reporting*`) for use in other gsm packages (#151, #187).
 - New `use_gsm_datasim()` adds `options(gsm.testdata_builder = "gsm.datasim::build_testdata_bundle")` to your `.Rprofile`, so gsm.core builds test data from local gsm code when needed (#190).
+- `Raw_AE` simulates realistic AE severity grading (#149). The `term1` /
+  `term2` placeholders are replaced by 29 preferred terms with their SOCs
+  and term-specific CTCAE grade distributions (about 20-25% Grade 3+
+  study-wide). `aetoxgr` (and the `aeser` hotspots) are now drawn from each
+  record's own subject and site, not from an unrelated subject draw that
+  hid the site signal. About 5% of sites systematically over-grade and 5%
+  under-grade, with at least one of each among the largest sites. This
+  gives the two-sided AE grading KRIs (`kri0016` / `kri0017` in `gsm.kri`)
+  true positives in both directions. Site tendencies stay the same across
+  snapshots, scale with `outlier_intensity`, and turn off at `0`.
 
 # gsm.datasim v2.1.0
 
