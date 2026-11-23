@@ -89,6 +89,8 @@
   : Get Summary of Longitudinal Study
 - [`summary(`*`<multiple_longitudinal_studies>`*`)`](https://gilead-public.github.io/gsm.datasim/dev/reference/summary.multiple_longitudinal_studies.md)
   : Summary method for multiple longitudinal studies
+- [`use_gsm_datasim()`](https://gilead-public.github.io/gsm.datasim/dev/reference/use_gsm_datasim.md)
+  : Use gsm.datasim as gsm.core's local test data builder
 - [`validate_study_config()`](https://gilead-public.github.io/gsm.datasim/dev/reference/validate_study_config.md)
   : Validate Study Configuration
 - [`validate_study_inputs()`](https://gilead-public.github.io/gsm.datasim/dev/reference/validate_study_inputs.md)

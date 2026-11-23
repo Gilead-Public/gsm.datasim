@@ -117,6 +117,15 @@ read back from those CSVs.</p></li>
 byte-identical files.</p>
     </div>
     <div class="section level2">
+    <h2 id="local-test-data-builder">Local test data builder<a class="anchor" aria-label="anchor" href="#local-test-data-builder"></a></h2>
+
+
+<p>This function is also gsm.core's local test data builder. When installed gsm
+packages don't match a published build and at least one is local, gsm.core
+calls <code>build_testdata_bundle(output_dir, overwrite = TRUE, allow_local = TRUE)</code> via the <code>gsm.testdata_builder</code> option and caches the result. Run
+<code><a href="use_gsm_datasim.html">use_gsm_datasim()</a></code> to set that option in your <code>.Rprofile</code>.</p>
+    </div>
+    <div class="section level2">
     <h2 id="layout">Layout<a class="anchor" aria-label="anchor" href="#layout"></a></h2>
 
 

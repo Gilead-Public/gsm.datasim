@@ -82,6 +82,16 @@ The pipeline is:
 Rows are sorted on explicit keys so identical inputs always produce
 byte-identical files.
 
+## Local test data builder
+
+This function is also gsm.core's local test data builder. When installed
+gsm packages don't match a published build and at least one is local,
+gsm.core calls
+`build_testdata_bundle(output_dir, overwrite = TRUE, allow_local = TRUE)`
+via the `gsm.testdata_builder` option and caches the result. Run
+[`use_gsm_datasim()`](https://gilead-public.github.io/gsm.datasim/dev/reference/use_gsm_datasim.md)
+to set that option in your `.Rprofile`.
+
 ## Layout
 
     <output_dir>/

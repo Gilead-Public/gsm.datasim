@@ -233,6 +233,15 @@
 </tr></tbody>
 </table>
 </div>
+<div class="section level3">
+<h3 id="local-gsm-test-data">Local gsm test data<a class="anchor" aria-label="anchor" href="#local-gsm-test-data"></a>
+</h3>
+<p>When you develop gsm packages locally (e.g. with <code>devtools::load_all()</code>), gsm.core can build its test data (<code><a href="https://gilead-public.github.io/gsm.core/reference/lSource.html" class="external-link">gsm.core::lSource</a></code>, etc.) from your local code instead of a published build. Register gsm.datasim as the builder once:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">gsm.datasim</span><span class="fu">::</span><span class="fu"><a href="reference/use_gsm_datasim.html">use_gsm_datasim</a></span><span class="op">(</span><span class="op">)</span>            <span class="co"># ~/.Rprofile</span></span>
+<span><span class="fu">gsm.datasim</span><span class="fu">::</span><span class="fu"><a href="reference/use_gsm_datasim.html">use_gsm_datasim</a></span><span class="op">(</span><span class="st">"project"</span><span class="op">)</span>   <span class="co"># ./.Rprofile</span></span></code></pre></div>
+<p>This adds <code>options(gsm.testdata_builder = "gsm.datasim::build_testdata_bundle")</code>. Restart R; gsm.core then builds the data once, caches it, and reuses it in later sessions.</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="common-patterns">Common Patterns<a class="anchor" aria-label="anchor" href="#common-patterns"></a>
@@ -240,7 +249,7 @@
 <div class="section level3">
 <h3 id="data-generation-only-no-pipeline">Data generation only (no pipeline)<a class="anchor" aria-label="anchor" href="#data-generation-only-no-pipeline"></a>
 </h3>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data_only</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/create_longitudinal_study.html">create_longitudinal_study</a></span><span class="op">(</span></span>
 <span>  study_id      <span class="op">=</span> <span class="st">"DATA-001"</span>,</span>
 <span>  participants  <span class="op">=</span> <span class="fl">200</span>,</span>
@@ -255,7 +264,7 @@
 <div class="section level3">
 <h3 id="increased-outlier-prevalence">Increased outlier prevalence<a class="anchor" aria-label="anchor" href="#increased-outlier-prevalence"></a>
 </h3>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">study</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/quick_longitudinal_study.html">quick_longitudinal_study</a></span><span class="op">(</span></span>
 <span>  study_name        <span class="op">=</span> <span class="st">"DEMO-OUTLIER-HIGH"</span>,</span>
 <span>  participants      <span class="op">=</span> <span class="fl">200</span>,</span>
@@ -267,7 +276,7 @@
 <div class="section level3">
 <h3 id="stepwise-pipeline-execution">Stepwise pipeline execution<a class="anchor" aria-label="anchor" href="#stepwise-pipeline-execution"></a>
 </h3>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Step 1 — raw data</span></span>
 <span><span class="va">study</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/create_longitudinal_study.html">create_longitudinal_study</a></span><span class="op">(</span></span>
 <span>  study_id      <span class="op">=</span> <span class="st">"STEP-001"</span>,</span>
@@ -289,7 +298,7 @@
 <div class="section level3">
 <h3 id="low-level-config-api">Low-level config API<a class="anchor" aria-label="anchor" href="#low-level-config-api"></a>
 </h3>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">config</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/create_study_config.html">create_study_config</a></span><span class="op">(</span></span>
 <span>  study_id          <span class="op">=</span> <span class="st">"CUSTOM-001"</span>,</span>
 <span>  participant_count <span class="op">=</span> <span class="fl">300</span>,</span>
@@ -308,7 +317,7 @@
 <div class="section level3">
 <h3 id="multiple-studies">Multiple studies<a class="anchor" aria-label="anchor" href="#multiple-studies"></a>
 </h3>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">studies</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/create_multiple_longitudinal_studies.html">create_multiple_longitudinal_studies</a></span><span class="op">(</span></span>
 <span>  study_names   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"TRIAL-001"</span>, <span class="st">"TRIAL-002"</span>, <span class="st">"TRIAL-003"</span><span class="op">)</span>,</span>
 <span>  participants  <span class="op">=</span> <span class="fl">200</span>,</span>
@@ -321,7 +330,7 @@
 <div class="section level3">
 <h3 id="export-1">Export<a class="anchor" aria-label="anchor" href="#export-1"></a>
 </h3>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/export_study_data.html">export_study_data</a></span><span class="op">(</span></span>
 <span>  study      <span class="op">=</span> <span class="va">study</span>,</span>
 <span>  output_dir <span class="op">=</span> <span class="st">"./output"</span>,</span>
@@ -347,7 +356,7 @@
 <h2 id="domain-registry">Domain Registry<a class="anchor" aria-label="anchor" href="#domain-registry"></a>
 </h2>
 <p>The Domain Registry is an extensible system for per-domain data generation. Each entry defines how data should be generated for a single <code>Raw_*</code> dataset — independently testable and overridable without modifying core generation code.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">registry</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_domain_registry.html">get_domain_registry</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Registry-backed domains:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">registry</span><span class="op">)</span>, collapse <span class="op">=</span> <span class="st">", "</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <p>Domains not yet in the registry are handled by a legacy dispatcher and can be migrated incrementally.</p>
