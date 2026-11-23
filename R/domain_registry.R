@@ -943,6 +943,14 @@ get_domain_registry <- function() {
           spec$Raw_Baseline
         ))
       }
+    ),
+    Raw_BURDEN = list(
+      dataset = "Raw_BURDEN",
+      required_inputs = c("data", "previous_data"),
+      count_fn = function(counts, snapshot_idx) counts$site_count[snapshot_idx],
+      generate_fn = function(context) {
+        Raw_BURDEN(data = context$data, previous_data = context$previous_data)
+      }
     )
   )
 }
