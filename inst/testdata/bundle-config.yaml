@@ -31,5 +31,6 @@ domains:
   - IE
   - EXCLUSION
   - VS
+  - BURDEN
 extra_mappings:
   - IPNS

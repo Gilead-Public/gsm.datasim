@@ -1,6 +1,7 @@
 # gsm.datasim (development version)
 
 - New `build_testdata_bundle()` produces the shared gsm test data (`lSource`, `analytics*`, `reporting*`) for use in other gsm packages (#151, #187).
+- New `Raw_BURDEN` domain simulates the DQS active-protocol count per site (`edc_site_id`, `active_protocol_count`) for the Site Burden KRI, with about 8% of sites left without a row. It is in the test data bundle and leaves the other simulated domains unchanged (#203).
 - New `use_gsm_datasim()` adds `options(gsm.testdata_builder = "gsm.datasim::build_testdata_bundle")` to your `.Rprofile`, so gsm.core builds test data from local gsm code when needed (#190).
 
 # gsm.datasim v2.1.0
