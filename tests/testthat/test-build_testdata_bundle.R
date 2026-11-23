@@ -2,7 +2,15 @@ test_that("read_testdata_config() returns the checked-in simulation parameters (
   cfg <- read_testdata_config()
   expect_contains(
     names(cfg),
-    c("seed", "study_id", "participants", "sites", "snapshots", "interval", "snapshot_dates")
+    c(
+      "seed",
+      "study_id",
+      "participants",
+      "sites",
+      "snapshots",
+      "interval",
+      "snapshot_dates"
+    )
   )
   expect_s3_class(cfg$snapshot_dates, "Date")
   expect_null(cfg$package_versions)
@@ -120,7 +128,12 @@ test_that("build_testdata_bundle() writes the expected CSV and RDS files (#151)"
   out <- build_fake_bundle()
   reporting <- paste0(
     rep(
-      c("reportingResults", "reportingGroups", "reportingBounds", "reportingMetrics"),
+      c(
+        "reportingResults",
+        "reportingGroups",
+        "reportingBounds",
+        "reportingMetrics"
+      ),
       3
     ),
     rep(c("", "_country", "_study"), each = 4)
@@ -140,7 +153,10 @@ test_that("build_testdata_bundle() writes the expected CSV and RDS files (#151)"
   )
   expect_setequal(
     list.files(out, "[.]rds$"),
-    paste0(c("lSource", "analyticsInput", "analyticsSummary", reporting), ".rds")
+    paste0(
+      c("lSource", "analyticsInput", "analyticsSummary", reporting),
+      ".rds"
+    )
   )
 })
 
@@ -318,7 +334,10 @@ test_that("snapshot.json follows the refresh snapshot format (#151)", {
   expect_equal(m, read_testdata_snapshot(file.path(out, "snapshot.json")))
   expect_equal(m$refresh_snapshot, 2L)
   expect_equal(m$key, paste0("sha256:", m$metadata$fingerprint))
-  expect_match(m$created, "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$")
+  expect_match(
+    m$created,
+    "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+  )
 
   rds <- list.files(out, "[.]rds$")
   csv <- list.files(out, "[.]csv$")
@@ -341,9 +360,20 @@ test_that("snapshot.json follows the refresh snapshot format (#151)", {
 
   expect_setequal(
     names(m$packages),
-    c("gsm.datasim", "gsm.core", "gsm.mapping", "gsm.kri", "gsm.qtl", "gsm.reporting", "workr")
+    c(
+      "gsm.datasim",
+      "gsm.core",
+      "gsm.mapping",
+      "gsm.kri",
+      "gsm.qtl",
+      "gsm.reporting",
+      "workr"
+    )
   )
-  expect_equal(m$packages$gsm.core, list(version = "9.9.9", remote_sha = "abc123"))
+  expect_equal(
+    m$packages$gsm.core,
+    list(version = "9.9.9", remote_sha = "abc123")
+  )
 
   expect_match(m$metadata$fingerprint, "^[0-9a-f]{64}$")
   expect_equal(m$metadata$inputs_hash, gsm.core::fresh_inputs_hash(m$packages))
@@ -352,7 +382,10 @@ test_that("snapshot.json follows the refresh snapshot format (#151)", {
   expect_null(m$metadata$built_by)
   expect_null(m$metadata$workflow_run)
   expect_equal(m$metadata$simulation$seed, 1235)
-  expect_equal(m$metadata$simulation$snapshot_dates, c("2025-02-01", "2025-03-01"))
+  expect_equal(
+    m$metadata$simulation$snapshot_dates,
+    c("2025-02-01", "2025-03-01")
+  )
   files <- setdiff(list.files(out, recursive = TRUE), "snapshot.json")
   expect_equal(m$metadata$size$files, length(files))
   expect_equal(m$metadata$size$bytes, sum(file.size(file.path(out, files))))
@@ -369,7 +402,12 @@ test_that("read_testdata_object() reads RDS and CSV entries and verifies digests
   expect_error(read_testdata_object(out, "nope"), "not in the snapshot")
   expect_error(read_testdata_object(out, "nope.csv"), "does not exist")
   # Rewriting with another RDS version/compression still verifies.
-  saveRDS(rds, file.path(out, "reportingResults.rds"), version = 2, compress = "xz")
+  saveRDS(
+    rds,
+    file.path(out, "reportingResults.rds"),
+    version = 2,
+    compress = "xz"
+  )
   expect_identical(read_testdata_object(out, "reportingResults"), rds)
   changed <- rds
   changed$GroupID[1] <- "changed"
@@ -418,7 +456,10 @@ test_that("the fingerprint changes when the data changes (#151)", {
 test_that("package version recording reflects installed packages, not Remotes (#151)", {
   local_fake_package_versions()
   v <- .installed_package_versions("gsm.kri")
-  expect_equal(v, list(gsm.kri = list(version = "9.9.9", remote_sha = "abc123")))
+  expect_equal(
+    v,
+    list(gsm.kri = list(version = "9.9.9", remote_sha = "abc123"))
+  )
 })
 
 test_that("build_testdata_bundle() validates its arguments (#151)", {
@@ -431,8 +472,13 @@ test_that("build_testdata_bundle() validates its arguments (#151)", {
     build_testdata_bundle(c("a", "b")),
     "`output_dir` must be a single directory path"
   )
-  expect_false(any(c("channel", "key") %in% names(formals(build_testdata_bundle))))
-  expect_error(build_testdata_bundle(tempfile(), allow_local = NA), "`allow_local`")
+  expect_false(any(
+    c("channel", "key") %in% names(formals(build_testdata_bundle))
+  ))
+  expect_error(
+    build_testdata_bundle(tempfile(), allow_local = NA),
+    "`allow_local`"
+  )
 })
 
 test_that("build_testdata_bundle() requires the pipeline packages (#151)", {
@@ -509,8 +555,11 @@ test_that("the fingerprint ignores RDS headers and CSV contents (#188)", {
     saveRDS(readRDS(path), path, version = 2, compress = "bzip2")
   }
   for (path in list.files(out, "[.]csv$", full.names = TRUE)) {
-    writeLines("x
-1", path)
+    writeLines(
+      "x
+1",
+      path
+    )
   }
   utils::write.csv(data.frame(x = 1), file.path(out, "extra.csv"))
   expect_identical(fp(), before)
@@ -518,7 +567,10 @@ test_that("the fingerprint ignores RDS headers and CSV contents (#188)", {
 
 test_that("read_testdata_config() rejects invalid simulation inputs (#151)", {
   cfg <- read_testdata_config()
-  expect_error(read_testdata_config(modifyList(cfg, list(participants = -1))), "Participants")
+  expect_error(
+    read_testdata_config(modifyList(cfg, list(participants = -1))),
+    "Participants"
+  )
   expect_error(read_testdata_config(modifyList(cfg, list(sites = 0))), "Sites")
   bad <- cfg
   bad$domains <- character()
@@ -530,7 +582,10 @@ test_that("invalid config inputs leave an existing bundle intact (#151)", {
   out <- build_fake_bundle()
   before <- sort(list.files(out))
   cfg <- modifyList(small_bundle_config(), list(participants = -1))
-  expect_error(build_testdata_bundle(out, cfg, overwrite = TRUE), "Participants")
+  expect_error(
+    build_testdata_bundle(out, cfg, overwrite = TRUE),
+    "Participants"
+  )
   expect_equal(sort(list.files(out)), before)
 })
 
@@ -544,19 +599,34 @@ test_that("a failing build leaves an existing bundle intact (#151)", {
     "disk full"
   )
   expect_equal(tools::md5sum(file.path(out, sort(list.files(out)))), before)
-  expect_equal(list.files(tempdir(), pattern = "^gsm.datasim-bundle-"), character())
+  expect_equal(
+    list.files(tempdir(), pattern = "^gsm.datasim-bundle-"),
+    character()
+  )
 })
 
 test_that(".read_bundle_csv() keeps GroupID as character in every table (#151)", {
   skip_if_not_installed("withr")
   dir <- withr::local_tempdir()
-  for (nm in c("reportingGroups_study", "reportingResults_study", "reportingMetrics")) {
+  for (nm in c(
+    "reportingGroups_study",
+    "reportingResults_study",
+    "reportingMetrics"
+  )) {
     df <- data.frame(GroupID = "001", x = 1)
-    if (nm == "reportingMetrics") df$GroupID <- NULL
+    if (nm == "reportingMetrics") {
+      df$GroupID <- NULL
+    }
     utils::write.csv(df, file.path(dir, paste0(nm, ".csv")), row.names = FALSE)
   }
-  expect_identical(.read_bundle_csv("reportingGroups_study", dir)$GroupID, "001")
-  expect_identical(.read_bundle_csv("reportingResults_study", dir)$GroupID, "001")
+  expect_identical(
+    .read_bundle_csv("reportingGroups_study", dir)$GroupID,
+    "001"
+  )
+  expect_identical(
+    .read_bundle_csv("reportingResults_study", dir)$GroupID,
+    "001"
+  )
   expect_no_warning(.read_bundle_csv("reportingMetrics", dir))
 })
 
@@ -637,7 +707,10 @@ test_that(".publish_bundle() restores the old bundle if copying throws (#151)", 
     }
     real_copy(from, to)
   })
-  expect_error(.publish_bundle(fx$staging, fx$out, fx$workspace), "was restored")
+  expect_error(
+    .publish_bundle(fx$staging, fx$out, fx$workspace),
+    "was restored"
+  )
   expect_equal(readLines(file.path(fx$out, "old.csv")), "old")
   expect_false(file.exists(file.path(fx$workspace, "KEEP")))
 })
@@ -647,10 +720,15 @@ test_that(".publish_bundle() keeps the backup if restoring throws (#151)", {
   fx <- local_publish_fixture()
   real_copy <- .copy_into
   local_mocked_bindings(.copy_into = function(from, to) {
-    if (same_dir(to, fx$out)) stop("copy blew up")
+    if (same_dir(to, fx$out)) {
+      stop("copy blew up")
+    }
     real_copy(from, to)
   })
-  expect_error(.publish_bundle(fx$staging, fx$out, fx$workspace), "backed up in")
+  expect_error(
+    .publish_bundle(fx$staging, fx$out, fx$workspace),
+    "backed up in"
+  )
   .cleanup_workspace(fx$workspace)
   expect_equal(readLines(file.path(fx$workspace, "backup", "old.csv")), "old")
 })
@@ -663,7 +741,10 @@ test_that(".write_csvs() output does not depend on options(scipen) (#151)", {
   original_scipen <- getOption("scipen")
   withr::with_options(list(scipen = -9), .write_csvs(df, a))
   withr::with_options(list(scipen = 20), .write_csvs(df, b))
-  expect_identical(readLines(file.path(a, "t.csv")), readLines(file.path(b, "t.csv")))
+  expect_identical(
+    readLines(file.path(a, "t.csv")),
+    readLines(file.path(b, "t.csv"))
+  )
   expect_identical(getOption("scipen"), original_scipen)
 })
 
@@ -736,7 +817,11 @@ test_that(".write_csvs() writes LF line endings on every platform (#187)", {
   skip_if_not_installed("withr")
   dir <- withr::local_tempdir()
   .write_csvs(list(t = data.frame(x = 1:3, y = c("a", "b", "c"))), dir)
-  bytes <- readBin(file.path(dir, "t.csv"), "raw", file.size(file.path(dir, "t.csv")))
+  bytes <- readBin(
+    file.path(dir, "t.csv"),
+    "raw",
+    file.size(file.path(dir, "t.csv"))
+  )
   expect_false(any(bytes == as.raw(0x0d)))
   expect_identical(sum(bytes == as.raw(0x0a)), 4L)
 })
@@ -764,4 +849,25 @@ test_that("the fingerprint ignores CSV line endings (#187)", {
   }
   crlf <- .build_snapshot_args(out, small_bundle_config(), allow_local = TRUE)
   expect_identical(crlf$metadata$fingerprint, lf$metadata$fingerprint)
+})
+
+test_that("the bundle's lSource$Raw_AE carries death-linked fatal AEs (#142)", {
+  skip_if_not_installed("withr")
+  skip_if_no_bundle_pipeline()
+  # Real simulation; only the slow mapping/metric/reporting stage is faked.
+  local_mocked_bindings(
+    .bundle_workflows = function(config) list(),
+    .run_bundle_pipeline = fake_pipeline
+  )
+  local_fake_package_versions()
+  out <- withr::local_tempdir()
+  build_testdata_bundle(out, small_bundle_config())
+
+  lSource <- read_testdata_object(out, "lSource")
+  ae <- lSource$Raw_AE
+  expect_in(c("aeout", "aereldrv", "aesdth"), names(ae))
+  fatal <- ae$aeout %in% "Fatal" |
+    ae$aesdth %in% "Yes" |
+    as.character(ae$aetoxgr) %in% "5"
+  expect_true(any(ae$subjid[fatal] %in% lSource$Raw_Death$subjid))
 })

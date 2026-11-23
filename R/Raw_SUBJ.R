@@ -44,8 +44,22 @@ Raw_SUBJ <- function(data, previous_data, spec, startDate, endDate, ...) {
     curr_spec$subject_nsv <- NULL
   }
 
-  if (all(c("enrollyn", "enrolldt", "timeonstudy", "firstparticipantdate", "firstdosedate", "timeontreatment") %in% names(curr_spec))) {
-    curr_spec$enrollyn_enrolldt_timeonstudy_firstparticipantdate_firstdosedate_timeontreatment <- list(required = TRUE)
+  if (
+    all(
+      c(
+        "enrollyn",
+        "enrolldt",
+        "timeonstudy",
+        "firstparticipantdate",
+        "firstdosedate",
+        "timeontreatment"
+      ) %in%
+        names(curr_spec)
+    )
+  ) {
+    curr_spec$enrollyn_enrolldt_timeonstudy_firstparticipantdate_firstdosedate_timeontreatment <- list(
+      required = TRUE
+    )
     curr_spec$enrolldt <- NULL
     curr_spec$timeonstudy <- NULL
     curr_spec$enrollyn <- NULL
@@ -59,7 +73,11 @@ Raw_SUBJ <- function(data, previous_data, spec, startDate, endDate, ...) {
     studyid = list(n, data$Raw_STUDY$protocol_number[[1]]),
     subjid_subject_nsv = list(n, previous_data$Raw_SUBJ$subjid),
     subject_site_synq = list(n, data$Raw_SITE),
-    enrollyn_enrolldt_timeonstudy_firstparticipantdate_firstdosedate_timeontreatment = list(n, startDate, endDate),
+    enrollyn_enrolldt_timeonstudy_firstparticipantdate_firstdosedate_timeontreatment = list(
+      n,
+      startDate,
+      endDate
+    ),
     default = list(n, startDate)
   )
 
@@ -72,7 +90,13 @@ Raw_SUBJ <- function(data, previous_data, spec, startDate, endDate, ...) {
   return(res)
 }
 
-subjid <- function(n, external_subjid = NULL, replace = TRUE, previous_subjid = NULL, ...) {
+subjid <- function(
+  n,
+  external_subjid = NULL,
+  replace = TRUE,
+  previous_subjid = NULL,
+  ...
+) {
   args <- list(...)
 
   if (!is.null(external_subjid)) {
@@ -122,11 +146,7 @@ enrollyn <- function(n, ...) {
   # } else {
   #   return("N")
   # }
-  sample(c("Y", "N"),
-    prob = c(0.75, 0.25),
-    n,
-    replace = TRUE
-  )
+  sample(c("Y", "N"), prob = c(0.75, 0.25), n, replace = TRUE)
 }
 
 subject_nsv <- function(n, subjid, subject_nsv = NULL, replace = TRUE, ...) {
@@ -138,7 +158,11 @@ subject_nsv <- function(n, subjid, subject_nsv = NULL, replace = TRUE, ...) {
 }
 
 enrolldt <- function(n, startDate, endDate, enrollyn_dat, ...) {
-  full_sample <- sample(seq(as.Date(startDate), as.Date(endDate), by = "day"), n, replace = TRUE)
+  full_sample <- sample(
+    seq(as.Date(startDate), as.Date(endDate), by = "day"),
+    n,
+    replace = TRUE
+  )
   full_sample[enrollyn_dat == "N"] <- NA
   return(full_sample)
 }
@@ -192,9 +216,17 @@ apply_ipns_derivations <- function(
   dosed <- enrolled & !is.na(df$firstdosedate)
   undosed <- as.character(df$subjid) %in% nonstarter_subjids(df)
 
-  df$drv_enrollment_dt <- dplyr::if_else(enrolled, as.Date(df$enrolldt), as.Date(NA))
+  df$drv_enrollment_dt <- dplyr::if_else(
+    enrolled,
+    as.Date(df$enrolldt),
+    as.Date(NA)
+  )
   df$drv_ip_dosed <- ifelse(enrolled, ifelse(dosed, "Y", "N"), NA_character_)
-  df$drv_ip_first_dose_dt <- dplyr::if_else(dosed, as.Date(df$firstdosedate), as.Date(NA))
+  df$drv_ip_first_dose_dt <- dplyr::if_else(
+    dosed,
+    as.Date(df$firstdosedate),
+    as.Date(NA)
+  )
   df$drv_enrl_first_dose_days <- ifelse(
     dosed,
     as.integer(df$firstdosedate - df$enrolldt) + 1L,
@@ -244,7 +276,13 @@ apply_ipns_derivations <- function(
 #' @noRd
 drv_kit_assigned <- function(n, ...) rep(NA_character_, n)
 
-enrollyn_enrolldt_timeonstudy_firstparticipantdate_firstdosedate_timeontreatment <- function(n, startDate, endDate, nonstarter_rate = 0.1, ...) {
+enrollyn_enrolldt_timeonstudy_firstparticipantdate_firstdosedate_timeontreatment <- function(
+  n,
+  startDate,
+  endDate,
+  nonstarter_rate = 0.1,
+  ...
+) {
   enrollyn_dat <- enrollyn(n, ...)
   enrolldt_dat <- enrolldt(n, startDate, endDate, enrollyn_dat, ...)
   timeonstudy_dat <- timeonstudy(n, enrolldt_dat, endDate, ...)
@@ -261,7 +299,10 @@ enrollyn_enrolldt_timeonstudy_firstparticipantdate_firstdosedate_timeontreatment
   # left unchanged.
   enrolled_idx <- which(enrollyn_dat == "Y")
   if (nonstarter_rate > 0 && length(enrolled_idx) > 0) {
-    k <- min(max(1L, round(nonstarter_rate * length(enrolled_idx))), length(enrolled_idx))
+    k <- min(
+      max(1L, round(nonstarter_rate * length(enrolled_idx))),
+      length(enrolled_idx)
+    )
     nonstarter_idx <- sample(enrolled_idx, size = k, replace = FALSE)
     firstdosedate_dat[nonstarter_idx] <- as.Date(NA)
   }
@@ -310,7 +351,8 @@ apply_ptd_derivations <- function(df, endDate, nDiscontinuedShare = 0.3) {
 
   k <- as.integer(sub("^S", "", df$subjid))
   dosed <- df$drv_ip_dosed %in% "Y"
-  discontinuing <- dosed & (k %/% 100L) %% 100L < round(nDiscontinuedShare * 100)
+  discontinuing <- dosed &
+    (k %/% 100L) %% 100L < round(nDiscontinuedShare * 100)
   lag <- ifelse(k %% 10L < 3L, 0L, 1L + (k %/% 10L) %% 27L)
   planned <- df$drv_ip_first_dose_dt + lag
   dated <- discontinuing & planned <= as.Date(endDate)
@@ -324,7 +366,11 @@ apply_ptd_derivations <- function(df, endDate, nDiscontinuedShare = 0.3) {
     TRUE ~ first
   )
 
-  df$drv_treatment_discontinuation_dt <- dplyr::if_else(dated, planned, as.Date(NA))
+  df$drv_treatment_discontinuation_dt <- dplyr::if_else(
+    dated,
+    planned,
+    as.Date(NA)
+  )
   # A reason without a date is a real delivery shape; the metric ignores it.
   df$drv_premature_discontinuation_reason <- dplyr::case_when(
     dated ~ reason,

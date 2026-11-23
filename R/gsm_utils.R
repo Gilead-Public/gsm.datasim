@@ -36,7 +36,11 @@ get_enabled_mapping_names <- function(config) {
 }
 
 # WP1 core helper: resolve domain->package data frame for enabled mappings
-resolve_domain_package_df <- function(config, domain_package_df = NULL, default_package = "gsm.mapping") {
+resolve_domain_package_df <- function(
+  config,
+  domain_package_df = NULL,
+  default_package = "gsm.mapping"
+) {
   mapping_names <- get_enabled_mapping_names(config)
 
   if (is.null(domain_package_df)) {
@@ -47,9 +51,17 @@ resolve_domain_package_df <- function(config, domain_package_df = NULL, default_
     ))
   }
 
-  resolved <- domain_package_df[match(mapping_names, domain_package_df$domain), , drop = FALSE]
+  resolved <- domain_package_df[
+    match(mapping_names, domain_package_df$domain),
+    ,
+    drop = FALSE
+  ]
   if (nrow(resolved) == 0) {
-    resolved <- data.frame(domain = character(0), package = character(0), stringsAsFactors = FALSE)
+    resolved <- data.frame(
+      domain = character(0),
+      package = character(0),
+      stringsAsFactors = FALSE
+    )
   }
 
   missing_idx <- is.na(resolved$package)
@@ -106,7 +118,11 @@ run_domain_generation_loop <- function(combined_specs, config, source_domains) {
   start_dates <- if (!is.null(tc$snapshot_dates)) {
     as.Date(tc$snapshot_dates)[seq_len(snapshot_count)]
   } else {
-    seq(as.Date(tc$start_date), length.out = snapshot_count, by = snapshot_width)
+    seq(
+      as.Date(tc$start_date),
+      length.out = snapshot_count,
+      by = snapshot_width
+    )
   }
   end_dates <- start_dates + 28
   global_max_date <- max(end_dates)
@@ -119,15 +135,15 @@ run_domain_generation_loop <- function(combined_specs, config, source_domains) {
   enrollment_count <- subject_count
 
   counts <- list(
-    subject_count    = subject_count,
-    site_count       = site_count_vec,
+    subject_count = subject_count,
+    site_count = site_count_vec,
     enrollment_count = enrollment_count,
-    ae_count         = subject_count * 3,
-    pd_count         = subject_count * 3,
-    sdrgcomp_count   = ceiling(subject_count / 10),
-    studcomp_count   = ceiling(subject_count / 10),
-    consents_count   = ceiling(subject_count / 75),
-    death_count      = ceiling(subject_count / 85),
+    ae_count = subject_count * 3,
+    pd_count = subject_count * 3,
+    sdrgcomp_count = ceiling(subject_count / 10),
+    studcomp_count = ceiling(subject_count / 10),
+    consents_count = ceiling(subject_count / 75),
+    death_count = ceiling(subject_count / 85),
     anticancer_count = ceiling(subject_count / 75)
   )
 
@@ -140,22 +156,28 @@ run_domain_generation_loop <- function(combined_specs, config, source_domains) {
     # --- Pre-loop: Raw_STUDY (special-cased; not yet in domain registry) ---
     if (snapshot_idx == 1) {
       previous_data <- list()
-      data$Raw_STUDY <- as.data.frame(Raw_STUDY(data, previous_data, combined_specs,
-        StudyID          = study_id,
-        SiteCount        = site_count_param,
+      data$Raw_STUDY <- as.data.frame(Raw_STUDY(
+        data,
+        previous_data,
+        combined_specs,
+        StudyID = study_id,
+        SiteCount = site_count_param,
         ParticipantCount = participant_count,
-        MinDate          = start_dates[snapshot_idx],
-        MaxDate          = end_dates[snapshot_idx],
-        GlobalMaxDate    = global_max_date
+        MinDate = start_dates[snapshot_idx],
+        MaxDate = end_dates[snapshot_idx],
+        GlobalMaxDate = global_max_date
       ))
       if ("gilda_STUDY" %in% source_domains) {
-        data$raw_gilda_study_data <- as.data.frame(raw_gilda_study_data(data, previous_data, combined_specs,
-          StudyID          = study_id,
-          SiteCount        = site_count_param,
+        data$raw_gilda_study_data <- as.data.frame(raw_gilda_study_data(
+          data,
+          previous_data,
+          combined_specs,
+          StudyID = study_id,
+          SiteCount = site_count_param,
           ParticipantCount = participant_count,
-          MinDate          = start_dates[snapshot_idx],
-          MaxDate          = end_dates[snapshot_idx],
-          GlobalMaxDate    = global_max_date
+          MinDate = start_dates[snapshot_idx],
+          MaxDate = end_dates[snapshot_idx],
+          GlobalMaxDate = global_max_date
         ))
       }
     } else {
@@ -173,47 +195,56 @@ run_domain_generation_loop <- function(combined_specs, config, source_domains) {
 
     # --- Per-domain loop (driven by combined_specs key order) ---
     for (data_type in names(combined_specs)) {
-      if (data_type %in% c("Raw_STUDY", "raw_gilda_study_data")) next
+      if (data_type %in% c("Raw_STUDY", "raw_gilda_study_data")) {
+        next
+      }
 
       logger::log_info(glue::glue(" ---- Adding dataset {data_type}..."))
 
       n <- resolve_domain_count(data_type, counts, snapshot_idx)
 
       registry_context <- list(
-        data           = data,
-        previous_data  = previous_data,
+        data = data,
+        previous_data = previous_data,
         combined_specs = combined_specs,
-        n              = n,
-        start_date     = start_dates[snapshot_idx],
-        end_date       = end_dates[snapshot_idx],
-        snapshot_idx   = snapshot_idx,
+        n = n,
+        start_date = start_dates[snapshot_idx],
+        end_date = end_dates[snapshot_idx],
+        snapshot_idx = snapshot_idx,
         snapshot_count = snapshot_count,
         snapshot_width = snapshot_width,
-        study_id       = study_id,
+        study_id = study_id,
         risk_profile = config$study_params$risk_profile,
         total_site_count = max(site_count_vec)
       )
 
-      migrated_data <- generate_domain_from_registry(data_type, registry_context)
+      migrated_data <- generate_domain_from_registry(
+        data_type,
+        registry_context
+      )
 
       if (!is.null(migrated_data)) {
         data[[data_type]] <- migrated_data
-        logger::log_info(glue::glue(" ---- Dataset {data_type} added successfully"))
+        logger::log_info(glue::glue(
+          " ---- Dataset {data_type} added successfully"
+        ))
         next
       }
 
       data[[data_type]] <- dispatch_legacy_domain_generator(
-        data_type      = data_type,
-        data           = data,
-        previous_data  = previous_data,
+        data_type = data_type,
+        data = data,
+        previous_data = previous_data,
         combined_specs = combined_specs,
-        n              = n,
-        start_date     = start_dates[snapshot_idx],
-        end_date       = end_dates[snapshot_idx],
-        SnapshotCount  = snapshot_count,
-        SnapshotWidth  = snapshot_width
+        n = n,
+        start_date = start_dates[snapshot_idx],
+        end_date = end_dates[snapshot_idx],
+        SnapshotCount = snapshot_count,
+        SnapshotWidth = snapshot_width
       )
-      logger::log_info(glue::glue(" ---- Dataset {data_type} added successfully"))
+      logger::log_info(glue::glue(
+        " ---- Dataset {data_type} added successfully"
+      ))
     }
 
     # --- Post-processing ---
@@ -223,7 +254,7 @@ run_domain_generation_loop <- function(combined_specs, config, source_domains) {
       data$Raw_SUBJ <- data$Raw_SUBJ %>%
         dplyr::rows_upsert(to_subj, by = "subjid") %>%
         dplyr::mutate(
-          enrolldt    = dplyr::if_else(enrollyn == "N", as.Date(NA), enrolldt),
+          enrolldt = dplyr::if_else(enrollyn == "N", as.Date(NA), enrolldt),
           timeonstudy = dplyr::if_else(enrollyn == "N", NA, timeonstudy)
         )
     }
@@ -261,7 +292,9 @@ run_domain_generation_loop <- function(combined_specs, config, source_domains) {
     }
 
     snapshots[[snapshot_idx]] <- data
-    logger::log_info(glue::glue(" -- Snapshot {snapshot_idx} added successfully"))
+    logger::log_info(glue::glue(
+      " -- Snapshot {snapshot_idx} added successfully"
+    ))
   }
 
   names(snapshots) <- as.character(end_dates)
@@ -269,11 +302,13 @@ run_domain_generation_loop <- function(combined_specs, config, source_domains) {
 }
 
 # WP1 core helper: generate snapshots from config (single- and multi-package)
-generate_snapshots_from_config <- function(config,
-                                           domain_package_df = NULL,
-                                           default_package = "gsm.mapping",
-                                           workflow_path = "workflow/1_mappings",
-                                           verbose = FALSE) {
+generate_snapshots_from_config <- function(
+  config,
+  domain_package_df = NULL,
+  default_package = "gsm.mapping",
+  workflow_path = "workflow/1_mappings",
+  verbose = FALSE
+) {
   outlier_intensity <- if (!is.null(config$study_params$outlier_intensity)) {
     config$study_params$outlier_intensity
   } else {
@@ -281,9 +316,16 @@ generate_snapshots_from_config <- function(config,
   }
   old_outlier_intensity <- getOption("gsm.datasim.outlier_intensity")
   options(gsm.datasim.outlier_intensity = outlier_intensity)
-  on.exit(options(gsm.datasim.outlier_intensity = old_outlier_intensity), add = TRUE)
+  on.exit(
+    options(gsm.datasim.outlier_intensity = old_outlier_intensity),
+    add = TRUE
+  )
 
-  domain_pkgs <- resolve_domain_package_df(config, domain_package_df, default_package)
+  domain_pkgs <- resolve_domain_package_df(
+    config,
+    domain_package_df,
+    default_package
+  )
   if (nrow(domain_pkgs) == 0) {
     return(list())
   }
@@ -294,7 +336,13 @@ generate_snapshots_from_config <- function(config,
   for (pkg in pkgs) {
     domains_in_pkg <- domain_pkgs$domain[domain_pkgs$package == pkg]
     if (isTRUE(verbose)) {
-      cat("Generating raw data for package", pkg, "with", length(domains_in_pkg), "domains...\n")
+      cat(
+        "Generating raw data for package",
+        pkg,
+        "with",
+        length(domains_in_pkg),
+        "domains...\n"
+      )
     }
 
     combined_specs <- load_specs(
@@ -306,7 +354,7 @@ generate_snapshots_from_config <- function(config,
 
     raw_by_package[[pkg]] <- run_domain_generation_loop(
       combined_specs = prepared_specs,
-      config         = config,
+      config = config,
       source_domains = domains_in_pkg
     )
   }
@@ -346,9 +394,15 @@ generate_snapshots_from_config <- function(config,
 #' validate_study_inputs(participants = 100, sites = 10, snapshots = 5, domains = c("AE", "LB"))
 #' @export
 validate_study_inputs <- function(participants, sites, snapshots, domains) {
-  if (participants <= 0) stop("Participants must be positive")
-  if (sites <= 0) stop("Sites must be positive")
-  if (snapshots <= 0) stop("Snapshots must be positive")
+  if (participants <= 0) {
+    stop("Participants must be positive")
+  }
+  if (sites <= 0) {
+    stop("Sites must be positive")
+  }
+  if (snapshots <= 0) {
+    stop("Snapshots must be positive")
+  }
   if (length(domains) == 0) stop("At least one domain must be specified")
 }
 
@@ -396,9 +450,18 @@ ensure_core_mappings <- function(domains) {
 #' length(snapshots)
 #' }
 #' @export
-generate_study_snapshots <- function(study_id, participants, sites, snapshots, interval, mappings,
-                                     base_date = NULL, outlier_intensity = 1,
-                                     risk_profile = NULL, verbose = FALSE) {
+generate_study_snapshots <- function(
+  study_id,
+  participants,
+  sites,
+  snapshots,
+  interval,
+  mappings,
+  base_date = NULL,
+  outlier_intensity = 1,
+  risk_profile = NULL,
+  verbose = FALSE
+) {
   snapshot_width <- parse_interval_to_snapshot_width(interval)
 
   # Calculate start dates for each snapshot
@@ -498,11 +561,17 @@ execute_analytics_pipeline <- function(raw_data, config) {
     {
       # Check if workr is available
       if (!pkg_available("workr")) {
-        if (isTRUE(verbose)) message("workr package not available. Skipping analytics pipeline.")
+        if (isTRUE(verbose)) {
+          message("workr package not available. Skipping analytics pipeline.")
+        }
         return(NULL)
       }
       if (!pkg_available("gsm.mapping")) {
-        if (isTRUE(verbose)) message("gsm.mapping package not available. Skipping analytics pipeline.")
+        if (isTRUE(verbose)) {
+          message(
+            "gsm.mapping package not available. Skipping analytics pipeline."
+          )
+        }
         return(NULL)
       }
 
@@ -525,7 +594,8 @@ execute_analytics_pipeline <- function(raw_data, config) {
       if (!nzchar(pkg_wf_path)) {
         warning(
           "Analytics pipeline skipped: workflow directory not found in package '",
-          analytics_pkg, "'. ",
+          analytics_pkg,
+          "'. ",
           "Ensure the package is installed (e.g. remotes::install_github()), ",
           "not just loaded with devtools::load_all()."
         )
@@ -537,12 +607,12 @@ execute_analytics_pipeline <- function(raw_data, config) {
       if (!is.null(analytics_wf)) {
         lWorkflow <- workr::MakeWorkflowList(
           strPackage = analytics_pkg,
-          strNames   = analytics_wf
+          strNames = analytics_wf
         )
       } else {
         lWorkflow <- workr::MakeWorkflowList(
           strPackage = analytics_pkg,
-          strPath    = "workflow/2_metrics"
+          strPath = "workflow/2_metrics"
         )
       }
 
@@ -550,19 +620,41 @@ execute_analytics_pipeline <- function(raw_data, config) {
       if (is.null(snapshot_names) || any(snapshot_names == "")) {
         snapshot_names <- paste0("snapshot_", seq_along(raw_data))
       }
-      snapshot_results <- stats::setNames(vector("list", length(raw_data)), snapshot_names)
+      snapshot_results <- stats::setNames(
+        vector("list", length(raw_data)),
+        snapshot_names
+      )
 
       for (i in seq_along(raw_data)) {
         snapshot_name <- snapshot_names[[i]]
         snapshot_data <- raw_data[[i]]
 
-        vcat("\nProcessing snapshot ", i, "/", length(raw_data), " (", snapshot_name, ")...\n", sep = "")
-        vcat("Available datasets:", paste(names(snapshot_data), collapse = ", "), "\n")
+        vcat(
+          "\nProcessing snapshot ",
+          i,
+          "/",
+          length(raw_data),
+          " (",
+          snapshot_name,
+          ")...\n",
+          sep = ""
+        )
+        vcat(
+          "Available datasets:",
+          paste(names(snapshot_data), collapse = ", "),
+          "\n"
+        )
 
         required_datasets <- c("Raw_SITE", "Raw_SUBJ")
         available_datasets <- intersect(required_datasets, names(snapshot_data))
         if (length(available_datasets) < length(required_datasets)) {
-          warning("Skipping snapshot ", snapshot_name, ": missing required datasets (", paste(required_datasets, collapse = ", "), ")")
+          warning(
+            "Skipping snapshot ",
+            snapshot_name,
+            ": missing required datasets (",
+            paste(required_datasets, collapse = ", "),
+            ")"
+          )
           snapshot_results[[snapshot_name]] <- NULL
           next
         }
@@ -572,7 +664,11 @@ execute_analytics_pipeline <- function(raw_data, config) {
         # source data is absent fails silently rather than blocking the rest.
 
         # Workflows backed by a Raw_* dataset in this snapshot
-        available_raw_names <- stringr::str_replace(names(snapshot_data), "^Raw_", "")
+        available_raw_names <- stringr::str_replace(
+          names(snapshot_data),
+          "^Raw_",
+          ""
+        )
 
         # Derived mappings that have no Raw_* source but depend on prior mapped outputs
         derived_mapping_names <- c("COUNTRY")
@@ -582,16 +678,22 @@ execute_analytics_pipeline <- function(raw_data, config) {
           derived_mapping_names <- c(derived_mapping_names, "EXCLUSION")
         }
 
-        workflows_to_run <- unique(c(available_raw_names, derived_mapping_names))
+        workflows_to_run <- unique(c(
+          available_raw_names,
+          derived_mapping_names
+        ))
 
         all_mappings_wf <- workr::MakeWorkflowList(
-          strNames   = workflows_to_run,
-          strPath    = "workflow/1_mappings",
+          strNames = workflows_to_run,
+          strPath = "workflow/1_mappings",
           strPackage = "gsm.mapping"
         )
 
         # Ingest only from raw-data-backed workflows (derived ones have no Raw_* spec)
-        raw_backed_names <- intersect(names(all_mappings_wf), available_raw_names)
+        raw_backed_names <- intersect(
+          names(all_mappings_wf),
+          available_raw_names
+        )
         raw_mappings_wf <- all_mappings_wf[raw_backed_names]
         mappings_spec <- CombineSpecs(raw_mappings_wf)
         lRaw <- gsm.mapping::Ingest(snapshot_data, mappings_spec)
@@ -602,7 +704,10 @@ execute_analytics_pipeline <- function(raw_data, config) {
         for (mwf_name in names(all_mappings_wf)) {
           single_mwf <- all_mappings_wf[mwf_name]
           result <- tryCatch(
-            workr::RunWorkflows(lWorkflows = single_mwf, lData = c(lRaw, mapped_data)),
+            workr::RunWorkflows(
+              lWorkflows = single_mwf,
+              lData = c(lRaw, mapped_data)
+            ),
             error = function(e) NULL
           )
           if (!is.null(result)) {
@@ -619,7 +724,14 @@ execute_analytics_pipeline <- function(raw_data, config) {
               lData = mapped_data
             ),
             error = function(e) {
-              warning("Skipping workflow ", wf_name, " for snapshot ", snapshot_name, ": ", e$message)
+              warning(
+                "Skipping workflow ",
+                wf_name,
+                " for snapshot ",
+                snapshot_name,
+                ": ",
+                e$message
+              )
               return(NULL)
             }
           )
@@ -648,7 +760,14 @@ execute_analytics_pipeline <- function(raw_data, config) {
       }
 
       processed_count <- sum(!vapply(snapshot_results, is.null, logical(1)))
-      vcat("\nAnalytics pipeline completed for ", processed_count, " of ", length(snapshot_results), " snapshots.\n", sep = "")
+      vcat(
+        "\nAnalytics pipeline completed for ",
+        processed_count,
+        " of ",
+        length(snapshot_results),
+        " snapshots.\n",
+        sep = ""
+      )
 
       if (processed_count == 0) {
         return(NULL)
@@ -687,7 +806,9 @@ organize_analytics_results <- function(pipeline_results, verbose = FALSE) {
   }
 
   organize_snapshot <- function(snapshot_results) {
-    if (is.null(snapshot_results$results) || !is.list(snapshot_results$results)) {
+    if (
+      is.null(snapshot_results$results) || !is.list(snapshot_results$results)
+    ) {
       return(list())
     }
 
@@ -697,7 +818,9 @@ organize_analytics_results <- function(pipeline_results, verbose = FALSE) {
     out <- list()
     for (metric_name in analysis_metric_names) {
       metric_payload <- snapshot_results$results[[metric_name]]
-      if (!is.list(metric_payload)) next
+      if (!is.list(metric_payload)) {
+        next
+      }
       metric_id <- sub("^Analysis_", "", metric_name)
       out[[metric_id]] <- organize_metric(metric_name, metric_payload)
     }
@@ -719,7 +842,12 @@ organize_analytics_results <- function(pipeline_results, verbose = FALSE) {
     snapshot_names <- as.character(seq_along(pipeline_results))
   }
 
-  vcat("Organizing analytics for ", length(snapshot_names), " snapshots...\n", sep = "")
+  vcat(
+    "Organizing analytics for ",
+    length(snapshot_names),
+    " snapshots...\n",
+    sep = ""
+  )
 
   stats::setNames(
     lapply(snapshot_names, function(snapshot_name) {
@@ -776,36 +904,48 @@ execute_reporting_pipeline <- function(analytics_results, config) {
   tryCatch(
     {
       if (!pkg_available("gsm.reporting")) {
-        if (isTRUE(verbose)) message("gsm.reporting package not available. Skipping reporting pipeline.")
+        if (isTRUE(verbose)) {
+          message(
+            "gsm.reporting package not available. Skipping reporting pipeline."
+          )
+        }
         return(NULL)
       }
       if (!pkg_available("workr")) {
-        if (isTRUE(verbose)) message("workr package not available. Skipping reporting pipeline.")
+        if (isTRUE(verbose)) {
+          message("workr package not available. Skipping reporting pipeline.")
+        }
         return(NULL)
       }
       if (is.null(analytics_results)) {
-        if (isTRUE(verbose)) message("No analytics results provided. Skipping reporting pipeline.")
+        if (isTRUE(verbose)) {
+          message("No analytics results provided. Skipping reporting pipeline.")
+        }
         return(NULL)
       }
 
-      reporting_package <- config$study_params$reporting_package %||% "gsm.reporting"
+      reporting_package <- config$study_params$reporting_package %||%
+        "gsm.reporting"
       reporting_workflows <- config$study_params$reporting_workflows
 
       if (!is.null(reporting_workflows)) {
         reporting_wf <- workr::MakeWorkflowList(
           strPackage = reporting_package,
-          strNames   = reporting_workflows,
-          strPath    = "workflow/3_reporting"
+          strNames = reporting_workflows,
+          strPath = "workflow/3_reporting"
         )
       } else {
         reporting_wf <- workr::MakeWorkflowList(
           strPackage = reporting_package,
-          strPath    = "workflow/3_reporting"
+          strPath = "workflow/3_reporting"
         )
       }
 
       snapshot_names <- names(analytics_results)
-      snapshot_results <- stats::setNames(vector("list", length(analytics_results)), snapshot_names)
+      snapshot_results <- stats::setNames(
+        vector("list", length(analytics_results)),
+        snapshot_names
+      )
 
       for (snapshot_name in snapshot_names) {
         snap <- analytics_results[[snapshot_name]]
@@ -820,22 +960,36 @@ execute_reporting_pipeline <- function(analytics_results, config) {
 
         if (is.null(mapped) || is.null(lAnalyzed) || is.null(lWorkflow)) {
           warning(
-            "Skipping reporting for snapshot ", snapshot_name,
+            "Skipping reporting for snapshot ",
+            snapshot_name,
             ": analytics pipeline output is missing mapped data, results, or workflow list."
           )
           snapshot_results[[snapshot_name]] <- NULL
           next
         }
 
-        vcat("Running reporting pipeline for snapshot: ", snapshot_name, "\n", sep = "")
+        vcat(
+          "Running reporting pipeline for snapshot: ",
+          snapshot_name,
+          "\n",
+          sep = ""
+        )
 
         lReporting <- tryCatch(
           workr::RunWorkflows(
             lWorkflows = reporting_wf,
-            lData     = c(mapped, list(lAnalyzed = lAnalyzed, lWorkflows = lWorkflow))
+            lData = c(
+              mapped,
+              list(lAnalyzed = lAnalyzed, lWorkflows = lWorkflow)
+            )
           ),
           error = function(e) {
-            warning("Reporting pipeline failed for snapshot ", snapshot_name, ": ", e$message)
+            warning(
+              "Reporting pipeline failed for snapshot ",
+              snapshot_name,
+              ": ",
+              e$message
+            )
             NULL
           }
         )
@@ -844,8 +998,12 @@ execute_reporting_pipeline <- function(analytics_results, config) {
       }
 
       processed_count <- sum(!vapply(snapshot_results, is.null, logical(1)))
-      vcat("Reporting pipeline completed for ", processed_count, " of ",
-        length(snapshot_results), " snapshots.\n",
+      vcat(
+        "Reporting pipeline completed for ",
+        processed_count,
+        " of ",
+        length(snapshot_results),
+        " snapshots.\n",
         sep = ""
       )
 
@@ -880,7 +1038,11 @@ execute_reporting_pipeline <- function(analytics_results, config) {
 #' reporting <- generate_reporting_layers(analytics, config, verbose = TRUE)
 #' }
 #' @export
-generate_reporting_layers <- function(analytics_results, config, verbose = FALSE) {
+generate_reporting_layers <- function(
+  analytics_results,
+  config,
+  verbose = FALSE
+) {
   config$verbose <- verbose
   execute_reporting_pipeline(analytics_results, config)
 }
@@ -927,9 +1089,13 @@ generate_raw_data_from_config <- function(config, verbose = FALSE) {
 #' names(data[[1]])  # domain names in first snapshot
 #' }
 #' @export
-generate_study_data <- function(config, workflow_path = "workflow/1_mappings",
-                                mappings = NULL, package = "gsm.mapping",
-                                verbose = FALSE) {
+generate_study_data <- function(
+  config,
+  workflow_path = "workflow/1_mappings",
+  mappings = NULL,
+  package = "gsm.mapping",
+  verbose = FALSE
+) {
   # Use the new helper function instead of the old generate_rawdata_for_single_study
   raw_data <- generate_raw_data_from_config(config, verbose = verbose)
 

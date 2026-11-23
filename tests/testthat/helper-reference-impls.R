@@ -33,13 +33,22 @@ count_consecutive_repeat_windows <- function(values, nWindowLength = 3) {
 
 # Site-level rate: sum subject numerators and denominators, then divide.
 # Mirrors how `Input_Rate` aggregates to the group level.
-site_repeat_rate <- function(df, strValueCol, strGroupCol = "invid",
-                             strSubjectCol = "subjid", nWindowLength = 3) {
+site_repeat_rate <- function(
+  df,
+  strValueCol,
+  strGroupCol = "invid",
+  strSubjectCol = "subjid",
+  nWindowLength = 3
+) {
   by_site <- split(df, df[[strGroupCol]])
 
   rates <- lapply(by_site, function(site_df) {
     by_subject <- split(site_df[[strValueCol]], site_df[[strSubjectCol]])
-    counts <- lapply(by_subject, count_consecutive_repeat_windows, nWindowLength = nWindowLength)
+    counts <- lapply(
+      by_subject,
+      count_consecutive_repeat_windows,
+      nWindowLength = nWindowLength
+    )
     num <- sum(vapply(counts, function(x) x$numerator, numeric(1)))
     den <- sum(vapply(counts, function(x) x$denominator, numeric(1)))
     data.frame(
@@ -62,7 +71,9 @@ count_identical_windows_naive <- function(values, groups, window_length = 3) {
   for (grp in unique(groups)) {
     v <- values[groups == grp]
     v <- v[!is.na(v)]
-    if (length(v) < window_length) next
+    if (length(v) < window_length) {
+      next
+    }
     for (i in seq_len(length(v) - window_length + 1)) {
       window <- v[i:(i + window_length - 1)]
       if (all(window == window[1])) total <- total + 1

@@ -108,7 +108,10 @@ test_that("generate_unknown_domain creates data.frame with correct shape (#106)"
   result <- generate_unknown_domain("Raw_CUSTOM", spec, 15, ctx)
   expect_s3_class(result, "data.frame")
   expect_equal(nrow(result), 15)
-  expect_contains(names(result), c("patient_id", "visit_dt", "lab_val", "flag_yn"))
+  expect_contains(
+    names(result),
+    c("patient_id", "visit_dt", "lab_val", "flag_yn")
+  )
   expect_s3_class(result$visit_dt, "Date")
   expect_type(result$lab_val, "double")
   expect_in(result$flag_yn, c("Y", "N"))
@@ -708,7 +711,10 @@ test_that("a domain matching the registry's expected spec is generated via the r
 
   expect_s3_class(result$Raw_SITE, "data.frame")
   expect_equal(nrow(result$Raw_SITE), 5)
-  expect_contains(names(result$Raw_SITE), c("invid", "Country", "State", "City", "site_status"))
+  expect_contains(
+    names(result$Raw_SITE),
+    c("invid", "Country", "State", "City", "site_status")
+  )
 })
 
 test_that("column_overrides are applied on every snapshot in multi-snapshot mode (#106)", {
@@ -854,7 +860,10 @@ test_that("a workflow-supplied Raw_VISIT spec is restored and generated via the 
 
   result <- generate_data_from_workflows(wf, n_participants = 6, n_sites = 2)
 
-  expect_contains(names(result$Raw_VISIT), c("subjid", "foldername", "instancename", "visit_dt"))
+  expect_contains(
+    names(result$Raw_VISIT),
+    c("subjid", "foldername", "instancename", "visit_dt")
+  )
   expect_gte(nrow(result$Raw_VISIT), 6)
 })
 
@@ -889,7 +898,11 @@ test_that("single-row domains repeat their count across snapshots via the legacy
   expect_equal(nrow(snapshots[[1]]$Raw_STUDY), 1)
   # Legacy Raw_STUDY appends one row per snapshot from previous_data.
   expect_equal(nrow(snapshots[[2]]$Raw_STUDY), 2)
-  expect_named(snapshots[[1]]$Raw_STUDY, c("nickname", "protocol_title"), ignore.order = TRUE)
+  expect_named(
+    snapshots[[1]]$Raw_STUDY,
+    c("nickname", "protocol_title"),
+    ignore.order = TRUE
+  )
 })
 
 test_that("generate_data_from_workflows threads risk_profile to Raw_VS (#143)", {
@@ -955,8 +968,11 @@ test_that("generate_data_from_workflows threads risk_profile to Raw_VS (#143)", 
     # exceed `n_participants`; visits per subject come from the schedule.
     domain_counts = list(Raw_VISIT = 20),
     risk_profile = list(
-      dPctRed = 1, dPctAmber = 0,
-      dRateNormal = 0.05, dRateAmber = 0.25, dRateRed = 0.45
+      dPctRed = 1,
+      dPctAmber = 0,
+      dRateNormal = 0.05,
+      dRateAmber = 0.25,
+      dRateRed = 0.45
     )
   )
 
@@ -986,13 +1002,34 @@ test_that("a failing registered Raw_VS raises instead of falling back (#143)", {
     vs = list(
       spec = list(
         Raw_STUDY = chr("studyid", "protocol_number"),
-        Raw_SITE = chr("studyid", "invid", "pi_number", "Country", "State", "City", "country"),
-        Raw_SUBJ = c(
-          chr("studyid", "subjid", "subject_nsv", "invid", "country", "enrollyn"),
-          dt("enrolldt", "firstparticipantdate", "firstdosedate"),
-          list(timeonstudy = list(type = "numeric"), timeontreatment = list(type = "numeric"))
+        Raw_SITE = chr(
+          "studyid",
+          "invid",
+          "pi_number",
+          "Country",
+          "State",
+          "City",
+          "country"
         ),
-        Raw_VISIT = c(chr("subjid", "instancename", "foldername"), dt("visit_dt")),
+        Raw_SUBJ = c(
+          chr(
+            "studyid",
+            "subjid",
+            "subject_nsv",
+            "invid",
+            "country",
+            "enrollyn"
+          ),
+          dt("enrolldt", "firstparticipantdate", "firstdosedate"),
+          list(
+            timeonstudy = list(type = "numeric"),
+            timeontreatment = list(type = "numeric")
+          )
+        ),
+        Raw_VISIT = c(
+          chr("subjid", "instancename", "foldername"),
+          dt("visit_dt")
+        ),
         Raw_VS = make_vs_full_spec()
       ),
       steps = list()
@@ -1032,10 +1069,10 @@ test_that("an invalid risk_profile is rejected identically on every route (#143)
   )
 
   invalid <- list(
-    impossible_pcts  = list(dPctRed = 0.9, dPctAmber = 0.9),
+    impossible_pcts = list(dPctRed = 0.9, dPctAmber = 0.9),
     misspelled_field = list(dPctRed = 0.1, dPctRedd = 0.2),
-    bad_window       = list(nWindowLength = 1),
-    unknown_vital    = list(vVitals = "glucose")
+    bad_window = list(nWindowLength = 1),
+    unknown_vital = list(vVitals = "glucose")
   )
 
   for (profile in invalid) {

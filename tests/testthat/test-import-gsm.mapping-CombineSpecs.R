@@ -39,13 +39,17 @@ test_that("combine_domain unions columns across per-workflow specs", {
 
 test_that("CombineSpecs merges multiple domains from workflow objects", {
   workflows <- list(
-    wf1 = list(spec = list(
-      Raw_SUBJ = list(subjid = list(type = "character")),
-      Raw_AE = list(aeser = list(type = "character"))
-    )),
-    wf2 = list(spec = list(
-      Raw_SUBJ = list(invid = list(type = "character"))
-    ))
+    wf1 = list(
+      spec = list(
+        Raw_SUBJ = list(subjid = list(type = "character")),
+        Raw_AE = list(aeser = list(type = "character"))
+      )
+    ),
+    wf2 = list(
+      spec = list(
+        Raw_SUBJ = list(invid = list(type = "character"))
+      )
+    )
   )
 
   res <- CombineSpecs(workflows, bIsWorkflow = TRUE)

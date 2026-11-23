@@ -31,8 +31,16 @@ Raw_STUDY <- function(data, previous_data, spec, ...) {
     num_plan_subj = list(inps$ParticipantCount),
     act_fpfv = list(inps$MinDate, inps$MaxDate, dataset$act_fpfv),
     est_fpfv = list(inps$MinDate, inps$MaxDate, dataset$est_fpfv),
-    est_lpfv = list(inps$GlobalMaxDate - 30, inps$GlobalMaxDate, dataset$est_lpfv),
-    est_lplv = list(inps$GlobalMaxDate + 30, inps$GlobalMaxDate + 120, dataset$est_lplv),
+    est_lpfv = list(
+      inps$GlobalMaxDate - 30,
+      inps$GlobalMaxDate,
+      dataset$est_lpfv
+    ),
+    est_lplv = list(
+      inps$GlobalMaxDate + 30,
+      inps$GlobalMaxDate + 120,
+      dataset$est_lplv
+    ),
     db_lock_dt = list(1, inps$GlobalMaxDate),
     phase = list(1, external_phase = c("P1", "P2", "P3", "P4")),
     default = list(1)
@@ -95,10 +103,7 @@ protocol_title <- function(n, ...) {
 
 status <- function(n, stat = c("Active"), ...) {
   # Function body for status
-  sample(stat,
-    n,
-    replace = TRUE
-  )
+  sample(stat, n, replace = TRUE)
 }
 
 # Status <- function(n, stat = c("Active"), ...) {
@@ -108,28 +113,27 @@ status <- function(n, stat = c("Active"), ...) {
 #          replace = TRUE)
 # }
 
-therapeutic_area <- function(n, stat = c("Oncology", "Virology", "Inflammation"), ...) {
+therapeutic_area <- function(
+  n,
+  stat = c("Oncology", "Virology", "Inflammation"),
+  ...
+) {
   # Function body for TA
-  sample(stat,
-    n,
-    replace = TRUE
-  )
+  sample(stat, n, replace = TRUE)
 }
 
-protocol_indication <- function(n, stat = c("Cardiovascular Health", "Lung Function", "Hematology"), ...) {
+protocol_indication <- function(
+  n,
+  stat = c("Cardiovascular Health", "Lung Function", "Hematology"),
+  ...
+) {
   # Function body for protocol_indication
-  sample(stat,
-    n,
-    replace = TRUE
-  )
+  sample(stat, n, replace = TRUE)
 }
 
 product <- function(n, ...) {
   # Function body for product
-  num <- sample(1:50,
-    n,
-    replace = TRUE
-  )
+  num <- sample(1:50, n, replace = TRUE)
   paste("Product Name", num)
 }
 

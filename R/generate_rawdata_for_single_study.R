@@ -19,17 +19,30 @@
 #' prepared <- prepare_combined_specs_for_generation(specs)
 #' names(prepared)
 #'
-prepare_combined_specs_for_generation <- function(combined_specs, desired_specs = NULL) {
+prepare_combined_specs_for_generation <- function(
+  combined_specs,
+  desired_specs = NULL
+) {
   combined_specs <- purrr::list_modify(
     combined_specs,
     !!!rlang::set_names(
-      rep(list(rlang::zap()), sum(startsWith(names(combined_specs), "Mapped_"))),
+      rep(
+        list(rlang::zap()),
+        sum(startsWith(names(combined_specs), "Mapped_"))
+      ),
       names(combined_specs)[startsWith(names(combined_specs), "Mapped_")]
     )
   )
 
   # Specify the desired first few elements in order
-  desired_order <- c("Raw_STUDY", "Raw_SITE", "Raw_SUBJ", "Raw_ENROLL", "Raw_VISIT", "Raw_STUDCOMP")
+  desired_order <- c(
+    "Raw_STUDY",
+    "Raw_SITE",
+    "Raw_SUBJ",
+    "Raw_ENROLL",
+    "Raw_VISIT",
+    "Raw_STUDCOMP"
+  )
   if (!("Raw_VISIT" %in% names(combined_specs))) {
     combined_specs$Raw_VISIT <- list(
       subjid = list(required = TRUE),
@@ -41,13 +54,19 @@ prepare_combined_specs_for_generation <- function(combined_specs, desired_specs 
   desired_order <- desired_order[desired_order %in% names(combined_specs)]
 
   # Rearrange the elements
-  combined_specs <- combined_specs[c(desired_order, setdiff(names(combined_specs), desired_order))]
+  combined_specs <- combined_specs[c(
+    desired_order,
+    setdiff(names(combined_specs), desired_order)
+  )]
 
   if (!is.null(desired_specs)) {
     # Keep core prerequisites in dependency order regardless of caller order,
     # so registry generators (e.g. Raw_VS) see their upstream domains first.
     core_first <- desired_order[desired_order %in% desired_specs]
-    combined_specs <- combined_specs[c(core_first, setdiff(desired_specs, core_first))]
+    combined_specs <- combined_specs[c(
+      core_first,
+      setdiff(desired_specs, core_first)
+    )]
   }
 
   combined_specs
@@ -56,68 +75,190 @@ prepare_combined_specs_for_generation <- function(combined_specs, desired_specs 
 # Private helper: route a single domain to its legacy generator function.
 # Used by both generate_snapshots_from_combined_specs() (deprecated path) and
 # run_domain_generation_loop() (new config-native path).
-dispatch_legacy_domain_generator <- function(data_type, data, previous_data, combined_specs,
-                                             n, start_date, end_date,
-                                             SnapshotCount, SnapshotWidth) {
+dispatch_legacy_domain_generator <- function(
+  data_type,
+  data,
+  previous_data,
+  combined_specs,
+  n,
+  start_date,
+  end_date,
+  SnapshotCount,
+  SnapshotWidth
+) {
   generator_func <- data_type
-  args <- switch(data_type,
-    Raw_SITE = list(data, previous_data, combined_specs, n_sites = n, startDate = start_date, split_vars = list("Country_State_City")),
-    Raw_SUBJ = list(data, previous_data, combined_specs,
-      n_subj = n, startDate = start_date,
-      endDate = end_date, split_vars = list(
+  args <- switch(
+    data_type,
+    Raw_SITE = list(
+      data,
+      previous_data,
+      combined_specs,
+      n_sites = n,
+      startDate = start_date,
+      split_vars = list("Country_State_City")
+    ),
+    Raw_SUBJ = list(
+      data,
+      previous_data,
+      combined_specs,
+      n_subj = n,
+      startDate = start_date,
+      endDate = end_date,
+      split_vars = list(
         "subject_site_synq",
         "subjid_subject_nsv",
         "enrollyn_enrolldt_timeonstudy_firstparticipantdate_firstdosedate_timeontreatment"
       )
     ),
-    Raw_ENROLL = list(data, previous_data, combined_specs, n_enroll = n, startDate = start_date, split_vars = list("subject_to_enrollment")),
-    Raw_IE = list(data, previous_data, combined_specs, n_IE = n, split_vars = list("subject_to_ie", "tiver_ietestcd_ietest_ieorres_iecat")),
-    Raw_VISIT = list(data, previous_data, combined_specs,
-      n = n, startDate = start_date, split_vars = list("subjid_repeated", "invid_repeated"),
+    Raw_ENROLL = list(
+      data,
+      previous_data,
+      combined_specs,
+      n_enroll = n,
+      startDate = start_date,
+      split_vars = list("subject_to_enrollment")
+    ),
+    Raw_IE = list(
+      data,
+      previous_data,
+      combined_specs,
+      n_IE = n,
+      split_vars = list("subject_to_ie", "tiver_ietestcd_ietest_ieorres_iecat")
+    ),
+    Raw_VISIT = list(
+      data,
+      previous_data,
+      combined_specs,
+      n = n,
+      startDate = start_date,
+      split_vars = list("subjid_repeated", "invid_repeated"),
       SnapshotWidth = SnapshotWidth
     ),
-    Raw_STUDCOMP = list(data, previous_data, combined_specs, n = n, startDate = start_date, split_vars = list("subjid_invid_unique")),
-    Raw_LB = list(data, previous_data, combined_specs, n = n, startDate = start_date, split_vars = list("subj_visit_repeated")),
-    Raw_DATACHG = list(data, previous_data, combined_specs, n = n, startDate = start_date, split_vars = list("subject_nsv_visit_repeated")),
-    Raw_DATAENT = list(data, previous_data, combined_specs, n = n, startDate = start_date, split_vars = list("subject_nsv_visit_repeated")),
-    Raw_QUERY = list(data, previous_data, combined_specs, n = n, startDate = start_date, split_vars = list("subject_nsv_visit_repeated")),
-    Raw_AE = list(data, previous_data, combined_specs,
-      n = n, startDate = start_date,
-      endDate = end_date, split_vars = list("aest_dt_aeen_dt")
+    Raw_STUDCOMP = list(
+      data,
+      previous_data,
+      combined_specs,
+      n = n,
+      startDate = start_date,
+      split_vars = list("subjid_invid_unique")
     ),
-    Raw_AntiCancer = list(data, previous_data, combined_specs, n = n, startDate = start_date),
-    Raw_Baseline = list(data, previous_data, combined_specs, n = n, startDate = start_date),
-    Raw_Consents = list(data, previous_data, combined_specs, n = n, startDate = start_date),
-    Raw_Death = list(data, previous_data, combined_specs, n = n, startDate = start_date),
-    Raw_Randomization = list(data, previous_data, combined_specs,
+    Raw_LB = list(
+      data,
+      previous_data,
+      combined_specs,
+      n = n,
+      startDate = start_date,
+      split_vars = list("subj_visit_repeated")
+    ),
+    Raw_DATACHG = list(
+      data,
+      previous_data,
+      combined_specs,
+      n = n,
+      startDate = start_date,
+      split_vars = list("subject_nsv_visit_repeated")
+    ),
+    Raw_DATAENT = list(
+      data,
+      previous_data,
+      combined_specs,
+      n = n,
+      startDate = start_date,
+      split_vars = list("subject_nsv_visit_repeated")
+    ),
+    Raw_QUERY = list(
+      data,
+      previous_data,
+      combined_specs,
+      n = n,
+      startDate = start_date,
+      split_vars = list("subject_nsv_visit_repeated")
+    ),
+    Raw_AE = list(
+      data,
+      previous_data,
+      combined_specs,
+      n = n,
+      startDate = start_date,
+      endDate = end_date,
+      split_vars = list("aest_dt_aeen_dt")
+    ),
+    Raw_AntiCancer = list(
+      data,
+      previous_data,
+      combined_specs,
+      n = n,
+      startDate = start_date
+    ),
+    Raw_Baseline = list(
+      data,
+      previous_data,
+      combined_specs,
+      n = n,
+      startDate = start_date
+    ),
+    Raw_Consents = list(
+      data,
+      previous_data,
+      combined_specs,
+      n = n,
+      startDate = start_date
+    ),
+    Raw_Death = list(
+      data,
+      previous_data,
+      combined_specs,
+      n = n,
+      startDate = start_date
+    ),
+    Raw_Randomization = list(
+      data,
+      previous_data,
+      combined_specs,
       n = n,
       startDate = start_date,
       split_vars = list("subjid_invid_country")
     ),
-    Raw_OverallResponse = list(data, previous_data, combined_specs,
+    Raw_OverallResponse = list(
+      data,
+      previous_data,
+      combined_specs,
       n = n,
       split_vars = list("subjid_rs_dt")
     ),
-    Raw_PK = list(data, previous_data, combined_specs, n = n, startDate = start_date, split_vars = list("subjid_visit_pkdat")),
+    Raw_PK = list(
+      data,
+      previous_data,
+      combined_specs,
+      n = n,
+      startDate = start_date,
+      split_vars = list("subjid_visit_pkdat")
+    ),
     list(data, previous_data, combined_specs, n = n, startDate = start_date) # Default case
   )
   as.data.frame(do.call(generator_func, args))
 }
 
-generate_snapshots_from_combined_specs <- function(SnapshotCount,
-                                                   SnapshotWidth,
-                                                   ParticipantCount,
-                                                   SiteCount,
-                                                   StudyID,
-                                                   combined_specs,
-                                                   mappings,
-                                                   strStartDate = "2012-01-01",
-                                                   risk_profile = NULL) {
+generate_snapshots_from_combined_specs <- function(
+  SnapshotCount,
+  SnapshotWidth,
+  ParticipantCount,
+  SiteCount,
+  StudyID,
+  combined_specs,
+  mappings,
+  strStartDate = "2012-01-01",
+  risk_profile = NULL
+) {
   # Resolve up front so a bad profile fails before any snapshot work.
   .validate_risk_profile(risk_profile)
 
   # Generate start and end dates for snapshots
-  start_dates <- seq(as.Date(strStartDate), length.out = SnapshotCount, by = SnapshotWidth)
+  start_dates <- seq(
+    as.Date(strStartDate),
+    length.out = SnapshotCount,
+    by = SnapshotWidth
+  )
   end_dates <- start_dates + 28
 
   subject_count <- count_gen(ParticipantCount, SnapshotCount)
@@ -145,7 +286,10 @@ generate_snapshots_from_combined_specs <- function(SnapshotCount,
 
     if (snapshot_idx == 1) {
       previous_data <- list()
-      data$Raw_STUDY <- as.data.frame(Raw_STUDY(data, previous_data, combined_specs,
+      data$Raw_STUDY <- as.data.frame(Raw_STUDY(
+        data,
+        previous_data,
+        combined_specs,
         StudyID = StudyID,
         SiteCount = SiteCount,
         ParticipantCount = ParticipantCount,
@@ -153,7 +297,10 @@ generate_snapshots_from_combined_specs <- function(SnapshotCount,
         MaxDate = end_dates[snapshot_idx],
         GlobalMaxDate = max(end_dates)
       ))
-      data$raw_gilda_study_data <- as.data.frame(raw_gilda_study_data(data, previous_data, combined_specs,
+      data$raw_gilda_study_data <- as.data.frame(raw_gilda_study_data(
+        data,
+        previous_data,
+        combined_specs,
         StudyID = StudyID,
         SiteCount = SiteCount,
         ParticipantCount = ParticipantCount,
@@ -174,7 +321,9 @@ generate_snapshots_from_combined_specs <- function(SnapshotCount,
 
     # Loop over each raw data type specified in combined_specs
     for (data_type in names(combined_specs)) {
-      if (data_type %in% c("Raw_STUDY", "raw_gilda_study_data")) next
+      if (data_type %in% c("Raw_STUDY", "raw_gilda_study_data")) {
+        next
+      }
 
       logger::log_info(glue::glue(" ---- Adding dataset {data_type}..."))
 
@@ -216,7 +365,9 @@ generate_snapshots_from_combined_specs <- function(SnapshotCount,
 
       if (!is.null(migrated_data)) {
         data[[data_type]] <- migrated_data
-        logger::log_info(glue::glue(" ---- Dataset {data_type} added successfully"))
+        logger::log_info(glue::glue(
+          " ---- Dataset {data_type} added successfully"
+        ))
         next
       }
 
@@ -231,7 +382,9 @@ generate_snapshots_from_combined_specs <- function(SnapshotCount,
         SnapshotCount = SnapshotCount,
         SnapshotWidth = SnapshotWidth
       )
-      logger::log_info(glue::glue(" ---- Dataset {data_type} added successfully"))
+      logger::log_info(glue::glue(
+        " ---- Dataset {data_type} added successfully"
+      ))
     }
 
     if (nrow(data$Raw_ENROLL) > 0) {
@@ -281,7 +434,9 @@ generate_snapshots_from_combined_specs <- function(SnapshotCount,
       data$Raw_AE <- apply_fatal_ae_scenarios(data$Raw_AE, data$Raw_Death)
     }
     snapshots[[snapshot_idx]] <- data
-    logger::log_info(glue::glue(" -- Snapshot {snapshot_idx} added successfully"))
+    logger::log_info(glue::glue(
+      " -- Snapshot {snapshot_idx} added successfully"
+    ))
   }
 
   # Assign snapshot end dates as names

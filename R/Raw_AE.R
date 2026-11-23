@@ -29,7 +29,19 @@ Raw_AE <- function(data, previous_data, spec, startDate, endDate, ...) {
     return(dataset)
   }
 
-  if (all(c("aeser", "aest_dt", "aeen_dt", "mdrpt_nsv", "mdrsoc_nsv", "aetoxgr") %in% names(curr_spec))) {
+  if (
+    all(
+      c(
+        "aeser",
+        "aest_dt",
+        "aeen_dt",
+        "mdrpt_nsv",
+        "mdrsoc_nsv",
+        "aetoxgr"
+      ) %in%
+        names(curr_spec)
+    )
+  ) {
     curr_spec$aeser <- list(required = TRUE)
     curr_spec$aest_dt_aeen_dt <- list(required = TRUE)
     curr_spec$aest_dt <- NULL
@@ -56,7 +68,9 @@ Raw_AE <- function(data, previous_data, spec, startDate, endDate, ...) {
 
 aeser <- function(n, Raw_SUBJ_data = NULL, ...) {
   # Favor serious AEs in hotspot sites so z-score metrics can separate entities.
-  row_keys <- if (is.data.frame(Raw_SUBJ_data) && "subjid" %in% names(Raw_SUBJ_data)) {
+  row_keys <- if (
+    is.data.frame(Raw_SUBJ_data) && "subjid" %in% names(Raw_SUBJ_data)
+  ) {
     sample(Raw_SUBJ_data$subjid, n, replace = TRUE)
   } else {
     NULL
@@ -84,7 +98,11 @@ aerel <- function(n, ...) {
 }
 
 aest_dt <- function(n, startDate, endDate, ...) {
-  sample(seq(as.Date(startDate), as.Date(endDate), by = "day"), n, replace = TRUE)
+  sample(
+    seq(as.Date(startDate), as.Date(endDate), by = "day"),
+    n,
+    replace = TRUE
+  )
 }
 aeen_dt <- function(n, aestartDate, ...) {
   as.Date(aestartDate) + sample(1:3, n, replace = TRUE)
@@ -96,7 +114,9 @@ mdrsoc_nsv <- function(n, ...) {
   sample(c("soc1", "soc2"), n, replace = TRUE)
 }
 aetoxgr <- function(n, Raw_SUBJ_data = NULL, ...) {
-  row_keys <- if (is.data.frame(Raw_SUBJ_data) && "subjid" %in% names(Raw_SUBJ_data)) {
+  row_keys <- if (
+    is.data.frame(Raw_SUBJ_data) && "subjid" %in% names(Raw_SUBJ_data)
+  ) {
     sample(Raw_SUBJ_data$subjid, n, replace = TRUE)
   } else {
     NULL

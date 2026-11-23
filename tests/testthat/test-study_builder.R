@@ -30,8 +30,10 @@ test_that("set_temporal_config() updates only supplied fields", {
   config <- create_study_config()
   updated <- set_temporal_config(
     config,
-    start_date = "2024-02-01", snapshot_count = 7,
-    snapshot_width = "weeks", end_date = "2024-12-31"
+    start_date = "2024-02-01",
+    snapshot_count = 7,
+    snapshot_width = "weeks",
+    end_date = "2024-12-31"
   )
   expect_equal(updated$temporal_config$start_date, as.Date("2024-02-01"))
   expect_equal(updated$temporal_config$snapshot_count, 7)
@@ -50,9 +52,13 @@ test_that("set_temporal_config() ignores an unparseable end_date", {
 test_that("add_dataset_config() and remove_dataset_config() round-trip", {
   config <- create_study_config()
   config <- add_dataset_config(
-    config, "Raw_AE",
-    enabled = FALSE, count_formula = 5, growth_pattern = "exp",
-    dependencies = "Raw_SUBJ", custom_args = list(a = 1)
+    config,
+    "Raw_AE",
+    enabled = FALSE,
+    count_formula = 5,
+    growth_pattern = "exp",
+    dependencies = "Raw_SUBJ",
+    custom_args = list(a = 1)
   )
   ae <- config$dataset_configs$Raw_AE
   expect_false(ae$enabled)
@@ -101,10 +107,25 @@ test_that("create_standard_study_config() includes all standard datasets by defa
   expect_contains(
     names(config$dataset_configs),
     c(
-      "Raw_STUDY", "Raw_SITE", "Raw_SUBJ", "Raw_ENROLL", "Raw_AE", "Raw_PD",
-      "Raw_LB", "Raw_VISIT", "Raw_DATACHG", "Raw_DATAENT", "Raw_QUERY",
-      "Raw_PK", "Raw_SDRGCOMP", "Raw_STUDCOMP", "Raw_IE", "Raw_COUNTRY",
-      "Raw_Death", "Raw_Randomization", "Raw_OverallResponse"
+      "Raw_STUDY",
+      "Raw_SITE",
+      "Raw_SUBJ",
+      "Raw_ENROLL",
+      "Raw_AE",
+      "Raw_PD",
+      "Raw_LB",
+      "Raw_VISIT",
+      "Raw_DATACHG",
+      "Raw_DATAENT",
+      "Raw_QUERY",
+      "Raw_PK",
+      "Raw_SDRGCOMP",
+      "Raw_STUDCOMP",
+      "Raw_IE",
+      "Raw_COUNTRY",
+      "Raw_Death",
+      "Raw_Randomization",
+      "Raw_OverallResponse"
     )
   )
 })
@@ -112,14 +133,28 @@ test_that("create_standard_study_config() includes all standard datasets by defa
 test_that("create_standard_study_config() honors disabled domains", {
   config <- create_standard_study_config(
     "S3",
-    study = FALSE, subjects = FALSE, sites_data = FALSE,
-    adverse_events = FALSE, protocol_deviations = FALSE, lab_data = FALSE,
-    subject_visits = FALSE, visit_schedule = FALSE, enrollment = FALSE,
-    data_changes = FALSE, data_entry = FALSE, queries = FALSE,
-    pharmacokinetics = FALSE, study_drug_completion = FALSE,
-    study_completion = FALSE, inclusion_exclusion = FALSE, country = FALSE,
-    death = FALSE, randomization = FALSE, overall_response = FALSE,
-    outlier_intensity = 2, risk_profile = list(dPctRed = 0.1)
+    study = FALSE,
+    subjects = FALSE,
+    sites_data = FALSE,
+    adverse_events = FALSE,
+    protocol_deviations = FALSE,
+    lab_data = FALSE,
+    subject_visits = FALSE,
+    visit_schedule = FALSE,
+    enrollment = FALSE,
+    data_changes = FALSE,
+    data_entry = FALSE,
+    queries = FALSE,
+    pharmacokinetics = FALSE,
+    study_drug_completion = FALSE,
+    study_completion = FALSE,
+    inclusion_exclusion = FALSE,
+    country = FALSE,
+    death = FALSE,
+    randomization = FALSE,
+    overall_response = FALSE,
+    outlier_intensity = 2,
+    risk_profile = list(dPctRed = 0.1)
   )
   # Raw_ENROLL is added by create_study_config() and re-added only if enabled
   expect_named(config$dataset_configs, "Raw_ENROLL")
@@ -128,12 +163,20 @@ test_that("create_standard_study_config() honors disabled domains", {
 })
 
 test_that("create_standard_study_config() keeps VISIT if either visit flag is set", {
-  config <- create_standard_study_config("S4", subject_visits = FALSE, visit_schedule = TRUE)
+  config <- create_standard_study_config(
+    "S4",
+    subject_visits = FALSE,
+    visit_schedule = TRUE
+  )
   expect_contains(names(config$dataset_configs), "Raw_VISIT")
 })
 
 test_that("create_longitudinal_study_data() builds a classed structure", {
-  study <- create_longitudinal_study_data("ST", raw_data = list(), config = list(a = 1))
+  study <- create_longitudinal_study_data(
+    "ST",
+    raw_data = list(),
+    config = list(a = 1)
+  )
   expect_s3_class(study, "longitudinal_study")
   expect_equal(study$study_id, "ST")
   expect_null(study$analytics)
@@ -157,13 +200,23 @@ test_that("summarize_longitudinal_study() handles missing snapshots config and n
 })
 
 test_that("summarize_longitudinal_study() is silent when verbose = FALSE", {
-  expect_silent(summarize_longitudinal_study(make_test_study(), verbose = FALSE))
+  expect_silent(summarize_longitudinal_study(
+    make_test_study(),
+    verbose = FALSE
+  ))
 })
 
 test_that("summarize_longitudinal_study() handles an empty study", {
   study <- create_longitudinal_study_data(
-    "E", list(),
-    list(participants = 1, sites = 1, snapshots = 0, interval = "1 month", domains = "AE")
+    "E",
+    list(),
+    list(
+      participants = 1,
+      sites = 1,
+      snapshots = 0,
+      interval = "1 month",
+      domains = "AE"
+    )
   )
   expect_output(summarize_longitudinal_study(study), "Interval", fixed = TRUE)
   expect_snapshot(summarize_longitudinal_study(study))
@@ -190,7 +243,10 @@ test_that("run_longitudinal_analytics() stores analytics from generate_analytics
 })
 
 test_that("run_longitudinal_reporting() errors without analytics", {
-  expect_error(run_longitudinal_reporting(make_test_study()), "No analytics results")
+  expect_error(
+    run_longitudinal_reporting(make_test_study()),
+    "No analytics results"
+  )
 })
 
 test_that("run_longitudinal_reporting() stores reporting from generate_reporting_layers()", {
@@ -198,7 +254,11 @@ test_that("run_longitudinal_reporting() stores reporting from generate_reporting
   study$analytics <- list(a = 1)
   seen <- list()
   local_mocked_bindings(
-    generate_reporting_layers = function(analytics_results, config, verbose = FALSE) {
+    generate_reporting_layers = function(
+      analytics_results,
+      config,
+      verbose = FALSE
+    ) {
       seen <<- list(analytics = analytics_results, verbose = verbose)
       list(rep = TRUE)
     }
@@ -230,7 +290,10 @@ test_that("get_domain_timeline() collects a domain across snapshots", {
 
 test_that("get_available_domains() covers registry, study, and empty study", {
   expect_equal(get_available_domains(), names(get_domain_registry()))
-  expect_setequal(get_available_domains(make_test_study(2)), c("Raw_AE", "Raw_LB"))
+  expect_setequal(
+    get_available_domains(make_test_study(2)),
+    c("Raw_AE", "Raw_LB")
+  )
   empty <- create_longitudinal_study_data("E", list(), list())
   expect_identical(get_available_domains(empty), character(0))
 })

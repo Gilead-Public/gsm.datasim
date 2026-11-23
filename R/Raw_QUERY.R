@@ -39,19 +39,28 @@ Raw_QUERY <- function(data, previous_data, spec, startDate, ...) {
     curr_spec$visnam <- NULL
   }
 
-  subject_nsvs <- subject_nsv(n, data$Raw_SUBJ$subjid,
-    subject_nsv = data$Raw_SUBJ$subject_nsv, replace = FALSE
+  subject_nsvs <- subject_nsv(
+    n,
+    data$Raw_SUBJ$subjid,
+    subject_nsv = data$Raw_SUBJ$subject_nsv,
+    replace = FALSE
   )
 
   subject_nsv_visits <- data$Raw_VISIT %>%
-    dplyr::left_join((data$Raw_SUBJ %>% dplyr::select(subjid, subject_nsv)), by = dplyr::join_by(subjid)) %>%
+    dplyr::left_join(
+      (data$Raw_SUBJ %>% dplyr::select(subjid, subject_nsv)),
+      by = dplyr::join_by(subjid)
+    ) %>%
     dplyr::filter(subject_nsv %in% subject_nsvs) %>%
     dplyr::select(subject_nsv, instancename)
 
   all_n <- nrow(subject_nsv_visits) * entries_per_subj_visit
 
   args <- list(
-    subject_nsv_visit_repeated = list(entries_per_subj_visit, subject_nsv_visits),
+    subject_nsv_visit_repeated = list(
+      entries_per_subj_visit,
+      subject_nsv_visits
+    ),
     studyid = list(all_n, data$Raw_STUDY$protocol_number[[1]]),
     queryage = list(all_n, subject_nsv_visits, data$Raw_SUBJ),
     default = list(all_n, startDate)
@@ -65,7 +74,8 @@ Raw_QUERY <- function(data, previous_data, spec, startDate, ...) {
 querystatus <- function(n, ...) {
   # Function body for querystatus
   base_prob <- c(0.02, 0.96, 0.02)
-  sample(c("Answered", "Closed", "Open"),
+  sample(
+    c("Answered", "Closed", "Open"),
     prob = scale_outlier_probabilities(base_prob, outlier_idx = 3),
     n,
     replace = TRUE
@@ -84,7 +94,9 @@ queryage <- function(n, subject_nsv_visits = NULL, Raw_SUBJ_data = NULL, ...) {
     integer = TRUE
   )
 
-  if (!is.null(subject_nsv_visits) && "subject_nsv" %in% names(subject_nsv_visits)) {
+  if (
+    !is.null(subject_nsv_visits) && "subject_nsv" %in% names(subject_nsv_visits)
+  ) {
     vals <- inject_site_hotspot_outliers(
       values = vals,
       row_keys = subject_nsv_visits$subject_nsv,

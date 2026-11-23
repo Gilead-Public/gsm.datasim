@@ -25,7 +25,12 @@ Raw_ENROLL <- function(data, previous_data, spec, startDate, ...) {
     return(dataset)
   }
 
-  if (all(c("invid", "country", "subjid", "subjectid", "enrollyn") %in% names(curr_spec))) {
+  if (
+    all(
+      c("invid", "country", "subjid", "subjectid", "enrollyn") %in%
+        names(curr_spec)
+    )
+  ) {
     curr_spec$subject_to_enrollment <- list(required = TRUE)
     curr_spec$invid <- NULL
     curr_spec$country <- NULL

@@ -84,3 +84,12 @@ test_at_log_threshold <- function(
   logger::log_threshold(level)
   invisible(old)
 }
+
+local_rprofile <- function(env = parent.frame()) {
+  path <- withr::local_tempfile(fileext = ".Rprofile", .local_envir = env)
+  testthat::local_mocked_bindings(
+    .rprofile_path = function(scope) path,
+    .env = env
+  )
+  path
+}

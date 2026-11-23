@@ -8,11 +8,11 @@
 #' @param site_count Number of sites
 #' @param analytics_package Analytics package to use
 #' @param analytics_workflows Specific workflows to run
-#' @param reporting_package Reporting package to use (default: 
+#' @param reporting_package Reporting package to use (default:
 #'   `"gsm.reporting"`)
 #' @param reporting_workflows Specific reporting workflows to run (default: all)
-#' @param outlier_intensity Global multiplier for outlier-like values in domain 
-#'   generators. Use `1` for current baseline, values `>1` to increase outlier 
+#' @param outlier_intensity Global multiplier for outlier-like values in domain
+#'   generators. Use `1` for current baseline, values `>1` to increase outlier
 #'   prevalence.
 #' @param risk_profile Optional named list controlling site-targeted
 #'   consecutive-run injection. Only `Raw_VS` currently supports it. `NULL`
@@ -37,10 +37,17 @@
 #' config$study_params$study_id
 #' config$temporal_config$snapshot_count
 #' @export
-create_study_config <- function(study_id = "STUDY001", participant_count = 100, site_count = 10,
-                                analytics_package = NULL, analytics_workflows = NULL,
-                                reporting_package = NULL, reporting_workflows = NULL,
-                                outlier_intensity = 1, risk_profile = NULL) {
+create_study_config <- function(
+  study_id = "STUDY001",
+  participant_count = 100,
+  site_count = 10,
+  analytics_package = NULL,
+  analytics_workflows = NULL,
+  reporting_package = NULL,
+  reporting_workflows = NULL,
+  outlier_intensity = 1,
+  risk_profile = NULL
+) {
   config <- list(
     study_params = list(
       study_id = study_id,
@@ -63,10 +70,30 @@ create_study_config <- function(study_id = "STUDY001", participant_count = 100, 
   )
 
   # Add default required datasets
-  config <- add_dataset_config(config, "Raw_STUDY", enabled = TRUE, count_formula = 1)
-  config <- add_dataset_config(config, "Raw_SITE", enabled = TRUE, count_formula = function(config) config$study_params$site_count)
-  config <- add_dataset_config(config, "Raw_SUBJ", enabled = TRUE, count_formula = function(config) config$study_params$participant_count)
-  config <- add_dataset_config(config, "Raw_ENROLL", enabled = TRUE, count_formula = function(config) config$study_params$participant_count)
+  config <- add_dataset_config(
+    config,
+    "Raw_STUDY",
+    enabled = TRUE,
+    count_formula = 1
+  )
+  config <- add_dataset_config(
+    config,
+    "Raw_SITE",
+    enabled = TRUE,
+    count_formula = function(config) config$study_params$site_count
+  )
+  config <- add_dataset_config(
+    config,
+    "Raw_SUBJ",
+    enabled = TRUE,
+    count_formula = function(config) config$study_params$participant_count
+  )
+  config <- add_dataset_config(
+    config,
+    "Raw_ENROLL",
+    enabled = TRUE,
+    count_formula = function(config) config$study_params$participant_count
+  )
 
   class(config) <- c("study_config", "list")
   return(config)
@@ -107,11 +134,22 @@ set_outlier_config <- function(config, intensity = 1) {
 #' config <- set_temporal_config(config, start_date = "2023-06-01", snapshot_count = 6)
 #' config$temporal_config$snapshot_count
 #' @export
-set_temporal_config <- function(config, start_date = NULL, snapshot_count = NULL,
-                                snapshot_width = NULL, end_date = NULL) {
-  if (!is.null(start_date)) config$temporal_config$start_date <- as.Date(start_date)
-  if (!is.null(snapshot_count)) config$temporal_config$snapshot_count <- snapshot_count
-  if (!is.null(snapshot_width)) config$temporal_config$snapshot_width <- snapshot_width
+set_temporal_config <- function(
+  config,
+  start_date = NULL,
+  snapshot_count = NULL,
+  snapshot_width = NULL,
+  end_date = NULL
+) {
+  if (!is.null(start_date)) {
+    config$temporal_config$start_date <- as.Date(start_date)
+  }
+  if (!is.null(snapshot_count)) {
+    config$temporal_config$snapshot_count <- snapshot_count
+  }
+  if (!is.null(snapshot_width)) {
+    config$temporal_config$snapshot_width <- snapshot_width
+  }
   if (!is.null(end_date)) {
     tryCatch(
       {
@@ -145,9 +183,15 @@ set_temporal_config <- function(config, start_date = NULL, snapshot_count = NULL
 #' config <- add_dataset_config(config, "Raw_AE", enabled = TRUE)
 #' "Raw_AE" %in% names(config$dataset_configs)
 #' @export
-add_dataset_config <- function(config, dataset_type, enabled = TRUE, count_formula = NULL,
-                               growth_pattern = "linear", dependencies = character(0),
-                               custom_args = list()) {
+add_dataset_config <- function(
+  config,
+  dataset_type,
+  enabled = TRUE,
+  count_formula = NULL,
+  growth_pattern = "linear",
+  dependencies = character(0),
+  custom_args = list()
+) {
   config$dataset_configs[[dataset_type]] <- list(
     enabled = enabled,
     count_formula = count_formula,
@@ -204,11 +248,13 @@ validate_study_config <- function(config) {
     stop("site_count must be at least 1")
   }
 
-  if (!is.null(config$study_params$outlier_intensity) &&
-    (!is.numeric(config$study_params$outlier_intensity) ||
-      length(config$study_params$outlier_intensity) != 1 ||
-      is.na(config$study_params$outlier_intensity) ||
-      config$study_params$outlier_intensity < 0)) {
+  if (
+    !is.null(config$study_params$outlier_intensity) &&
+      (!is.numeric(config$study_params$outlier_intensity) ||
+        length(config$study_params$outlier_intensity) != 1 ||
+        is.na(config$study_params$outlier_intensity) ||
+        config$study_params$outlier_intensity < 0)
+  ) {
     stop("outlier_intensity must be a single non-negative numeric value")
   }
 
@@ -265,19 +311,35 @@ validate_study_config <- function(config) {
 #'   pharmacokinetics = FALSE, overall_response = FALSE
 #' )
 #' @export
-create_standard_study_config <- function(study_id = "STUDY001", participant_count = 100, site_count = 10,
-                                         analytics_package = NULL, analytics_workflows = NULL,
-                                         study = TRUE, subjects = TRUE, sites_data = TRUE,
-                                         adverse_events = TRUE, protocol_deviations = TRUE,
-                                         lab_data = TRUE, subject_visits = TRUE,
-                                         visit_schedule = TRUE, enrollment = TRUE,
-                                         data_changes = TRUE, data_entry = TRUE,
-                                         queries = TRUE, pharmacokinetics = TRUE,
-                                         study_drug_completion = TRUE, study_completion = TRUE,
-                                         inclusion_exclusion = TRUE,
-                                         country = TRUE,
-                                         death = TRUE, randomization = TRUE, overall_response = TRUE,
-                                         outlier_intensity = 1, risk_profile = NULL) {
+create_standard_study_config <- function(
+  study_id = "STUDY001",
+  participant_count = 100,
+  site_count = 10,
+  analytics_package = NULL,
+  analytics_workflows = NULL,
+  study = TRUE,
+  subjects = TRUE,
+  sites_data = TRUE,
+  adverse_events = TRUE,
+  protocol_deviations = TRUE,
+  lab_data = TRUE,
+  subject_visits = TRUE,
+  visit_schedule = TRUE,
+  enrollment = TRUE,
+  data_changes = TRUE,
+  data_entry = TRUE,
+  queries = TRUE,
+  pharmacokinetics = TRUE,
+  study_drug_completion = TRUE,
+  study_completion = TRUE,
+  inclusion_exclusion = TRUE,
+  country = TRUE,
+  death = TRUE,
+  randomization = TRUE,
+  overall_response = TRUE,
+  outlier_intensity = 1,
+  risk_profile = NULL
+) {
   config <- create_study_config(
     study_id = study_id,
     participant_count = participant_count,
@@ -289,26 +351,64 @@ create_standard_study_config <- function(study_id = "STUDY001", participant_coun
   )
 
   # Core datasets (override automatic inclusion if user wants to disable)
-  if (!study) config <- remove_dataset_config(config, "Raw_STUDY")
-  if (!subjects) config <- remove_dataset_config(config, "Raw_SUBJ")
-  if (!sites_data) config <- remove_dataset_config(config, "Raw_SITE")
+  if (!study) {
+    config <- remove_dataset_config(config, "Raw_STUDY")
+  }
+  if (!subjects) {
+    config <- remove_dataset_config(config, "Raw_SUBJ")
+  }
+  if (!sites_data) {
+    config <- remove_dataset_config(config, "Raw_SITE")
+  }
 
-  if (adverse_events) config <- add_dataset_config(config, "Raw_AE", enabled = TRUE)
-  if (protocol_deviations) config <- add_dataset_config(config, "Raw_PD", enabled = TRUE)
-  if (lab_data) config <- add_dataset_config(config, "Raw_LB", enabled = TRUE)
-  if (subject_visits || visit_schedule) config <- add_dataset_config(config, "Raw_VISIT", enabled = TRUE)
-  if (enrollment) config <- add_dataset_config(config, "Raw_ENROLL", enabled = TRUE)
-  if (data_changes) config <- add_dataset_config(config, "Raw_DATACHG", enabled = TRUE)
-  if (data_entry) config <- add_dataset_config(config, "Raw_DATAENT", enabled = TRUE)
-  if (queries) config <- add_dataset_config(config, "Raw_QUERY", enabled = TRUE)
-  if (pharmacokinetics) config <- add_dataset_config(config, "Raw_PK", enabled = TRUE)
-  if (study_drug_completion) config <- add_dataset_config(config, "Raw_SDRGCOMP", enabled = TRUE)
-  if (study_completion) config <- add_dataset_config(config, "Raw_STUDCOMP", enabled = TRUE)
-  if (inclusion_exclusion) config <- add_dataset_config(config, "Raw_IE", enabled = TRUE)
-  if (country) config <- add_dataset_config(config, "Raw_COUNTRY", enabled = TRUE)
-  if (death) config <- add_dataset_config(config, "Raw_Death", enabled = TRUE)
-  if (randomization) config <- add_dataset_config(config, "Raw_Randomization", enabled = TRUE)
-  if (overall_response) config <- add_dataset_config(config, "Raw_OverallResponse", enabled = TRUE)
+  if (adverse_events) {
+    config <- add_dataset_config(config, "Raw_AE", enabled = TRUE)
+  }
+  if (protocol_deviations) {
+    config <- add_dataset_config(config, "Raw_PD", enabled = TRUE)
+  }
+  if (lab_data) {
+    config <- add_dataset_config(config, "Raw_LB", enabled = TRUE)
+  }
+  if (subject_visits || visit_schedule) {
+    config <- add_dataset_config(config, "Raw_VISIT", enabled = TRUE)
+  }
+  if (enrollment) {
+    config <- add_dataset_config(config, "Raw_ENROLL", enabled = TRUE)
+  }
+  if (data_changes) {
+    config <- add_dataset_config(config, "Raw_DATACHG", enabled = TRUE)
+  }
+  if (data_entry) {
+    config <- add_dataset_config(config, "Raw_DATAENT", enabled = TRUE)
+  }
+  if (queries) {
+    config <- add_dataset_config(config, "Raw_QUERY", enabled = TRUE)
+  }
+  if (pharmacokinetics) {
+    config <- add_dataset_config(config, "Raw_PK", enabled = TRUE)
+  }
+  if (study_drug_completion) {
+    config <- add_dataset_config(config, "Raw_SDRGCOMP", enabled = TRUE)
+  }
+  if (study_completion) {
+    config <- add_dataset_config(config, "Raw_STUDCOMP", enabled = TRUE)
+  }
+  if (inclusion_exclusion) {
+    config <- add_dataset_config(config, "Raw_IE", enabled = TRUE)
+  }
+  if (country) {
+    config <- add_dataset_config(config, "Raw_COUNTRY", enabled = TRUE)
+  }
+  if (death) {
+    config <- add_dataset_config(config, "Raw_Death", enabled = TRUE)
+  }
+  if (randomization) {
+    config <- add_dataset_config(config, "Raw_Randomization", enabled = TRUE)
+  }
+  if (overall_response) {
+    config <- add_dataset_config(config, "Raw_OverallResponse", enabled = TRUE)
+  }
 
   return(config)
 }
@@ -401,7 +501,11 @@ summarize_longitudinal_study <- function(study, verbose = TRUE) {
     cat(sprintf("Study ID: %s\n", study$study_id))
     cat(sprintf("Participants: %d\n", study$config$participants))
     cat(sprintf("Sites: %d\n", study$config$sites))
-    snapshot_count <- if (!is.null(study$config$snapshots)) study$config$snapshots else length(study$raw_data)
+    snapshot_count <- if (!is.null(study$config$snapshots)) {
+      study$config$snapshots
+    } else {
+      length(study$raw_data)
+    }
     cat(sprintf("Snapshots: %d\n", snapshot_count))
     cat(sprintf("Interval: %s\n", study$config$interval))
     cat(sprintf("Domains: %s\n", paste(study$config$domains, collapse = ", ")))
@@ -447,7 +551,11 @@ summarize_longitudinal_study <- function(study, verbose = TRUE) {
 #' @param verbose Whether to print progress output
 #' @export
 run_longitudinal_analytics <- function(study, verbose = FALSE) {
-  verbose <- if (!is.null(study$config$verbose)) isTRUE(study$config$verbose) else verbose
+  verbose <- if (!is.null(study$config$verbose)) {
+    isTRUE(study$config$verbose)
+  } else {
+    verbose
+  }
   study$analytics <- generate_analytics_layers(
     raw_data = study$raw_data,
     config = study$config,
@@ -479,10 +587,16 @@ run_longitudinal_analytics <- function(study, verbose = FALSE) {
 #' }
 #' @export
 run_longitudinal_reporting <- function(study, verbose = FALSE) {
-  verbose <- if (!is.null(study$config$verbose)) isTRUE(study$config$verbose) else verbose
+  verbose <- if (!is.null(study$config$verbose)) {
+    isTRUE(study$config$verbose)
+  } else {
+    verbose
+  }
 
   if (is.null(study$analytics)) {
-    stop("No analytics results found on study object. Run run_longitudinal_analytics() first.")
+    stop(
+      "No analytics results found on study object. Run run_longitudinal_analytics() first."
+    )
   }
 
   study$reporting <- generate_reporting_layers(
@@ -511,7 +625,11 @@ run_longitudinal_reporting <- function(study, verbose = FALSE) {
 #' @export
 get_snapshot_data <- function(study, snapshot) {
   if (snapshot < 1 || snapshot > length(study$raw_data)) {
-    stop(sprintf("Snapshot %d not available. Study has %d snapshots.", snapshot, length(study$raw_data)))
+    stop(sprintf(
+      "Snapshot %d not available. Study has %d snapshots.",
+      snapshot,
+      length(study$raw_data)
+    ))
   }
   return(study$raw_data[[snapshot]])
 }

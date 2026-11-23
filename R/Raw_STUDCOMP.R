@@ -35,7 +35,12 @@ Raw_STUDCOMP <- function(data, previous_data, spec, startDate, ...) {
   }
 
   args <- list(
-    subjid_invid_unique = list(n, data$Raw_SUBJ, previous_data$Raw_STUDCOMP, replace = FALSE),
+    subjid_invid_unique = list(
+      n,
+      data$Raw_SUBJ,
+      previous_data$Raw_STUDCOMP,
+      replace = FALSE
+    ),
     studyid = list(n, data$Raw_STUDY$protocol_number[[1]]),
     default = list(n, startDate)
   )
@@ -45,7 +50,13 @@ Raw_STUDCOMP <- function(data, previous_data, spec, startDate, ...) {
   return(res)
 }
 
-Raw_StudyCompletion <- function(data, previous_data, spec, startDate = Sys.Date(), ...) {
+Raw_StudyCompletion <- function(
+  data,
+  previous_data,
+  spec,
+  startDate = Sys.Date(),
+  ...
+) {
   # Function body for Raw_StudyCompletion
   inps <- list(...)
 
@@ -69,12 +80,24 @@ Raw_StudyCompletion <- function(data, previous_data, spec, startDate = Sys.Date(
     default = list(n, startDate)
   )
 
-  res <- add_new_var_data(dataset, curr_spec, args, spec$Raw_StudyCompletion, ...)
+  res <- add_new_var_data(
+    dataset,
+    curr_spec,
+    args,
+    spec$Raw_StudyCompletion,
+    ...
+  )
 
   return(res)
 }
 
-subjid_invid_unique <- function(n, Raw_SUBJ_data, previous_STUDCOMP_data, replace = TRUE, ...) {
+subjid_invid_unique <- function(
+  n,
+  Raw_SUBJ_data,
+  previous_STUDCOMP_data,
+  replace = TRUE,
+  ...
+) {
   eligible_subj_data <- Raw_SUBJ_data[
     !(Raw_SUBJ_data$subjid %in% previous_STUDCOMP_data$subjid),
     c("subjid", "invid")
@@ -91,15 +114,12 @@ subjid_invid_unique <- function(n, Raw_SUBJ_data, previous_STUDCOMP_data, replac
 
 compyn <- function(n, ...) {
   # Function body for compyn
-  sample(c(NA, "N", "Y"),
-    size = n,
-    prob = c(0.7, 0.1, 0.2),
-    replace = TRUE
-  )
+  sample(c(NA, "N", "Y"), size = n, prob = c(0.7, 0.1, 0.2), replace = TRUE)
 }
 
 compreas <- function(n, ...) {
-  sample(c("", "Lost to Follow-Up", "Death", "Withdrew Consent"),
+  sample(
+    c("", "Lost to Follow-Up", "Death", "Withdrew Consent"),
     size = n,
     prob = c(0.85, 0.05, 0.05, 0.05),
     replace = TRUE
@@ -124,13 +144,24 @@ completion_date <- function(n, ...) {
 #' @returns Aligned `studcomp`, including missing Confirmed records, or `NULL`.
 #' @keywords internal
 #' @noRd
-apply_ipns_studcomp <- function(studcomp, subj, endDate, nConsentWithdrawnShare = 0.3) {
-  if (!all(c("subjid", "compyn", "compreas", "mincreated_dts") %in% names(studcomp)) ||
-    !("drv_ip_nonstarter_status" %in% names(subj))) {
+apply_ipns_studcomp <- function(
+  studcomp,
+  subj,
+  endDate,
+  nConsentWithdrawnShare = 0.3
+) {
+  if (
+    !all(
+      c("subjid", "compyn", "compreas", "mincreated_dts") %in% names(studcomp)
+    ) ||
+      !("drv_ip_nonstarter_status" %in% names(subj))
+  ) {
     return(studcomp)
   }
 
-  confirmed <- subj$subjid[subj$drv_ip_nonstarter_status %in% "Confirmed Non-Starter"]
+  confirmed <- subj$subjid[
+    subj$drv_ip_nonstarter_status %in% "Confirmed Non-Starter"
+  ]
   missing <- setdiff(confirmed, studcomp$subjid)
   if (length(missing) > 0) {
     studcomp <- dplyr::bind_rows(
@@ -161,13 +192,22 @@ apply_ipns_studcomp <- function(studcomp, subj, endDate, nConsentWithdrawnShare 
   studcomp$compreas[potential] <- ""
 
   fix <- dosed & studcomp$compyn %in% "N" & blank
-  studcomp$compreas[fix] <- c("Lost to Follow-Up", "Death", "Withdrew Consent")[(id[fix] %/% 10L) %% 3L + 1L]
+  studcomp$compreas[fix] <- c("Lost to Follow-Up", "Death", "Withdrew Consent")[
+    (id[fix] %/% 10L) %% 3L + 1L
+  ]
   studcomp$compreas[dosed & !(studcomp$compyn %in% "N")] <- ""
 
-  anchor <- dplyr::coalesce(subj$drv_ip_first_dose_dt[i], subj$drv_enrollment_dt[i])
+  anchor <- dplyr::coalesce(
+    subj$drv_ip_first_dose_dt[i],
+    subj$drv_enrollment_dt[i]
+  )
   created <- as.Date(studcomp$mincreated_dts)
-  fix <- !is.na(status) & (is.na(created) | created < anchor | created > as.Date(endDate))
-  studcomp$mincreated_dts[fix] <- as.POSIXct(pmin(anchor[fix] + id[fix] %% 15L, as.Date(endDate)))
+  fix <- !is.na(status) &
+    (is.na(created) | created < anchor | created > as.Date(endDate))
+  studcomp$mincreated_dts[fix] <- as.POSIXct(pmin(
+    anchor[fix] + id[fix] %% 15L,
+    as.Date(endDate)
+  ))
 
   studcomp
 }

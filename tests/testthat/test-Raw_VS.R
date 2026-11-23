@@ -10,10 +10,26 @@ test_that("count_repeat_windows matches the hand-computed worked examples (#143)
   # reduces to five measurements (10, 10, 10, 4, 5) and yields 3 windows, not
   # the 4 its six rows would suggest.
   cases <- list(
-    scattered = list(values = c(10, 10, 5, 3, 10), numerator = 0, denominator = 3),
-    all_repeated = list(values = c(10, 10, 10, 10, 10), numerator = 3, denominator = 3),
-    one_run = list(values = c(10, 10, 10, 1, 5, 6), numerator = 1, denominator = 4),
-    not_performed = list(values = c(10, 10, NA, 10, 4, 5), numerator = 1, denominator = 3)
+    scattered = list(
+      values = c(10, 10, 5, 3, 10),
+      numerator = 0,
+      denominator = 3
+    ),
+    all_repeated = list(
+      values = c(10, 10, 10, 10, 10),
+      numerator = 3,
+      denominator = 3
+    ),
+    one_run = list(
+      values = c(10, 10, 10, 1, 5, 6),
+      numerator = 1,
+      denominator = 4
+    ),
+    not_performed = list(
+      values = c(10, 10, NA, 10, 4, 5),
+      numerator = 1,
+      denominator = 3
+    )
   )
 
   for (nm in names(cases)) {
@@ -49,7 +65,19 @@ test_that("Raw_VS migrated domain adapter generates a data frame with expected c
 
   expect_s3_class(vs_df, "data.frame")
   expect_true(nrow(vs_df) > 0)
-  expect_contains(names(vs_df), c("subjid", "project", "foldername", "vs_dt", "vsperf_std", "weight", "sysbp", "diabp"))
+  expect_contains(
+    names(vs_df),
+    c(
+      "subjid",
+      "project",
+      "foldername",
+      "vs_dt",
+      "vsperf_std",
+      "weight",
+      "sysbp",
+      "diabp"
+    )
+  )
 
   # One row per subject x visit -- no dot-flattened list columns from
   # the split_vars processing.
@@ -108,7 +136,10 @@ test_that("Raw_VS treats n as a subject count capped at the available roster (#1
   # A count above the roster (e.g. a row-count-style `domain_counts` value)
   # must not fail sampling; it is capped at the subjects available.
   expect_no_error(
-    vs_big <- generate_domain_from_registry("Raw_VS", make_vs_context(data, n = 80))
+    vs_big <- generate_domain_from_registry(
+      "Raw_VS",
+      make_vs_context(data, n = 80)
+    )
   )
   expect_length(unique(vs_big$subjid), 20)
   expect_shape(vs_big, nrow = 20 * 4)
@@ -121,7 +152,10 @@ test_that("Raw_VS appends only newly enrolled subjects as the roster grows (#143
   # the case the delta model actually turns on: a snapshot where some subjects
   # are already frozen in `previous_data` and others are new.
   data1 <- make_vs_test_data(n_subjects = 10, n_visits = 4)
-  vs_snapshot1 <- generate_domain_from_registry("Raw_VS", make_vs_context(data1))
+  vs_snapshot1 <- generate_domain_from_registry(
+    "Raw_VS",
+    make_vs_context(data1)
+  )
 
   data2 <- make_vs_test_data(n_subjects = 15, n_visits = 4)
   context2 <- make_vs_context(data2, n = 15, start_date = as.Date("2012-02-01"))
@@ -409,7 +443,10 @@ test_that("Raw_VS falls back to generator defaults when no risk profile is suppl
   expect_equal(with_profile, without_field)
 
   # Defaults still produce a usable spread of site rates.
-  rates <- site_repeat_rate(attach_vs_site(with_profile, data), strValueCol = "weight")
+  rates <- site_repeat_rate(
+    attach_vs_site(with_profile, data),
+    strValueCol = "weight"
+  )
   expect_true(any(!is.na(rates$rate)))
 })
 
@@ -421,7 +458,10 @@ test_that("Raw_VS honors a caller-supplied risk profile end to end (#143)", {
     "Raw_VS",
     make_vs_context(data, risk_profile = list(dPctRed = 0, dPctAmber = 0.2))
   )
-  rates_no_red <- site_repeat_rate(attach_vs_site(no_red, data), strValueCol = "weight")
+  rates_no_red <- site_repeat_rate(
+    attach_vs_site(no_red, data),
+    strValueCol = "weight"
+  )
   expect_equal(sum(rates_no_red$rate >= 0.30, na.rm = TRUE), 0)
 
   set.seed(7744)
@@ -432,7 +472,10 @@ test_that("Raw_VS honors a caller-supplied risk profile end to end (#143)", {
       risk_profile = list(dPctRed = 0.5, dPctAmber = 0.2)
     )
   )
-  rates_many_red <- site_repeat_rate(attach_vs_site(many_red, data), strValueCol = "weight")
+  rates_many_red <- site_repeat_rate(
+    attach_vs_site(many_red, data),
+    strValueCol = "weight"
+  )
   expect_equal(sum(rates_many_red$rate >= 0.30, na.rm = TRUE), 5)
 })
 
@@ -456,14 +499,22 @@ test_that("Raw_VS risk profile can be restricted to a subset of vitals (#143)", 
   # Targeted vitals show red sites; untargeted ones do not.
   expect_gt(
     sum(
-      site_repeat_rate(attach_vs_site(vs_df, data), strValueCol = "weight")$rate >= 0.30,
+      site_repeat_rate(
+        attach_vs_site(vs_df, data),
+        strValueCol = "weight"
+      )$rate >=
+        0.30,
       na.rm = TRUE
     ),
     0
   )
   expect_equal(
     sum(
-      site_repeat_rate(attach_vs_site(vs_df, data), strValueCol = "sysbp")$rate >= 0.30,
+      site_repeat_rate(
+        attach_vs_site(vs_df, data),
+        strValueCol = "sysbp"
+      )$rate >=
+        0.30,
       na.rm = TRUE
     ),
     0
@@ -571,7 +622,11 @@ test_that(".resolve_risk_profile checks the profile after defaults (#143)", {
 })
 
 test_that("a partial risk_profile is rejected at config time (#143)", {
-  config <- create_study_config("VS-PARTIAL", participant_count = 10, site_count = 10)
+  config <- create_study_config(
+    "VS-PARTIAL",
+    participant_count = 10,
+    site_count = 10
+  )
   config$study_params$risk_profile <- list(dPctRed = 0.9)
 
   # Previously this validated, then failed inside allocate_site_risk()
@@ -613,7 +668,10 @@ test_that("vital generators skip site targeting when no sites are supplied (#143
 
   # With no sites there is nothing to target, so the values are plain draws.
   set.seed(4182)
-  expect_equal(values, round(stats::rnorm(length(subjects), mean = 75, sd = 10), 1))
+  expect_equal(
+    values,
+    round(stats::rnorm(length(subjects), mean = 75, sd = 10), 1)
+  )
 })
 
 test_that("vital generation tolerates records with an unknown site (#143)", {
@@ -622,8 +680,12 @@ test_that("vital generation tolerates records with an unknown site (#143)", {
 
   set.seed(5530)
   values <- .generate_vital(
-    length(subjects), subjects, sites,
-    performed = NULL, lRiskProfile = NULL, strVital = "weight"
+    length(subjects),
+    subjects,
+    sites,
+    performed = NULL,
+    lRiskProfile = NULL,
+    strVital = "weight"
   )
 
   expect_length(values, length(subjects))
@@ -650,15 +712,22 @@ test_that("missing site IDs do not consume a risk band allocation (#143)", {
   sites <- c(rep("SITE1", 36), rep("SITE2", 36), rep(NA_character_, 36))
 
   profile <- list(
-    dPctRed = 0.5, dPctAmber = 0,
-    dRateRed = 0.6, dRateAmber = 0.25, dRateNormal = 0
+    dPctRed = 0.5,
+    dPctAmber = 0,
+    dRateRed = 0.6,
+    dRateAmber = 0.25,
+    dRateNormal = 0
   )
 
   for (seed in c(6612, 1187, 4403, 8829)) {
     set.seed(seed)
     values <- .generate_vital(
-      length(subjects), subjects, sites,
-      performed = NULL, lRiskProfile = profile, strVital = "weight"
+      length(subjects),
+      subjects,
+      sites,
+      performed = NULL,
+      lRiskProfile = profile,
+      strVital = "weight"
     )
 
     elevated <- vapply(
@@ -681,12 +750,19 @@ test_that("all-missing site IDs leave values untargeted (#143)", {
 
   set.seed(9034)
   values <- .generate_vital(
-    length(subjects), subjects, sites,
-    performed = NULL, lRiskProfile = NULL, strVital = "weight"
+    length(subjects),
+    subjects,
+    sites,
+    performed = NULL,
+    lRiskProfile = NULL,
+    strVital = "weight"
   )
 
   set.seed(9034)
-  expect_equal(values, round(stats::rnorm(length(subjects), mean = 75, sd = 10), 1))
+  expect_equal(
+    values,
+    round(stats::rnorm(length(subjects), mean = 75, sd = 10), 1)
+  )
 })
 
 test_that("Raw_VS vs_dt is a Date even when Raw_VISIT supplies character dates (#143)", {
@@ -695,7 +771,11 @@ test_that("Raw_VS vs_dt is a Date even when Raw_VISIT supplies character dates (
   # The real `Raw_VISIT` generator emits "%Y-%m-%d" strings, not `Date`s. The
   # `vs_dt` column must still honour the `Date` contract the previous
   # `generic_date` generator established.
-  data <- make_vs_test_data(n_subjects = 10, n_visits = 5, strDateClass = "character")
+  data <- make_vs_test_data(
+    n_subjects = 10,
+    n_visits = 5,
+    strDateClass = "character"
+  )
   expect_type(data$Raw_VISIT$visit_dt, "character")
 
   vs_df <- generate_domain_from_registry("Raw_VS", make_vs_context(data))
@@ -711,7 +791,10 @@ test_that("Raw_VS vs_dt is a Date even when Raw_VISIT supplies character dates (
   expect_equal(vs_df$vs_dt, expected)
 
   for (s in unique(vs_df$subjid)) {
-    expect_false(is.unsorted(vs_df$vs_dt[vs_df$subjid == s]), info = paste("subject", s))
+    expect_false(
+      is.unsorted(vs_df$vs_dt[vs_df$subjid == s]),
+      info = paste("subject", s)
+    )
   }
 })
 
@@ -719,13 +802,21 @@ test_that("Raw_VS vs_dt class does not depend on the schedule's storage type (#1
   set.seed(8827)
   date_df <- generate_domain_from_registry(
     "Raw_VS",
-    make_vs_context(make_vs_test_data(n_subjects = 8, n_visits = 4, strDateClass = "Date"))
+    make_vs_context(make_vs_test_data(
+      n_subjects = 8,
+      n_visits = 4,
+      strDateClass = "Date"
+    ))
   )
 
   set.seed(8827)
   chr_df <- generate_domain_from_registry(
     "Raw_VS",
-    make_vs_context(make_vs_test_data(n_subjects = 8, n_visits = 4, strDateClass = "character"))
+    make_vs_context(make_vs_test_data(
+      n_subjects = 8,
+      n_visits = 4,
+      strDateClass = "character"
+    ))
   )
 
   expect_equal(date_df$vs_dt, chr_df$vs_dt)
@@ -745,7 +836,10 @@ test_that("Raw_VS generates exactly the columns VS.yaml specifies (#113, #143)",
   skip_if(is.null(spec), "VS.yaml not available in the installed gsm.mapping")
 
   data <- make_vs_test_data(n_subjects = 8, n_visits = 5)
-  vs_df <- generate_domain_from_registry("Raw_VS", make_vs_context(data, spec = spec))
+  vs_df <- generate_domain_from_registry(
+    "Raw_VS",
+    make_vs_context(data, spec = spec)
+  )
 
   # `source_col` names the column in the raw extract, so that is what a raw
   # domain must emit.
@@ -770,7 +864,10 @@ test_that("Raw_VS emits no invid or bmi column under the real spec (#113, #143)"
 
   vs_df <- generate_domain_from_registry(
     "Raw_VS",
-    make_vs_context(make_vs_test_data(n_subjects = 6, n_visits = 4), spec = spec)
+    make_vs_context(
+      make_vs_test_data(n_subjects = 6, n_visits = 4),
+      spec = spec
+    )
   )
 
   # `invid` is joined from Mapped_SUBJ during Mapped_VS construction, and the
@@ -788,7 +885,11 @@ test_that("Raw_VS generates through the standard study config (#113, #143)", {
   # Exercises the config path end to end, which the hand-built fixtures
   # bypassed entirely -- it failed outright before this fix.
   config <- add_dataset_config(
-    create_standard_study_config("DEMO", participant_count = 15, site_count = 3),
+    create_standard_study_config(
+      "DEMO",
+      participant_count = 15,
+      site_count = 3
+    ),
     "Raw_VS"
   )
   snapshot <- suppressMessages(generate_study_data(config))[[1]]
@@ -814,7 +915,10 @@ test_that("Raw_VS fills legacy visit aliases from the schedule (#143)", {
     spec[[alias]] <- list(required = TRUE, type = "character")
 
     data <- make_vs_test_data(n_subjects = 6, n_visits = 4)
-    vs_df <- generate_domain_from_registry("Raw_VS", make_vs_context(data, spec = spec))
+    vs_df <- generate_domain_from_registry(
+      "Raw_VS",
+      make_vs_context(data, spec = spec)
+    )
 
     expect_contains(names(vs_df), alias)
     expect_false(anyNA(vs_df[[alias]]), info = alias)
@@ -831,7 +935,10 @@ test_that("Raw_VS fills every declared visit alias (#143)", {
   spec$instancename <- list(required = TRUE, type = "character")
 
   data <- make_vs_test_data(n_subjects = 5, n_visits = 4)
-  vs_df <- generate_domain_from_registry("Raw_VS", make_vs_context(data, spec = spec))
+  vs_df <- generate_domain_from_registry(
+    "Raw_VS",
+    make_vs_context(data, spec = spec)
+  )
 
   # `visit` carries source_col = "foldername"; `instancename` stands alone.
   expect_false(anyNA(vs_df$foldername))
@@ -844,7 +951,8 @@ test_that("create_standard_study_config forwards risk_profile (#143)", {
 
   config <- create_standard_study_config(
     "DEMO",
-    participant_count = 10, site_count = 3,
+    participant_count = 10,
+    site_count = 3,
     risk_profile = profile
   )
 
@@ -973,7 +1081,11 @@ test_that("risk_profile rejects out-of-order band rates (#143)", {
   )
   # Equal rates are allowed (e.g. disabling targeting by flattening bands).
   expect_no_error(
-    .resolve_risk_profile(list(dRateNormal = 0.2, dRateAmber = 0.2, dRateRed = 0.2))
+    .resolve_risk_profile(list(
+      dRateNormal = 0.2,
+      dRateAmber = 0.2,
+      dRateRed = 0.2
+    ))
   )
 })
 
@@ -983,7 +1095,10 @@ test_that("create_longitudinal_study() records risk_profile on the study (#143)"
   profile <- list(dPctRed = 0.2, dPctAmber = 0.2)
   study <- suppressMessages(create_longitudinal_study(
     "DEMO",
-    participants = 20, sites = 2, snapshots = 2, domains = "VS",
+    participants = 20,
+    sites = 2,
+    snapshots = 2,
+    domains = "VS",
     risk_profile = profile
   ))
   expect_identical(study$config$risk_profile, profile)
@@ -994,7 +1109,10 @@ test_that("create_longitudinal_study() validates risk_profile (#143)", {
   expect_error(
     create_longitudinal_study(
       "DEMO",
-      participants = 20, sites = 2, snapshots = 2, domains = "VS",
+      participants = 20,
+      sites = 2,
+      snapshots = 2,
+      domains = "VS",
       risk_profile = list(dPctRedd = 0.1)
     ),
     "unknown field"
@@ -1025,10 +1143,14 @@ test_that("a Raw_VS-level risk_profile generates the same data as the flat one (
   flat <- list(dPctRed = 0.25, dPctAmber = 0.25, dRateRed = 0.6)
 
   set.seed(4821)
-  a <- generate_domain_from_registry("Raw_VS", make_vs_context(data, risk_profile = flat))
+  a <- generate_domain_from_registry(
+    "Raw_VS",
+    make_vs_context(data, risk_profile = flat)
+  )
   set.seed(4821)
   b <- generate_domain_from_registry(
-    "Raw_VS", make_vs_context(data, risk_profile = list(Raw_VS = flat))
+    "Raw_VS",
+    make_vs_context(data, risk_profile = list(Raw_VS = flat))
   )
   expect_equal(a, b)
 })
@@ -1044,7 +1166,9 @@ test_that("risk_profile rejects malformed nested profiles (#143)", {
     vital_not_list = list(Raw_VS = list(sysbp = 0.2)),
     vital_unknown_field = list(Raw_VS = list(sysbp = list(dRatered = 0.2))),
     vital_with_vVitals = list(Raw_VS = list(sysbp = list(vVitals = "pulse"))),
-    vital_not_in_vVitals = list(Raw_VS = list(sysbp = list(), vVitals = "pulse")),
+    vital_not_in_vVitals = list(
+      Raw_VS = list(sysbp = list(), vVitals = "pulse")
+    ),
     vital_out_of_order = list(Raw_VS = list(sysbp = list(dRateRed = 0.01)))
   )
   for (nm in names(bad)) {
@@ -1083,13 +1207,26 @@ test_that("Raw_VS honors different risk profiles per vital (#143)", {
   profile <- list(
     nWindowLength = 3,
     Raw_VS = list(
-      weight = list(dPctRed = 0.2, dPctAmber = 0, dRateNormal = 0, dRateAmber = 0, dRateRed = 0.6),
-      sysbp = list(dPctRed = 0, dPctAmber = 0.5, dRateNormal = 0, dRateAmber = 0.3, dRateRed = 0.6)
+      weight = list(
+        dPctRed = 0.2,
+        dPctAmber = 0,
+        dRateNormal = 0,
+        dRateAmber = 0,
+        dRateRed = 0.6
+      ),
+      sysbp = list(
+        dPctRed = 0,
+        dPctAmber = 0.5,
+        dRateNormal = 0,
+        dRateAmber = 0.3,
+        dRateRed = 0.6
+      )
     )
   )
 
   vs_df <- generate_domain_from_registry(
-    "Raw_VS", make_vs_context(data, spec = make_vs_full_spec(), risk_profile = profile)
+    "Raw_VS",
+    make_vs_context(data, spec = make_vs_full_spec(), risk_profile = profile)
   )
   w <- site_repeat_rate(attach_vs_site(vs_df, data), strValueCol = "weight")
   s <- site_repeat_rate(attach_vs_site(vs_df, data), strValueCol = "sysbp")
@@ -1108,10 +1245,14 @@ test_that("Raw_VS honors different risk profiles per vital (#143)", {
 
 test_that("risk_profile layers mix and match at every level (#143)", {
   profile <- list(
-    dPctRed = 1, dPctAmber = 0,
-    dRateNormal = 0.05, dRateAmber = 0.25, dRateRed = 0.45,
+    dPctRed = 1,
+    dPctAmber = 0,
+    dRateNormal = 0.05,
+    dRateAmber = 0.25,
+    dRateRed = 0.45,
     Raw_VS = list(
-      dPctRed = 0.5, dPctAmber = 0.5,
+      dPctRed = 0.5,
+      dPctAmber = 0.5,
       vVitals = c("weight", "sysbp"),
       weight = list(dPctRed = 0.25, dPctAmber = 0.25, dRateNormal = 0.25)
     )
@@ -1132,7 +1273,8 @@ test_that("risk_profile layers mix and match at every level (#143)", {
   set.seed(3907)
   data <- make_vs_test_data(n_subjects = 80, n_visits = 10, n_sites = 8)
   vs_df <- generate_domain_from_registry(
-    "Raw_VS", make_vs_context(data, spec = make_vs_full_spec(), risk_profile = profile)
+    "Raw_VS",
+    make_vs_context(data, spec = make_vs_full_spec(), risk_profile = profile)
   )
   full <- attach_vs_site(vs_df, data)
   w <- site_repeat_rate(full, strValueCol = "weight")

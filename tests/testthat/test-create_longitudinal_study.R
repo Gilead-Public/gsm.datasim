@@ -4,7 +4,11 @@ test_that("create_longitudinal_study() builds a study without analytics", {
     generate_study_snapshots = function(...) fake_raw_data(3)
   )
   study <- create_longitudinal_study(
-    "S-1", participants = 10, sites = 2, snapshots = 3, domains = "AE"
+    "S-1",
+    participants = 10,
+    sites = 2,
+    snapshots = 3,
+    domains = "AE"
   )
   expect_s3_class(study, "longitudinal_study")
   expect_length(study$raw_data, 3)
@@ -15,7 +19,10 @@ test_that("create_longitudinal_study() builds a study without analytics", {
 
 test_that("create_longitudinal_study() validates inputs", {
   test_at_log_threshold()
-  expect_error(create_longitudinal_study(participants = 0), "Participants must be positive")
+  expect_error(
+    create_longitudinal_study(participants = 0),
+    "Participants must be positive"
+  )
 })
 
 test_that("create_longitudinal_study() runs analytics and reporting when requested", {
@@ -39,7 +46,11 @@ test_that("create_longitudinal_study() runs analytics and reporting when request
   expect_equal(seen$analytics_config$domains, c("AE", "LB", "VISIT"))
 
   both <- expect_output(
-    create_longitudinal_study(run_analytics = TRUE, run_reporting = TRUE, verbose = TRUE),
+    create_longitudinal_study(
+      run_analytics = TRUE,
+      run_reporting = TRUE,
+      verbose = TRUE
+    ),
     "Running reporting pipeline"
   )
   expect_equal(both$reporting, list(r = 1))
@@ -51,25 +62,39 @@ test_that("create_longitudinal_study() runs analytics and reporting when request
 
 test_that("quick_longitudinal_study() rejects unknown study types", {
   test_at_log_threshold()
-  expect_error(quick_longitudinal_study(study_type = "other"), "study_type must be")
+  expect_error(
+    quick_longitudinal_study(study_type = "other"),
+    "study_type must be"
+  )
 })
 
 test_that("quick_longitudinal_study() standard type normalizes the study ID", {
   test_at_log_threshold()
   local_mocked_bindings(
     generate_study_snapshots = function(...) fake_raw_data(2),
-    generate_analytics_layers = function(...) list(results = list(Analysis_a = 1, other = 2)),
+    generate_analytics_layers = function(...) {
+      list(results = list(Analysis_a = 1, other = 2))
+    },
     generate_reporting_layers = function(...) list(s1 = list(), s2 = NULL)
   )
-  study <- quick_longitudinal_study("gs-us 1.2", participants = 10, sites = 2, months_duration = 2)
+  study <- quick_longitudinal_study(
+    "gs-us 1.2",
+    participants = 10,
+    sites = 2,
+    months_duration = 2
+  )
   expect_equal(study$study_id, "GS-US-1-2")
   expect_equal(study$config$analytics_package, "gsm.kri")
   expect_null(study$analytics)
 
   expect_snapshot(
     study <- quick_longitudinal_study(
-      "s", participants = 10, sites = 2, months_duration = 2,
-      include_pipeline = TRUE, verbose = TRUE
+      "s",
+      participants = 10,
+      sites = 2,
+      months_duration = 2,
+      include_pipeline = TRUE,
+      verbose = TRUE
     )
   )
 })
@@ -88,7 +113,12 @@ test_that("quick_longitudinal_study() summarizes multi-snapshot analytics when v
     generate_reporting_layers = function(...) list(s1 = list())
   )
   expect_snapshot(
-    study <- quick_longitudinal_study("s", months_duration = 2, include_pipeline = TRUE, verbose = TRUE)
+    study <- quick_longitudinal_study(
+      "s",
+      months_duration = 2,
+      include_pipeline = TRUE,
+      verbose = TRUE
+    )
   )
 })
 
@@ -100,7 +130,12 @@ test_that("quick_longitudinal_study() handles empty analytics when verbose", {
     generate_reporting_layers = function(...) list()
   )
   expect_snapshot(
-    study <- quick_longitudinal_study("s", months_duration = 2, include_pipeline = TRUE, verbose = TRUE)
+    study <- quick_longitudinal_study(
+      "s",
+      months_duration = 2,
+      include_pipeline = TRUE,
+      verbose = TRUE
+    )
   )
 })
 
@@ -119,7 +154,11 @@ test_that("quick_longitudinal_study() endpoints type builds config from endpoint
     generate_reporting_layers = function(...) list(r = 1)
   )
 
-  study <- quick_longitudinal_study("e", study_type = "endpoints", months_duration = 2)
+  study <- quick_longitudinal_study(
+    "e",
+    study_type = "endpoints",
+    months_duration = 2
+  )
   expect_equal(study$config$study_type, "endpoints")
   expect_equal(study$config$domains, c("X", "Y"))
   expect_contains(names(seen$config$dataset_configs), c("Raw_X", "Raw_Y"))
@@ -128,8 +167,11 @@ test_that("quick_longitudinal_study() endpoints type builds config from endpoint
 
   expect_snapshot(
     piped <- quick_longitudinal_study(
-      "e", study_type = "endpoints", months_duration = 2,
-      include_pipeline = TRUE, verbose = TRUE
+      "e",
+      study_type = "endpoints",
+      months_duration = 2,
+      include_pipeline = TRUE,
+      verbose = TRUE
     )
   )
   expect_equal(piped$analytics, list(a = 1))
@@ -141,7 +183,8 @@ test_that("create_multiple_longitudinal_studies() generates sequentially and ver
   local_mocked_bindings(
     create_longitudinal_study = function(study_id, ...) {
       create_longitudinal_study_data(
-        study_id, fake_raw_data(2),
+        study_id,
+        fake_raw_data(2),
         list(participants = 5, sites = 1, domains = "AE")
       )
     }
@@ -149,7 +192,9 @@ test_that("create_multiple_longitudinal_studies() generates sequentially and ver
   expect_snapshot(
     studies <- create_multiple_longitudinal_studies(
       c("A", "B"),
-      run_analytics = TRUE, run_reporting = TRUE, verbose = TRUE
+      run_analytics = TRUE,
+      run_reporting = TRUE,
+      verbose = TRUE
     )
   )
   expect_s3_class(studies, "multiple_longitudinal_studies")
@@ -162,16 +207,26 @@ test_that("create_multiple_longitudinal_studies() applies per-study vectors and 
   local_mocked_bindings(
     create_longitudinal_study = function(study_id, participants, domains, ...) {
       seen[[study_id]] <<- list(participants = participants, domains = domains)
-      create_longitudinal_study_data(study_id, list(), list(participants = 1, sites = 1, domains = "AE"))
+      create_longitudinal_study_data(
+        study_id,
+        list(),
+        list(participants = 1, sites = 1, domains = "AE")
+      )
     }
   )
   create_multiple_longitudinal_studies(
     c("A", "B"),
-    participants = c(10, 20), sites = c(1, 2), snapshots = c(2, 3),
-    interval = c("1 month", "2 weeks"), outlier_intensity = c(1, 2),
+    participants = c(10, 20),
+    sites = c(1, 2),
+    snapshots = c(2, 3),
+    interval = c("1 month", "2 weeks"),
+    outlier_intensity = c(1, 2),
     study_configs = list(B = list(domains = "PD"))
   )
-  expect_equal(seen$A, list(participants = 10, domains = c("AE", "LB", "VISIT")))
+  expect_equal(
+    seen$A,
+    list(participants = 10, domains = c("AE", "LB", "VISIT"))
+  )
   expect_equal(seen$B, list(participants = 20, domains = "PD"))
 })
 
@@ -180,36 +235,59 @@ test_that("create_multiple_longitudinal_studies() exports studies when requested
   exported <- character()
   local_mocked_bindings(
     create_longitudinal_study = function(study_id, ...) {
-      create_longitudinal_study_data(study_id, list(), list(participants = 1, sites = 1, domains = "AE"))
+      create_longitudinal_study_data(
+        study_id,
+        list(),
+        list(participants = 1, sites = 1, domains = "AE")
+      )
     },
     export_study_data = function(study, study_folder, ...) {
       exported <<- c(exported, study_folder)
       invisible(NULL)
     }
   )
-  quiet <- create_multiple_longitudinal_studies(c("A", "B"), export_studies = TRUE)
+  quiet <- create_multiple_longitudinal_studies(
+    c("A", "B"),
+    export_studies = TRUE
+  )
   expect_equal(exported, c("A", "B"))
 
   expect_snapshot(
-    invisible(create_multiple_longitudinal_studies(c("A"), export_studies = TRUE, verbose = TRUE))
+    invisible(create_multiple_longitudinal_studies(
+      c("A"),
+      export_studies = TRUE,
+      verbose = TRUE
+    ))
   )
 })
 
 test_that("create_multiple_longitudinal_studies() supports parallel generation", {
   test_at_log_threshold()
   local_mocked_bindings(
-    create_longitudinal_study = function(study_id, ...) create_longitudinal_study_data(study_id, list(), list(participants = 1, sites = 1, domains = "AE"))
+    create_longitudinal_study = function(study_id, ...) {
+      create_longitudinal_study_data(
+        study_id,
+        list(),
+        list(participants = 1, sites = 1, domains = "AE")
+      )
+    }
   )
   local_mocked_bindings(
     detectCores = function(...) 4L,
     makeCluster = function(...) "cluster",
     clusterEvalQ = function(...) NULL,
     stopCluster = function(...) NULL,
-    clusterMap = function(cl, fun, ..., SIMPLIFY = FALSE) mapply(fun, ..., SIMPLIFY = FALSE),
+    clusterMap = function(cl, fun, ..., SIMPLIFY = FALSE) {
+      mapply(fun, ..., SIMPLIFY = FALSE)
+    },
     .package = "parallel"
   )
   expect_snapshot(
-    studies <- create_multiple_longitudinal_studies(c("A", "B"), parallel = TRUE, verbose = TRUE)
+    studies <- create_multiple_longitudinal_studies(
+      c("A", "B"),
+      parallel = TRUE,
+      verbose = TRUE
+    )
   )
   expect_named(studies, c("A", "B"))
 })
@@ -217,7 +295,13 @@ test_that("create_multiple_longitudinal_studies() supports parallel generation",
 test_that("create_multiple_longitudinal_studies() falls back when parallel is unavailable", {
   test_at_log_threshold()
   local_mocked_bindings(
-    create_longitudinal_study = function(study_id, ...) create_longitudinal_study_data(study_id, list(), list(participants = 1, sites = 1, domains = "AE")),
+    create_longitudinal_study = function(study_id, ...) {
+      create_longitudinal_study_data(
+        study_id,
+        list(),
+        list(participants = 1, sites = 1, domains = "AE")
+      )
+    },
     pkg_available = function(pkg) FALSE
   )
   expect_warning(
@@ -260,7 +344,9 @@ test_that("export_multiple_studies() validates input and returns export paths", 
     class = c("multiple_longitudinal_studies", "list")
   )
   local_mocked_bindings(
-    export_study_data = function(study, output_dir, study_folder, ...) file.path(output_dir, study_folder)
+    export_study_data = function(study, output_dir, study_folder, ...) {
+      file.path(output_dir, study_folder)
+    }
   )
   tmp <- withr::local_tempdir()
 
@@ -294,7 +380,9 @@ test_that("study_portfolio() extracts vectorised params and per-study overrides"
       SMALL = list(participants = 50, domains = "AE"),
       BIG = list(sites = 25, outlier_intensity = 2)
     ),
-    participants = 100, sites = 10, snapshots = 6,
+    participants = 100,
+    sites = 10,
+    snapshots = 6,
     verbose = TRUE
   )
   expect_equal(res, "ok")
@@ -311,6 +399,12 @@ test_that("study_portfolio() extracts vectorised params and per-study overrides"
 
 test_that("create_multiple_longitudinal_studies() validates study names", {
   test_at_log_threshold()
-  expect_error(create_multiple_longitudinal_studies(character(0)), "at least one study name")
-  expect_error(create_multiple_longitudinal_studies(c("A", "A")), "duplicate values")
+  expect_error(
+    create_multiple_longitudinal_studies(character(0)),
+    "at least one study name"
+  )
+  expect_error(
+    create_multiple_longitudinal_studies(c("A", "A")),
+    "duplicate values"
+  )
 })

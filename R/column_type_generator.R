@@ -16,7 +16,10 @@ infer_column_type <- function(col_name, col_spec = list()) {
 
   if (!is.null(col_spec$type)) {
     type <- tolower(col_spec$type)
-    if (type %in% c("date", "numeric", "integer", "logical", "character", "timestamp")) {
+    if (
+      type %in%
+        c("date", "numeric", "integer", "logical", "character", "timestamp")
+    ) {
       return(type)
     }
   }
@@ -107,7 +110,12 @@ get_fk_mappings <- function() {
 #' # Generate character values with explicit type
 #' generate_column_by_type("category", list(type = "character"), n = 5)
 #' @export
-generate_column_by_type <- function(col_name, col_spec = list(), n, context = list()) {
+generate_column_by_type <- function(
+  col_name,
+  col_spec = list(),
+  n,
+  context = list()
+) {
   # ── FK lookup ──────────────────────────────────────────────────────────────
   fk_map <- get_fk_mappings()
   if (col_name %in% names(fk_map)) {
@@ -124,19 +132,37 @@ generate_column_by_type <- function(col_name, col_spec = list(), n, context = li
   # ── Type-based generation ──────────────────────────────────────────────────
   col_type <- infer_column_type(col_name, col_spec)
 
-  start_date <- tryCatch(as.Date(context$start_date %||% "2012-01-01"), error = function(e) as.Date("2012-01-01"))
-  end_date <- tryCatch(as.Date(context$end_date %||% "2012-12-31"), error = function(e) as.Date("2012-12-31"))
+  start_date <- tryCatch(
+    as.Date(context$start_date %||% "2012-01-01"),
+    error = function(e) as.Date("2012-01-01")
+  )
+  end_date <- tryCatch(
+    as.Date(context$end_date %||% "2012-12-31"),
+    error = function(e) as.Date("2012-12-31")
+  )
 
-  switch(col_type,
-    date = sample(seq.Date(start_date, end_date, by = "day"), n, replace = TRUE),
+  switch(
+    col_type,
+    date = sample(
+      seq.Date(start_date, end_date, by = "day"),
+      n,
+      replace = TRUE
+    ),
     timestamp = {
-      dates <- sample(seq.Date(start_date, end_date, by = "day"), n, replace = TRUE)
-      as.POSIXct(paste(dates, sprintf(
-        "%02d:%02d:%02d",
-        sample(0:23, n, replace = TRUE),
-        sample(0:59, n, replace = TRUE),
-        sample(0:59, n, replace = TRUE)
-      )))
+      dates <- sample(
+        seq.Date(start_date, end_date, by = "day"),
+        n,
+        replace = TRUE
+      )
+      as.POSIXct(paste(
+        dates,
+        sprintf(
+          "%02d:%02d:%02d",
+          sample(0:23, n, replace = TRUE),
+          sample(0:59, n, replace = TRUE),
+          sample(0:59, n, replace = TRUE)
+        )
+      ))
     },
     numeric = round(stats::rnorm(n, mean = 50, sd = 15), 2),
     integer = sample(1L:100L, n, replace = TRUE),
@@ -189,19 +215,30 @@ generate_column_by_type <- function(col_name, col_spec = list(), n, context = li
 #' domain_data <- generate_unknown_domain("Raw_CUSTOM", spec, n = 10)
 #' head(domain_data)
 #' @export
-generate_unknown_domain <- function(domain_name, domain_spec, n, context = list(),
-                                    previous_data = NULL) {
+generate_unknown_domain <- function(
+  domain_name,
+  domain_spec,
+  n,
+  context = list(),
+  previous_data = NULL
+) {
   if (n <= 0 && is.null(previous_data)) {
     return(data.frame())
   }
   if (length(domain_spec) == 0) {
-    logger::log_warn("Domain {domain_name} has no columns in spec; returning empty data.frame")
+    logger::log_warn(
+      "Domain {domain_name} has no columns in spec; returning empty data.frame"
+    )
     return(data.frame(.row = seq_len(n))[, -1, drop = FALSE])
   }
 
   # ── Delta calculation for cumulative snapshots ───────────────────────────
   existing_df <- NULL
-  if (!is.null(previous_data) && is.data.frame(previous_data) && nrow(previous_data) > 0) {
+  if (
+    !is.null(previous_data) &&
+      is.data.frame(previous_data) &&
+      nrow(previous_data) > 0
+  ) {
     existing_df <- previous_data
     delta_n <- n - nrow(existing_df)
     if (delta_n <= 0) {
@@ -226,11 +263,17 @@ generate_unknown_domain <- function(domain_name, domain_spec, n, context = list(
         result <- tryCatch(
           {
             # Attempt to call with common argument patterns
-            if ("external_subjid" %in% names(formals(gen_fn)) &&
-              !is.null(context$data$Raw_SUBJ$subjid)) {
+            if (
+              "external_subjid" %in%
+                names(formals(gen_fn)) &&
+                !is.null(context$data$Raw_SUBJ$subjid)
+            ) {
               gen_fn(delta_n, external_subjid = context$data$Raw_SUBJ$subjid)
-            } else if (all(c("startDate", "endDate") %in% names(formals(gen_fn)))) {
-              gen_fn(delta_n,
+            } else if (
+              all(c("startDate", "endDate") %in% names(formals(gen_fn)))
+            ) {
+              gen_fn(
+                delta_n,
                 startDate = context$start_date %||% "2012-01-01",
                 endDate = context$end_date %||% "2012-12-31"
               )
@@ -243,7 +286,9 @@ generate_unknown_domain <- function(domain_name, domain_spec, n, context = list(
           error = function(e) NULL
         )
 
-        if (!is.null(result) && (is.atomic(result) && length(result) == delta_n)) {
+        if (
+          !is.null(result) && (is.atomic(result) && length(result) == delta_n)
+        ) {
           return(result)
         }
       }

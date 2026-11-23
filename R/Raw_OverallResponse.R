@@ -15,7 +15,6 @@ Raw_OverallResponse <- function(data, previous_data, spec, ...) {
 
   curr_spec <- spec$Raw_OverallResponse
 
-
   if ("Raw_OverallResponse" %in% names(previous_data)) {
     dataset <- previous_data$Raw_OverallResponse
     previous_row_num <- length(unique(dataset$subjid))
@@ -43,8 +42,13 @@ Raw_OverallResponse <- function(data, previous_data, spec, ...) {
   }
 
   args <- list(
-    subjid_rs_dt = list(n,
-      subjids = unique(data$Raw_VISIT$subjid)[sample(length(unique(data$Raw_VISIT$subjid)), ceiling(n / 3), replace = TRUE)],
+    subjid_rs_dt = list(
+      n,
+      subjids = unique(data$Raw_VISIT$subjid)[sample(
+        length(unique(data$Raw_VISIT$subjid)),
+        ceiling(n / 3),
+        replace = TRUE
+      )],
       Raw_VISIT_data = data$Raw_VISIT
     ),
     studyid = list(n, data$Raw_STUDY$protocol_number[[1]]),
@@ -52,7 +56,13 @@ Raw_OverallResponse <- function(data, previous_data, spec, ...) {
     default = list(n)
   )
 
-  res <- add_new_var_data(dataset, curr_spec, args, spec$Raw_OverallResponse, ...)
+  res <- add_new_var_data(
+    dataset,
+    curr_spec,
+    args,
+    spec$Raw_OverallResponse,
+    ...
+  )
 
   return(res)
 }
@@ -60,7 +70,9 @@ response_folder <- function(n, ...) {
   rep("final response", n, replace = TRUE)
 }
 ovrlresp <- function(n, Raw_SUBJ_data = NULL, ...) {
-  row_keys <- if (is.data.frame(Raw_SUBJ_data) && "subjid" %in% names(Raw_SUBJ_data)) {
+  row_keys <- if (
+    is.data.frame(Raw_SUBJ_data) && "subjid" %in% names(Raw_SUBJ_data)
+  ) {
     sample(Raw_SUBJ_data$subjid, n, replace = TRUE)
   } else {
     NULL
@@ -82,7 +94,9 @@ subjid_rs_dt <- function(n, subjids, Raw_VISIT_data, ...) {
   filtered_visit_data <- Raw_VISIT_data %>%
     select(subjid, visit_dt) %>%
     filter(subjid %in% subjids)
-  res <- filtered_visit_data[sample(nrow(filtered_visit_data), n, replace = TRUE), ] %>%
+  res <- filtered_visit_data[
+    sample(nrow(filtered_visit_data), n, replace = TRUE),
+  ] %>%
     rename("rs_dt" = "visit_dt")
   return(list(
     subjid = res$subjid,
