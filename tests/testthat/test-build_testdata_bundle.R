@@ -850,3 +850,24 @@ test_that("the fingerprint ignores CSV line endings (#187)", {
   crlf <- .build_snapshot_args(out, small_bundle_config(), allow_local = TRUE)
   expect_identical(crlf$metadata$fingerprint, lf$metadata$fingerprint)
 })
+
+test_that("the bundle's lSource$Raw_AE carries death-linked fatal AEs (#142)", {
+  skip_if_not_installed("withr")
+  skip_if_no_bundle_pipeline()
+  # Real simulation; only the slow mapping/metric/reporting stage is faked.
+  local_mocked_bindings(
+    .bundle_workflows = function(config) list(),
+    .run_bundle_pipeline = fake_pipeline
+  )
+  local_fake_package_versions()
+  out <- withr::local_tempdir()
+  build_testdata_bundle(out, small_bundle_config())
+
+  lSource <- read_testdata_object(out, "lSource")
+  ae <- lSource$Raw_AE
+  expect_in(c("aeout", "aereldrv", "aesdth"), names(ae))
+  fatal <- ae$aeout %in% "Fatal" |
+    ae$aesdth %in% "Yes" |
+    as.character(ae$aetoxgr) %in% "5"
+  expect_true(any(ae$subjid[fatal] %in% lSource$Raw_Death$subjid))
+})

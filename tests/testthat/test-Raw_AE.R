@@ -81,7 +81,10 @@ test_that("Raw_AE generates a complete dataset from scratch", {
       "mdrsoc_nsv",
       "aetoxgr",
       "aeongo",
-      "aerel"
+      "aerel",
+      "aeout",
+      "aereldrv",
+      "aesdth"
     )
   )
   expect_in(res$subjid, data$Raw_SUBJ$subjid)
