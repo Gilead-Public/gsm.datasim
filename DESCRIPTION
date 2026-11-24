@@ -24,7 +24,7 @@ Imports:
     dplyr,
     fs,
     glue,
-    gsm.core (>= 1.3.2.9000),
+    gsm.core (>= 1.4.0),
     jsonlite,
     lifecycle,
     logger,
@@ -50,11 +50,11 @@ Suggests:
 VignetteBuilder: 
     knitr
 Remotes:
-    gsm.core=Gilead-Public/gsm.core@dev,
-    gsm.kri=Gilead-Public/gsm.kri@dev,
-    gsm.mapping=Gilead-Public/gsm.mapping@dev,
-    gsm.qtl=Gilead-Public/gsm.qtl@dev,
-    gsm.reporting=Gilead-Public/gsm.reporting@dev,
+    gsm.core=Gilead-Public/gsm.core@main,
+    gsm.kri=Gilead-Public/gsm.kri@main,
+    gsm.mapping=Gilead-Public/gsm.mapping@main,
+    gsm.qtl=Gilead-Public/gsm.qtl@main,
+    gsm.reporting=Gilead-Public/gsm.reporting@main,
     workr=Gilead-Public/workr@main
 Config/roxygen2/version: 8.1.1
 Config/testthat/edition: 3
