@@ -4,6 +4,8 @@
 
 - [`add_dataset_config()`](https://gilead-public.github.io/gsm.datasim/reference/add_dataset_config.md)
   : Add Dataset Configuration
+- [`build_testdata_bundle()`](https://gilead-public.github.io/gsm.datasim/reference/build_testdata_bundle.md)
+  : Build the shared gsm test data bundle
 - [`create_longitudinal_study()`](https://gilead-public.github.io/gsm.datasim/reference/create_longitudinal_study.md)
   : High-Level Study Creation API
 - [`create_longitudinal_study_data()`](https://gilead-public.github.io/gsm.datasim/reference/create_longitudinal_study_data.md)
@@ -62,6 +64,12 @@
   : Quick longitudinal study creation
 - [`raw_data_generator()`](https://gilead-public.github.io/gsm.datasim/reference/raw_data_generator.md)
   : Generate Raw Data for Study Snapshots
+- [`read_testdata_config()`](https://gilead-public.github.io/gsm.datasim/reference/read_testdata_config.md)
+  : Read and validate a test data bundle config
+- [`read_testdata_object()`](https://gilead-public.github.io/gsm.datasim/reference/read_testdata_object.md)
+  : Read one object from a test data bundle
+- [`read_testdata_snapshot()`](https://gilead-public.github.io/gsm.datasim/reference/read_testdata_snapshot.md)
+  : Read a test data bundle snapshot description
 - [`remove_dataset_config()`](https://gilead-public.github.io/gsm.datasim/reference/remove_dataset_config.md)
   : Remove Dataset Configuration
 - [`run_longitudinal_analytics()`](https://gilead-public.github.io/gsm.datasim/reference/run_longitudinal_analytics.md)
@@ -81,6 +89,8 @@
   : Get Summary of Longitudinal Study
 - [`summary(`*`<multiple_longitudinal_studies>`*`)`](https://gilead-public.github.io/gsm.datasim/reference/summary.multiple_longitudinal_studies.md)
   : Summary method for multiple longitudinal studies
+- [`use_gsm_datasim()`](https://gilead-public.github.io/gsm.datasim/reference/use_gsm_datasim.md)
+  : Use gsm.datasim as gsm.core's local test data builder
 - [`validate_study_config()`](https://gilead-public.github.io/gsm.datasim/reference/validate_study_config.md)
   : Validate Study Configuration
 - [`validate_study_inputs()`](https://gilead-public.github.io/gsm.datasim/reference/validate_study_inputs.md)

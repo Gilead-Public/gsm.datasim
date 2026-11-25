@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gsm.datasim</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -45,6 +45,15 @@
       <small>Source: <a href="https://github.com/Gilead-Public/gsm.datasim/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.2.0" id="gsmdatasim-v220">gsm.datasim v2.2.0<a class="anchor" aria-label="anchor" href="#gsmdatasim-v220"></a></h2>
+<p>This minor release makes gsm.datasim the source of the shared gsm test data: it builds the bundles that gsm.core serves, and publishes them automatically.</p>
+<ul><li>New <code><a href="../reference/build_testdata_bundle.html">build_testdata_bundle()</a></code> produces the shared gsm test data (<code>lSource</code>, <code>analytics*</code>, <code>reporting*</code>) for use in other gsm packages (<a href="https://github.com/Gilead-Public/gsm.datasim/issues/151" class="external-link">#151</a>, <a href="https://github.com/Gilead-Public/gsm.datasim/issues/187" class="external-link">#187</a>). <code><a href="../reference/read_testdata_config.html">read_testdata_config()</a></code>, <code><a href="../reference/read_testdata_object.html">read_testdata_object()</a></code> and <code><a href="../reference/read_testdata_snapshot.html">read_testdata_snapshot()</a></code> read a bundle’s configuration, objects and snapshot.</li>
+<li>Bundles are fingerprinted by R object digest using gsm.core’s exported snapshot tools (snapshot format 2), so fingerprints no longer depend on CSV line endings, RDS compression or R version. gsm.core moves from Suggests to Imports (<a href="https://github.com/Gilead-Public/gsm.datasim/issues/188" class="external-link">#188</a>).</li>
+<li>Test data bundles are published automatically as <code>data-&lt;fp12&gt;</code> releases when gsm.datasim, or another gsm package that feeds the bundle, merges to <code>dev</code> or <code>main</code> (<a href="https://github.com/Gilead-Public/gsm.datasim/issues/153" class="external-link">#153</a>, <a href="https://github.com/Gilead-Public/gsm.datasim/issues/182" class="external-link">#182</a>, <a href="https://github.com/Gilead-Public/gsm.datasim/issues/183" class="external-link">#183</a>).</li>
+<li>New <code><a href="../reference/use_gsm_datasim.html">use_gsm_datasim()</a></code> adds <code>options(gsm.testdata_builder = "gsm.datasim::build_testdata_bundle")</code> to your <code>.Rprofile</code>, so gsm.core builds test data from local gsm code when needed (<a href="https://github.com/Gilead-Public/gsm.datasim/issues/190" class="external-link">#190</a>).</li>
+<li>Simulated <code>Raw_AE</code> data now carries AE outcome (<code>aeout</code>), derived relatedness (<code>aereldrv</code>) and serious-death flag (<code>aesdth</code>), with deterministic fatal-AE cases linked to <code>Raw_Death</code>: participants with one, several or no qualifying fatal AEs, related, not related and missing relatedness, plus a fatal AE on a participant with no death record (<a href="https://github.com/Gilead-Public/gsm.datasim/issues/142" class="external-link">#142</a>).</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.1.0" id="gsmdatasim-v210">gsm.datasim v2.1.0<a class="anchor" aria-label="anchor" href="#gsmdatasim-v210"></a></h2>
 <p>This minor release adds simulated data for the IP Compliance (IP non-starters and premature treatment discontinuation) and Repeat Measurements analytics, and keeps longitudinal snapshots consistent from one snapshot to the next.</p>
