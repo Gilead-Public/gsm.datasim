@@ -159,8 +159,10 @@ test_that("inject_targeted_runs lands within one window of the target rate (#143
   for (target in c(0.05, 0.25, 0.45)) {
     set.seed(3301)
     out <- inject_targeted_runs(
-      input$values, input$groups,
-      dTargetRate = target, nWindowLength = 3
+      input$values,
+      input$groups,
+      dTargetRate = target,
+      nWindowLength = 3
     )
 
     realized <- site_repeat_rate(
@@ -197,7 +199,12 @@ test_that("inject_targeted_runs places repeats contiguously in group-index order
   groups <- rep("G1", 8)
   set.seed(2251)
 
-  out <- inject_targeted_runs(values, groups, dTargetRate = 0.5, nWindowLength = 3)
+  out <- inject_targeted_runs(
+    values,
+    groups,
+    dTargetRate = 0.5,
+    nWindowLength = 3
+  )
 
   # Find runs of equal adjacent values; assert they are genuine blocks rather
   # than a scattered multiset that happens to contain duplicates.
@@ -211,7 +218,8 @@ test_that("inject_targeted_runs places repeats contiguously in group-index order
   for (v in repeated_vals) {
     positions <- which(out == v)
     expect_equal(
-      positions, seq(min(positions), max(positions)),
+      positions,
+      seq(min(positions), max(positions)),
       info = paste("value", v, "is not contiguous")
     )
   }
@@ -223,7 +231,12 @@ test_that("inject_targeted_runs leaves groups with no windows untouched (#143)",
   groups <- c("A", "B", "B", "C", "C", "C", "C", "C")
   set.seed(9110)
 
-  out <- inject_targeted_runs(values, groups, dTargetRate = 0.5, nWindowLength = 3)
+  out <- inject_targeted_runs(
+    values,
+    groups,
+    dTargetRate = 0.5,
+    nWindowLength = 3
+  )
 
   expect_equal(out[groups == "A"], values[groups == "A"])
   expect_equal(out[groups == "B"], values[groups == "B"])
@@ -239,8 +252,10 @@ test_that("inject_targeted_runs respects a longer window length (#143)", {
   set.seed(5517)
 
   out <- inject_targeted_runs(
-    input$values, input$groups,
-    dTargetRate = 0.4, nWindowLength = 4
+    input$values,
+    input$groups,
+    dTargetRate = 0.4,
+    nWindowLength = 4
   )
 
   # Every injected run must be at least W long, so at least one run of >= 4
@@ -258,8 +273,10 @@ test_that("inject_targeted_runs reports a realized numerator and denominator tha
   set.seed(1471)
 
   out <- inject_targeted_runs(
-    input$values, input$groups,
-    dTargetRate = 0.3, nWindowLength = 3
+    input$values,
+    input$groups,
+    dTargetRate = 0.3,
+    nWindowLength = 3
   )
 
   realized <- attr(out, "realized")
@@ -285,8 +302,10 @@ test_that("inject_targeted_runs saturates cleanly at a target rate of one (#143)
 
   set.seed(6650)
   out <- inject_targeted_runs(
-    input$values, input$groups,
-    dTargetRate = 1.0, nWindowLength = 3
+    input$values,
+    input$groups,
+    dTargetRate = 1.0,
+    nWindowLength = 3
   )
 
   # A group's whole window capacity is consumed by a single run covering all
@@ -317,8 +336,18 @@ test_that("inject_targeted_runs validates its arguments (#143)", {
   groups <- rep("G1", 6)
 
   expect_error(inject_targeted_runs(values, rep("G1", 5), dTargetRate = 0.3))
-  expect_error(inject_targeted_runs(values, groups, dTargetRate = 0.3, nWindowLength = 1))
-  expect_error(inject_targeted_runs(values, groups, dTargetRate = 0.3, nWindowLength = 2.5))
+  expect_error(inject_targeted_runs(
+    values,
+    groups,
+    dTargetRate = 0.3,
+    nWindowLength = 1
+  ))
+  expect_error(inject_targeted_runs(
+    values,
+    groups,
+    dTargetRate = 0.3,
+    nWindowLength = 2.5
+  ))
   expect_error(inject_targeted_runs(values, groups, dTargetRate = 1.5))
   expect_error(inject_targeted_runs(values, groups, dTargetRate = -0.1))
 })
@@ -329,7 +358,12 @@ test_that("inject_targeted_runs never overwrites NA and excludes it from windows
   groups <- rep(c("A", "B"), each = 8)
   set.seed(3390)
 
-  out <- inject_targeted_runs(values, groups, dTargetRate = 0.4, nWindowLength = 3)
+  out <- inject_targeted_runs(
+    values,
+    groups,
+    dTargetRate = 0.4,
+    nWindowLength = 3
+  )
 
   # NA positions are preserved exactly.
   expect_equal(which(is.na(out)), which(is.na(values)))
@@ -345,7 +379,12 @@ test_that("inject_targeted_runs gives d = 0 to a group with fewer than W non-mis
   groups <- rep(c("A", "B"), each = 5)
   set.seed(4004)
 
-  out <- inject_targeted_runs(values, groups, dTargetRate = 0.5, nWindowLength = 3)
+  out <- inject_targeted_runs(
+    values,
+    groups,
+    dTargetRate = 0.5,
+    nWindowLength = 3
+  )
 
   # Only group B (5 non-missing, d = 3) contributes.
   expect_equal(attr(out, "realized")$denominator, 3)
@@ -392,7 +431,11 @@ test_that("assign_schedule_dates errors when a subject-visit has no scheduled da
   fx <- make_schedule_fixture()
   df <- rbind(
     fx$df,
-    data.frame(subjid = "S1", instancename = "UNSCHEDULED", stringsAsFactors = FALSE)
+    data.frame(
+      subjid = "S1",
+      instancename = "UNSCHEDULED",
+      stringsAsFactors = FALSE
+    )
   )
 
   expect_error(
@@ -431,8 +474,14 @@ test_that("assign_schedule_dates validates its inputs (#143)", {
 test_that("allocate_site_risk rejects malformed explicit counts (#143)", {
   sites <- paste0("SITE", 1:10)
 
-  expect_error(allocate_site_risk(sites, nRed = -1), "non-negative whole number")
-  expect_error(allocate_site_risk(sites, nAmber = 1.5), "non-negative whole number")
+  expect_error(
+    allocate_site_risk(sites, nRed = -1),
+    "non-negative whole number"
+  )
+  expect_error(
+    allocate_site_risk(sites, nAmber = 1.5),
+    "non-negative whole number"
+  )
 })
 
 test_that("assign_schedule_dates ordering is stable for repeated subject-visits (#143)", {
@@ -452,7 +501,12 @@ test_that("inject_targeted_runs does not over-count when the run's neighbour tie
   values <- c(1, 2, 3, 1)
   groups <- rep("G1", 4)
 
-  out <- inject_targeted_runs(values, groups, dTargetRate = 0.5, nWindowLength = 3)
+  out <- inject_targeted_runs(
+    values,
+    groups,
+    dTargetRate = 0.5,
+    nWindowLength = 3
+  )
   realized <- attr(out, "realized")
 
   expect_equal(realized$denominator, 2)
@@ -468,7 +522,12 @@ test_that("inject_targeted_runs realized numerator matches a naive recount (#143
   values <- round(stats::rnorm(length(groups), mean = 10, sd = 1), 0)
 
   for (rate in c(0.05, 0.25, 0.45, 1)) {
-    out <- inject_targeted_runs(values, groups, dTargetRate = rate, nWindowLength = 3)
+    out <- inject_targeted_runs(
+      values,
+      groups,
+      dTargetRate = rate,
+      nWindowLength = 3
+    )
     realized <- attr(out, "realized")
 
     expect_equal(
@@ -484,7 +543,12 @@ test_that("inject_targeted_runs recounts rather than over-reports a single-value
   values <- rep(5, 5)
   groups <- rep("G1", 5)
 
-  out <- inject_targeted_runs(values, groups, dTargetRate = 0.34, nWindowLength = 3)
+  out <- inject_targeted_runs(
+    values,
+    groups,
+    dTargetRate = 0.34,
+    nWindowLength = 3
+  )
   realized <- attr(out, "realized")
 
   expect_equal(realized$denominator, 3)
@@ -511,7 +575,10 @@ test_that("assign_schedule_dates accepts a POSIXct schedule (#143)", {
   out <- assign_schedule_dates(fx$df, posix_visits, strDateCol = "vs_dt")
 
   expect_s3_class(out$vs_dt, "Date")
-  expect_equal(out, assign_schedule_dates(fx$df, fx$visits, strDateCol = "vs_dt"))
+  expect_equal(
+    out,
+    assign_schedule_dates(fx$df, fx$visits, strDateCol = "vs_dt")
+  )
 })
 
 test_that("assign_schedule_dates rejects an unparseable schedule (#143)", {
@@ -539,13 +606,21 @@ test_that("inject_targeted_runs recounts pre-existing windows at a zero target (
   values <- c(1, 1, 1, 2, 5, 9)
   groups <- rep("G1", 6)
 
-  out <- inject_targeted_runs(values, groups, dTargetRate = 0, nWindowLength = 3)
+  out <- inject_targeted_runs(
+    values,
+    groups,
+    dTargetRate = 0,
+    nWindowLength = 3
+  )
   realized <- attr(out, "realized")
 
   expect_equal(as.numeric(out), values)
   expect_equal(realized$denominator, 4)
   expect_equal(realized$numerator, 1)
-  expect_equal(realized$numerator, count_identical_windows_naive(values, groups, 3))
+  expect_equal(
+    realized$numerator,
+    count_identical_windows_naive(values, groups, 3)
+  )
 })
 
 test_that("inject_targeted_runs still reports zero when no windows repeat (#143)", {
@@ -584,13 +659,15 @@ test_that("allocate_site_risk is stable as the roster grows (#143)", {
   sites <- c("A", "B", "C", "D", "E", "F", "G", "H", "I", "J")
   full <- allocate_site_risk(
     sites,
-    nTotalSites = 10, strSeedKey = "STUDY|sysbp"
+    nTotalSites = 10,
+    strSeedKey = "STUDY|sysbp"
   )
 
   for (k in seq_along(sites)) {
     partial <- allocate_site_risk(
       sites[seq_len(k)],
-      nTotalSites = 10, strSeedKey = "STUDY|sysbp"
+      nTotalSites = 10,
+      strSeedKey = "STUDY|sysbp"
     )
     expect_identical(partial, full[seq_len(k)])
   }
@@ -620,11 +697,16 @@ test_that("allocate_site_risk leaves the caller's RNG stream untouched (#143)", 
   expected <- runif(3)
 
   set.seed(4402)
-  allocate_site_risk(c("A", "B", "C"), nTotalSites = 10, strSeedKey = "STUDY|sysbp")
+  allocate_site_risk(
+    c("A", "B", "C"),
+    nTotalSites = 10,
+    strSeedKey = "STUDY|sysbp"
+  )
   expect_identical(runif(3), expected)
 })
 
 test_that("allocate_site_risk works before the RNG is initialized (#143)", {
+  skip_if_not_installed("withr")
   # A fresh session has no `.Random.seed` until something draws. Allocation
   # must not leave one behind in that case, since creating one silently
   # changes how the session's first user-visible draw behaves.
@@ -635,7 +717,8 @@ test_that("allocate_site_risk works before the RNG is initialized (#143)", {
 
     bands <- allocate_site_risk(
       c("A", "B", "C"),
-      nTotalSites = 10, strSeedKey = "STUDY|sysbp"
+      nTotalSites = 10,
+      strSeedKey = "STUDY|sysbp"
     )
 
     expect_length(bands, 3)
@@ -649,7 +732,12 @@ test_that("inject_targeted_runs counts pre-existing windows toward the target (#
   values <- c(1, 2, 3, 4, 4, 4)
   groups <- rep("G1", 6)
 
-  out <- inject_targeted_runs(values, groups, dTargetRate = 0.25, nWindowLength = 3)
+  out <- inject_targeted_runs(
+    values,
+    groups,
+    dTargetRate = 0.25,
+    nWindowLength = 3
+  )
   realized <- attr(out, "realized")
 
   expect_equal(realized$denominator, 4)
@@ -661,7 +749,12 @@ test_that("inject_targeted_runs tops up only the shortfall over pre-existing win
   values <- c(1, 2, 3, 4, 5, 6, 7, 7, 7)
   groups <- rep("G1", 9)
 
-  out <- inject_targeted_runs(values, groups, dTargetRate = 3 / 7, nWindowLength = 3)
+  out <- inject_targeted_runs(
+    values,
+    groups,
+    dTargetRate = 3 / 7,
+    nWindowLength = 3
+  )
 
   expect_equal(attr(out, "realized")$numerator, 3)
   expect_equal(count_identical_windows_naive(as.numeric(out), groups, 3), 3)

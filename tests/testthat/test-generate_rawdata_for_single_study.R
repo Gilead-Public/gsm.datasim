@@ -57,8 +57,14 @@ test_that("generate_rawdata_for_single_study post-processes IE and Randomization
 })
 
 test_that("generate_rawdata_for_single_study accepts a risk_profile (#143)", {
-  expect_contains(names(formals(generate_rawdata_for_single_study)), "risk_profile")
-  expect_contains(names(formals(generate_snapshots_from_combined_specs)), "risk_profile")
+  expect_contains(
+    names(formals(generate_rawdata_for_single_study)),
+    "risk_profile"
+  )
+  expect_contains(
+    names(formals(generate_snapshots_from_combined_specs)),
+    "risk_profile"
+  )
   expect_null(formals(generate_rawdata_for_single_study)$risk_profile)
 })
 
@@ -67,16 +73,34 @@ test_that("prepare_combined_specs_for_generation filters to desired_specs", {
     Raw_AE = list(aest_dt = list(required = TRUE)),
     Raw_SUBJ = list(subjid = list(required = TRUE))
   )
-  prepared <- prepare_combined_specs_for_generation(specs, desired_specs = c("Raw_SUBJ", "Raw_AE"))
+  prepared <- prepare_combined_specs_for_generation(
+    specs,
+    desired_specs = c("Raw_SUBJ", "Raw_AE")
+  )
   expect_named(prepared, c("Raw_SUBJ", "Raw_AE"))
 })
 
 test_that("dispatch_legacy_domain_generator routes each domain to its generator", {
   types <- c(
-    "Raw_SITE", "Raw_SUBJ", "Raw_ENROLL", "Raw_IE", "Raw_VISIT", "Raw_STUDCOMP",
-    "Raw_LB", "Raw_DATACHG", "Raw_DATAENT", "Raw_QUERY", "Raw_AE",
-    "Raw_AntiCancer", "Raw_Baseline", "Raw_Consents", "Raw_Death",
-    "Raw_Randomization", "Raw_OverallResponse", "Raw_PK", "Raw_PD"
+    "Raw_SITE",
+    "Raw_SUBJ",
+    "Raw_ENROLL",
+    "Raw_IE",
+    "Raw_VISIT",
+    "Raw_STUDCOMP",
+    "Raw_LB",
+    "Raw_DATACHG",
+    "Raw_DATAENT",
+    "Raw_QUERY",
+    "Raw_AE",
+    "Raw_AntiCancer",
+    "Raw_Baseline",
+    "Raw_Consents",
+    "Raw_Death",
+    "Raw_Randomization",
+    "Raw_OverallResponse",
+    "Raw_PK",
+    "Raw_PD"
   )
   mocks <- lapply(types, function(type) {
     force(type)
@@ -87,9 +111,15 @@ test_that("dispatch_legacy_domain_generator routes each domain to its generator"
 
   for (type in types) {
     res <- dispatch_legacy_domain_generator(
-      data_type = type, data = list(), previous_data = list(), combined_specs = list(),
-      n = 3, start_date = as.Date("2023-01-01"), end_date = as.Date("2023-02-01"),
-      SnapshotCount = 2, SnapshotWidth = "months"
+      data_type = type,
+      data = list(),
+      previous_data = list(),
+      combined_specs = list(),
+      n = 3,
+      start_date = as.Date("2023-01-01"),
+      end_date = as.Date("2023-02-01"),
+      SnapshotCount = 2,
+      SnapshotWidth = "months"
     )
     expect_equal(res$generator, type, info = type)
   }
@@ -102,9 +132,14 @@ test_that("generate_snapshots_from_combined_specs falls back to legacy generator
   local_mocked_bindings(generate_domain_from_registry = function(...) NULL)
 
   snapshots <- generate_rawdata_for_single_study(
-    SnapshotCount = 1, SnapshotWidth = "months", ParticipantCount = 20,
-    SiteCount = 3, StudyID = "ABC", workflow_path = "workflow/1_mappings",
-    mappings = "AE", package = "gsm.mapping"
+    SnapshotCount = 1,
+    SnapshotWidth = "months",
+    ParticipantCount = 20,
+    SiteCount = 3,
+    StudyID = "ABC",
+    workflow_path = "workflow/1_mappings",
+    mappings = "AE",
+    package = "gsm.mapping"
   )
   expect_contains(names(snapshots[[1]]), c("Raw_SITE", "Raw_SUBJ", "Raw_AE"))
 })

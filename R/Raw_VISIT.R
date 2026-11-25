@@ -8,7 +8,14 @@
 #' @family internal
 #' @keywords internal
 #' @noRd
-Raw_VISIT <- function(data, previous_data, spec, startDate, SnapshotWidth, ...) {
+Raw_VISIT <- function(
+  data,
+  previous_data,
+  spec,
+  startDate,
+  SnapshotWidth,
+  ...
+) {
   inps <- list(...)
   if ("Raw_VISIT" %in% names(previous_data)) {
     dataset <- previous_data$Raw_VISIT
@@ -24,12 +31,21 @@ Raw_VISIT <- function(data, previous_data, spec, startDate, SnapshotWidth, ...) 
   }
 
   possible_visits <- data.frame(
-    foldername = c("Screening", paste0("VISIT ", 1:5), "End of Treatment", "Follow-up"),
-    instancename = c("Screening", paste0("VISIT ", 1:5), "End of Treatment", "Follow-up")
+    foldername = c(
+      "Screening",
+      paste0("VISIT ", 1:5),
+      "End of Treatment",
+      "Follow-up"
+    ),
+    instancename = c(
+      "Screening",
+      paste0("VISIT ", 1:5),
+      "End of Treatment",
+      "Follow-up"
+    )
   )
 
   curr_spec <- spec$Raw_VISIT
-
 
   if (!("subjid" %in% names(curr_spec))) {
     curr_spec$subjid <- list(required = TRUE)
@@ -43,8 +59,16 @@ Raw_VISIT <- function(data, previous_data, spec, startDate, SnapshotWidth, ...) 
   }
 
   # Check if any existing spec entry maps to foldername/instancename via source_col
-  has_foldername_source <- any(vapply(curr_spec, function(x) identical(x[["source_col"]], "foldername"), logical(1)))
-  has_instancename_source <- any(vapply(curr_spec, function(x) identical(x[["source_col"]], "instancename"), logical(1)))
+  has_foldername_source <- any(vapply(
+    curr_spec,
+    function(x) identical(x[["source_col"]], "foldername"),
+    logical(1)
+  ))
+  has_instancename_source <- any(vapply(
+    curr_spec,
+    function(x) identical(x[["source_col"]], "instancename"),
+    logical(1)
+  ))
 
   if (!("foldername" %in% names(curr_spec)) && !has_foldername_source) {
     curr_spec$foldername <- list(required = TRUE)
@@ -68,8 +92,11 @@ Raw_VISIT <- function(data, previous_data, spec, startDate, SnapshotWidth, ...) 
     curr_spec$invid <- NULL
   }
 
-
-  existing_subjs <- if (is.null(dataset)) unique(character(0)) else unique(dataset$subjid)
+  existing_subjs <- if (is.null(dataset)) {
+    unique(character(0))
+  } else {
+    unique(dataset$subjid)
+  }
   available_subjs <- setdiff(unique(data$Raw_SUBJ$subjid), existing_subjs)
   subjs <- subjid(n, external_subjid = available_subjs, replace = FALSE)
   invids <- data.frame(subjid = subjs) %>%
@@ -79,7 +106,10 @@ Raw_VISIT <- function(data, previous_data, spec, startDate, SnapshotWidth, ...) 
   args <- list(
     subjid_repeated = list(nrow(possible_visits), subjs),
     invid_repeated = list(nrow(possible_visits), invids),
-    studyid = list(n * nrow(possible_visits), data$Raw_STUDY$protocol_number[[1]]),
+    studyid = list(
+      n * nrow(possible_visits),
+      data$Raw_STUDY$protocol_number[[1]]
+    ),
     visit_dt = list(n, startDate, possible_visits, SnapshotWidth),
     default = list(n, subjs, possible_visits)
   )
@@ -120,6 +150,13 @@ instancename <- function(n, subjs, possible_visits = NULL, ...) {
   rep(possible_visits$instancename, length(subjs))
 }
 visit_dt <- function(n, start_date, possible_Visits, SnapshotWidth, ...) {
-  rep(generate_consecutive_random_dates(nrow(possible_Visits), start_date, period_to_days(SnapshotWidth)), n)
+  rep(
+    generate_consecutive_random_dates(
+      nrow(possible_Visits),
+      start_date,
+      period_to_days(SnapshotWidth)
+    ),
+    n
+  )
 }
 visit <- foldername

@@ -225,8 +225,14 @@ make_visit_data <- function(n_subjects = 10) {
 
 # Emitted (post-rename) vital column names, so `bsa` appears as `bsaentry`.
 VS_VITAL_COLS <- c(
-  "weight", "height", "bsaentry", "sysbp",
-  "diabp", "pulse", "temp", "resp"
+  "weight",
+  "height",
+  "bsaentry",
+  "sysbp",
+  "diabp",
+  "pulse",
+  "temp",
+  "resp"
 )
 
 # The emitted visit column name, per `source_col: foldername`.
@@ -238,14 +244,21 @@ VS_VISIT_COL <- "foldername"
 # `strDateClass` mirrors the real `Raw_VISIT` generator, which emits
 # "%Y-%m-%d" character dates rather than `Date`s (see `visit_dt()` in
 # R/Raw_VISIT.R). Tests use "character" to exercise the production path.
-make_vs_test_data <- function(n_subjects = 20, n_visits = 6, n_sites = 3,
-                              start_date = as.Date("2012-01-01"),
-                              strDateClass = c("Date", "character")) {
+make_vs_test_data <- function(
+  n_subjects = 20,
+  n_visits = 6,
+  n_sites = 3,
+  start_date = as.Date("2012-01-01"),
+  strDateClass = c("Date", "character")
+) {
   strDateClass <- match.arg(strDateClass)
   subjid <- sprintf("S%04d", seq_len(n_subjects))
   invid <- sprintf("0X%04d", (seq_len(n_subjects) %% n_sites) + 1)
 
-  visits <- c("Screening", paste0("VISIT ", seq_len(max(n_visits - 1, 1))))[seq_len(n_visits)]
+  visits <- c(
+    "Screening",
+    paste0("VISIT ", seq_len(max(n_visits - 1, 1)))
+  )[seq_len(n_visits)]
   visit_dates <- start_date + seq(0, by = 28, length.out = n_visits)
   if (strDateClass == "character") {
     visit_dates <- format(visit_dates, "%Y-%m-%d")
@@ -274,9 +287,13 @@ make_vs_test_data <- function(n_subjects = 20, n_visits = 6, n_sites = 3,
   )
 }
 
-make_vs_context <- function(data, spec = make_vs_test_spec(), n = NULL,
-                            risk_profile = NULL,
-                            start_date = as.Date("2012-01-01")) {
+make_vs_context <- function(
+  data,
+  spec = make_vs_test_spec(),
+  n = NULL,
+  risk_profile = NULL,
+  start_date = as.Date("2012-01-01")
+) {
   list(
     data = data,
     previous_data = list(),

@@ -29,7 +29,11 @@ Raw_IE <- function(data, previous_data, spec, ...) {
     curr_spec$subject_to_ie <- list(required = TRUE)
     curr_spec$subjid <- NULL
   }
-  if (all(c("tiver", "ietestcd", "ietest", "ieorres", "iecat") %in% names(curr_spec))) {
+  if (
+    all(
+      c("tiver", "ietestcd", "ietest", "ieorres", "iecat") %in% names(curr_spec)
+    )
+  ) {
     curr_spec$tiver_ietestcd_ietest_ieorres_iecat <- list(required = TRUE)
     curr_spec$tiver <- NULL
     curr_spec$ietestcd <- NULL
@@ -83,10 +87,17 @@ tiver <- function(n, ...) {
   return(rep("A1", n))
 }
 ietestcd <- function(n, ...) {
-  return(sample(c(paste0("incl", 1:10), paste0("excl", 1:10)), n, replace = TRUE))
+  return(sample(
+    c(paste0("incl", 1:10), paste0("excl", 1:10)),
+    n,
+    replace = TRUE
+  ))
 }
 ietest <- function(n, iecode, ...) {
-  stringr::str_replace_all(iecode, c("^INC" = "Inclusion ", "^EXC" = "Exclusion "))
+  stringr::str_replace_all(
+    iecode,
+    c("^INC" = "Inclusion ", "^EXC" = "Exclusion ")
+  )
 }
 ieorres <- function(n, iecode, ...) {
   sample(c("Yes", "No"), n, replace = TRUE)

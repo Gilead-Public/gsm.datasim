@@ -162,4 +162,3 @@ test_that("dosed subjects cover every drv_drg_completion value with and without 
   }
   expect_gt(mean(value[dated] == "N"), 0.5)
 })
-

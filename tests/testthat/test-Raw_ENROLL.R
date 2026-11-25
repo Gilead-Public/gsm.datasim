@@ -54,9 +54,12 @@ test_that("Raw_ENROLL appends only the delta when previous data exists", {
   spec <- make_enroll_spec()
 
   first <- Raw_ENROLL(
-    data, list(), spec,
+    data,
+    list(),
+    spec,
     startDate = as.Date("2012-01-01"),
-    n_enroll = 4, split_vars = enroll_split
+    n_enroll = 4,
+    split_vars = enroll_split
   )
   second <- Raw_ENROLL(
     data,
@@ -77,9 +80,12 @@ test_that("Raw_ENROLL returns previous data unchanged when the target count is m
   spec <- make_enroll_spec()
 
   first <- Raw_ENROLL(
-    data, list(), spec,
+    data,
+    list(),
+    spec,
     startDate = as.Date("2012-01-01"),
-    n_enroll = 4, split_vars = enroll_split
+    n_enroll = 4,
+    split_vars = enroll_split
   )
   again <- Raw_ENROLL(
     data,

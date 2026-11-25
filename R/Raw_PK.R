@@ -36,7 +36,6 @@ Raw_PK <- function(data, previous_data, spec, ...) {
 
   curr_spec <- spec$Raw_PK
 
-
   if (!("pktpt" %in% names(curr_spec))) {
     curr_spec$pktpt <- list(required = TRUE)
   }
@@ -45,14 +44,12 @@ Raw_PK <- function(data, previous_data, spec, ...) {
     curr_spec$pkperf <- list(required = TRUE)
   }
 
-
   if (all(c("subjid", "visit", "pkdat") %in% names(curr_spec))) {
     curr_spec$subjid_visit_pkdat <- list(required = TRUE)
     curr_spec$subjid <- NULL
     curr_spec$visit <- NULL
     curr_spec$pkdat <- NULL
   }
-
 
   subjs <- subjid(n, external_subjid = data$Raw_SUBJ$subjid, replace = FALSE)
   args <- list(

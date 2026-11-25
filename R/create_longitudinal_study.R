@@ -6,7 +6,7 @@
 #' Create longitudinal study data
 #'
 #' Creates a complete longitudinal study with multiple snapshots
-#' 
+#'
 #' @param study_id Study identifier
 #' @param participants Number of participants
 #' @param sites Number of sites
@@ -35,19 +35,21 @@
 #' length(study$raw_data) # number of snapshots
 #' }
 #' @export
-create_longitudinal_study <- function(study_id = "STUDY-001",
-                                      participants = 100,
-                                      sites = 10,
-                                      snapshots = 5,
-                                      interval = "1 month",
-                                      domains = c("AE", "LB", "VISIT"),
-                                      run_analytics = FALSE,
-                                      analytics_package = NULL,
-                                      analytics_workflows = NULL,
-                                      run_reporting = FALSE,
-                                      outlier_intensity = 1,
-                                      risk_profile = NULL,
-                                      verbose = FALSE) {
+create_longitudinal_study <- function(
+  study_id = "STUDY-001",
+  participants = 100,
+  sites = 10,
+  snapshots = 5,
+  interval = "1 month",
+  domains = c("AE", "LB", "VISIT"),
+  run_analytics = FALSE,
+  analytics_package = NULL,
+  analytics_workflows = NULL,
+  run_reporting = FALSE,
+  outlier_intensity = 1,
+  risk_profile = NULL,
+  verbose = FALSE
+) {
   # Validate inputs
   validate_study_inputs(participants, sites, snapshots, domains)
 
@@ -89,7 +91,9 @@ create_longitudinal_study <- function(study_id = "STUDY-001",
 
   # Run analytics pipeline if requested
   if (run_analytics) {
-    if (isTRUE(verbose)) cat("Running analytics pipeline...\n")
+    if (isTRUE(verbose)) {
+      cat("Running analytics pipeline...\n")
+    }
 
     # Create configuration for analytics
     analytics_config <- create_study_config(
@@ -110,7 +114,9 @@ create_longitudinal_study <- function(study_id = "STUDY-001",
     )
 
     if (isTRUE(run_reporting)) {
-      if (isTRUE(verbose)) cat("Running reporting pipeline...\n")
+      if (isTRUE(verbose)) {
+        cat("Running reporting pipeline...\n")
+      }
       study$reporting <- generate_reporting_layers(
         analytics_results = study$analytics,
         config = analytics_config,
@@ -147,18 +153,28 @@ create_longitudinal_study <- function(study_id = "STUDY-001",
 #' length(study$raw_data)
 #' }
 #' @export
-quick_longitudinal_study <- function(study_name = "GS-US-000-0001",
-                                     participants = 1000,
-                                     sites = 150,
-                                     months_duration = 24,
-                                     study_type = "standard",
-                                     include_pipeline = FALSE,
-                                     outlier_intensity = 1,
-                                     risk_profile = NULL,
-                                     verbose = FALSE) {
+quick_longitudinal_study <- function(
+  study_name = "GS-US-000-0001",
+  participants = 1000,
+  sites = 150,
+  months_duration = 24,
+  study_type = "standard",
+  include_pipeline = FALSE,
+  outlier_intensity = 1,
+  risk_profile = NULL,
+  verbose = FALSE
+) {
   if (isTRUE(verbose)) {
     cat("Creating", study_type, "longitudinal study:", study_name, "\n")
-    cat("Parameters:", participants, "participants,", sites, "sites,", months_duration, "months\n")
+    cat(
+      "Parameters:",
+      participants,
+      "participants,",
+      sites,
+      "sites,",
+      months_duration,
+      "months\n"
+    )
   }
 
   # Create study ID from name
@@ -168,7 +184,22 @@ quick_longitudinal_study <- function(study_name = "GS-US-000-0001",
 
   if (study_type == "standard") {
     # Only include standard domains, no endpoints-only domains
-    domains <- c("AE", "LB", "VISIT", "PD", "PK", "QUERY", "DATACHG", "DATAENT", "STUDCOMP", "SDRGCOMP", "IE", "Death", "Randomization", "OverallResponse")
+    domains <- c(
+      "AE",
+      "LB",
+      "VISIT",
+      "PD",
+      "PK",
+      "QUERY",
+      "DATACHG",
+      "DATAENT",
+      "STUDCOMP",
+      "SDRGCOMP",
+      "IE",
+      "Death",
+      "Randomization",
+      "OverallResponse"
+    )
     pkg <- "gsm.kri"
     study <- create_longitudinal_study(
       study_id = study_id,
@@ -201,7 +232,11 @@ quick_longitudinal_study <- function(study_name = "GS-US-000-0001",
       config <- add_dataset_config(config, paste0("Raw_", d), enabled = TRUE)
     }
     # Set temporal config
-    config <- set_temporal_config(config, snapshot_count = months_duration, snapshot_width = "months")
+    config <- set_temporal_config(
+      config,
+      snapshot_count = months_duration,
+      snapshot_width = "months"
+    )
     # Generate raw data using new helper
     raw_data <- generate_raw_data_for_endpoints(config, domain_pkg_df)
     # Create study object
@@ -222,7 +257,9 @@ quick_longitudinal_study <- function(study_name = "GS-US-000-0001",
     )
     # Run analytics and reporting if requested
     if (include_pipeline) {
-      if (isTRUE(verbose)) cat("Running analytics pipeline...\n")
+      if (isTRUE(verbose)) {
+        cat("Running analytics pipeline...\n")
+      }
       analytics_config <- create_study_config(
         study_id = study_id,
         participant_count = participants,
@@ -237,7 +274,9 @@ quick_longitudinal_study <- function(study_name = "GS-US-000-0001",
         config = analytics_config,
         verbose = verbose
       )
-      if (isTRUE(verbose)) cat("Running reporting pipeline...\n")
+      if (isTRUE(verbose)) {
+        cat("Running reporting pipeline...\n")
+      }
       study$reporting <- generate_reporting_layers(
         analytics_results = study$analytics,
         config = analytics_config,
@@ -250,7 +289,13 @@ quick_longitudinal_study <- function(study_name = "GS-US-000-0001",
 
   if (isTRUE(verbose)) {
     cat("Study creation completed successfully!\n")
-    cat("Generated", length(study$raw_data), "snapshots with", length(study$config$domains), "domains\n")
+    cat(
+      "Generated",
+      length(study$raw_data),
+      "snapshots with",
+      length(study$config$domains),
+      "domains\n"
+    )
   }
 
   if (isTRUE(verbose) && !is.null(study$analytics)) {
@@ -261,14 +306,25 @@ quick_longitudinal_study <- function(study_name = "GS-US-000-0001",
       if ("results" %in% names(analytics_snapshots)) {
         # Single snapshot
         results <- analytics_snapshots$results
-        total_metrics <- length(results[grep("^(Analysis_|site|country|study)", names(results), ignore.case = TRUE)])
+        total_metrics <- length(results[grep(
+          "^(Analysis_|site|country|study)",
+          names(results),
+          ignore.case = TRUE
+        )])
       } else {
         # Multiple snapshots
         for (snapshot_name in names(analytics_snapshots)) {
           snapshot_analytics <- analytics_snapshots[[snapshot_name]]
-          if (!is.null(snapshot_analytics) && "results" %in% names(snapshot_analytics)) {
+          if (
+            !is.null(snapshot_analytics) &&
+              "results" %in% names(snapshot_analytics)
+          ) {
             results <- snapshot_analytics$results
-            snapshot_metrics <- length(results[grep("^(Analysis_|site|country|study)", names(results), ignore.case = TRUE)])
+            snapshot_metrics <- length(results[grep(
+              "^(Analysis_|site|country|study)",
+              names(results),
+              ignore.case = TRUE
+            )])
             total_metrics <- total_metrics + snapshot_metrics
           }
         }
@@ -276,13 +332,20 @@ quick_longitudinal_study <- function(study_name = "GS-US-000-0001",
     }
     cat(
       "Analytics pipeline completed with results for",
-      total_metrics, "metrics\n"
+      total_metrics,
+      "metrics\n"
     )
   }
 
   if (isTRUE(verbose) && !is.null(study$reporting)) {
     reporting_count <- sum(!vapply(study$reporting, is.null, logical(1)))
-    cat("Reporting pipeline completed for", reporting_count, "of", length(study$reporting), "snapshots\n")
+    cat(
+      "Reporting pipeline completed for",
+      reporting_count,
+      "of",
+      length(study$reporting),
+      "snapshots\n"
+    )
   }
 
   return(study)
@@ -348,23 +411,25 @@ quick_longitudinal_study <- function(study_name = "GS-US-000-0001",
 #'   verbose = TRUE
 #' )
 #' }
-create_multiple_longitudinal_studies <- function(study_names,
-                                                 participants = 100,
-                                                 sites = 10,
-                                                 snapshots = 5,
-                                                 interval = "1 month",
-                                                 domains = c("AE", "LB", "VISIT"),
-                                                 run_analytics = FALSE,
-                                                 analytics_package = NULL,
-                                                 analytics_workflows = NULL,
-                                                 run_reporting = FALSE,
-                                                 outlier_intensity = 1,
-                                                 risk_profile = NULL,
-                                                 study_configs = NULL,
-                                                 parallel = FALSE,
-                                                 export_studies = FALSE,
-                                                 export_dir = ".",
-                                                 verbose = FALSE) {
+create_multiple_longitudinal_studies <- function(
+  study_names,
+  participants = 100,
+  sites = 10,
+  snapshots = 5,
+  interval = "1 month",
+  domains = c("AE", "LB", "VISIT"),
+  run_analytics = FALSE,
+  analytics_package = NULL,
+  analytics_workflows = NULL,
+  run_reporting = FALSE,
+  outlier_intensity = 1,
+  risk_profile = NULL,
+  study_configs = NULL,
+  parallel = FALSE,
+  export_studies = FALSE,
+  export_dir = ".",
+  verbose = FALSE
+) {
   # Validate inputs
   if (length(study_names) == 0) {
     stop("study_names must contain at least one study name")
@@ -379,7 +444,11 @@ create_multiple_longitudinal_studies <- function(study_names,
     # Start with global defaults
     params <- list(
       study_id = study_name,
-      participants = if (length(participants) == 1) participants else participants[index],
+      participants = if (length(participants) == 1) {
+        participants
+      } else {
+        participants[index]
+      },
       sites = if (length(sites) == 1) sites else sites[index],
       snapshots = if (length(snapshots) == 1) snapshots else snapshots[index],
       interval = if (length(interval) == 1) interval else interval[index],
@@ -388,7 +457,11 @@ create_multiple_longitudinal_studies <- function(study_names,
       analytics_package = analytics_package,
       analytics_workflows = analytics_workflows,
       run_reporting = run_reporting,
-      outlier_intensity = if (length(outlier_intensity) == 1) outlier_intensity else outlier_intensity[index],
+      outlier_intensity = if (length(outlier_intensity) == 1) {
+        outlier_intensity
+      } else {
+        outlier_intensity[index]
+      },
       risk_profile = risk_profile,
       verbose = verbose
     )
@@ -418,28 +491,44 @@ create_multiple_longitudinal_studies <- function(study_names,
 
   # Generate studies
   if (parallel && pkg_available("parallel")) {
-    if (isTRUE(verbose)) cat("Generating studies in parallel...\n")
+    if (isTRUE(verbose)) {
+      cat("Generating studies in parallel...\n")
+    }
 
     # Set up cluster
-    cl <- parallel::makeCluster(min(parallel::detectCores() - 1, length(study_names)))
+    cl <- parallel::makeCluster(min(
+      parallel::detectCores() - 1,
+      length(study_names)
+    ))
 
     # Export necessary objects to cluster
     parallel::clusterEvalQ(cl, library(gsm.datasim))
 
     # Generate studies in parallel
-    studies <- tryCatch({
-      parallel::clusterMap(cl, function(name, idx) {
-        params <- prepare_study_params(name, idx)
-        do.call(create_longitudinal_study, params)
-      }, study_names, seq_along(study_names), SIMPLIFY = FALSE)
-    }, finally = {
-      parallel::stopCluster(cl)
-    })
+    studies <- tryCatch(
+      {
+        parallel::clusterMap(
+          cl,
+          function(name, idx) {
+            params <- prepare_study_params(name, idx)
+            do.call(create_longitudinal_study, params)
+          },
+          study_names,
+          seq_along(study_names),
+          SIMPLIFY = FALSE
+        )
+      },
+      finally = {
+        parallel::stopCluster(cl)
+      }
+    )
 
     names(studies) <- study_names
   } else {
     # Sequential generation
-    if (isTRUE(verbose)) cat("Generating studies sequentially...\n")
+    if (isTRUE(verbose)) {
+      cat("Generating studies sequentially...\n")
+    }
 
     studies <- vector("list", length(study_names))
     names(studies) <- study_names
@@ -448,7 +537,12 @@ create_multiple_longitudinal_studies <- function(study_names,
       study_name <- study_names[i]
 
       if (isTRUE(verbose)) {
-        cat(sprintf("Creating study %d/%d: %s\n", i, length(study_names), study_name))
+        cat(sprintf(
+          "Creating study %d/%d: %s\n",
+          i,
+          length(study_names),
+          study_name
+        ))
       }
 
       params <- prepare_study_params(study_name, i)
@@ -462,10 +556,14 @@ create_multiple_longitudinal_studies <- function(study_names,
 
   # Export studies if requested
   if (export_studies) {
-    if (isTRUE(verbose)) cat("Exporting", length(studies), "studies to disk...\n")
+    if (isTRUE(verbose)) {
+      cat("Exporting", length(studies), "studies to disk...\n")
+    }
 
     for (study_name in names(studies)) {
-      if (isTRUE(verbose)) cat("  - Exporting", study_name, "...\n")
+      if (isTRUE(verbose)) {
+        cat("  - Exporting", study_name, "...\n")
+      }
 
       export_study_data(
         study = studies[[study_name]],
@@ -476,7 +574,9 @@ create_multiple_longitudinal_studies <- function(study_names,
       )
     }
 
-    if (isTRUE(verbose)) cat("All studies exported to:", file.path(export_dir), "\n")
+    if (isTRUE(verbose)) {
+      cat("All studies exported to:", file.path(export_dir), "\n")
+    }
   }
 
   # Summary
@@ -497,12 +597,16 @@ create_multiple_longitudinal_studies <- function(study_names,
     }
 
     if (run_analytics) {
-      analytics_completed <- sum(sapply(studies, function(s) !is.null(s$analytics)))
+      analytics_completed <- sum(sapply(studies, function(s) {
+        !is.null(s$analytics)
+      }))
       cat("Analytics completed for", analytics_completed, "studies\n")
     }
 
     if (run_reporting) {
-      reporting_completed <- sum(sapply(studies, function(s) !is.null(s$reporting)))
+      reporting_completed <- sum(sapply(studies, function(s) {
+        !is.null(s$reporting)
+      }))
       cat("Reporting completed for", reporting_completed, "studies\n")
     }
   }
@@ -538,8 +642,10 @@ print.multiple_longitudinal_studies <- function(x, ...) {
     cat("  - Sites:", study$config$sites %||% "unknown", "\n")
     cat("  - Snapshots:", length(study$raw_data), "\n")
     cat(
-      "  - Domains:", length(study$config$domains %||% c()),
-      paste0("(", paste(study$config$domains %||% c(), collapse = ", "), ")"), "\n"
+      "  - Domains:",
+      length(study$config$domains %||% c()),
+      paste0("(", paste(study$config$domains %||% c(), collapse = ", "), ")"),
+      "\n"
     )
     cat("  - Analytics:", if (!is.null(study$analytics)) "Yes" else "No", "\n")
     cat("  - Reporting:", if (!is.null(study$reporting)) "Yes" else "No", "\n")
@@ -566,11 +672,13 @@ print.multiple_longitudinal_studies <- function(x, ...) {
 #' export_multiple_studies(studies, output_dir = tempdir(), overwrite = TRUE)
 #' }
 #' @export
-export_multiple_studies <- function(studies,
-                                    output_dir = ".",
-                                    overwrite = FALSE,
-                                    save_rds = FALSE,
-                                    verbose = FALSE) {
+export_multiple_studies <- function(
+  studies,
+  output_dir = ".",
+  overwrite = FALSE,
+  save_rds = FALSE,
+  verbose = FALSE
+) {
   if (!inherits(studies, "multiple_longitudinal_studies")) {
     stop("studies must be a multiple_longitudinal_studies object")
   }
@@ -583,7 +691,9 @@ export_multiple_studies <- function(studies,
   names(export_paths) <- names(studies)
 
   for (study_name in names(studies)) {
-    if (isTRUE(verbose)) cat("  - Exporting", study_name, "...\n")
+    if (isTRUE(verbose)) {
+      cat("  - Exporting", study_name, "...\n")
+    }
 
     export_path <- export_study_data(
       study = studies[[study_name]],
@@ -598,7 +708,13 @@ export_multiple_studies <- function(studies,
   }
 
   if (isTRUE(verbose)) {
-    cat("All", length(studies), "studies exported to:", normalizePath(output_dir), "\n")
+    cat(
+      "All",
+      length(studies),
+      "studies exported to:",
+      normalizePath(output_dir),
+      "\n"
+    )
   }
 
   invisible(export_paths)
@@ -621,7 +737,9 @@ summary.multiple_longitudinal_studies <- function(object, ...) {
   n_studies <- length(object)
 
   # Aggregate statistics
-  total_participants <- sum(sapply(object, function(s) s$config$participants %||% 0))
+  total_participants <- sum(sapply(object, function(s) {
+    s$config$participants %||% 0
+  }))
   total_sites <- sum(sapply(object, function(s) s$config$sites %||% 0))
   total_snapshots <- sum(sapply(object, function(s) length(s$raw_data)))
 
@@ -678,22 +796,47 @@ print.summary.multiple_longitudinal_studies <- function(x, ...) {
   cat("  - Total participants:", x$total_participants, "\n")
   cat("  - Total sites:", x$total_sites, "\n")
   cat("  - Total snapshots:", x$total_snapshots, "\n")
-  cat("  - Analytics completed:", x$analytics_completed, "of", x$n_studies, "studies\n")
-  cat("  - Reporting completed:", x$reporting_completed, "of", x$n_studies, "studies\n")
   cat(
-    "  - Unique domains:", length(x$unique_domains),
-    paste0("(", paste(x$unique_domains, collapse = ", "), ")"), "\n\n"
+    "  - Analytics completed:",
+    x$analytics_completed,
+    "of",
+    x$n_studies,
+    "studies\n"
+  )
+  cat(
+    "  - Reporting completed:",
+    x$reporting_completed,
+    "of",
+    x$n_studies,
+    "studies\n"
+  )
+  cat(
+    "  - Unique domains:",
+    length(x$unique_domains),
+    paste0("(", paste(x$unique_domains, collapse = ", "), ")"),
+    "\n\n"
   )
 
   cat("Individual Study Details:\n")
   for (study_name in x$study_names) {
     details <- x$study_details[[study_name]]
     cat("  ", study_name, ":\n")
-    cat("    - Participants:", details$participants, "| Sites:", details$sites, "| Snapshots:", details$snapshots, "\n")
+    cat(
+      "    - Participants:",
+      details$participants,
+      "| Sites:",
+      details$sites,
+      "| Snapshots:",
+      details$snapshots,
+      "\n"
+    )
     cat("    - Domains:", paste(details$domains, collapse = ", "), "\n")
     cat(
-      "    - Analytics:", if (details$has_analytics) "Yes" else "No",
-      "| Reporting:", if (details$has_reporting) "Yes" else "No", "\n"
+      "    - Analytics:",
+      if (details$has_analytics) "Yes" else "No",
+      "| Reporting:",
+      if (details$has_reporting) "Yes" else "No",
+      "\n"
     )
   }
 }
@@ -760,27 +903,43 @@ print.summary.multiple_longitudinal_studies <- function(x, ...) {
 #' names(studies) # "PHASE2-SMALL" "PHASE3-LARGE" "SAFETY-RUN"
 #' studies[["PHASE3-LARGE"]]$config # inspect per-study config
 #' }
-study_portfolio <- function(variants,
-                            participants = 100,
-                            sites = 10,
-                            snapshots = 6,
-                            interval = "1 month",
-                            domains = c("AE", "LB", "VISIT"),
-                            ...) {
-  if (!is.list(variants) || is.null(names(variants)) || any(names(variants) == "")) {
-    stop("`variants` must be a fully named list (each element name becomes a study ID).")
+study_portfolio <- function(
+  variants,
+  participants = 100,
+  sites = 10,
+  snapshots = 6,
+  interval = "1 month",
+  domains = c("AE", "LB", "VISIT"),
+  ...
+) {
+  if (
+    !is.list(variants) || is.null(names(variants)) || any(names(variants) == "")
+  ) {
+    stop(
+      "`variants` must be a fully named list (each element name becomes a study ID)."
+    )
   }
 
   study_names <- names(variants)
 
   # Scalar params that create_multiple_longitudinal_studies can accept as vectors
-  scalar_params <- c("participants", "sites", "snapshots", "interval", "outlier_intensity")
+  scalar_params <- c(
+    "participants",
+    "sites",
+    "snapshots",
+    "interval",
+    "outlier_intensity"
+  )
 
   extract_vec <- function(key, default) {
-    vapply(variants, function(v) {
-      val <- v[[key]]
-      if (!is.null(val)) val else default
-    }, FUN.VALUE = vector(typeof(default), 1L))
+    vapply(
+      variants,
+      function(v) {
+        val <- v[[key]]
+        if (!is.null(val)) val else default
+      },
+      FUN.VALUE = vector(typeof(default), 1L)
+    )
   }
 
   participants_vec <- extract_vec("participants", participants)
@@ -797,14 +956,14 @@ study_portfolio <- function(variants,
   study_configs <- Filter(Negate(is.null), study_configs)
 
   create_multiple_longitudinal_studies(
-    study_names       = study_names,
-    participants      = participants_vec,
-    sites             = sites_vec,
-    snapshots         = snapshots_vec,
-    interval          = interval_vec,
-    domains           = domains,
+    study_names = study_names,
+    participants = participants_vec,
+    sites = sites_vec,
+    snapshots = snapshots_vec,
+    interval = interval_vec,
+    domains = domains,
     outlier_intensity = outlier_intensity_vec,
-    study_configs     = if (length(study_configs) > 0) study_configs else NULL,
+    study_configs = if (length(study_configs) > 0) study_configs else NULL,
     ...
   )
 }

@@ -1,3 +1,17 @@
+# gsm.datasim v2.2.0
+
+This minor release makes gsm.datasim the source of the shared gsm test data: it builds the bundles that gsm.core serves, and publishes them automatically.
+
+- New `build_testdata_bundle()` produces the shared gsm test data (`lSource`, `analytics*`, `reporting*`) for use in other gsm packages (#151, #187). `read_testdata_config()`, `read_testdata_object()` and `read_testdata_snapshot()` read a bundle's configuration, objects and snapshot.
+- Bundles are fingerprinted by R object digest using gsm.core's exported snapshot tools (snapshot format 2), so fingerprints no longer depend on CSV line endings, RDS compression or R version. gsm.core moves from Suggests to Imports (#188).
+- Test data bundles are published automatically as `data-<fp12>` releases when gsm.datasim, or another gsm package that feeds the bundle, merges to `dev` or `main` (#153, #182, #183).
+- New `use_gsm_datasim()` adds `options(gsm.testdata_builder = "gsm.datasim::build_testdata_bundle")` to your `.Rprofile`, so gsm.core builds test data from local gsm code when needed (#190).
+- Simulated `Raw_AE` data now carries AE outcome (`aeout`), derived
+  relatedness (`aereldrv`) and serious-death flag (`aesdth`), with
+  deterministic fatal-AE cases linked to `Raw_Death`: participants with one,
+  several or no qualifying fatal AEs, related, not related and missing
+  relatedness, plus a fatal AE on a participant with no death record (#142).
+
 # gsm.datasim v2.1.0
 
 This minor release adds simulated data for the IP Compliance (IP non-starters and premature treatment discontinuation) and Repeat Measurements analytics, and keeps longitudinal snapshots consistent from one snapshot to the next.

@@ -14,7 +14,6 @@ Raw_LB <- function(data, previous_data, spec, startDate, ...) {
 
   curr_spec <- spec$Raw_LB
 
-
   if ("Raw_LB" %in% names(previous_data)) {
     dataset <- previous_data$Raw_LB
     previous_row_num <- length(unique(dataset$subjid))
@@ -23,7 +22,6 @@ Raw_LB <- function(data, previous_data, spec, startDate, ...) {
     previous_row_num <- 0
   }
 
-
   n <- inps$n - previous_row_num
   if (n == 0) {
     return(dataset)
@@ -31,36 +29,100 @@ Raw_LB <- function(data, previous_data, spec, startDate, ...) {
 
   tests <- data.frame(
     battrnam = c(
-      "CHEMISTRY PANEL", "CHEMISTRY PANEL", "CHEMISTRY PANEL", "CHEMISTRY PANEL",
-      "HEMATOLOGY&DIFFERENTIAL PANEL", "HEMATOLOGY&DIFFERENTIAL PANEL",
-      "CHEMISTRY PANEL", "CHEMISTRY PANEL", "CHEMISTRY PANEL", "CHEMISTRY PANEL",
-      "CHEMISTRY PANEL", "HEMATOLOGY&DIFFERENTIAL PANEL", "HEMATOLOGY&DIFFERENTIAL PANEL",
-      "CHEMISTRY PANEL", "CHEMISTRY PANEL", "CHEMISTRY PANEL",
-      "HEMATOLOGY&DIFFERENTIAL PANEL", "HEMATOLOGY&DIFFERENTIAL PANEL", "CHEMISTRY PANEL",
-      "CHEMISTRY PANEL", "HEMATOLOGY&DIFFERENTIAL PANEL", "HEMATOLOGY&DIFFERENTIAL PANEL",
-      "HEMATOLOGY&DIFFERENTIAL PANEL", "HEMATOLOGY&DIFFERENTIAL PANEL",
-      "HEMATOLOGY&DIFFERENTIAL PANEL", "CHEMISTRY PANEL", "HEMATOLOGY&DIFFERENTIAL PANEL",
-      "HEMATOLOGY&DIFFERENTIAL PANEL", "HEMATOLOGY&DIFFERENTIAL PANEL",
-      "HEMATOLOGY&DIFFERENTIAL PANEL", "CHEMISTRY PANEL", "HEMATOLOGY&DIFFERENTIAL PANEL",
-      "HEMATOLOGY&DIFFERENTIAL PANEL", "CHEMISTRY PANEL", "CHEMISTRY PANEL",
-      "CHEMISTRY PANEL", "CHEMISTRY PANEL", "CHEMISTRY PANEL", "CHEMISTRY PANEL",
-      "CHEMISTRY PANEL", "CHEMISTRY PANEL", "CHEMISTRY PANEL",
-      "HEMATOLOGY&DIFFERENTIAL PANEL", "CHEMISTRY PANEL", "CHEMISTRY PANEL"
+      "CHEMISTRY PANEL",
+      "CHEMISTRY PANEL",
+      "CHEMISTRY PANEL",
+      "CHEMISTRY PANEL",
+      "HEMATOLOGY&DIFFERENTIAL PANEL",
+      "HEMATOLOGY&DIFFERENTIAL PANEL",
+      "CHEMISTRY PANEL",
+      "CHEMISTRY PANEL",
+      "CHEMISTRY PANEL",
+      "CHEMISTRY PANEL",
+      "CHEMISTRY PANEL",
+      "HEMATOLOGY&DIFFERENTIAL PANEL",
+      "HEMATOLOGY&DIFFERENTIAL PANEL",
+      "CHEMISTRY PANEL",
+      "CHEMISTRY PANEL",
+      "CHEMISTRY PANEL",
+      "HEMATOLOGY&DIFFERENTIAL PANEL",
+      "HEMATOLOGY&DIFFERENTIAL PANEL",
+      "CHEMISTRY PANEL",
+      "CHEMISTRY PANEL",
+      "HEMATOLOGY&DIFFERENTIAL PANEL",
+      "HEMATOLOGY&DIFFERENTIAL PANEL",
+      "HEMATOLOGY&DIFFERENTIAL PANEL",
+      "HEMATOLOGY&DIFFERENTIAL PANEL",
+      "HEMATOLOGY&DIFFERENTIAL PANEL",
+      "CHEMISTRY PANEL",
+      "HEMATOLOGY&DIFFERENTIAL PANEL",
+      "HEMATOLOGY&DIFFERENTIAL PANEL",
+      "HEMATOLOGY&DIFFERENTIAL PANEL",
+      "HEMATOLOGY&DIFFERENTIAL PANEL",
+      "CHEMISTRY PANEL",
+      "HEMATOLOGY&DIFFERENTIAL PANEL",
+      "HEMATOLOGY&DIFFERENTIAL PANEL",
+      "CHEMISTRY PANEL",
+      "CHEMISTRY PANEL",
+      "CHEMISTRY PANEL",
+      "CHEMISTRY PANEL",
+      "CHEMISTRY PANEL",
+      "CHEMISTRY PANEL",
+      "CHEMISTRY PANEL",
+      "CHEMISTRY PANEL",
+      "CHEMISTRY PANEL",
+      "HEMATOLOGY&DIFFERENTIAL PANEL",
+      "CHEMISTRY PANEL",
+      "CHEMISTRY PANEL"
     ),
     lbtstnam = c(
-      "ALT (SGPT)", "AST (SGOT)", "Albumin-QT", "Alkaline Phosphatase", "Basophils",
-      "Basophils (%)", "Calcium (EDTA)", "Calcium Corrected for Albumin",
-      "Cholesterol (High Performance)", "Creatine Kinase", "Direct Bilirubin",
-      "Eosinophils", "Eosinophils (%)", "GGT", "Globulin-QT", "Glucose (2dp SI)",
-      "Hematocrit", "Hemoglobin", "Indirect Bili", "LDH", "Lymphocytes",
-      "Lymphocytes (%)", "MCH", "MCHC", "MCV", "Magnesium-PS", "Monocytes",
-      "Monocytes (%)", "Neutrophils", "Neutrophils (%)", "Phosphorus", "Platelets",
-      "RBC", "Serum Bicarbonate", "Serum Chloride", "Serum Potassium", "Serum Sodium",
-      "Serum Uric Acid", "Total Bilirubin", "Total Protein", "Triglycerides (GPO)",
-      "Urea Nitrogen", "WBC", "Creatinine(Rate Blanked)-2dp", "CHM.CCA.00.00"
+      "ALT (SGPT)",
+      "AST (SGOT)",
+      "Albumin-QT",
+      "Alkaline Phosphatase",
+      "Basophils",
+      "Basophils (%)",
+      "Calcium (EDTA)",
+      "Calcium Corrected for Albumin",
+      "Cholesterol (High Performance)",
+      "Creatine Kinase",
+      "Direct Bilirubin",
+      "Eosinophils",
+      "Eosinophils (%)",
+      "GGT",
+      "Globulin-QT",
+      "Glucose (2dp SI)",
+      "Hematocrit",
+      "Hemoglobin",
+      "Indirect Bili",
+      "LDH",
+      "Lymphocytes",
+      "Lymphocytes (%)",
+      "MCH",
+      "MCHC",
+      "MCV",
+      "Magnesium-PS",
+      "Monocytes",
+      "Monocytes (%)",
+      "Neutrophils",
+      "Neutrophils (%)",
+      "Phosphorus",
+      "Platelets",
+      "RBC",
+      "Serum Bicarbonate",
+      "Serum Chloride",
+      "Serum Potassium",
+      "Serum Sodium",
+      "Serum Uric Acid",
+      "Total Bilirubin",
+      "Total Protein",
+      "Triglycerides (GPO)",
+      "Urea Nitrogen",
+      "WBC",
+      "Creatinine(Rate Blanked)-2dp",
+      "CHM.CCA.00.00"
     )
   )
-
 
   if (!("battrnam" %in% names(curr_spec))) {
     curr_spec$battrnam <- list(required = TRUE)
@@ -118,14 +180,27 @@ lbtstnam <- function(n, subj_visits, tests, ...) {
   rep(tests$lbtstnam, nrow(subj_visits))
 }
 
-toxgrg_nsv <- function(n, subj_visits = NULL, Raw_SUBJ_data = NULL, tests_n = 1, ...) {
+toxgrg_nsv <- function(
+  n,
+  subj_visits = NULL,
+  Raw_SUBJ_data = NULL,
+  tests_n = 1,
+  ...
+) {
   # Increase higher lab tox grades in hotspot sites while preserving baseline mix.
   row_keys <- NULL
-  if (!is.null(subj_visits) && "subjid" %in% names(subj_visits) && !is.null(tests_n)) {
+  if (
+    !is.null(subj_visits) &&
+      "subjid" %in% names(subj_visits) &&
+      !is.null(tests_n)
+  ) {
     row_keys <- rep(subj_visits$subjid, each = tests_n)
     row_keys <- row_keys[seq_len(min(length(row_keys), n))]
     if (length(row_keys) < n) {
-      row_keys <- c(row_keys, rep(row_keys[length(row_keys)], n - length(row_keys)))
+      row_keys <- c(
+        row_keys,
+        rep(row_keys[length(row_keys)], n - length(row_keys))
+      )
     }
   }
 

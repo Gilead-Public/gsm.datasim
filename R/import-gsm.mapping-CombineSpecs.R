@@ -19,24 +19,31 @@ CombineSpecs <- function(lSpecs, bIsWorkflow = TRUE) {
 }
 
 combine_domain <- function(domain_specs) {
-  combined <- reduce(domain_specs, function(combined, spec) {
-    # Ensure all columns exist in both combined and spec
-    combined_cols <- union(names(combined), names(spec))
+  combined <- reduce(
+    domain_specs,
+    function(combined, spec) {
+      # Ensure all columns exist in both combined and spec
+      combined_cols <- union(names(combined), names(spec))
 
-    # Fill missing columns with NULLs in both lists
-    combined <- map(combined_cols, ~ combined[[.x]] %||% NULL)
-    spec <- map(combined_cols, ~ spec[[.x]] %||% NULL)
-    names(combined) <- combined_cols
-    names(spec) <- combined_cols
+      # Fill missing columns with NULLs in both lists
+      combined <- map(combined_cols, ~ combined[[.x]] %||% NULL)
+      spec <- map(combined_cols, ~ spec[[.x]] %||% NULL)
+      names(combined) <- combined_cols
+      names(spec) <- combined_cols
 
-    # Combine the specifications using map2
-    combined <- pmap(list(combined, spec, combined_cols), function(combined_col, spec_col, col_name) {
-      update_column(combined_col, spec_col, col_name)
-    })
+      # Combine the specifications using map2
+      combined <- pmap(
+        list(combined, spec, combined_cols),
+        function(combined_col, spec_col, col_name) {
+          update_column(combined_col, spec_col, col_name)
+        }
+      )
 
-    # Ensure the output is a named list
-    set_names(combined, combined_cols)
-  }, .init = list())
+      # Ensure the output is a named list
+      set_names(combined, combined_cols)
+    },
+    .init = list()
+  )
 
   return(combined)
 }
@@ -47,7 +54,11 @@ update_column <- function(existing_col, new_col, col_name) {
     if (!is.null(existing_col$type) && !is.null(new_col$type)) {
       if (existing_col$type != new_col$type) {
         warning(
-          sprintf("Type mismatch for '%s'. Using first type: %s", col_name, existing_col$type),
+          sprintf(
+            "Type mismatch for '%s'. Using first type: %s",
+            col_name,
+            existing_col$type
+          ),
           call. = FALSE
         )
       }

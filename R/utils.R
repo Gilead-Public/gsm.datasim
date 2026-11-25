@@ -8,9 +8,12 @@ combination_var_splitter <- function(variable_data, split_vars) {
     # "attempt to select less than one element" error. Name it instead.
     if (length(sublist_index) != 1) {
       stop(
-        "Split variable '", split_var_name, "' ",
+        "Split variable '",
+        split_var_name,
+        "' ",
         if (length(sublist_index) == 0) "was not generated" else "is ambiguous",
-        "; available: ", paste(names(variable_data), collapse = ", ")
+        "; available: ",
+        paste(names(variable_data), collapse = ", ")
       )
     }
 
@@ -21,7 +24,11 @@ combination_var_splitter <- function(variable_data, split_vars) {
     variable_data[[sublist_index]] <- NULL
 
     # Step 4: Insert the sublist elements into the main list at the original position
-    variable_data <- append(variable_data, sublist_elements, after = sublist_index - 1)
+    variable_data <- append(
+      variable_data,
+      sublist_elements,
+      after = sublist_index - 1
+    )
   }
 
   return(variable_data)
@@ -37,7 +44,11 @@ get_outlier_intensity <- function() {
 }
 
 
-scale_outlier_probabilities <- function(prob, outlier_idx, intensity = get_outlier_intensity()) {
+scale_outlier_probabilities <- function(
+  prob,
+  outlier_idx,
+  intensity = get_outlier_intensity()
+) {
   if (length(prob) == 0) {
     return(prob)
   }
@@ -49,7 +60,9 @@ scale_outlier_probabilities <- function(prob, outlier_idx, intensity = get_outli
 
   # Work with normalized probabilities and reapply original total at the end.
   p <- prob / total_prob
-  valid_outlier_idx <- unique(outlier_idx[outlier_idx >= 1 & outlier_idx <= length(p)])
+  valid_outlier_idx <- unique(outlier_idx[
+    outlier_idx >= 1 & outlier_idx <= length(p)
+  ])
 
   if (length(valid_outlier_idx) == 0 || intensity == 1) {
     return(p * total_prob)
@@ -70,21 +83,25 @@ scale_outlier_probabilities <- function(prob, outlier_idx, intensity = get_outli
   scaled_outlier_odds <- outlier_odds * effective_intensity
   target_outlier_mass <- scaled_outlier_odds / (1 + scaled_outlier_odds)
 
-  p[valid_outlier_idx] <- p[valid_outlier_idx] * (target_outlier_mass / outlier_mass)
-  p[non_outlier_idx] <- p[non_outlier_idx] * ((1 - target_outlier_mass) / non_outlier_mass)
+  p[valid_outlier_idx] <- p[valid_outlier_idx] *
+    (target_outlier_mass / outlier_mass)
+  p[non_outlier_idx] <- p[non_outlier_idx] *
+    ((1 - target_outlier_mass) / non_outlier_mass)
 
   p * total_prob
 }
 
 
-generate_zscore_outlier_values <- function(n,
-                                           mean,
-                                           sd,
-                                           min_value = -Inf,
-                                           max_value = Inf,
-                                           intensity = get_outlier_intensity(),
-                                           one_sided = TRUE,
-                                           integer = TRUE) {
+generate_zscore_outlier_values <- function(
+  n,
+  mean,
+  sd,
+  min_value = -Inf,
+  max_value = Inf,
+  intensity = get_outlier_intensity(),
+  one_sided = TRUE,
+  integer = TRUE
+) {
   if (n <= 0) {
     return(numeric(0))
   }
@@ -119,18 +136,24 @@ generate_zscore_outlier_values <- function(n,
 }
 
 
-inject_site_hotspot_outliers <- function(values,
-                                         row_keys,
-                                         key_map,
-                                         key_col = "subject_nsv",
-                                         site_col = "invid",
-                                         intensity = get_outlier_intensity(),
-                                         min_z = 3) {
+inject_site_hotspot_outliers <- function(
+  values,
+  row_keys,
+  key_map,
+  key_col = "subject_nsv",
+  site_col = "invid",
+  intensity = get_outlier_intensity(),
+  min_z = 3
+) {
   if (length(values) == 0 || intensity <= 1) {
     return(values)
   }
 
-  if (is.null(key_map) || !(key_col %in% names(key_map)) || !(site_col %in% names(key_map))) {
+  if (
+    is.null(key_map) ||
+      !(key_col %in% names(key_map)) ||
+      !(site_col %in% names(key_map))
+  ) {
     return(values)
   }
 
@@ -163,34 +186,46 @@ inject_site_hotspot_outliers <- function(values,
 
   # Push hotspot rows into the 3+ SD tail to trigger z-score style flaggers.
   shift_mean <- max(min_z, 2 + intensity) * base_sd
-  values[hotspot_idx] <- values[hotspot_idx] + abs(stats::rnorm(
-    length(hotspot_idx),
-    mean = shift_mean,
-    sd = 0.4 * base_sd
-  ))
+  values[hotspot_idx] <- values[hotspot_idx] +
+    abs(stats::rnorm(
+      length(hotspot_idx),
+      mean = shift_mean,
+      sd = 0.4 * base_sd
+    ))
 
   values
 }
 
 
-sample_categorical_with_hotspots <- function(values,
-                                             n,
-                                             base_prob,
-                                             outlier_idx,
-                                             row_keys = NULL,
-                                             key_map = NULL,
-                                             key_col = "subjid",
-                                             site_col = "invid",
-                                             intensity = get_outlier_intensity()) {
+sample_categorical_with_hotspots <- function(
+  values,
+  n,
+  base_prob,
+  outlier_idx,
+  row_keys = NULL,
+  key_map = NULL,
+  key_col = "subjid",
+  site_col = "invid",
+  intensity = get_outlier_intensity()
+) {
   if (n <= 0) {
     return(values[integer(0)])
   }
 
-  base_prob <- scale_outlier_probabilities(base_prob, outlier_idx = outlier_idx, intensity = intensity)
+  base_prob <- scale_outlier_probabilities(
+    base_prob,
+    outlier_idx = outlier_idx,
+    intensity = intensity
+  )
   baseline_draw <- sample(values, n, replace = TRUE, prob = base_prob)
 
-  if (intensity <= 1 || is.null(row_keys) || is.null(key_map) ||
-    !(key_col %in% names(key_map)) || !(site_col %in% names(key_map))) {
+  if (
+    intensity <= 1 ||
+      is.null(row_keys) ||
+      is.null(key_map) ||
+      !(key_col %in% names(key_map)) ||
+      !(site_col %in% names(key_map))
+  ) {
     return(baseline_draw)
   }
 
@@ -232,7 +267,12 @@ sample_categorical_with_hotspots <- function(values,
   p_hot[out_idx] <- p_hot[out_idx] * (boosted_out_mass / out_mass)
   p_hot[non_idx] <- p_hot[non_idx] * ((1 - boosted_out_mass) / non_mass)
 
-  baseline_draw[hotspot_idx] <- sample(values, length(hotspot_idx), replace = TRUE, prob = p_hot)
+  baseline_draw[hotspot_idx] <- sample(
+    values,
+    length(hotspot_idx),
+    replace = TRUE,
+    prob = p_hot
+  )
   baseline_draw
 }
 
@@ -262,7 +302,9 @@ add_new_var_data <- function(dataset, vars, args, orig_curr_spec, ...) {
     tryCatch(
       do.call(generator_func, curr_args),
       error = function(e) {
-        if (grepl("could not find function", conditionMessage(e), fixed = TRUE)) {
+        if (
+          grepl("could not find function", conditionMessage(e), fixed = TRUE)
+        ) {
           n_val <- curr_args[[1L]]
           if (!is.numeric(n_val) || length(n_val) != 1L) {
             n_val <- tryCatch(nrow(curr_args[[1L]]), error = function(e2) 1L)
@@ -282,16 +324,17 @@ add_new_var_data <- function(dataset, vars, args, orig_curr_spec, ...) {
     )
   })
 
-
   names(variable_data) <- names(vars)
   if ("split_vars" %in% names(internal_args)) {
-    variable_data <- combination_var_splitter(variable_data, internal_args$split_vars)
+    variable_data <- combination_var_splitter(
+      variable_data,
+      internal_args$split_vars
+    )
   }
 
   variable_data <- variable_data %>%
     as.data.frame() %>%
     rename_raw_data_vars_per_spec(orig_curr_spec)
-
 
   if (!is.null(dataset)) {
     return(dplyr::bind_rows(dataset, variable_data))
@@ -337,19 +380,38 @@ load_specs <- function(workflow_path, mappings, package, use_cache = TRUE) {
     sep = "::"
   )
 
-  if (isTRUE(use_cache) && exists(cache_key, envir = .gsm_datasim_spec_cache, inherits = FALSE)) {
+  if (
+    isTRUE(use_cache) &&
+      exists(cache_key, envir = .gsm_datasim_spec_cache, inherits = FALSE)
+  ) {
     return(get(cache_key, envir = .gsm_datasim_spec_cache, inherits = FALSE))
   }
 
-  wf_mapping <- workr::MakeWorkflowList(strPath = workflow_path, strNames = mappings, strPackage = package)
-  wf_req <- workr::MakeWorkflowList(strPath = "workflow/1_mappings", strNames = c("SUBJ", "STUDY", "SITE", "ENROLL"), strPackage = "gsm.mapping")
+  wf_mapping <- workr::MakeWorkflowList(
+    strPath = workflow_path,
+    strNames = mappings,
+    strPackage = package
+  )
+  wf_req <- workr::MakeWorkflowList(
+    strPath = "workflow/1_mappings",
+    strNames = c("SUBJ", "STUDY", "SITE", "ENROLL"),
+    strPackage = "gsm.mapping"
+  )
   wf_all <- modifyList(wf_mapping, wf_req)
   if (any(c("OverallResponse") %in% mappings)) {
-    wf_visit <- workr::MakeWorkflowList(strPath = "workflow/1_mappings", strNames = c("VISIT"), strPackage = "gsm.mapping")
+    wf_visit <- workr::MakeWorkflowList(
+      strPath = "workflow/1_mappings",
+      strNames = c("VISIT"),
+      strPackage = "gsm.mapping"
+    )
     wf_all <- modifyList(wf_all, wf_visit)
   }
   if (any(c("Consents", "Death") %in% mappings)) {
-    wf_studcomp <- workr::MakeWorkflowList(strPath = "workflow/1_mappings", strNames = c("STUDCOMP"), strPackage = "gsm.mapping")
+    wf_studcomp <- workr::MakeWorkflowList(
+      strPath = "workflow/1_mappings",
+      strNames = c("STUDCOMP"),
+      strPackage = "gsm.mapping"
+    )
     wf_all <- modifyList(wf_all, wf_studcomp)
   }
   combined_specs <- CombineSpecs(wf_all)
@@ -418,7 +480,12 @@ generate_unique_combinations_code <- function(data, vars, run_code = FALSE) {
 }
 
 
-generate_consecutive_random_dates <- function(n, start_date, mean_days_between_dates = 30, ...) {
+generate_consecutive_random_dates <- function(
+  n,
+  start_date,
+  mean_days_between_dates = 30,
+  ...
+) {
   start_date <- as.Date(start_date)
   dates <- vector("character", n)
   prev_date <- start_date
@@ -428,7 +495,10 @@ generate_consecutive_random_dates <- function(n, start_date, mean_days_between_d
     min_date <- prev_date + 1
     max_date <- prev_date + mean_days_between_dates
     # Generate a random date within the range
-    random_date <- as.Date(sample(seq(min_date, max_date, by = "day"), 1), origin = "1970-01-01")
+    random_date <- as.Date(
+      sample(seq(min_date, max_date, by = "day"), 1),
+      origin = "1970-01-01"
+    )
     # Store the date as a string
     dates[i] <- format(random_date, "%Y-%m-%d")
     # Update prev_date for the next iteration
@@ -445,7 +515,9 @@ repeat_rows <- function(n, data) {
     rownames(result) <- NULL
     return(result)
   } else {
-    stop("Unsupported data type. Input must be a vector, matrix, or data frame.")
+    stop(
+      "Unsupported data type. Input must be a vector, matrix, or data frame."
+    )
   }
 }
 
@@ -475,7 +547,10 @@ enrollment_count_gen <- function(subject_count) {
       previous_screened <- subject_count[i - 1]
     }
 
-    enrollment_count <- c(enrollment_count, screened(subject_count[i], previous_screened))
+    enrollment_count <- c(
+      enrollment_count,
+      screened(subject_count[i], previous_screened)
+    )
   }
 
   return(enrollment_count)
@@ -484,7 +559,9 @@ enrollment_count_gen <- function(subject_count) {
 
 save_data_on_disk <- function(data, base_path = NULL) {
   logger::log_info(glue::glue("Saving datasets ..."))
-  logger::log_info(glue::glue("Please wait, proces may take around 15 minutes due to the number of files and file sizes ..."))
+  logger::log_info(glue::glue(
+    "Please wait, proces may take around 15 minutes due to the number of files and file sizes ..."
+  ))
 
   # Calculate the total number of dataframes to process
   total_dfs <- sum(
@@ -519,7 +596,12 @@ save_data_on_disk <- function(data, base_path = NULL) {
         base_path <- "data-raw"
       }
 
-      dir_path <- file.path(base_path, "simulated_data", study_name, snapshot_name)
+      dir_path <- file.path(
+        base_path,
+        "simulated_data",
+        study_name,
+        snapshot_name
+      )
 
       dir.create(dir_path, recursive = TRUE, showWarnings = FALSE)
 
@@ -555,16 +637,24 @@ save_data_on_disk <- function(data, base_path = NULL) {
   isFALSE(as.logical(Sys.getenv("GSM_SHOW_TOC", "TRUE")))
 }
 
-generate_random_fpfv <- function(min_date, max_date, canBeEmpty = FALSE, previous_date = NULL) {
+generate_random_fpfv <- function(
+  min_date,
+  max_date,
+  canBeEmpty = FALSE,
+  previous_date = NULL
+) {
   # Ensure that max_date is a Date object
   max_date <- as.Date(max_date)
   min_date <- as.Date(min_date)
 
   # If canBeEmpty is TRUE, there is a chance that the result can be NA
-  if (canBeEmpty && stats::runif(1) < 0.2 && (is.null(previous_date) || is.na(previous_date))) {
+  if (
+    canBeEmpty &&
+      stats::runif(1) < 0.2 &&
+      (is.null(previous_date) || is.na(previous_date))
+  ) {
     return(NA) # Randomly decide to return NA with 20% chance
   }
-
 
   if (is.null(previous_date) || is.na(previous_date)) {
     random_date <- sample(seq(from = min_date, to = max_date, by = "day"), 1)
@@ -589,15 +679,16 @@ period_to_days <- function(period) {
 
     # Map the unit to a multiplier (rough or exact, as needed)
     # Adjust as you see fit; for instance, "months" can be ~30, but is an approximation.
-    day_equiv <- switch(unit,
-      "day"    = 1,
-      "days"   = 1,
-      "week"   = 7,
-      "weeks"  = 7,
-      "month"  = 30,
+    day_equiv <- switch(
+      unit,
+      "day" = 1,
+      "days" = 1,
+      "week" = 7,
+      "weeks" = 7,
+      "month" = 30,
       "months" = 30,
-      "year"   = 365,
-      "years"  = 365,
+      "year" = 365,
+      "years" = 365,
       stop("Unrecognized unit in '", period, "'")
     )
     return(num * day_equiv)
@@ -606,11 +697,12 @@ period_to_days <- function(period) {
   } else {
     # For single-word strings, create a small dictionary of known terms.
     # You can expand this as much as you want.
-    return(switch(p,
-      "days"      = 1,
-      "weeks"     = 7,
-      "months"    = 30,
-      "years"     = 365,
+    return(switch(
+      p,
+      "days" = 1,
+      "weeks" = 7,
+      "months" = 30,
+      "years" = 365,
       # fallback if nothing matches
       stop("Unrecognized period: ", period)
     ))

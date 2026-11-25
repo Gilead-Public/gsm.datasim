@@ -174,18 +174,19 @@
 #'
 #' @export
 generate_data_from_workflows <- function(
-    lWorkflows,
-    n_participants = 100,
-    n_sites = 10,
-    study_id = "STUDY-001",
-    start_date = "2012-01-01",
-    end_date = "2012-12-31",
-    snapshot_count = 1L,
-    snapshot_width = "months",
-    domain_counts = NULL,
-    desired_domains = NULL,
-    column_overrides = NULL,
-    risk_profile = NULL) {
+  lWorkflows,
+  n_participants = 100,
+  n_sites = 10,
+  study_id = "STUDY-001",
+  start_date = "2012-01-01",
+  end_date = "2012-12-31",
+  snapshot_count = 1L,
+  snapshot_width = "months",
+  domain_counts = NULL,
+  desired_domains = NULL,
+  column_overrides = NULL,
+  risk_profile = NULL
+) {
   # -- Validate inputs -------------------------------------------------------
   workflow_names <- names(lWorkflows)
   if (
@@ -196,7 +197,10 @@ generate_data_from_workflows <- function(
       any(is.na(workflow_names)) ||
       any(!nzchar(workflow_names))
   ) {
-    stop("`lWorkflows` must be a non-empty named list of workflow objects.", call. = FALSE)
+    stop(
+      "`lWorkflows` must be a non-empty named list of workflow objects.",
+      call. = FALSE
+    )
   }
 
   snapshot_count <- as.integer(snapshot_count)
@@ -208,53 +212,65 @@ generate_data_from_workflows <- function(
   had_raw_visit_spec <- "Raw_VISIT" %in% names(combined_specs)
   raw_visit_spec <- if (had_raw_visit_spec) combined_specs$Raw_VISIT else NULL
 
-  combined_specs <- prepare_combined_specs_for_generation(combined_specs, desired_specs = desired_domains)
+  combined_specs <- prepare_combined_specs_for_generation(
+    combined_specs,
+    desired_specs = desired_domains
+  )
 
   if (had_raw_visit_spec && "Raw_VISIT" %in% names(combined_specs)) {
     combined_specs$Raw_VISIT <- raw_visit_spec
   }
 
   if (length(combined_specs) == 0) {
-    warning("No Raw_* domains found in the combined workflow specs.", call. = FALSE)
+    warning(
+      "No Raw_* domains found in the combined workflow specs.",
+      call. = FALSE
+    )
     return(list())
   }
 
-  logger::log_info("Generating data for {length(combined_specs)} domains: {paste(names(combined_specs), collapse = ', ')}")
+  logger::log_info(
+    "Generating data for {length(combined_specs)} domains: {paste(names(combined_specs), collapse = ', ')}"
+  )
 
   # -- Build the domain registry for known-domain lookups -------------------
   registry <- get_domain_registry()
 
   # -- Determine final (max) row counts per domain ----------------------------
   domain_max_n <- .resolve_domain_counts(
-    domain_names   = names(combined_specs),
+    domain_names = names(combined_specs),
     n_participants = n_participants,
-    n_sites        = n_sites,
-    user_counts    = domain_counts
+    n_sites = n_sites,
+    user_counts = domain_counts
   )
 
   # -- Single-snapshot shortcut -----------------------------------------------
   if (snapshot_count <= 1L) {
     return(
       .generate_single_snapshot(
-        combined_specs   = combined_specs,
-        domain_n         = domain_max_n,
-        registry         = registry,
-        start_date       = start_date,
-        end_date         = end_date,
-        snapshot_idx     = 1L,
-        snapshot_count   = 1L,
-        snapshot_width   = snapshot_width,
-        study_id         = study_id,
-        previous_data    = list(),
+        combined_specs = combined_specs,
+        domain_n = domain_max_n,
+        registry = registry,
+        start_date = start_date,
+        end_date = end_date,
+        snapshot_idx = 1L,
+        snapshot_count = 1L,
+        snapshot_width = snapshot_width,
+        study_id = study_id,
+        previous_data = list(),
         column_overrides = column_overrides,
         total_site_count = n_sites,
-        risk_profile  = risk_profile
+        risk_profile = risk_profile
       )
     )
   }
 
   # -- Multi-snapshot longitudinal generation ---------------------------------
-  snapshot_start_dates <- seq(start_date, length.out = snapshot_count, by = snapshot_width)
+  snapshot_start_dates <- seq(
+    start_date,
+    length.out = snapshot_count,
+    by = snapshot_width
+  )
   snapshot_end_dates <- c(snapshot_start_dates[-1] - 1, end_date)
   snapshot_end_dates <- pmin(snapshot_end_dates, end_date)
 
@@ -275,27 +291,31 @@ generate_data_from_workflows <- function(
   previous_data <- list()
 
   for (snapshot_idx in seq_len(snapshot_count)) {
-    logger::log_info("-- Snapshot {snapshot_idx}/{snapshot_count} ({snapshot_end_dates[snapshot_idx]}) --")
+    logger::log_info(
+      "-- Snapshot {snapshot_idx}/{snapshot_count} ({snapshot_end_dates[snapshot_idx]}) --"
+    )
 
     domain_n_this <- stats::setNames(
-      lapply(names(domain_count_vectors), function(d) domain_count_vectors[[d]][snapshot_idx]),
+      lapply(names(domain_count_vectors), function(d) {
+        domain_count_vectors[[d]][snapshot_idx]
+      }),
       names(domain_count_vectors)
     )
 
     snapshot_data <- .generate_single_snapshot(
-      combined_specs   = combined_specs,
-      domain_n         = domain_n_this,
-      registry         = registry,
-      start_date       = snapshot_start_dates[snapshot_idx],
-      end_date         = snapshot_end_dates[snapshot_idx],
-      snapshot_idx     = snapshot_idx,
-      snapshot_count   = snapshot_count,
-      snapshot_width   = snapshot_width,
-      study_id         = study_id,
-      previous_data    = previous_data,
+      combined_specs = combined_specs,
+      domain_n = domain_n_this,
+      registry = registry,
+      start_date = snapshot_start_dates[snapshot_idx],
+      end_date = snapshot_end_dates[snapshot_idx],
+      snapshot_idx = snapshot_idx,
+      snapshot_count = snapshot_count,
+      snapshot_width = snapshot_width,
+      study_id = study_id,
+      previous_data = previous_data,
       column_overrides = column_overrides,
       total_site_count = n_sites,
-      risk_profile  = risk_profile
+      risk_profile = risk_profile
     )
 
     snapshots[[snapshot_idx]] <- snapshot_data
@@ -320,7 +340,8 @@ generate_data_from_workflows <- function(
 #'
 #' @keywords internal
 .registry_prerequisites_met <- function(domain, registry_domains) {
-  upstream <- switch(domain,
+  upstream <- switch(
+    domain,
     Raw_STUDY = character(0),
     Raw_SITE = character(0),
     Raw_SUBJ = "Raw_SITE",
@@ -338,13 +359,21 @@ generate_data_from_workflows <- function(
 #' `previous_data`.
 #'
 #' @keywords internal
-.generate_single_snapshot <- function(combined_specs, domain_n, registry,
-                                      start_date, end_date,
-                                      snapshot_idx, snapshot_count, snapshot_width,
-                                      study_id, previous_data,
-                                      column_overrides = NULL,
-                                      total_site_count = NULL,
-                                      risk_profile = NULL) {
+.generate_single_snapshot <- function(
+  combined_specs,
+  domain_n,
+  registry,
+  start_date,
+  end_date,
+  snapshot_idx,
+  snapshot_count,
+  snapshot_width,
+  study_id,
+  previous_data,
+  column_overrides = NULL,
+  total_site_count = NULL,
+  risk_profile = NULL
+) {
   data <- list()
   registry_domains <- character(0)
 
@@ -358,18 +387,18 @@ generate_data_from_workflows <- function(
 
     # -- Tier 1: Domain registry ------------------------------------------------
     registry_context <- list(
-      data           = data,
-      previous_data  = previous_data,
+      data = data,
+      previous_data = previous_data,
       combined_specs = combined_specs,
-      n              = n,
-      start_date     = start_date,
-      end_date       = end_date,
-      snapshot_idx   = snapshot_idx,
+      n = n,
+      start_date = start_date,
+      end_date = end_date,
+      snapshot_idx = snapshot_idx,
       snapshot_count = snapshot_count,
       snapshot_width = snapshot_width,
-      study_id       = study_id,
+      study_id = study_id,
       total_site_count = total_site_count,
-      risk_profile   = risk_profile
+      risk_profile = risk_profile
     )
 
     # Fall through to later tiers only when the domain is unregistered (NULL)
@@ -381,22 +410,32 @@ generate_data_from_workflows <- function(
       registry_domains,
       if ("protocol_number" %in% names(data$Raw_STUDY)) "Raw_STUDY"
     )
-    registry_result <- if (.registry_prerequisites_met(domain, available_domains)) {
+    registry_result <- if (
+      .registry_prerequisites_met(domain, available_domains)
+    ) {
       generate_domain_from_registry(
         data_type = domain,
-        context   = registry_context,
-        registry  = registry
+        context = registry_context,
+        registry = registry
       )
     } else {
-      logger::log_debug("Skipping registry for {domain}: upstream domains not registry-generated")
+      logger::log_debug(
+        "Skipping registry for {domain}: upstream domains not registry-generated"
+      )
       NULL
     }
 
     if (!is.null(registry_result)) {
       data[[domain]] <- as.data.frame(registry_result)
       registry_domains <- c(registry_domains, domain)
-      data[[domain]] <- .apply_column_overrides(data[[domain]], domain, column_overrides)
-      logger::log_info("{domain} generated via domain registry ({nrow(data[[domain]])} rows)")
+      data[[domain]] <- .apply_column_overrides(
+        data[[domain]],
+        domain,
+        column_overrides
+      )
+      logger::log_info(
+        "{domain} generated via domain registry ({nrow(data[[domain]])} rows)"
+      )
       next
     }
 
@@ -406,44 +445,58 @@ generate_data_from_workflows <- function(
       legacy_result <- tryCatch(
         {
           legacy_fn(
-            data          = data,
+            data = data,
             previous_data = previous_data,
-            spec          = combined_specs,
-            n             = n,
-            startDate     = start_date,
-            endDate       = end_date
+            spec = combined_specs,
+            n = n,
+            startDate = start_date,
+            endDate = end_date
           )
         },
         error = function(e) {
-          logger::log_debug("Legacy function failed for {domain}: {conditionMessage(e)}")
+          logger::log_debug(
+            "Legacy function failed for {domain}: {conditionMessage(e)}"
+          )
           NULL
         }
       )
 
       if (!is.null(legacy_result)) {
         data[[domain]] <- as.data.frame(legacy_result)
-        data[[domain]] <- .apply_column_overrides(data[[domain]], domain, column_overrides)
-        logger::log_info("{domain} generated via legacy function ({nrow(data[[domain]])} rows)")
+        data[[domain]] <- .apply_column_overrides(
+          data[[domain]],
+          domain,
+          column_overrides
+        )
+        logger::log_info(
+          "{domain} generated via legacy function ({nrow(data[[domain]])} rows)"
+        )
         next
       }
     }
 
     # -- Tier 3: Type-based fallback --------------------------------------------
     fallback_context <- list(
-      data       = data,
+      data = data,
       start_date = start_date,
-      end_date   = end_date
+      end_date = end_date
     )
 
     data[[domain]] <- generate_unknown_domain(
-      domain_name   = domain,
-      domain_spec   = domain_spec,
-      n             = n,
-      context       = fallback_context,
+      domain_name = domain,
+      domain_spec = domain_spec,
+      n = n,
+      context = fallback_context,
       previous_data = previous_data[[domain]]
     )
-    data[[domain]] <- .apply_column_overrides(data[[domain]], domain, column_overrides)
-    logger::log_info("{domain} generated via type-based fallback ({nrow(data[[domain]])} rows)")
+    data[[domain]] <- .apply_column_overrides(
+      data[[domain]],
+      domain,
+      column_overrides
+    )
+    logger::log_info(
+      "{domain} generated via type-based fallback ({nrow(data[[domain]])} rows)"
+    )
   }
 
   data
@@ -500,7 +553,12 @@ generate_data_from_workflows <- function(
 #' and falls back to `n_participants` for unknown domains.
 #'
 #' @keywords internal
-.resolve_domain_counts <- function(domain_names, n_participants, n_sites, user_counts = NULL) {
+.resolve_domain_counts <- function(
+  domain_names,
+  n_participants,
+  n_sites,
+  user_counts = NULL
+) {
   # Heuristic: map domain name patterns to multipliers of n_participants
   multipliers <- list(
     Raw_STUDY = function(np, ns) 1L,

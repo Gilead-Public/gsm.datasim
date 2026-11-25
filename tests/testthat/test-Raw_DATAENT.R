@@ -45,7 +45,11 @@ test_that("Raw_DATAENT generates a complete dataset from scratch", {
   expect_setequal(
     names(res),
     c(
-      "subject_nsv", "visnam", "studyid", "form", "visit_date",
+      "subject_nsv",
+      "visnam",
+      "studyid",
+      "form",
+      "visit_date",
       "data_entry_lag"
     )
   )
