@@ -88,6 +88,9 @@ test_that(".sets_testdata_builder() detects settings of the option (#190)", {
     "options(gsm.testdata_builder =",
     '"x")'
   )))
+  expect_true(.sets_testdata_builder(
+    'if (interactive()) { base::options(`gsm.testdata_builder` = "x") }'
+  ))
 })
 
 test_that(".sets_testdata_builder() ignores reads, comments, and other options (#190)", {
@@ -102,7 +105,28 @@ test_that(".sets_testdata_builder() ignores reads, comments, and other options (
   expect_false(.sets_testdata_builder(
     '  # options(gsm.testdata_builder = "x")'
   ))
+  expect_false(.sets_testdata_builder(
+    'options(width = 100) # options(gsm.testdata_builder = "other::builder")'
+  ))
+  expect_false(.sets_testdata_builder(
+    'message(\'options(gsm.testdata_builder = "other::builder")\')'
+  ))
+  expect_false(.sets_testdata_builder(
+    'settings <- list(gsm.testdata_builder = "other::builder")'
+  ))
   expect_false(.sets_testdata_builder(character()))
+})
+
+test_that("use_gsm_datasim() ignores option assignments in comments and strings (#190)", {
+  for (line in c(
+    'options(width = 100) # options(gsm.testdata_builder = "other::builder")',
+    'message(\'options(gsm.testdata_builder = "other::builder")\')'
+  )) {
+    path <- local_rprofile()
+    writeLines(line, path)
+    expect_message(use_gsm_datasim(), "Restart R")
+    expect_identical(readLines(path), c(line, .testdata_builder_line()))
+  }
 })
 
 test_that("use_gsm_datasim() adds the option when the profile only reads it (#190)", {

@@ -49,11 +49,29 @@ use_gsm_datasim <- function(scope = c("user", "project")) {
 #' @returns `TRUE` or `FALSE`.
 #' @keywords internal
 .sets_testdata_builder <- function(lines) {
-  code <- lines[!grepl("^\\s*#", lines)]
-  any(grepl(
-    "(^|[^[:alnum:]._])[\"'`]?gsm\\.testdata_builder[\"'`]?\\s*=($|[^=])",
-    code
-  ))
+  sets_builder <- function(node) {
+    if (missing(node) || !(is.call(node) || is.expression(node))) {
+      return(FALSE)
+    }
+    if (is.call(node) && (
+      identical(node[[1]], quote(options)) ||
+        identical(node[[1]], quote(base::options))
+    )) {
+      args <- as.list(node)[-1L]
+      if ("gsm.testdata_builder" %in% names(args)) {
+        return(TRUE)
+      }
+      if (any(vapply(args, function(arg) {
+        !missing(arg) && is.call(arg) &&
+          identical(arg[[1]], quote(list)) &&
+          "gsm.testdata_builder" %in% names(arg)
+      }, logical(1)))) {
+        return(TRUE)
+      }
+    }
+    any(vapply(as.list(node), sets_builder, logical(1)))
+  }
+  sets_builder(parse(text = lines, keep.source = FALSE))
 }
 
 #' Build the `.Rprofile` line that sets the test data builder
