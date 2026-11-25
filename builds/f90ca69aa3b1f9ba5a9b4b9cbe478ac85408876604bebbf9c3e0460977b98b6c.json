@@ -1,0 +1,39 @@
+{
+  "built_at": "2026-11-25T20:49:33Z",
+  "fingerprint": "6379f460cf6c760f7dd3636bd350e494642c6af2062238fb58fab347e0e7c6da",
+  "format": 1,
+  "inputs_hash": "f90ca69aa3b1f9ba5a9b4b9cbe478ac85408876604bebbf9c3e0460977b98b6c",
+  "packages": {
+    "gsm.core": {
+      "remote_sha": "4e393a29cfbda047901e373c7031f520f8deddbc",
+      "version": "1.4.0"
+    },
+    "gsm.datasim": {
+      "remote_sha": "8189375da0908a682d6d1255ac173570e490e9fb",
+      "version": "2.2.0"
+    },
+    "gsm.kri": {
+      "remote_sha": "e461a2909d3c126c1ad180f738eacb25b38f1c96",
+      "version": "1.9.0"
+    },
+    "gsm.mapping": {
+      "remote_sha": "085a7e94e3ac58e951343c1070e68bb163c32a92",
+      "version": "1.3.0"
+    },
+    "gsm.qtl": {
+      "remote_sha": "10d61781495e7b15231860b2f7879c6e00b792d0",
+      "version": "1.4.0"
+    },
+    "gsm.reporting": {
+      "remote_sha": "ba5cd2233660ce6a137804281ecdd85ce0375a69",
+      "version": "1.1.9"
+    },
+    "workr": {
+      "remote_sha": "f8346be02ed3e10971d96441ac82e13a49c0cd4f",
+      "version": "1.1.1"
+    }
+  },
+  "source": "main",
+  "tag": "data-6379f460cf6c",
+  "triggered_by": "Gilead-Public/gsm.datasim@8189375da0908a682d6d1255ac173570e490e9fb"
+}
